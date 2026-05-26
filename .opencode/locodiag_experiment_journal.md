@@ -54,11 +54,19 @@ All runs below use true optimizer preconditioning after `1dd9139`, with
 | O only | `.opencode/locodiag_o_normquarter_fixed_screen200.log` | 100 | 4.7024 | 46.292s | 462.92ms | worse than baseline; likely fading |
 | O only | `.opencode/locodiag_o_normquarter_fixed_screen200.log` | 150 | 4.1377 | 85.341s | 568.94ms | worse than baseline |
 | O only | `.opencode/locodiag_o_normquarter_fixed_screen200.log` | 200 | 3.9016 | 134.800s | 674.00ms | no loss parity; drop |
+| O only, layers 0-5 | `.opencode/locodiag_o_early_normquarter_fixed_screen60.log` | 20 | 6.5455 | 7.249s | 362.46ms | weak early |
+| O only, layers 0-5 | `.opencode/locodiag_o_early_normquarter_fixed_screen60.log` | 40 | 5.4553 | 20.645s | 516.12ms | worse than all-layer O |
+| O only, layers 0-5 | `.opencode/locodiag_o_early_normquarter_fixed_screen60.log` | 60 | 4.8743 | 40.497s | 674.95ms | bad; drop early/mid O |
+| O only, layers 7-10 | `.opencode/locodiag_o_late_normquarter_fixed_screen60.log` | 20 | 6.5727 | 7.252s | 362.60ms | bad early |
+| O only, layers 7-10 | `.opencode/locodiag_o_late_normquarter_fixed_screen60.log` | 40 | 5.4573 | 20.640s | 515.99ms | bad |
+| O only, layers 7-10 | `.opencode/locodiag_o_late_normquarter_fixed_screen60.log` | 60 | 4.8689 | 40.489s | 674.82ms | bad; drop late O |
 
 Attention conclusion so far: O-only is cheap and improves the 60-step screen,
 but it does not survive to 200 steps. V-only has a better 200-step loss but the
 effect is too small for its step-time cost. V/O combined and late-layer V/O are
-not useful.
+not useful. Early/mid O-only is actively bad, so the remaining layer hypothesis
+was late O-only, which is also bad. The O all-layer 60-step win appears to be an
+unstable interaction, not a useful layer-local improvement.
 
 ## Post-Fix MLP Split Runs
 
@@ -87,9 +95,12 @@ it is consistent with the noisy projection-feature diagonal hypothesis.
 
 ## Current Next Actions
 
-1. Commit/push this journal batch with the copied post-fix logs.
-2. Continue layer-specific attention probes, starting with O-only layer subsets,
-   because O-only is cheap and wins 60-step but fades in the full 200-step run.
-3. If no attention layer subset survives, the current diagonal preconditioner is not
+1. Commit/push this journal batch with the copied layer-probe logs.
+2. Shut down the currently idle 1xH100 pod; no current probe justifies keeping it
+   alive.
+3. Next local work: decide whether to remove diagonal capture overhead with a
+   real fused/kernelized path or abandon this diagonal-preconditioner family for
+   the current speedrun branch.
+4. At this point, the current diagonal preconditioner is not
    speedrun-positive without kernel-side overhead removal or a stronger
    algorithmic variant.
