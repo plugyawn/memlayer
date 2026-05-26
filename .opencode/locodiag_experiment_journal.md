@@ -93,14 +93,41 @@ it is consistent with the noisy projection-feature diagonal hypothesis.
 - O feature diagonals are much heavier-tailed than V/attention-input diagonals,
   but O-only timing is closer to baseline than V-only.
 
+## Newton-Muon Conversion Plan
+
+The next implementation target is not direct LocoProp-S. It is a narrow
+Newton-Muon-style probe that keeps the NorMuon/Polar-Express stack and inserts a
+right-side input preconditioner after momentum and before Polar Express.
+
+Implemented locally after the diagonal screens:
+
+- `LOCO_FULL_SURFACES=v` enables only the V matrix in `vo_bank`.
+- The collected statistic is local/cadenced full `C = X.T @ X` from the
+  768-dimensional normalized attention input, not the 3072-dimensional MLP
+  projection feature.
+- `LOCO_FULL_REFRESH_INTERVAL` gates collection; default `8`.
+- `LOCO_FULL_LOCAL_STATS=1` avoids a per-refresh cross-rank all-reduce by
+  default.
+- `LOCO_FULL_EMA_BETA`, `LOCO_FULL_RIDGE_REL`, and
+  `LOCO_FULL_DENOM_SCALE` control the cached Cholesky factor.
+- The optimizer path is `raw grad -> Nesterov operand -> cholesky_solve(C) ->
+  norm-preserving blend -> Polar Express -> NorMuon variance reduction`.
+- `LOCO_FULL_NOOP=1` keeps the collection/factorization/solve overhead while
+  setting blend to zero, so it is a wall-clock control rather than an algorithmic
+  candidate.
+
+First H100 screens to run after local validation:
+
+| run | env delta | checkpoint | purpose |
+| --- | --- | ---: | --- |
+| full V noop | `LOCO_FULL_SURFACES=v LOCO_FULL_NOOP=1 LOCO_FULL_REFRESH_INTERVAL=8` | 60 | measure full-C overhead floor |
+| full V Newton-Muon | `LOCO_FULL_SURFACES=v LOCO_FULL_REFRESH_INTERVAL=8 LOCO_FULL_BLEND_MAX=0.25 LOCO_FULL_RIDGE_REL=0.03` | 60 | first algorithmic signal |
+| full V refresh16 | same, `LOCO_FULL_REFRESH_INTERVAL=16` | 60 | overhead/cadence tradeoff if refresh8 is too slow |
+
 ## Current Next Actions
 
-1. Commit/push this journal batch with the copied layer-probe logs.
-2. Shut down the currently idle 1xH100 pod; no current probe justifies keeping it
-   alive.
-3. Next local work: decide whether to remove diagonal capture overhead with a
-   real fused/kernelized path or abandon this diagonal-preconditioner family for
-   the current speedrun branch.
-4. At this point, the current diagonal preconditioner is not
-   speedrun-positive without kernel-side overhead removal or a stronger
-   algorithmic variant.
+1. Commit/push the Newton-Muon V-only implementation after local checks.
+2. Launch a new 1xH100 only after the branch is clean and pushed.
+3. Run the full-V no-op first, then the real full-V Newton-Muon screen.
+4. Keep the pod alive only if the real full-V screen is loss-positive enough to
+   justify a 200-step continuation.
