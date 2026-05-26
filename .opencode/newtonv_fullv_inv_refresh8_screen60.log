@@ -1,0 +1,103 @@
+[Gloo] Rank 0 is connected to 0 peer ranks. Expected number of connected peer ranks is : 0
+Fetching 4 files:   0%|          | 0/4 [00:00<?, ?it/s]Fetching 4 files: 100%|██████████| 4/4 [00:00<00:00, 2681.35it/s]
+logs/959c9197-6f39-4f18-bdb3-989fd5c5c6f1.txt
+Compiling model and warming up kernels (~7 minutes on first execution)
+Sampling steps [0, 1, 8, 16, 18, 19, 20, 21, 24, 32, 38, 39, 40, 41, 48, 56, 58, 59, 60] for warmup
+/usr/local/lib/python3.10/dist-packages/torch/_inductor/compile_fx.py:321: UserWarning: TensorFloat32 tensor cores for float32 matrix multiplication available but not enabled. Consider setting `torch.set_float32_matmul_precision('high')` for better performance.
+  warnings.warn(
+[rank0]:W0526 21:00:49.375000 5268 torch/_inductor/select_algorithm.py:2387] [0/1] Constructing input/output tensor meta failed for Extern Choice
+[rank0]:W0526 21:00:49.510000 5268 torch/_inductor/select_algorithm.py:2387] [0/1] Constructing input/output tensor meta failed for Extern Choice
+[rank0]:W0526 21:00:49.632000 5268 torch/_inductor/select_algorithm.py:2387] [0/1] Constructing input/output tensor meta failed for Extern Choice
+[rank0]:W0526 21:00:49.758000 5268 torch/_inductor/select_algorithm.py:2387] [0/1] Constructing input/output tensor meta failed for Extern Choice
+[rank0]:W0526 21:00:49.875000 5268 torch/_inductor/select_algorithm.py:2387] [0/1] Constructing input/output tensor meta failed for Extern Choice
+[rank0]:W0526 21:00:50.033000 5268 torch/_inductor/select_algorithm.py:2387] [0/1] Constructing input/output tensor meta failed for Extern Choice
+loco_full step=0 v_gram_ema refreshed=1 mean_diag=1.6384e+04 min=1.2510e+04 p01=1.3068e+04 p50=1.6148e+04 p99=2.1345e+04 max=2.4298e+04
+loco_full step=1 v_gram_ema refreshed=0 mean_diag=1.6384e+04 min=1.2510e+04 p01=1.3068e+04 p50=1.6148e+04 p99=2.1345e+04 max=2.4298e+04
+loco_diag_grad_ratio step=1 full_v:n=10 mean=9.9951e-01 min=9.9950e-01 max=9.9952e-01
+[rank0]:W0526 21:05:44.341000 5268 torch/_inductor/select_algorithm.py:2387] [0/7] Constructing input/output tensor meta failed for Extern Choice
+[rank0]:W0526 21:05:44.478000 5268 torch/_inductor/select_algorithm.py:2387] [0/7] Constructing input/output tensor meta failed for Extern Choice
+[rank0]:W0526 21:05:44.606000 5268 torch/_inductor/select_algorithm.py:2387] [0/7] Constructing input/output tensor meta failed for Extern Choice
+[rank0]:W0526 21:05:44.738000 5268 torch/_inductor/select_algorithm.py:2387] [0/7] Constructing input/output tensor meta failed for Extern Choice
+[rank0]:W0526 21:05:44.862000 5268 torch/_inductor/select_algorithm.py:2387] [0/7] Constructing input/output tensor meta failed for Extern Choice
+[rank0]:W0526 21:05:45.030000 5268 torch/_inductor/select_algorithm.py:2387] [0/7] Constructing input/output tensor meta failed for Extern Choice
+[rank0]:W0526 21:07:11.344000 5268 torch/_inductor/select_algorithm.py:2387] [0/9] Constructing input/output tensor meta failed for Extern Choice
+[rank0]:W0526 21:07:11.484000 5268 torch/_inductor/select_algorithm.py:2387] [0/9] Constructing input/output tensor meta failed for Extern Choice
+[rank0]:W0526 21:07:11.613000 5268 torch/_inductor/select_algorithm.py:2387] [0/9] Constructing input/output tensor meta failed for Extern Choice
+[rank0]:W0526 21:07:11.745000 5268 torch/_inductor/select_algorithm.py:2387] [0/9] Constructing input/output tensor meta failed for Extern Choice
+[rank0]:W0526 21:07:11.868000 5268 torch/_inductor/select_algorithm.py:2387] [0/9] Constructing input/output tensor meta failed for Extern Choice
+[rank0]:W0526 21:07:12.034000 5268 torch/_inductor/select_algorithm.py:2387] [0/9] Constructing input/output tensor meta failed for Extern Choice
+Resetting Model
+step:0/60 val_loss:10.8309 train_time:0ms step_avg:0.06ms
+loco_full step=0 v_gram_ema refreshed=1 mean_diag=1.6384e+04 min=1.2510e+04 p01=1.3068e+04 p50=1.6148e+04 p99=2.1345e+04 max=2.4298e+04
+step:1/60 train_time:551ms step_avg:550.69ms
+loco_full step=1 v_gram_ema refreshed=0 mean_diag=1.6384e+04 min=1.2510e+04 p01=1.3068e+04 p50=1.6148e+04 p99=2.1345e+04 max=2.4298e+04
+loco_diag_grad_ratio step=1 full_v:n=10 mean=9.9951e-01 min=9.9950e-01 max=9.9952e-01
+step:2/60 train_time:1004ms step_avg:502.07ms
+loco_full step=2 v_gram_ema refreshed=0 mean_diag=1.6384e+04 min=1.2510e+04 p01=1.3068e+04 p50=1.6148e+04 p99=2.1345e+04 max=2.4298e+04
+loco_diag_grad_ratio step=2 full_v:n=10 mean=9.9900e-01 min=9.9898e-01 max=9.9902e-01
+step:3/60 train_time:1434ms step_avg:478.02ms
+step:4/60 train_time:1797ms step_avg:449.29ms
+step:5/60 train_time:2213ms step_avg:442.55ms
+step:6/60 train_time:2641ms step_avg:440.15ms
+step:7/60 train_time:3074ms step_avg:439.17ms
+step:8/60 train_time:3509ms step_avg:438.58ms
+step:9/60 train_time:4071ms step_avg:452.35ms
+step:10/60 train_time:4447ms step_avg:444.74ms
+loco_full step=10 v_gram_ema refreshed=0 mean_diag=1.6384e+04 min=1.2316e+04 p01=1.2987e+04 p50=1.6093e+04 p99=2.1489e+04 max=2.3651e+04
+loco_diag_grad_ratio step=10 full_v:n=10 mean=9.9503e-01 min=9.9447e-01 max=9.9605e-01
+step:11/60 train_time:4969ms step_avg:451.71ms
+step:12/60 train_time:5368ms step_avg:447.30ms
+step:13/60 train_time:5829ms step_avg:448.42ms
+step:14/60 train_time:6286ms step_avg:449.00ms
+step:15/60 train_time:6744ms step_avg:449.62ms
+step:16/60 train_time:7203ms step_avg:450.20ms
+step:17/60 train_time:7792ms step_avg:458.32ms
+step:18/60 train_time:8180ms step_avg:454.43ms
+step:19/60 train_time:8629ms step_avg:454.17ms
+step:20/60 train_time:9078ms step_avg:453.89ms
+step:20/60 val_loss:6.5182 train_time:9161ms step_avg:458.05ms
+step:21/60 train_time:9999ms step_avg:476.14ms
+step:22/60 train_time:10997ms step_avg:499.84ms
+step:23/60 train_time:12002ms step_avg:521.84ms
+step:24/60 train_time:13148ms step_avg:547.83ms
+step:25/60 train_time:14533ms step_avg:581.30ms
+step:26/60 train_time:15457ms step_avg:594.50ms
+step:27/60 train_time:16547ms step_avg:612.84ms
+step:28/60 train_time:17635ms step_avg:629.83ms
+step:29/60 train_time:18729ms step_avg:645.82ms
+step:30/60 train_time:19812ms step_avg:660.40ms
+step:31/60 train_time:20905ms step_avg:674.34ms
+step:32/60 train_time:21995ms step_avg:687.36ms
+step:33/60 train_time:23370ms step_avg:708.17ms
+step:34/60 train_time:24324ms step_avg:715.42ms
+step:35/60 train_time:25490ms step_avg:728.29ms
+step:36/60 train_time:26609ms step_avg:739.15ms
+step:37/60 train_time:27708ms step_avg:748.86ms
+step:38/60 train_time:28784ms step_avg:757.47ms
+step:39/60 train_time:29909ms step_avg:766.89ms
+step:40/60 train_time:31070ms step_avg:776.76ms
+step:40/60 val_loss:5.3715 train_time:31246ms step_avg:781.16ms
+step:41/60 train_time:33201ms step_avg:809.78ms
+step:42/60 train_time:34819ms step_avg:829.02ms
+step:43/60 train_time:36654ms step_avg:852.42ms
+step:44/60 train_time:38423ms step_avg:873.25ms
+step:45/60 train_time:40244ms step_avg:894.31ms
+step:46/60 train_time:42037ms step_avg:913.86ms
+step:47/60 train_time:43895ms step_avg:933.94ms
+step:48/60 train_time:45755ms step_avg:953.22ms
+step:49/60 train_time:48031ms step_avg:980.23ms
+step:50/60 train_time:49791ms step_avg:995.83ms
+loco_full step=50 v_gram_ema refreshed=0 mean_diag=2.5131e+04 min=1.3420e+04 p01=1.6241e+04 p50=2.3874e+04 p99=4.4864e+04 max=6.7156e+04
+loco_diag_grad_ratio step=50 full_v:n=10 mean=9.7148e-01 min=9.6909e-01 max=9.7359e-01
+step:51/60 train_time:51780ms step_avg:1015.30ms
+step:52/60 train_time:53459ms step_avg:1028.05ms
+step:53/60 train_time:55235ms step_avg:1042.16ms
+step:54/60 train_time:57191ms step_avg:1059.10ms
+step:55/60 train_time:58997ms step_avg:1072.67ms
+step:56/60 train_time:60872ms step_avg:1086.99ms
+step:57/60 train_time:63022ms step_avg:1105.65ms
+step:58/60 train_time:64779ms step_avg:1116.87ms
+step:59/60 train_time:66617ms step_avg:1129.10ms
+step:60/60 train_time:68538ms step_avg:1142.29ms
+step:60/60 val_loss:4.8156 train_time:68812ms step_avg:1146.87ms
+peak memory allocated: 37419 MiB reserved: 53158 MiB

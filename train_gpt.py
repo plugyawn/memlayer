@@ -89,6 +89,10 @@ LOCO_FULL_RIDGE_REL = float(os.environ.get("LOCO_FULL_RIDGE_REL", "0.03"))
 LOCO_FULL_LOCAL_STATS = os.environ.get("LOCO_FULL_LOCAL_STATS", "1") == "1"
 LOCO_FULL_NOOP = os.environ.get("LOCO_FULL_NOOP", "0") == "1"
 LOCO_FULL_END_STEP = int(os.environ.get("LOCO_FULL_END_STEP", "-1"))
+LOCO_FULL_PRECOND_DTYPE = os.environ.get("LOCO_FULL_PRECOND_DTYPE", "fp32").lower()
+if LOCO_FULL_PRECOND_DTYPE not in {"fp32", "bf16"}:
+    raise ValueError("LOCO_FULL_PRECOND_DTYPE must be 'fp32' or 'bf16'")
+LOCO_FULL_PRECOND_BF16 = LOCO_FULL_PRECOND_DTYPE == "bf16"
 LOCO_FEATURE_ACTIVE = LOCO_DIAG_ACTIVE or LOCO_FULL_ACTIVE
 
 def _parse_loco_diag_layers(name: str, count: int, *, disallow: frozenset[int] = frozenset()) -> frozenset[int] | None:
@@ -127,6 +131,18 @@ def _loco_full_should_refresh(step: int) -> bool:
     if LOCO_FULL_END_STEP >= 0 and step > LOCO_FULL_END_STEP:
         return False
     return step % LOCO_FULL_REFRESH_INTERVAL == 0
+
+def _loco_full_v_layer_allowed(attn_idx: int) -> bool:
+    model_layer = attn_idx + (attn_idx >= 6)
+    return LOCO_FULL_V and _loco_diag_layer_active(model_layer, LOCO_DIAG_ATTN_LAYER_SET)
+
+def _loco_full_should_collect_v_layer(loco_model, attn_idx: int) -> bool:
+    if not _loco_full_v_layer_allowed(attn_idx):
+        return False
+    return (not LOCO_FULL_LOCAL_STATS) or attn_idx in loco_model.loco_full_v_owned_layers
+
+def _loco_full_should_factor_v_layer(loco_model, attn_idx: int) -> bool:
+    return _loco_full_v_layer_allowed(attn_idx) and attn_idx in loco_model.loco_full_v_owned_layers
 
 def _parse_loco_diag_log_steps() -> frozenset[int]:
     spec = os.environ.get("LOCO_DIAG_LOG_STEPS", "0,1,2,10,50,100").strip().lower()
@@ -1283,11 +1299,18 @@ class NorMuonAndAdam:
             if not _loco_diag_layer_active(model_layer, LOCO_DIAG_ATTN_LAYER_SET):
                 continue
             before_norm = grad_chunk[mat_idx].float().norm() if self._loco_log_step else None
-            NorMuonAndAdam._loco_full_right_inverse_precondition_cols_inplace(
-                grad_chunk[mat_idx],
-                self.loco_diag_model.loco_full_v_inv[layer_idx],
-                self._loco_full_blend_t,
-            )
+            if LOCO_FULL_PRECOND_BF16:
+                NorMuonAndAdam._loco_full_right_inverse_bf16_precondition_cols_inplace(
+                    grad_chunk[mat_idx],
+                    self.loco_diag_model.loco_full_v_inv_bf16[layer_idx],
+                    self._loco_full_blend_t,
+                )
+            else:
+                NorMuonAndAdam._loco_full_right_inverse_precondition_cols_inplace(
+                    grad_chunk[mat_idx],
+                    self.loco_diag_model.loco_full_v_inv[layer_idx],
+                    self._loco_full_blend_t,
+                )
             if before_norm is not None:
                 self._record_loco_grad_ratio("full_v", before_norm, grad_chunk[mat_idx].float().norm())
 
@@ -1427,6 +1450,14 @@ class NorMuonAndAdam:
     def _loco_full_right_inverse_precondition_cols_inplace(grad, c_inv, blend_tensor):
         original = grad.float()
         solved = original @ c_inv
+        solved = solved.mul(original.norm().div(solved.norm().clamp_min(1e-12)))
+        grad.copy_(original + blend_tensor.to(torch.float32) * (solved - original))
+
+    @staticmethod
+    @torch.compile(dynamic=False, fullgraph=True)
+    def _loco_full_right_inverse_bf16_precondition_cols_inplace(grad, c_inv, blend_tensor):
+        original = grad.float()
+        solved = (original.bfloat16() @ c_inv).float()
         solved = solved.mul(original.norm().div(solved.norm().clamp_min(1e-12)))
         grad.copy_(original + blend_tensor.to(torch.float32) * (solved - original))
 
@@ -1726,11 +1757,13 @@ class GPT(nn.Module):
             self.register_buffer("loco_mlp_proj_diag", torch.zeros(num_layers, 4 * model_dim, dtype=torch.float32), persistent=False)
         self.loco_full_collect = False
         self.loco_full_v_ema_initialized = False
+        self.loco_full_v_owned_layers = frozenset()
         if LOCO_FULL_ATTN_IN:
             self.register_buffer("loco_full_v_gram", torch.zeros(num_layers - 1, model_dim, model_dim, dtype=torch.float32), persistent=False)
             self.register_buffer("loco_full_v_gram_ema", torch.zeros(num_layers - 1, model_dim, model_dim, dtype=torch.float32), persistent=False)
             self.register_buffer("loco_full_v_chol", torch.eye(model_dim, dtype=torch.float32).repeat(num_layers - 1, 1, 1), persistent=False)
             self.register_buffer("loco_full_v_inv", torch.eye(model_dim, dtype=torch.float32).repeat(num_layers - 1, 1, 1), persistent=False)
+            self.register_buffer("loco_full_v_inv_bf16", torch.eye(model_dim, dtype=torch.bfloat16).repeat(num_layers - 1, 1, 1), persistent=False)
             self.register_buffer("loco_full_eye", torch.eye(model_dim, dtype=torch.float32), persistent=False)
         self.init_mudd(num_layers, model_dim)
 
@@ -1992,7 +2025,12 @@ class GPT(nn.Module):
                 loco_attn_layer = _loco_diag_layer_active(i, LOCO_DIAG_ATTN_LAYER_SET)
                 if LOCO_DIAG_ATTN_IN and loco_attn_layer and self.training:
                     self._accumulate_feature_diag_(self.loco_attn_in_diag[attn_idx], attn_in_normed)
-                if LOCO_FULL_ATTN_IN and self.loco_full_collect and loco_attn_layer and self.training:
+                if (
+                    LOCO_FULL_ATTN_IN
+                    and self.loco_full_collect
+                    and self.training
+                    and _loco_full_should_collect_v_layer(self, attn_idx)
+                ):
                     self._accumulate_feature_gram_(self.loco_full_v_gram[attn_idx], attn_in_normed)
                 B, T = attn_in_normed.size(0), attn_in_normed.size(1)
 
@@ -2457,11 +2495,35 @@ class TrainingManager():
             normuon_defaults=normuon_defaults,
             loco_diag_model=getattr(model, "_orig_mod", model) if LOCO_FEATURE_ACTIVE else None,
         )
+        if LOCO_FULL_V:
+            loco_model = getattr(self.model, "_orig_mod", self.model)
+            loco_model.loco_full_v_owned_layers = self._owned_full_v_attn_layers(loco_model)
+            print0(
+                f"loco_full owned_v_layers rank={rank}: {sorted(loco_model.loco_full_v_owned_layers)} "
+                f"precond_dtype={LOCO_FULL_PRECOND_DTYPE} local_stats={int(LOCO_FULL_LOCAL_STATS)}",
+                console=True,
+            )
 
         # Split embed from lm_head at 2/3 of training (on an odd step so Adam updates)
         self.split_step = training_schedule.split_step
 
         self.reset()
+
+    def _owned_full_v_attn_layers(self, loco_model) -> frozenset[int]:
+        if not LOCO_FULL_V:
+            return frozenset()
+        vo_param = self.optimizer._param_by_label["vo_bank"]
+        vo_cfg = self.optimizer.param_cfgs[vo_param]
+        start_idx = rank * vo_cfg.chunk_size
+        end_idx = start_idx + vo_cfg.chunk_size
+        num_vo_real = loco_model._num_attn_layers * 2
+        layers = set()
+        for global_idx in range(start_idx, end_idx):
+            if global_idx >= num_vo_real:
+                continue
+            if global_idx % 2 == 0:
+                layers.add(global_idx // 2)
+        return frozenset(layers)
 
     def _prepare_loco_diag_buffers(self, step: int):
         if not LOCO_DIAG_ACTIVE:
@@ -2491,9 +2553,8 @@ class TrainingManager():
                     dist.all_reduce(loco_model.loco_full_v_gram, op=dist.ReduceOp.AVG)
             if LOCO_FULL_V:
                 beta = LOCO_FULL_EMA_BETA
-                for layer_idx in range(loco_model._num_attn_layers):
-                    model_layer = layer_idx + (layer_idx >= 6)
-                    if not _loco_diag_layer_active(model_layer, LOCO_DIAG_ATTN_LAYER_SET):
+                for layer_idx in sorted(loco_model.loco_full_v_owned_layers):
+                    if not _loco_full_should_factor_v_layer(loco_model, layer_idx):
                         continue
                     gram = loco_model.loco_full_v_gram[layer_idx].mul(LOCO_FULL_DENOM_SCALE)
                     gram = 0.5 * (gram + gram.T)
@@ -2505,8 +2566,11 @@ class TrainingManager():
                     mean_diag = ema.diagonal().mean().clamp_min(1e-12)
                     c_reg = ema + (LOCO_FULL_RIDGE_REL * mean_diag) * loco_model.loco_full_eye
                     chol = torch.linalg.cholesky(c_reg)
+                    c_inv = torch.cholesky_inverse(chol)
+                    c_inv = 0.5 * (c_inv + c_inv.T)
                     loco_model.loco_full_v_chol[layer_idx].copy_(chol)
-                    loco_model.loco_full_v_inv[layer_idx].copy_(torch.cholesky_inverse(chol))
+                    loco_model.loco_full_v_inv[layer_idx].copy_(c_inv)
+                    loco_model.loco_full_v_inv_bf16[layer_idx].copy_(c_inv.to(torch.bfloat16))
                 loco_model.loco_full_v_ema_initialized = True
         if master_process and step in LOCO_DIAG_LOG_STEP_SET:
             self._log_loco_full_buffers(loco_model, step, refreshed)
@@ -2514,11 +2578,16 @@ class TrainingManager():
     def _log_loco_full_buffers(self, loco_model, step: int, refreshed: bool):
         if not LOCO_FULL_V:
             return
-        d = loco_model.loco_full_v_gram_ema.diagonal(dim1=-2, dim2=-1).float()
+        log_layers = [layer for layer in sorted(loco_model.loco_full_v_owned_layers) if _loco_full_should_factor_v_layer(loco_model, layer)]
+        if not log_layers:
+            print0(f"loco_full step={step} v_gram_ema refreshed={int(refreshed)} owned_layers=[]", console=True)
+            return
+        d = loco_model.loco_full_v_gram_ema[log_layers].diagonal(dim1=-2, dim2=-1).float()
         flat = d.flatten()
         q = torch.quantile(flat, torch.tensor([0.01, 0.50, 0.99], device=flat.device))
         print0(
             f"loco_full step={step} v_gram_ema refreshed={int(refreshed)} "
+            f"owned_layers={log_layers} "
             f"mean_diag={d.mean().item():.4e} "
             f"min={d.min().item():.4e} "
             f"p01={q[0].item():.4e} "
@@ -2629,6 +2698,7 @@ class TrainingManager():
                 loco_model.loco_full_v_gram_ema.zero_()
                 loco_model.loco_full_v_chol.copy_(loco_model.loco_full_eye.repeat(loco_model._num_attn_layers, 1, 1))
                 loco_model.loco_full_v_inv.copy_(loco_model.loco_full_eye.repeat(loco_model._num_attn_layers, 1, 1))
+                loco_model.loco_full_v_inv_bf16.copy_(loco_model.loco_full_eye.to(torch.bfloat16).repeat(loco_model._num_attn_layers, 1, 1))
 
         # Reset NorMuon momentum buffers and split_embed state
         self.optimizer.reset()
@@ -2782,6 +2852,11 @@ train_loader = distributed_data_generator(args.train_files, TRAINING_STAGES[0].b
 gc.collect()
 
 training_time_ms = 0
+loco_full_refresh_time_ms = 0.0
+loco_full_refresh_count = 0
+loco_full_nonrefresh_time_ms = 0.0
+loco_full_nonrefresh_count = 0
+last_train_step_time_ms = 0.0
 # start the clock
 torch.cuda.synchronize()
 t0 = time.perf_counter()
@@ -2810,6 +2885,15 @@ for step in range(train_steps + 1):
         del val_loader
         dist.reduce(val_loss, 0, op=dist.ReduceOp.AVG)
         print0(f"step:{step}/{train_steps} val_loss:{val_loss:.4f} train_time:{training_time_ms:.0f}ms step_avg:{training_time_ms/max(step, 1):.2f}ms", console=True)
+        if LOCO_FULL_ACTIVE and (loco_full_refresh_count or loco_full_nonrefresh_count):
+            refresh_avg = loco_full_refresh_time_ms / max(loco_full_refresh_count, 1)
+            nonrefresh_avg = loco_full_nonrefresh_time_ms / max(loco_full_nonrefresh_count, 1)
+            print0(
+                f"loco_full_step_timing through_step:{step - 1} "
+                f"refresh_avg:{refresh_avg:.2f}ms refresh_n:{loco_full_refresh_count} "
+                f"nonrefresh_avg:{nonrefresh_avg:.2f}ms nonrefresh_n:{loco_full_nonrefresh_count}",
+                console=True,
+            )
         model.train()
         # start the clock again
         torch.cuda.synchronize()
@@ -2835,7 +2919,22 @@ for step in range(train_steps + 1):
 
     # logging
     approx_training_time_ms = training_time_ms + 1000 * (time.perf_counter() - t0)
-    print0(f"step:{step+1}/{train_steps} train_time:{approx_training_time_ms:.0f}ms step_avg:{approx_training_time_ms/(step + 1):.2f}ms", console=True)
+    step_time_ms = approx_training_time_ms - last_train_step_time_ms
+    last_train_step_time_ms = approx_training_time_ms
+    loco_full_refresh = LOCO_FULL_ACTIVE and _loco_full_should_refresh(step)
+    if LOCO_FULL_ACTIVE:
+        if loco_full_refresh:
+            loco_full_refresh_time_ms += step_time_ms
+            loco_full_refresh_count += 1
+        else:
+            loco_full_nonrefresh_time_ms += step_time_ms
+            loco_full_nonrefresh_count += 1
+    print0(
+        f"step:{step+1}/{train_steps} train_time:{approx_training_time_ms:.0f}ms "
+        f"step_avg:{approx_training_time_ms/(step + 1):.2f}ms "
+        f"step_ms:{step_time_ms:.2f} refresh:{int(loco_full_refresh)}",
+        console=True,
+    )
 
 if args.run_evals:
     model.eval()

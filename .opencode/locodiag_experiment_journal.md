@@ -131,16 +131,40 @@ First H100 result:
 | --- | --- | ---: | ---: | ---: | ---: | --- |
 | full V noop, solve path | `.opencode/newtonv_fullv_noop_screen60.log` | 60 | 4.8410 | 143.449s | 2390.81ms | correctness smoke only; timed section included a compile |
 | full V refresh8, solve path | `.opencode/newtonv_fullv_refresh8_screen60.log` | 60 | 4.8345 | 82.347s | 1372.46ms | real loss signal, but per-step Cholesky solve overhead is not viable |
+| full V refresh8, inverse cache | `.opencode/newtonv_fullv_inv_refresh8_screen60.log` | 60 | 4.8156 | 68.812s | 1146.87ms | strong 60-step algorithmic hit, still too slow |
+| full V refresh8, inverse cache | `.opencode/newtonv_fullv_inv_refresh8_screen200.log` | 50 | 5.6335 | 27.941s | 558.83ms | beats 200-step baseline curve |
+| full V refresh8, inverse cache | `.opencode/newtonv_fullv_inv_refresh8_screen200.log` | 100 | 4.6906 | 80.499s | 804.99ms | persists at 100 |
+| full V refresh8, inverse cache | `.opencode/newtonv_fullv_inv_refresh8_screen200.log` | 150 | 4.1139 | 156.564s | 1043.76ms | strong loss, slow |
+| full V refresh8, inverse cache | `.opencode/newtonv_fullv_inv_refresh8_screen200.log` | 200 | 3.8809 | 254.437s | 1272.19ms | strong persistence, engineering cost too high |
+| full V refresh8, inverse cache, end120 | `.opencode/newtonv_fullv_inv_end120_screen200.log` | 50 | 5.6179 | 29.913s | 598.27ms | early-only schedule still ahead |
+| full V refresh8, inverse cache, end120 | `.opencode/newtonv_fullv_inv_end120_screen200.log` | 100 | 4.6889 | 82.215s | 822.15ms | similar to always-on |
+| full V refresh8, inverse cache, end120 | `.opencode/newtonv_fullv_inv_end120_screen200.log` | 150 | 4.1214 | 155.994s | 1039.96ms | loses some mid-run gain |
+| full V refresh8, inverse cache, end120 | `.opencode/newtonv_fullv_inv_end120_screen200.log` | 200 | 3.8840 | 250.488s | 1252.44ms | still strong, but not faster enough |
 
 Follow-up implementation change: cache an explicit inverse/preconditioner on
 refresh and use a matrix multiply in the optimizer step. This keeps the
 Newton-Muon semantics but moves the expensive triangular solve off the per-step
 path.
 
+Persistence verdict: full V is real algorithmic alpha. The final 200-step loss
+gain is `0.0189` versus baseline (`3.8998 -> 3.8809`), much larger than the
+diagonal V signal. It is not a WR candidate at current speed, so the next work is
+pure plumbing.
+
+Next plumbing patch:
+
+- With `LOCO_FULL_LOCAL_STATS=1`, collect full Grams only for V layers owned by
+  this rank's `vo_bank` shard.
+- Factor/cache preconditioners only for owned V layers.
+- Add `LOCO_FULL_PRECOND_DTYPE=bf16` to test BF16 cached-preconditioner matmul
+  after the FP32 owner-local check.
+- Log refresh-step and non-refresh-step timing separately.
+
 ## Current Next Actions
 
-1. Commit/push the Newton-Muon V-only implementation after local checks.
-2. Launch a new 1xH100 only after the branch is clean and pushed.
-3. Run the full-V no-op first, then the real full-V Newton-Muon screen.
-4. Keep the pod alive only if the real full-V screen is loss-positive enough to
-   justify a 200-step continuation.
+1. Commit/push owner-local full-V collection/factorization and BF16/timing
+   instrumentation.
+2. Keep the current H100 alive for focused plumbing screens.
+3. Run owner-local FP32 60-step first.
+4. If the loss signal survives, run owner-local BF16 60-step.
+5. Promote only a near-baseline-time variant to another 200-step run.
