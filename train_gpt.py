@@ -1283,9 +1283,9 @@ class NorMuonAndAdam:
             if not _loco_diag_layer_active(model_layer, LOCO_DIAG_ATTN_LAYER_SET):
                 continue
             before_norm = grad_chunk[mat_idx].float().norm() if self._loco_log_step else None
-            NorMuonAndAdam._loco_full_right_cholesky_precondition_cols_inplace(
+            NorMuonAndAdam._loco_full_right_inverse_precondition_cols_inplace(
                 grad_chunk[mat_idx],
-                self.loco_diag_model.loco_full_v_chol[layer_idx],
+                self.loco_diag_model.loco_full_v_inv[layer_idx],
                 self._loco_full_blend_t,
             )
             if before_norm is not None:
@@ -1424,9 +1424,9 @@ class NorMuonAndAdam:
 
     @staticmethod
     @torch.compile(dynamic=False, fullgraph=True)
-    def _loco_full_right_cholesky_precondition_cols_inplace(grad, chol, blend_tensor):
+    def _loco_full_right_inverse_precondition_cols_inplace(grad, c_inv, blend_tensor):
         original = grad.float()
-        solved = torch.cholesky_solve(original.T.contiguous(), chol).T
+        solved = original @ c_inv
         solved = solved.mul(original.norm().div(solved.norm().clamp_min(1e-12)))
         grad.copy_(original + blend_tensor.to(torch.float32) * (solved - original))
 
@@ -1730,6 +1730,7 @@ class GPT(nn.Module):
             self.register_buffer("loco_full_v_gram", torch.zeros(num_layers - 1, model_dim, model_dim, dtype=torch.float32), persistent=False)
             self.register_buffer("loco_full_v_gram_ema", torch.zeros(num_layers - 1, model_dim, model_dim, dtype=torch.float32), persistent=False)
             self.register_buffer("loco_full_v_chol", torch.eye(model_dim, dtype=torch.float32).repeat(num_layers - 1, 1, 1), persistent=False)
+            self.register_buffer("loco_full_v_inv", torch.eye(model_dim, dtype=torch.float32).repeat(num_layers - 1, 1, 1), persistent=False)
             self.register_buffer("loco_full_eye", torch.eye(model_dim, dtype=torch.float32), persistent=False)
         self.init_mudd(num_layers, model_dim)
 
@@ -2503,7 +2504,9 @@ class TrainingManager():
                         ema.lerp_(gram, 1 - beta)
                     mean_diag = ema.diagonal().mean().clamp_min(1e-12)
                     c_reg = ema + (LOCO_FULL_RIDGE_REL * mean_diag) * loco_model.loco_full_eye
-                    loco_model.loco_full_v_chol[layer_idx].copy_(torch.linalg.cholesky(c_reg))
+                    chol = torch.linalg.cholesky(c_reg)
+                    loco_model.loco_full_v_chol[layer_idx].copy_(chol)
+                    loco_model.loco_full_v_inv[layer_idx].copy_(torch.cholesky_inverse(chol))
                 loco_model.loco_full_v_ema_initialized = True
         if master_process and step in LOCO_DIAG_LOG_STEP_SET:
             self._log_loco_full_buffers(loco_model, step, refreshed)
@@ -2625,6 +2628,7 @@ class TrainingManager():
                 loco_model.loco_full_v_gram.zero_()
                 loco_model.loco_full_v_gram_ema.zero_()
                 loco_model.loco_full_v_chol.copy_(loco_model.loco_full_eye.repeat(loco_model._num_attn_layers, 1, 1))
+                loco_model.loco_full_v_inv.copy_(loco_model.loco_full_eye.repeat(loco_model._num_attn_layers, 1, 1))
 
         # Reset NorMuon momentum buffers and split_embed state
         self.optimizer.reset()

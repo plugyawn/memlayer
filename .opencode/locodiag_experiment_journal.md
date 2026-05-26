@@ -109,12 +109,13 @@ Implemented locally after the diagonal screens:
 - `LOCO_FULL_LOCAL_STATS=1` avoids a per-refresh cross-rank all-reduce by
   default.
 - `LOCO_FULL_EMA_BETA`, `LOCO_FULL_RIDGE_REL`, and
-  `LOCO_FULL_DENOM_SCALE` control the cached Cholesky factor.
-- The optimizer path is `raw grad -> Nesterov operand -> cholesky_solve(C) ->
-  norm-preserving blend -> Polar Express -> NorMuon variance reduction`.
-- `LOCO_FULL_NOOP=1` keeps the collection/factorization/solve overhead while
-  setting blend to zero, so it is a wall-clock control rather than an algorithmic
-  candidate.
+  `LOCO_FULL_DENOM_SCALE` control the cached Cholesky/inverse preconditioner.
+- The optimizer path is `raw grad -> Nesterov operand -> cached right
+  preconditioner -> norm-preserving blend -> Polar Express -> NorMuon variance
+  reduction`.
+- `LOCO_FULL_NOOP=1` keeps the collection/factorization/application overhead
+  while setting blend to zero, so it is a wall-clock control rather than an
+  algorithmic candidate.
 
 First H100 screens to run after local validation:
 
@@ -123,6 +124,18 @@ First H100 screens to run after local validation:
 | full V noop | `LOCO_FULL_SURFACES=v LOCO_FULL_NOOP=1 LOCO_FULL_REFRESH_INTERVAL=8` | 60 | measure full-C overhead floor |
 | full V Newton-Muon | `LOCO_FULL_SURFACES=v LOCO_FULL_REFRESH_INTERVAL=8 LOCO_FULL_BLEND_MAX=0.25 LOCO_FULL_RIDGE_REL=0.03` | 60 | first algorithmic signal |
 | full V refresh16 | same, `LOCO_FULL_REFRESH_INTERVAL=16` | 60 | overhead/cadence tradeoff if refresh8 is too slow |
+
+First H100 result:
+
+| run | log | checkpoint | val_loss | train_time | step_avg | decision |
+| --- | --- | ---: | ---: | ---: | ---: | --- |
+| full V noop, solve path | `.opencode/newtonv_fullv_noop_screen60.log` | 60 | 4.8410 | 143.449s | 2390.81ms | correctness smoke only; timed section included a compile |
+| full V refresh8, solve path | `.opencode/newtonv_fullv_refresh8_screen60.log` | 60 | 4.8345 | 82.347s | 1372.46ms | real loss signal, but per-step Cholesky solve overhead is not viable |
+
+Follow-up implementation change: cache an explicit inverse/preconditioner on
+refresh and use a matrix multiply in the optimizer step. This keeps the
+Newton-Muon semantics but moves the expensive triangular solve off the per-step
+path.
 
 ## Current Next Actions
 
