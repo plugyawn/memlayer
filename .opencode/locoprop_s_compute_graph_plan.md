@@ -53,9 +53,14 @@ Implemented default-off in this branch:
   comparison. It currently applies only to the MLP bank and is not the primary
   parity target.
 - `LOCO_DIAG_SURFACES` supports `mlp_fc`, `mlp_proj`, `qk`, `v`, and `o`.
+- `mlp_fc` and `mlp_proj` can now be isolated independently in `normuon` mode.
 - `LOCO_DIAG_MLP_LAYERS` and `LOCO_DIAG_ATTN_LAYERS` restrict capture/update by
   model layer. `all` is the default; attention layer 6 is skipped because this
   repo skips that attention block.
+- `LOCO_DIAG_NORMUON_PRECOND` defaults to `normquarter`, using a relative ridge
+  and a `LOCO_DIAG_BLEND_STEPS` warmup. `raw` remains available as a diagnostic.
+- `LOCO_DIAG_LOG_STEPS` prints feature-diagonal spread and preconditioned
+  gradient-norm ratios for short-step debugging.
 - `mlp_fc` accumulates `sum(norm(x)^2)` and column-preconditions c_fc.
 - `mlp_proj` returns `sum(post^2)` from the fused MLP autograd function and
   row-preconditions c_proj.
@@ -92,16 +97,18 @@ Validation:
 | real-data 60-step direct MLP LocoProp-S, gamma 4, old denom scaling | `.opencode/locodiag_gamma4_screen60.log` | final val 5.0265; final step_avg 684.05ms; peak allocated 37.3 GiB |
 | real-data 60-step MLP `G/C` before NorMuon | `.opencode/locodiag_normuon_screen60.log` | final val 5.0237; final step_avg 686.04ms; peak allocated 37.3 GiB |
 | real-data 60-step MLP normquarter before NorMuon | `.opencode/locodiag_normuon_normquarter_screen60.log` | final val 4.8794; final step_avg 686.33ms; peak allocated 37.3 GiB |
-| real-data 60-step V/O normquarter before NorMuon | `.opencode/locodiag_vo_normquarter_screen60.log` | final val 4.8334; final step_avg 684.16ms; peak allocated 37.3 GiB |
+| real-data 60-step V/O normquarter requested | `.opencode/locodiag_vo_normquarter_screen60.log` | invalid attention-only run before optimizer gate fix; final val 4.8334; final step_avg 684.16ms; peak allocated 37.3 GiB |
 | real-data 200-step baseline | `.opencode/baseline_screen200.log` | final val 3.8998; final step_avg 674.88ms; peak allocated 37.3 GiB |
-| real-data 200-step V/O normquarter before NorMuon | `.opencode/locodiag_vo_normquarter_screen200.log` | final val 3.8937; final step_avg 683.35ms; peak allocated 37.3 GiB |
+| real-data 200-step V/O normquarter requested | `.opencode/locodiag_vo_normquarter_screen200.log` | invalid attention-only run before optimizer gate fix; final val 3.8937; final step_avg 683.35ms; peak allocated 37.3 GiB |
+| real-data 60-step late-layer V/O normquarter requested | `.opencode/locodiag_vo_late_normquarter_screen60.invalid-gated.log` | invalid attention-only run before optimizer gate fix; final val 4.8492; final step_avg 675.39ms; peak allocated 37.3 GiB |
 
 Current verdict: the direct MLP-only path is runtime-valid but not promotable.
 The first NorMuon-composed raw `G/C` path is also not promotable: it is worse
 than baseline in both early convergence and step time on the same 60-step screen.
-Mean-normalized inverse-power variants are much more stable. V/O normquarter is
-the first positive loss signal, but it still adds enough step time that it is not
-yet speedrun-positive.
+Mean-normalized inverse-power variants are much more stable. The old
+attention-only runs are not true V/O/QKVO optimizer evidence: the optimizer-side
+preconditioner was incorrectly gated on MLP being enabled. That gate is now fixed,
+so the next runs must rerun true attention-only ablations.
 
 ## First-hand cost estimate
 

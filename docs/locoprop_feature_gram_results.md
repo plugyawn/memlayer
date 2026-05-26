@@ -17,10 +17,12 @@ Common env vars:
 ```bash
 LOCO_DIAG=1
 LOCO_DIAG_MODE=normuon
-LOCO_DIAG_NORMUON_PRECOND=raw|normsqrt|normquarter
+LOCO_DIAG_NORMUON_PRECOND=normquarter
 LOCO_DIAG_SURFACES=mlp_fc,mlp_proj|qk,v,o|v,o
 LOCO_DIAG_MLP_LAYERS=all
 LOCO_DIAG_ATTN_LAYERS=all
+LOCO_DIAG_RIDGE_REL=0.01
+LOCO_DIAG_BLEND_STEPS=300
 ```
 
 Current mode interpretation:
@@ -29,9 +31,11 @@ Current mode interpretation:
   Polar Express, NorMuon variance reduction, weight decay, and mantissa writes.
 - `direct`: directly applies a diagonal LocoProp-S style update for MLP banks.
   This is a large optimizer swap and has not been competitive.
-- `raw`: uses literal inverse diagonal scaling. This is too aggressive early.
-- `normsqrt` and `normquarter`: mean-normalized inverse-power scaling before
-  NorMuon. `normquarter` has been the least harmful of the MLP variants.
+- `raw`: uses literal inverse diagonal scaling. This is too aggressive early and
+  is no longer the default.
+- `normsqrt` and `normquarter`: relative-ridge, mean-normalized inverse-power
+  scaling before NorMuon. `normquarter` is the default and is warm-started by
+  `LOCO_DIAG_BLEND_STEPS`.
 
 Data note: the 60-step and 200-step H100 screens used the same local cached data
 setup for baseline and candidates. `fineweb_train_000002.bin` was duplicated
@@ -66,20 +70,25 @@ Raw evidence is committed under `.opencode/`.
 | MLP raw before NorMuon | `.opencode/locodiag_normuon_screen60.log` | 5.0237 | 686.04ms | worse loss, slower |
 | MLP normsqrt before NorMuon | `.opencode/locodiag_normuon_normsqrt_screen60.log` | 4.9117 | 686.23ms | still worse |
 | MLP normquarter before NorMuon | `.opencode/locodiag_normuon_normquarter_screen60.log` | 4.8794 | 686.33ms | closest MLP result |
-| QKVO normquarter before NorMuon | `.opencode/locodiag_qkvo_normquarter_screen60.log` | 4.8637 | 683.92ms | slight loss recovery, slower |
-| V/O normquarter before NorMuon | `.opencode/locodiag_vo_normquarter_screen60.log` | 4.8334 | 684.16ms | early loss win, slower |
+| QKVO normquarter requested | `.opencode/locodiag_qkvo_normquarter_screen60.log` | 4.8637 | 683.92ms | invalid attention-only run; optimizer gate bug |
+| V/O normquarter requested | `.opencode/locodiag_vo_normquarter_screen60.log` | 4.8334 | 684.16ms | invalid attention-only run; optimizer gate bug |
 
-The 200-step V/O check gives the first real positive signal, but the timing cost
-is still too high:
+The old 200-step V/O check was also affected by the attention-only optimizer
+gate bug:
 
 | variant | log | final val_loss | final train_time | final step_avg |
 | --- | --- | ---: | ---: | ---: |
 | baseline 200 | `.opencode/baseline_screen200.log` | 3.8998 | 134.977s | 674.88ms |
-| V/O normquarter 200 | `.opencode/locodiag_vo_normquarter_screen200.log` | 3.8937 | 136.669s | 683.35ms |
+| V/O normquarter requested 200 | `.opencode/locodiag_vo_normquarter_screen200.log` | 3.8937 | 136.669s | 683.35ms |
 
-V/O normquarter improves 200-step validation by `0.0061` but costs `1.692s`
-over 200 scheduled steps, about `+1.25%` wall time. That is interesting for
-algorithmic follow-up, but not yet speedrun-positive.
+A late-layer V/O requested screen after layer-mask support showed the same
+baseline-like behavior before the gate fix:
+`.opencode/locodiag_vo_late_normquarter_screen60.invalid-gated.log` ended at
+`4.8492` and `675.39ms`.
+
+Attention-only results before the gate fix should be treated as capture-overhead
+and variance probes, not as true QKVO/LocoProp-S optimizer evidence. True
+attention V/O and QKVO ablations must be rerun after the optimizer gate fix.
 
 ## Current Interpretation
 
@@ -91,17 +100,20 @@ post-ReLU-squared feature. The failures are more likely optimizer-structural:
   Express removes the global matrix scale.
 - `direct` removes the tuned NorMuon path for the MLP bank, so it is not a fair
   small perturbation.
-- `mlp_proj` is likely noisier than `mlp_fc`, but the current guard prevents
-  isolating those two surfaces.
-- attention V/O is cheap enough to keep testing, but `sa_lambdas` mean direct
-  Hessian scaling would need scalar-aware handling.
+- `mlp_proj` is likely noisier than `mlp_fc`; the branch now allows isolating
+  `mlp_fc` and `mlp_proj`.
+- attention V/O is cheap enough to keep testing, but old attention-only logs did
+  not actually precondition the optimizer due an optimizer-side gate. That gate
+  is fixed after commit `cc8f0b9`.
+- `sa_lambdas` mean direct Hessian scaling for attention would need scalar-aware
+  handling; `normuon` attention tests are the immediate target.
 
 ## Relevant Next Patch
 
 Before more long runs, make the probe less aggressive and more debuggable:
 
-1. Remove the guard that forces `mlp_fc` and `mlp_proj` to be enabled together.
-2. Add relative-ridge, mean-normalized inverse-power scaling:
+1. Done: remove the guard that forced `mlp_fc` and `mlp_proj` together.
+2. Done: add relative-ridge, mean-normalized inverse-power scaling:
 
    ```python
    d = diag.float().clamp_min(0).mul(denom_scale)
@@ -111,10 +123,12 @@ Before more long runs, make the probe less aggressive and more debuggable:
    scale = 1.0 + blend * (scale - 1.0)
    ```
 
-3. Warm-start `blend` over the same rough horizon as NorMuon momentum warmup.
-4. Add short-step diagnostics for feature diagonal spread and preconditioned
+3. Done: warm-start `blend` over the same rough horizon as NorMuon momentum
+   warmup.
+4. Done: add short-step diagnostics for feature diagonal spread and preconditioned
    gradient norm ratios.
-5. Continue surface/layer ablations for `v,o` and then isolate `o` vs `v`.
+5. Next: rerun true attention surface/layer ablations for `v,o`, then isolate
+   `o` vs `v`.
 
 ## Promotion Bar
 
@@ -124,5 +138,5 @@ For this repo, a diagonal feature-Gram variant needs both:
 - at least a `2%` end-to-end train-time win on 1xH100 before spending 8xH100.
 
 At roughly `675ms/step`, that means a candidate must recover more than the
-current `~8ms/step` capture overhead through fewer required steps. The current
-V/O result is promising on loss, but not enough on step time.
+current `~8ms/step` capture overhead through fewer required steps. True
+attention-only results are still pending after the optimizer gate fix.

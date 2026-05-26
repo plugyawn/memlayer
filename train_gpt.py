@@ -45,18 +45,18 @@ LOCO_DIAG_ENABLED = os.environ.get("LOCO_DIAG", "0") == "1"
 LOCO_DIAG_MODE = os.environ.get("LOCO_DIAG_MODE", "normuon")
 if LOCO_DIAG_MODE not in {"normuon", "direct"}:
     raise ValueError("LOCO_DIAG_MODE must be 'normuon' or 'direct'")
-LOCO_DIAG_NORMUON_PRECOND = os.environ.get("LOCO_DIAG_NORMUON_PRECOND", "raw")
+LOCO_DIAG_NORMUON_PRECOND = os.environ.get("LOCO_DIAG_NORMUON_PRECOND", "normquarter")
 if LOCO_DIAG_NORMUON_PRECOND not in {"raw", "normsqrt", "normquarter"}:
     raise ValueError("LOCO_DIAG_NORMUON_PRECOND must be 'raw', 'normsqrt', or 'normquarter'")
 LOCO_DIAG_SURFACES = frozenset(s.strip() for s in os.environ.get("LOCO_DIAG_SURFACES", "mlp_fc,mlp_proj").split(",") if s.strip())
 LOCO_DIAG_SUPPORTED_SURFACES = frozenset({"mlp_fc", "mlp_proj", "qk", "v", "o"})
 if LOCO_DIAG_ENABLED and not LOCO_DIAG_SURFACES <= LOCO_DIAG_SUPPORTED_SURFACES:
     raise ValueError(f"unsupported LOCO_DIAG_SURFACES={sorted(LOCO_DIAG_SURFACES)}")
-if LOCO_DIAG_ENABLED and (("mlp_fc" in LOCO_DIAG_SURFACES) != ("mlp_proj" in LOCO_DIAG_SURFACES)):
-    raise ValueError("MLP diagonal feature-Gram capture requires both mlp_fc and mlp_proj")
 if LOCO_DIAG_ENABLED and LOCO_DIAG_MODE == "direct" and LOCO_DIAG_SURFACES != frozenset({"mlp_fc", "mlp_proj"}):
     raise ValueError("LOCO_DIAG_MODE=direct currently supports only LOCO_DIAG_SURFACES=mlp_fc,mlp_proj")
-LOCO_DIAG_MLP = LOCO_DIAG_ENABLED and {"mlp_fc", "mlp_proj"} <= LOCO_DIAG_SURFACES
+LOCO_DIAG_MLP_FC = LOCO_DIAG_ENABLED and "mlp_fc" in LOCO_DIAG_SURFACES
+LOCO_DIAG_MLP_PROJ = LOCO_DIAG_ENABLED and "mlp_proj" in LOCO_DIAG_SURFACES
+LOCO_DIAG_MLP = LOCO_DIAG_MLP_FC or LOCO_DIAG_MLP_PROJ
 LOCO_DIAG_QK = LOCO_DIAG_ENABLED and "qk" in LOCO_DIAG_SURFACES
 LOCO_DIAG_V = LOCO_DIAG_ENABLED and "v" in LOCO_DIAG_SURFACES
 LOCO_DIAG_O = LOCO_DIAG_ENABLED and "o" in LOCO_DIAG_SURFACES
@@ -64,7 +64,9 @@ LOCO_DIAG_ATTN_IN = LOCO_DIAG_QK or LOCO_DIAG_V
 LOCO_DIAG_ATTN = LOCO_DIAG_ATTN_IN or LOCO_DIAG_O
 LOCO_DIAG_ACTIVE = LOCO_DIAG_MLP or LOCO_DIAG_ATTN
 LOCO_DIAG_RIDGE = float(os.environ.get("LOCO_DIAG_RIDGE", "1e-3"))
+LOCO_DIAG_RIDGE_REL = float(os.environ.get("LOCO_DIAG_RIDGE_REL", "1e-2"))
 LOCO_DIAG_GAMMA = float(os.environ.get("LOCO_DIAG_GAMMA", "1.0"))
+LOCO_DIAG_BLEND_STEPS = int(os.environ.get("LOCO_DIAG_BLEND_STEPS", "300"))
 
 def _parse_loco_diag_layers(name: str, count: int, *, disallow: frozenset[int] = frozenset()) -> frozenset[int] | None:
     spec = os.environ.get(name, "all").strip().lower()
@@ -95,6 +97,14 @@ LOCO_DIAG_ATTN_LAYER_SET = _parse_loco_diag_layers("LOCO_DIAG_ATTN_LAYERS", 11, 
 
 def _loco_diag_layer_active(layer: int, layer_set: frozenset[int] | None) -> bool:
     return layer_set is None or layer in layer_set
+
+def _parse_loco_diag_log_steps() -> frozenset[int]:
+    spec = os.environ.get("LOCO_DIAG_LOG_STEPS", "0,1,2,10,50,100").strip().lower()
+    if spec in {"", "none"}:
+        return frozenset()
+    return frozenset(int(part.strip()) for part in spec.split(",") if part.strip())
+
+LOCO_DIAG_LOG_STEP_SET = _parse_loco_diag_log_steps()
 
 dynamo.config.recompile_limit = 64
 
@@ -480,11 +490,15 @@ class NorMuonAndAdam:
         self.adam_defaults = adam_defaults
         self.normuon_defaults = normuon_defaults
         self.loco_diag_model = loco_diag_model
+        self.loco_diag_active = LOCO_DIAG_ACTIVE and loco_diag_model is not None
         self.loco_diag_mlp = LOCO_DIAG_MLP and loco_diag_model is not None
-        self.loco_diag_normuon = self.loco_diag_mlp and LOCO_DIAG_MODE == "normuon"
+        self.loco_diag_normuon = self.loco_diag_active and LOCO_DIAG_MODE == "normuon"
         self.loco_diag_direct = self.loco_diag_mlp and LOCO_DIAG_MODE == "direct"
         self.loco_diag_normuon_normsqrt = self.loco_diag_normuon and LOCO_DIAG_NORMUON_PRECOND == "normsqrt"
         self.loco_diag_normuon_normquarter = self.loco_diag_normuon and LOCO_DIAG_NORMUON_PRECOND == "normquarter"
+        self._loco_step = 0
+        self._loco_log_step = False
+        self._loco_grad_ratio_stats = []
         self.param_table = param_table
         self.scatter_order = scatter_order
         self.work_order = work_order
@@ -518,8 +532,10 @@ class NorMuonAndAdam:
         self._eff_lr_t = torch.tensor(0.0, dtype=torch.float32, device="cpu")
         self._momentum_t = torch.tensor(0.0, dtype=torch.float32, device="cpu")
         self._loco_ridge_t = torch.tensor(LOCO_DIAG_RIDGE, dtype=torch.float32, device="cpu")
+        self._loco_ridge_rel_t = torch.tensor(LOCO_DIAG_RIDGE_REL, dtype=torch.float32, device="cpu")
         self._loco_gamma_t = torch.tensor(LOCO_DIAG_GAMMA, dtype=torch.float32, device="cpu")
         self._loco_denom_scale_t = torch.tensor(LOCO_DIAG_DENOM_SCALE, dtype=torch.float32, device="cpu")
+        self._loco_blend_t = torch.tensor(1.0, dtype=torch.float32, device="cpu")
 
         # Track async operations
         self._reduce_futures: dict[nn.Parameter, tuple] = {}
@@ -529,6 +545,40 @@ class NorMuonAndAdam:
         self.split_embed = False
         self._lm_head_param = self._param_by_label.get("lm_head")
         self._embed_param = self._param_by_label.get("embed")
+
+    def set_loco_step(self, step: int):
+        if not self.loco_diag_active:
+            return
+        if LOCO_DIAG_BLEND_STEPS <= 0:
+            blend = 1.0
+        else:
+            blend = min(1.0, max(0.0, step / LOCO_DIAG_BLEND_STEPS))
+        self._loco_step = step
+        self._loco_blend_t.fill_(blend)
+        self._loco_log_step = globals().get("master_process", False) and step in LOCO_DIAG_LOG_STEP_SET
+        self._loco_grad_ratio_stats.clear()
+
+    def _record_loco_grad_ratio(self, name: str, before: Tensor, after: Tensor):
+        if not self._loco_log_step:
+            return
+        ratio = after.float().div(before.float().clamp_min(1e-12)).item()
+        self._loco_grad_ratio_stats.append((name, ratio))
+
+    def _flush_loco_grad_ratio_stats(self):
+        if not self._loco_grad_ratio_stats:
+            return
+        grouped = {}
+        for name, ratio in self._loco_grad_ratio_stats:
+            grouped.setdefault(name, []).append(ratio)
+        parts = []
+        for name in sorted(grouped):
+            values = grouped[name]
+            mean = sum(values) / len(values)
+            parts.append(
+                f"{name}:n={len(values)} mean={mean:.4e} min={min(values):.4e} max={max(values):.4e}"
+            )
+        print0(f"loco_diag_grad_ratio step={self._loco_step} " + " | ".join(parts), console=True)
+        self._loco_grad_ratio_stats.clear()
 
     def _build_param_cfg(self, param: nn.Parameter, label: str):
         """Build config for a single parameter from param_table."""
@@ -872,6 +922,8 @@ class NorMuonAndAdam:
         for fut in gather_futures:
             fut.wait()
 
+        self._flush_loco_grad_ratio_stats()
+
         self._reduce_futures.clear()
         self._sparse_async_data.clear()
 
@@ -1007,13 +1059,18 @@ class NorMuonAndAdam:
             model_layer = layer_idx + (layer_idx >= 6)
             if not _loco_diag_layer_active(model_layer, LOCO_DIAG_ATTN_LAYER_SET):
                 continue
+            before_norm = grad_chunk[mat_idx].float().norm() if self._loco_log_step else None
             update_fn(
                 grad_chunk[mat_idx],
                 self.loco_diag_model.loco_attn_in_diag[layer_idx],
                 self._loco_ridge_t,
+                self._loco_ridge_rel_t,
                 self._loco_gamma_t,
                 self._loco_denom_scale_t,
+                self._loco_blend_t,
             )
+            if before_norm is not None:
+                self._record_loco_grad_ratio("qk", before_norm, grad_chunk[mat_idx].float().norm())
 
     def _loco_diag_precondition_vo_grad_inplace(self, grad_chunk: Tensor, p_cfg: ParamConfig, rank: int):
         """Apply attention-input feature scaling to V and attention-output scaling to O."""
@@ -1038,13 +1095,18 @@ class NorMuonAndAdam:
                 if not LOCO_DIAG_V:
                     continue
                 diag = self.loco_diag_model.loco_attn_in_diag[layer_idx]
+            before_norm = grad_chunk[mat_idx].float().norm() if self._loco_log_step else None
             update_fn(
                 grad_chunk[mat_idx],
                 diag,
                 self._loco_ridge_t,
+                self._loco_ridge_rel_t,
                 self._loco_gamma_t,
                 self._loco_denom_scale_t,
+                self._loco_blend_t,
             )
+            if before_norm is not None:
+                self._record_loco_grad_ratio("o" if is_o else "v", before_norm, grad_chunk[mat_idx].float().norm())
 
     def _loco_diag_precondition_mlp_grad_inplace(self, grad_chunk: Tensor, p_cfg: ParamConfig, rank: int):
         """Apply diagonal feature-Gram right preconditioning before NorMuon."""
@@ -1058,21 +1120,35 @@ class NorMuonAndAdam:
             if not _loco_diag_layer_active(layer_idx, LOCO_DIAG_MLP_LAYER_SET):
                 continue
             if global_idx % 2 == 1:
+                if not LOCO_DIAG_MLP_PROJ:
+                    continue
+                before_norm = grad_chunk[mat_idx].float().norm() if self._loco_log_step else None
                 self._loco_diag_row_update_fn()(
                     grad_chunk[mat_idx],
                     self.loco_diag_model.loco_mlp_proj_diag[layer_idx],
                     self._loco_ridge_t,
+                    self._loco_ridge_rel_t,
                     self._loco_gamma_t,
                     self._loco_denom_scale_t,
+                    self._loco_blend_t,
                 )
+                if before_norm is not None:
+                    self._record_loco_grad_ratio("mlp_proj", before_norm, grad_chunk[mat_idx].float().norm())
             else:
+                if not LOCO_DIAG_MLP_FC:
+                    continue
+                before_norm = grad_chunk[mat_idx].float().norm() if self._loco_log_step else None
                 self._loco_diag_col_update_fn()(
                     grad_chunk[mat_idx],
                     self.loco_diag_model.loco_mlp_fc_diag[layer_idx],
                     self._loco_ridge_t,
+                    self._loco_ridge_rel_t,
                     self._loco_gamma_t,
                     self._loco_denom_scale_t,
+                    self._loco_blend_t,
                 )
+                if before_norm is not None:
+                    self._record_loco_grad_ratio("mlp_fc", before_norm, grad_chunk[mat_idx].float().norm())
 
     def _loco_diag_mlp_update(self, param: nn.Parameter, grad_chunk: Tensor, p_cfg: ParamConfig, rank: int) -> Tensor:
         """Apply direct diagonal LocoProp-S to MLP bank matrices."""
@@ -1120,46 +1196,58 @@ class NorMuonAndAdam:
 
     @staticmethod
     @torch.compile(dynamic=False, fullgraph=True)
-    def _loco_diag_precondition_cols_inplace(grad, diag, ridge_tensor, gamma_tensor, denom_scale_tensor):
+    def _loco_diag_precondition_cols_inplace(grad, diag, ridge_tensor, ridge_rel_tensor, gamma_tensor, denom_scale_tensor, blend_tensor):
         denom = diag.float().clamp_min(0).mul(denom_scale_tensor.to(torch.float32)).add(ridge_tensor.to(torch.float32))
         grad.copy_(grad.float().div(denom.view(1, -1)).mul(gamma_tensor.to(torch.float32)))
 
     @staticmethod
     @torch.compile(dynamic=False, fullgraph=True)
-    def _loco_diag_precondition_rows_inplace(grad, diag, ridge_tensor, gamma_tensor, denom_scale_tensor):
+    def _loco_diag_precondition_rows_inplace(grad, diag, ridge_tensor, ridge_rel_tensor, gamma_tensor, denom_scale_tensor, blend_tensor):
         denom = diag.float().clamp_min(0).mul(denom_scale_tensor.to(torch.float32)).add(ridge_tensor.to(torch.float32))
         grad.copy_(grad.float().div(denom.view(-1, 1)).mul(gamma_tensor.to(torch.float32)))
 
     @staticmethod
     @torch.compile(dynamic=False, fullgraph=True)
-    def _loco_diag_precondition_cols_normsqrt_inplace(grad, diag, ridge_tensor, gamma_tensor, denom_scale_tensor):
-        denom = diag.float().clamp_min(0).mul(denom_scale_tensor.to(torch.float32)).add(ridge_tensor.to(torch.float32))
+    def _loco_diag_precondition_cols_normsqrt_inplace(grad, diag, ridge_tensor, ridge_rel_tensor, gamma_tensor, denom_scale_tensor, blend_tensor):
+        d = diag.float().clamp_min(0).mul(denom_scale_tensor.to(torch.float32))
+        mean = d.mean().clamp_min(1e-12)
+        denom = d.add(ridge_rel_tensor.to(torch.float32).mul(mean))
         scale = torch.rsqrt(denom)
         scale = scale / scale.mean().clamp_min(1e-12)
+        scale = 1.0 + blend_tensor.to(torch.float32) * (scale - 1.0)
         grad.copy_(grad.float().mul(scale.view(1, -1)).mul(gamma_tensor.to(torch.float32)))
 
     @staticmethod
     @torch.compile(dynamic=False, fullgraph=True)
-    def _loco_diag_precondition_rows_normsqrt_inplace(grad, diag, ridge_tensor, gamma_tensor, denom_scale_tensor):
-        denom = diag.float().clamp_min(0).mul(denom_scale_tensor.to(torch.float32)).add(ridge_tensor.to(torch.float32))
+    def _loco_diag_precondition_rows_normsqrt_inplace(grad, diag, ridge_tensor, ridge_rel_tensor, gamma_tensor, denom_scale_tensor, blend_tensor):
+        d = diag.float().clamp_min(0).mul(denom_scale_tensor.to(torch.float32))
+        mean = d.mean().clamp_min(1e-12)
+        denom = d.add(ridge_rel_tensor.to(torch.float32).mul(mean))
         scale = torch.rsqrt(denom)
         scale = scale / scale.mean().clamp_min(1e-12)
+        scale = 1.0 + blend_tensor.to(torch.float32) * (scale - 1.0)
         grad.copy_(grad.float().mul(scale.view(-1, 1)).mul(gamma_tensor.to(torch.float32)))
 
     @staticmethod
     @torch.compile(dynamic=False, fullgraph=True)
-    def _loco_diag_precondition_cols_normquarter_inplace(grad, diag, ridge_tensor, gamma_tensor, denom_scale_tensor):
-        denom = diag.float().clamp_min(0).mul(denom_scale_tensor.to(torch.float32)).add(ridge_tensor.to(torch.float32))
+    def _loco_diag_precondition_cols_normquarter_inplace(grad, diag, ridge_tensor, ridge_rel_tensor, gamma_tensor, denom_scale_tensor, blend_tensor):
+        d = diag.float().clamp_min(0).mul(denom_scale_tensor.to(torch.float32))
+        mean = d.mean().clamp_min(1e-12)
+        denom = d.add(ridge_rel_tensor.to(torch.float32).mul(mean))
         scale = torch.sqrt(torch.rsqrt(denom))
         scale = scale / scale.mean().clamp_min(1e-12)
+        scale = 1.0 + blend_tensor.to(torch.float32) * (scale - 1.0)
         grad.copy_(grad.float().mul(scale.view(1, -1)).mul(gamma_tensor.to(torch.float32)))
 
     @staticmethod
     @torch.compile(dynamic=False, fullgraph=True)
-    def _loco_diag_precondition_rows_normquarter_inplace(grad, diag, ridge_tensor, gamma_tensor, denom_scale_tensor):
-        denom = diag.float().clamp_min(0).mul(denom_scale_tensor.to(torch.float32)).add(ridge_tensor.to(torch.float32))
+    def _loco_diag_precondition_rows_normquarter_inplace(grad, diag, ridge_tensor, ridge_rel_tensor, gamma_tensor, denom_scale_tensor, blend_tensor):
+        d = diag.float().clamp_min(0).mul(denom_scale_tensor.to(torch.float32))
+        mean = d.mean().clamp_min(1e-12)
+        denom = d.add(ridge_rel_tensor.to(torch.float32).mul(mean))
         scale = torch.sqrt(torch.rsqrt(denom))
         scale = scale / scale.mean().clamp_min(1e-12)
+        scale = 1.0 + blend_tensor.to(torch.float32) * (scale - 1.0)
         grad.copy_(grad.float().mul(scale.view(-1, 1)).mul(gamma_tensor.to(torch.float32)))
 
     @staticmethod
@@ -1467,8 +1555,9 @@ class GPT(nn.Module):
             self.register_buffer("loco_attn_in_diag", torch.zeros(num_layers - 1, model_dim, dtype=torch.float32), persistent=False)
         if LOCO_DIAG_O:
             self.register_buffer("loco_attn_o_diag", torch.zeros(num_layers - 1, model_dim, dtype=torch.float32), persistent=False)
-        if LOCO_DIAG_MLP:
+        if LOCO_DIAG_MLP_FC:
             self.register_buffer("loco_mlp_fc_diag", torch.zeros(num_layers, model_dim, dtype=torch.float32), persistent=False)
+        if LOCO_DIAG_MLP_PROJ:
             self.register_buffer("loco_mlp_proj_diag", torch.zeros(num_layers, 4 * model_dim, dtype=torch.float32), persistent=False)
         self.init_mudd(num_layers, model_dim)
 
@@ -1481,8 +1570,9 @@ class GPT(nn.Module):
             self.loco_attn_in_diag.zero_()
         if LOCO_DIAG_O:
             self.loco_attn_o_diag.zero_()
-        if LOCO_DIAG_MLP:
+        if LOCO_DIAG_MLP_FC:
             self.loco_mlp_fc_diag.zero_()
+        if LOCO_DIAG_MLP_PROJ:
             self.loco_mlp_proj_diag.zero_()
 
     @staticmethod
@@ -1764,9 +1854,13 @@ class GPT(nn.Module):
 
             mlp_in = norm(x)
             if LOCO_DIAG_MLP and _loco_diag_layer_active(i, LOCO_DIAG_MLP_LAYER_SET) and self.training:
-                self._accumulate_feature_diag_(self.loco_mlp_fc_diag[i], mlp_in)
-                mlp_out, mlp_proj_diag = ReLUSqrdMLPWithDiag(mlp_in, c_fc, c_proj)
-                self.loco_mlp_proj_diag[i].add_(mlp_proj_diag.detach())
+                if LOCO_DIAG_MLP_FC:
+                    self._accumulate_feature_diag_(self.loco_mlp_fc_diag[i], mlp_in)
+                if LOCO_DIAG_MLP_PROJ:
+                    mlp_out, mlp_proj_diag = ReLUSqrdMLPWithDiag(mlp_in, c_fc, c_proj)
+                    self.loco_mlp_proj_diag[i].add_(mlp_proj_diag.detach())
+                else:
+                    mlp_out = ReLUSqrdMLP(mlp_in, c_fc, c_proj)
             else:
                 mlp_out = ReLUSqrdMLP(mlp_in, c_fc, c_proj)
 
@@ -2187,7 +2281,7 @@ class TrainingManager():
 
         self.reset()
 
-    def _prepare_loco_diag_buffers(self):
+    def _prepare_loco_diag_buffers(self, step: int):
         if not LOCO_DIAG_ACTIVE:
             return
         loco_model = getattr(self.model, "_orig_mod", self.model)
@@ -2196,9 +2290,37 @@ class TrainingManager():
                 dist.all_reduce(loco_model.loco_attn_in_diag, op=dist.ReduceOp.AVG)
             if LOCO_DIAG_O:
                 dist.all_reduce(loco_model.loco_attn_o_diag, op=dist.ReduceOp.AVG)
-            if LOCO_DIAG_MLP:
+            if LOCO_DIAG_MLP_FC:
                 dist.all_reduce(loco_model.loco_mlp_fc_diag, op=dist.ReduceOp.AVG)
+            if LOCO_DIAG_MLP_PROJ:
                 dist.all_reduce(loco_model.loco_mlp_proj_diag, op=dist.ReduceOp.AVG)
+        if master_process and step in LOCO_DIAG_LOG_STEP_SET:
+            self._log_loco_diag_buffers(loco_model, step)
+
+    def _log_loco_diag_buffers(self, loco_model, step: int):
+        def log_diag(name: str, d: Tensor):
+            z = d.float().mul(LOCO_DIAG_DENOM_SCALE)
+            flat = z.flatten()
+            q = torch.quantile(flat, torch.tensor([0.01, 0.50, 0.99], device=flat.device))
+            print0(
+                f"loco_diag step={step} {name}: "
+                f"mean={z.mean().item():.4e} "
+                f"min={z.min().item():.4e} "
+                f"p01={q[0].item():.4e} "
+                f"p50={q[1].item():.4e} "
+                f"p99={q[2].item():.4e} "
+                f"max={z.max().item():.4e}",
+                console=True,
+            )
+
+        if LOCO_DIAG_ATTN_IN:
+            log_diag("attn_in", loco_model.loco_attn_in_diag)
+        if LOCO_DIAG_O:
+            log_diag("attn_o", loco_model.loco_attn_o_diag)
+        if LOCO_DIAG_MLP_FC:
+            log_diag("mlp_fc", loco_model.loco_mlp_fc_diag)
+        if LOCO_DIAG_MLP_PROJ:
+            log_diag("mlp_proj", loco_model.loco_mlp_proj_diag)
 
     def apply_final_ws_ext(self):
         self.ws_long = training_schedule.ws_post_yarn_ext
@@ -2249,7 +2371,9 @@ class TrainingManager():
                 p_cfg.momentum = muon_momentum
 
         # Step optimizer with do_adam flag
-        self._prepare_loco_diag_buffers()
+        if LOCO_DIAG_ACTIVE:
+            self.optimizer.set_loco_step(step)
+        self._prepare_loco_diag_buffers(step)
         self.optimizer.step(do_adam=do_adam)
         if LOCO_DIAG_ACTIVE:
             getattr(self.model, "_orig_mod", self.model).zero_loco_diag_buffers()
