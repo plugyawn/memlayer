@@ -61,6 +61,8 @@ These runs are from `.opencode/fgdiag-results.md`.
 
 These were run on the same 1x H100 setup with 60 scheduled steps unless noted.
 Raw evidence is committed under `.opencode/`.
+The rolling post-fix ablation journal is
+`.opencode/locodiag_experiment_journal.md`.
 
 | variant | log | final val_loss | final step_avg | delta vs baseline |
 | --- | --- | ---: | ---: | --- |
