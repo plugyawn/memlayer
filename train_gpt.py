@@ -66,6 +66,36 @@ LOCO_DIAG_ACTIVE = LOCO_DIAG_MLP or LOCO_DIAG_ATTN
 LOCO_DIAG_RIDGE = float(os.environ.get("LOCO_DIAG_RIDGE", "1e-3"))
 LOCO_DIAG_GAMMA = float(os.environ.get("LOCO_DIAG_GAMMA", "1.0"))
 
+def _parse_loco_diag_layers(name: str, count: int, *, disallow: frozenset[int] = frozenset()) -> frozenset[int] | None:
+    spec = os.environ.get(name, "all").strip().lower()
+    if spec in {"", "all", "*"}:
+        return None
+    if spec == "none":
+        return frozenset()
+    layers = set()
+    for part in spec.split(","):
+        part = part.strip()
+        if not part:
+            continue
+        if "-" in part:
+            lo_s, hi_s = part.split("-", 1)
+            lo, hi = int(lo_s), int(hi_s)
+            if hi < lo:
+                raise ValueError(f"{name} has descending range {part}")
+            layers.update(range(lo, hi + 1))
+        else:
+            layers.add(int(part))
+    invalid = {layer for layer in layers if layer < 0 or layer >= count or layer in disallow}
+    if invalid:
+        raise ValueError(f"{name} has invalid layers {sorted(invalid)}")
+    return frozenset(layers)
+
+LOCO_DIAG_MLP_LAYER_SET = _parse_loco_diag_layers("LOCO_DIAG_MLP_LAYERS", 11)
+LOCO_DIAG_ATTN_LAYER_SET = _parse_loco_diag_layers("LOCO_DIAG_ATTN_LAYERS", 11, disallow=frozenset({6}))
+
+def _loco_diag_layer_active(layer: int, layer_set: frozenset[int] | None) -> bool:
+    return layer_set is None or layer in layer_set
+
 dynamo.config.recompile_limit = 64
 
 # -----------------------------------------------------------------------------
@@ -974,6 +1004,9 @@ class NorMuonAndAdam:
                 grad_chunk[mat_idx].zero_()
                 continue
             layer_idx = global_idx // (2 * (self.loco_diag_model.num_heads // 2))
+            model_layer = layer_idx + (layer_idx >= 6)
+            if not _loco_diag_layer_active(model_layer, LOCO_DIAG_ATTN_LAYER_SET):
+                continue
             update_fn(
                 grad_chunk[mat_idx],
                 self.loco_diag_model.loco_attn_in_diag[layer_idx],
@@ -993,6 +1026,9 @@ class NorMuonAndAdam:
                 grad_chunk[mat_idx].zero_()
                 continue
             layer_idx = global_idx // 2
+            model_layer = layer_idx + (layer_idx >= 6)
+            if not _loco_diag_layer_active(model_layer, LOCO_DIAG_ATTN_LAYER_SET):
+                continue
             is_o = global_idx % 2 == 1
             if is_o:
                 if not LOCO_DIAG_O:
@@ -1019,6 +1055,8 @@ class NorMuonAndAdam:
                 grad_chunk[mat_idx].zero_()
                 continue
             layer_idx = global_idx // 2
+            if not _loco_diag_layer_active(layer_idx, LOCO_DIAG_MLP_LAYER_SET):
+                continue
             if global_idx % 2 == 1:
                 self._loco_diag_row_update_fn()(
                     grad_chunk[mat_idx],
@@ -1681,7 +1719,8 @@ class GPT(nn.Module):
                 attn_idx = i - (i > 6)
                 qkvo_w = attn_weights[attn_idx]
                 attn_in_normed = norm(cache.get(7, x))
-                if LOCO_DIAG_ATTN_IN and self.training:
+                loco_attn_layer = _loco_diag_layer_active(i, LOCO_DIAG_ATTN_LAYER_SET)
+                if LOCO_DIAG_ATTN_IN and loco_attn_layer and self.training:
                     self._accumulate_feature_diag_(self.loco_attn_in_diag[attn_idx], attn_in_normed)
                 B, T = attn_in_normed.size(0), attn_in_normed.size(1)
 
@@ -1714,7 +1753,7 @@ class GPT(nn.Module):
                     aux_v=aux_v,
                     xsa_alpha=xsa_alphas[i],
                     train_max_seq_len=train_max_seq_len,
-                    o_diag=self.loco_attn_o_diag[attn_idx] if LOCO_DIAG_O and self.training else None,
+                    o_diag=self.loco_attn_o_diag[attn_idx] if LOCO_DIAG_O and loco_attn_layer and self.training else None,
                 )
                 attn_out = attn(attn_in_normed, attn_args, qkvo_w)
 
@@ -1724,7 +1763,7 @@ class GPT(nn.Module):
                     x = resid_lambdas_attn[i] * x + post_lambdas_attn[i] * attn_out + x0_inject[i]
 
             mlp_in = norm(x)
-            if LOCO_DIAG_MLP and self.training:
+            if LOCO_DIAG_MLP and _loco_diag_layer_active(i, LOCO_DIAG_MLP_LAYER_SET) and self.training:
                 self._accumulate_feature_diag_(self.loco_mlp_fc_diag[i], mlp_in)
                 mlp_out, mlp_proj_diag = ReLUSqrdMLPWithDiag(mlp_in, c_fc, c_proj)
                 self.loco_mlp_proj_diag[i].add_(mlp_proj_diag.detach())
