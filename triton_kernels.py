@@ -534,6 +534,26 @@ class FusedLinearReLUSquareFunction(torch.autograd.Function):
         return dx.view(x.shape), dW1, dW2
 
 
+class FusedLinearReLUSquareWithDiagFunction(torch.autograd.Function):
+    @staticmethod
+    def forward(ctx, x, W1, W2):
+        pre, post = linear_relu_square(x.view((-1, x.shape[-1])), W1)
+        x3 = post @ W2
+        post_diag = post.float().square().sum(dim=0)
+        ctx.save_for_backward(x, W1, W2, pre, post)
+        return x3.view(x.shape), post_diag
+
+    @staticmethod
+    def backward(ctx, grad_output, grad_post_diag):
+        del grad_post_diag
+        x, W1, W2, pre, post = ctx.saved_tensors
+        dW2 = post.T @ grad_output
+        dpre = linear_relu_square(grad_output.view((-1, grad_output.shape[-1])), W2, aux=pre)
+        dW1 = dpre.T @ x
+        dx = dpre @ W1
+        return dx.view(x.shape), dW1, dW2
+
+
 # -----------------------------------------------------------------------------
 # Tiled transpose copy kernel: dst (N, M) = src (M, N).T
 # Uses coalesced reads from src and coalesced writes to dst via tl.trans().
@@ -1004,4 +1024,3 @@ class FusedSoftcappedCrossEntropy(torch.autograd.Function):
         )
 
         return grad_x, None, None, grad_w, None, None, None
-
