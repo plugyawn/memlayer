@@ -49,10 +49,20 @@ LOCO_DIAG_NORMUON_PRECOND = os.environ.get("LOCO_DIAG_NORMUON_PRECOND", "raw")
 if LOCO_DIAG_NORMUON_PRECOND not in {"raw", "normsqrt", "normquarter"}:
     raise ValueError("LOCO_DIAG_NORMUON_PRECOND must be 'raw', 'normsqrt', or 'normquarter'")
 LOCO_DIAG_SURFACES = frozenset(s.strip() for s in os.environ.get("LOCO_DIAG_SURFACES", "mlp_fc,mlp_proj").split(",") if s.strip())
-LOCO_DIAG_SUPPORTED_SURFACES = frozenset({"mlp_fc", "mlp_proj"})
-if LOCO_DIAG_ENABLED and LOCO_DIAG_SURFACES != LOCO_DIAG_SUPPORTED_SURFACES:
-    raise ValueError("This branch currently supports diagonal feature-Gram capture only for LOCO_DIAG_SURFACES=mlp_fc,mlp_proj")
-LOCO_DIAG_MLP = LOCO_DIAG_ENABLED and LOCO_DIAG_SURFACES == LOCO_DIAG_SUPPORTED_SURFACES
+LOCO_DIAG_SUPPORTED_SURFACES = frozenset({"mlp_fc", "mlp_proj", "qk", "v", "o"})
+if LOCO_DIAG_ENABLED and not LOCO_DIAG_SURFACES <= LOCO_DIAG_SUPPORTED_SURFACES:
+    raise ValueError(f"unsupported LOCO_DIAG_SURFACES={sorted(LOCO_DIAG_SURFACES)}")
+if LOCO_DIAG_ENABLED and (("mlp_fc" in LOCO_DIAG_SURFACES) != ("mlp_proj" in LOCO_DIAG_SURFACES)):
+    raise ValueError("MLP diagonal feature-Gram capture requires both mlp_fc and mlp_proj")
+if LOCO_DIAG_ENABLED and LOCO_DIAG_MODE == "direct" and LOCO_DIAG_SURFACES != frozenset({"mlp_fc", "mlp_proj"}):
+    raise ValueError("LOCO_DIAG_MODE=direct currently supports only LOCO_DIAG_SURFACES=mlp_fc,mlp_proj")
+LOCO_DIAG_MLP = LOCO_DIAG_ENABLED and {"mlp_fc", "mlp_proj"} <= LOCO_DIAG_SURFACES
+LOCO_DIAG_QK = LOCO_DIAG_ENABLED and "qk" in LOCO_DIAG_SURFACES
+LOCO_DIAG_V = LOCO_DIAG_ENABLED and "v" in LOCO_DIAG_SURFACES
+LOCO_DIAG_O = LOCO_DIAG_ENABLED and "o" in LOCO_DIAG_SURFACES
+LOCO_DIAG_ATTN_IN = LOCO_DIAG_QK or LOCO_DIAG_V
+LOCO_DIAG_ATTN = LOCO_DIAG_ATTN_IN or LOCO_DIAG_O
+LOCO_DIAG_ACTIVE = LOCO_DIAG_MLP or LOCO_DIAG_ATTN
 LOCO_DIAG_RIDGE = float(os.environ.get("LOCO_DIAG_RIDGE", "1e-3"))
 LOCO_DIAG_GAMMA = float(os.environ.get("LOCO_DIAG_GAMMA", "1.0"))
 
@@ -894,8 +904,13 @@ class NorMuonAndAdam:
 
         p_state = self.param_states[param]
         grad_chunk = grad_chunk.float()  # FP32 for momentum
-        if self.loco_diag_normuon and p_cfg.label == "mlp_bank":
-            self._loco_diag_precondition_mlp_grad_inplace(grad_chunk, p_cfg, rank)
+        if self.loco_diag_normuon:
+            if p_cfg.label == "qk_bank" and LOCO_DIAG_QK:
+                self._loco_diag_precondition_qk_grad_inplace(grad_chunk, p_cfg, rank)
+            elif p_cfg.label == "vo_bank" and (LOCO_DIAG_V or LOCO_DIAG_O):
+                self._loco_diag_precondition_vo_grad_inplace(grad_chunk, p_cfg, rank)
+            elif p_cfg.label == "mlp_bank" and LOCO_DIAG_MLP:
+                self._loco_diag_precondition_mlp_grad_inplace(grad_chunk, p_cfg, rank)
 
         self._momentum_t.fill_(p_cfg.momentum)
         self._eff_lr_t.fill_(p_cfg.lr_mul * p_cfg.lr)
@@ -935,6 +950,66 @@ class NorMuonAndAdam:
 
         return p_slice
 
+    def _loco_diag_col_update_fn(self):
+        if self.loco_diag_normuon_normsqrt:
+            return NorMuonAndAdam._loco_diag_precondition_cols_normsqrt_inplace
+        if self.loco_diag_normuon_normquarter:
+            return NorMuonAndAdam._loco_diag_precondition_cols_normquarter_inplace
+        return NorMuonAndAdam._loco_diag_precondition_cols_inplace
+
+    def _loco_diag_row_update_fn(self):
+        if self.loco_diag_normuon_normsqrt:
+            return NorMuonAndAdam._loco_diag_precondition_rows_normsqrt_inplace
+        if self.loco_diag_normuon_normquarter:
+            return NorMuonAndAdam._loco_diag_precondition_rows_normquarter_inplace
+        return NorMuonAndAdam._loco_diag_precondition_rows_inplace
+
+    def _loco_diag_precondition_qk_grad_inplace(self, grad_chunk: Tensor, p_cfg: ParamConfig, rank: int):
+        """Apply attention-input feature scaling to Q/K bank matrices."""
+        update_fn = self._loco_diag_col_update_fn()
+        start_idx = rank * p_cfg.chunk_size
+        for mat_idx in range(p_cfg.chunk_size):
+            global_idx = start_idx + mat_idx
+            if global_idx >= self.loco_diag_model._num_qk_groups:
+                grad_chunk[mat_idx].zero_()
+                continue
+            layer_idx = global_idx // (2 * (self.loco_diag_model.num_heads // 2))
+            update_fn(
+                grad_chunk[mat_idx],
+                self.loco_diag_model.loco_attn_in_diag[layer_idx],
+                self._loco_ridge_t,
+                self._loco_gamma_t,
+                self._loco_denom_scale_t,
+            )
+
+    def _loco_diag_precondition_vo_grad_inplace(self, grad_chunk: Tensor, p_cfg: ParamConfig, rank: int):
+        """Apply attention-input feature scaling to V and attention-output scaling to O."""
+        update_fn = self._loco_diag_col_update_fn()
+        start_idx = rank * p_cfg.chunk_size
+        num_vo_real = self.loco_diag_model._num_attn_layers * 2
+        for mat_idx in range(p_cfg.chunk_size):
+            global_idx = start_idx + mat_idx
+            if global_idx >= num_vo_real:
+                grad_chunk[mat_idx].zero_()
+                continue
+            layer_idx = global_idx // 2
+            is_o = global_idx % 2 == 1
+            if is_o:
+                if not LOCO_DIAG_O:
+                    continue
+                diag = self.loco_diag_model.loco_attn_o_diag[layer_idx]
+            else:
+                if not LOCO_DIAG_V:
+                    continue
+                diag = self.loco_diag_model.loco_attn_in_diag[layer_idx]
+            update_fn(
+                grad_chunk[mat_idx],
+                diag,
+                self._loco_ridge_t,
+                self._loco_gamma_t,
+                self._loco_denom_scale_t,
+            )
+
     def _loco_diag_precondition_mlp_grad_inplace(self, grad_chunk: Tensor, p_cfg: ParamConfig, rank: int):
         """Apply diagonal feature-Gram right preconditioning before NorMuon."""
         start_idx = rank * p_cfg.chunk_size
@@ -945,13 +1020,7 @@ class NorMuonAndAdam:
                 continue
             layer_idx = global_idx // 2
             if global_idx % 2 == 1:
-                if self.loco_diag_normuon_normsqrt:
-                    update_fn = NorMuonAndAdam._loco_diag_precondition_rows_normsqrt_inplace
-                elif self.loco_diag_normuon_normquarter:
-                    update_fn = NorMuonAndAdam._loco_diag_precondition_rows_normquarter_inplace
-                else:
-                    update_fn = NorMuonAndAdam._loco_diag_precondition_rows_inplace
-                update_fn(
+                self._loco_diag_row_update_fn()(
                     grad_chunk[mat_idx],
                     self.loco_diag_model.loco_mlp_proj_diag[layer_idx],
                     self._loco_ridge_t,
@@ -959,13 +1028,7 @@ class NorMuonAndAdam:
                     self._loco_denom_scale_t,
                 )
             else:
-                if self.loco_diag_normuon_normsqrt:
-                    update_fn = NorMuonAndAdam._loco_diag_precondition_cols_normsqrt_inplace
-                elif self.loco_diag_normuon_normquarter:
-                    update_fn = NorMuonAndAdam._loco_diag_precondition_cols_normquarter_inplace
-                else:
-                    update_fn = NorMuonAndAdam._loco_diag_precondition_cols_inplace
-                update_fn(
+                self._loco_diag_col_update_fn()(
                     grad_chunk[mat_idx],
                     self.loco_diag_model.loco_mlp_fc_diag[layer_idx],
                     self._loco_ridge_t,
@@ -1245,6 +1308,7 @@ class AttnArgs:
     aux_v: torch.Tensor | None
     xsa_alpha: torch.Tensor | None
     train_max_seq_len: torch.Tensor
+    o_diag: torch.Tensor | None = None
 
 flash_attn_interface = get_kernel('varunneal/flash-attention-3').flash_attn_interface
 
@@ -1318,6 +1382,9 @@ class CausalSelfAttention(nn.Module):
             y = y - alpha * proj * vn
         y = y * torch.sigmoid(F.linear(x[..., :12], attn_gate_w)).view(B, T, self.num_heads, 1)
         y = y.contiguous().view(B, T, self.num_heads * self.head_dim) # re-assemble all head outputs side by side
+        if attn_args.o_diag is not None:
+            y_detached = y.detach()
+            attn_args.o_diag.add_(y_detached.view(-1, y_detached.shape[-1]).float().square().sum(dim=0))
         y = F.linear(y, sa_lambdas[1] * qkvo_w[self.dim * 3:].type_as(y))  # sa_lambdas[1] pre-multiplied to O @shenberg
         return y
 
@@ -1358,6 +1425,10 @@ class GPT(nn.Module):
         self.init_attn(model_dim, head_dim, num_heads, num_layers, max_seq_len)
         self.init_mlp(model_dim)
         self.init_misc(model_dim, num_layers)
+        if LOCO_DIAG_ATTN_IN:
+            self.register_buffer("loco_attn_in_diag", torch.zeros(num_layers - 1, model_dim, dtype=torch.float32), persistent=False)
+        if LOCO_DIAG_O:
+            self.register_buffer("loco_attn_o_diag", torch.zeros(num_layers - 1, model_dim, dtype=torch.float32), persistent=False)
         if LOCO_DIAG_MLP:
             self.register_buffer("loco_mlp_fc_diag", torch.zeros(num_layers, model_dim, dtype=torch.float32), persistent=False)
             self.register_buffer("loco_mlp_proj_diag", torch.zeros(num_layers, 4 * model_dim, dtype=torch.float32), persistent=False)
@@ -1368,6 +1439,10 @@ class GPT(nn.Module):
             param.label = name.replace('.weight', '')
 
     def zero_loco_diag_buffers(self):
+        if LOCO_DIAG_ATTN_IN:
+            self.loco_attn_in_diag.zero_()
+        if LOCO_DIAG_O:
+            self.loco_attn_o_diag.zero_()
         if LOCO_DIAG_MLP:
             self.loco_mlp_fc_diag.zero_()
             self.loco_mlp_proj_diag.zero_()
@@ -1603,8 +1678,11 @@ class GPT(nn.Module):
             if i == 6:
                 x = x + skip_gate_out * cache[3]
             else:
-                qkvo_w = attn_weights[i - (i > 6)]
+                attn_idx = i - (i > 6)
+                qkvo_w = attn_weights[attn_idx]
                 attn_in_normed = norm(cache.get(7, x))
+                if LOCO_DIAG_ATTN_IN and self.training:
+                    self._accumulate_feature_diag_(self.loco_attn_in_diag[attn_idx], attn_in_normed)
                 B, T = attn_in_normed.size(0), attn_in_normed.size(1)
 
                 if i == self.num_layers - 1:
@@ -1636,6 +1714,7 @@ class GPT(nn.Module):
                     aux_v=aux_v,
                     xsa_alpha=xsa_alphas[i],
                     train_max_seq_len=train_max_seq_len,
+                    o_diag=self.loco_attn_o_diag[attn_idx] if LOCO_DIAG_O and self.training else None,
                 )
                 attn_out = attn(attn_in_normed, attn_args, qkvo_w)
 
@@ -2061,7 +2140,7 @@ class TrainingManager():
             work_order=self.work_order,
             adam_defaults=adam_defaults,
             normuon_defaults=normuon_defaults,
-            loco_diag_model=getattr(model, "_orig_mod", model) if LOCO_DIAG_MLP else None,
+            loco_diag_model=getattr(model, "_orig_mod", model) if LOCO_DIAG_ACTIVE else None,
         )
 
         # Split embed from lm_head at 2/3 of training (on an odd step so Adam updates)
@@ -2070,12 +2149,17 @@ class TrainingManager():
         self.reset()
 
     def _prepare_loco_diag_buffers(self):
-        if not LOCO_DIAG_MLP:
+        if not LOCO_DIAG_ACTIVE:
             return
         loco_model = getattr(self.model, "_orig_mod", self.model)
         if world_size > 1:
-            dist.all_reduce(loco_model.loco_mlp_fc_diag, op=dist.ReduceOp.AVG)
-            dist.all_reduce(loco_model.loco_mlp_proj_diag, op=dist.ReduceOp.AVG)
+            if LOCO_DIAG_ATTN_IN:
+                dist.all_reduce(loco_model.loco_attn_in_diag, op=dist.ReduceOp.AVG)
+            if LOCO_DIAG_O:
+                dist.all_reduce(loco_model.loco_attn_o_diag, op=dist.ReduceOp.AVG)
+            if LOCO_DIAG_MLP:
+                dist.all_reduce(loco_model.loco_mlp_fc_diag, op=dist.ReduceOp.AVG)
+                dist.all_reduce(loco_model.loco_mlp_proj_diag, op=dist.ReduceOp.AVG)
 
     def apply_final_ws_ext(self):
         self.ws_long = training_schedule.ws_post_yarn_ext
@@ -2128,7 +2212,7 @@ class TrainingManager():
         # Step optimizer with do_adam flag
         self._prepare_loco_diag_buffers()
         self.optimizer.step(do_adam=do_adam)
-        if LOCO_DIAG_MLP:
+        if LOCO_DIAG_ACTIVE:
             getattr(self.model, "_orig_mod", self.model).zero_loco_diag_buffers()
 
         # At split step: copy lm_head optimizer state to embed and mark as split
