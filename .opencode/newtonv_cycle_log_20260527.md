@@ -493,3 +493,35 @@ Implement a narrow full/metric MLP c_fc path if continuing the right-
 preconditioner thesis. It is the clean 768-dimensional surface left by the
 paper/theory path, and current code only has diagonal MLP support.
 ```
+
+## Cycle 4 Setup: MLP c_fc Probe
+
+User reopened GPU usage for the next 3 hours. Implemented the narrow MLP c_fc
+full-Gram path instead of spending more time on V-only:
+
+```text
+LOCO_FULL_SURFACES=mlp_fc
+full Gram collected from mlp_in = norm(x)
+precondition only even mlp_bank indices, i.e. c_fc
+do not touch c_proj
+owner-local collection/factorization under LOCO_FULL_LOCAL_STATS=1
+```
+
+Prepared H100 suite:
+
+```text
+NEWTONV_SUITE=mlpfc
+MFC_STEPS=120
+MFC_VAL_EVERY=40
+MFC_LAYERS=0-1
+```
+
+Cases:
+
+```text
+mfc_baseline
+mfc_noop_after_polar4
+mfc_inverse_before_r020_blend010
+mfc_inverse_after_polar4_r020_blend010
+mfc_cholmetric_after_polar4_r020_blend005_norm
+```

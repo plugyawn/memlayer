@@ -739,3 +739,42 @@ Narrow full/metric MLP c_fc only. It is the clean 768-dimensional surface that
 the paper-family theory still supports, but current branch does not implement
 full MLP support yet. Keep it 1xH100 only until it beats its own no-op.
 ```
+
+## Cycle 4: MLP c_fc Full-Matrix Path
+
+Prepared a narrow `mlp_fc` full feature-Gram path for the next H100 window.
+Scope is deliberately limited to the first MLP affine matrix:
+
+```text
+surface: mlp_fc only
+feature: mlp_in = norm(x), dimension 768
+parameter bank: even global mlp_bank indices only
+excluded: c_proj / 3072-dimensional post-ReLU feature
+```
+
+Implementation additions:
+
+```text
+LOCO_FULL_SURFACES=mlp_fc
+owner-local collection/factorization via mlp_bank shard ownership
+[num_layers,768,768] Gram/EMA/Cholesky/inverse buffers
+before-momentum inverse and after-momentum inverse/metric-polar helpers
+```
+
+Prepared suite:
+
+```text
+NEWTONV_SUITE=mlpfc
+MFC_STEPS=120
+MFC_LAYERS=0-1
+MFC_COLLECT_WINDOWS=0-64
+MFC_WINDOWS=48-112
+```
+
+Promotion rule:
+
+```text
+Do not promote unless an active mlp_fc treatment beats same-suite baseline and
+the same-suite mlp_fc no-op by at least ~0.002 at 120. If it does, repeat at
+200 before widening layers.
+```

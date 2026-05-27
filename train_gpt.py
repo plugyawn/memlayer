@@ -75,12 +75,13 @@ LOCO_DIAG_END_STEP = int(os.environ.get("LOCO_DIAG_END_STEP", "-1"))
 LOCO_DIAG_MLP_PROJ_LR_MUL = float(os.environ.get("LOCO_DIAG_MLP_PROJ_LR_MUL", "2.0"))
 
 LOCO_FULL_SURFACES = frozenset(s.strip() for s in os.environ.get("LOCO_FULL_SURFACES", "").split(",") if s.strip())
-LOCO_FULL_SUPPORTED_SURFACES = frozenset({"qk", "v", "o"})
+LOCO_FULL_SUPPORTED_SURFACES = frozenset({"qk", "v", "o", "mlp_fc"})
 if LOCO_FULL_SURFACES and not LOCO_FULL_SURFACES <= LOCO_FULL_SUPPORTED_SURFACES:
     raise ValueError(f"unsupported LOCO_FULL_SURFACES={sorted(LOCO_FULL_SURFACES)}")
 LOCO_FULL_QK = "qk" in LOCO_FULL_SURFACES
 LOCO_FULL_V = "v" in LOCO_FULL_SURFACES
 LOCO_FULL_O = "o" in LOCO_FULL_SURFACES
+LOCO_FULL_MLP_FC = "mlp_fc" in LOCO_FULL_SURFACES
 LOCO_FULL_ATTN_IN = LOCO_FULL_QK or LOCO_FULL_V
 LOCO_FULL_ACTIVE = bool(LOCO_FULL_SURFACES)
 LOCO_FULL_REFRESH_INTERVAL = int(os.environ.get("LOCO_FULL_REFRESH_INTERVAL", "8"))
@@ -149,6 +150,10 @@ if LOCO_FULL_METRIC_POLAR and LOCO_FULL_APPLY_BEFORE_MOMENTUM:
     raise ValueError("LOCO_FULL_METRIC_POLAR is only supported after momentum")
 if LOCO_FULL_METRIC_POLAR and (LOCO_FULL_BLOCK or LOCO_FULL_TOPSHRINK or LOCO_FULL_POWER or LOCO_FULL_FINITE):
     raise ValueError("LOCO_FULL_METRIC_POLAR currently requires dense inverse/norminverse filter state")
+if LOCO_FULL_MLP_FC and (LOCO_FULL_BLOCK or LOCO_FULL_TOPSHRINK):
+    raise ValueError("LOCO_FULL_SURFACES=mlp_fc currently supports dense inverse, power, finite, or metric-polar only")
+if LOCO_FULL_MLP_FC and LOCO_FULL_SKIP_VARRED:
+    raise ValueError("LOCO_FULL_SKIP_VARRED is not supported for mixed mlp_bank c_fc-only full preconditioning")
 LOCO_FULL_PRECOND_BF16 = LOCO_FULL_PRECOND_DTYPE == "bf16"
 LOCO_FULL_RESET_EACH_WINDOW = os.environ.get(
     "LOCO_FULL_RESET_EACH_WINDOW",
@@ -266,6 +271,17 @@ def _loco_full_should_collect_o_layer(loco_model, attn_idx: int) -> bool:
 
 def _loco_full_should_factor_o_layer(loco_model, attn_idx: int) -> bool:
     return _loco_full_o_layer_allowed(attn_idx) and attn_idx in loco_model.loco_full_o_owned_layers
+
+def _loco_full_mlp_fc_layer_allowed(layer_idx: int) -> bool:
+    return LOCO_FULL_MLP_FC and _loco_diag_layer_active(layer_idx, LOCO_DIAG_MLP_LAYER_SET)
+
+def _loco_full_should_collect_mlp_fc_layer(loco_model, layer_idx: int) -> bool:
+    if not _loco_full_mlp_fc_layer_allowed(layer_idx):
+        return False
+    return (not LOCO_FULL_LOCAL_STATS) or layer_idx in loco_model.loco_full_mlp_fc_owned_layers
+
+def _loco_full_should_factor_mlp_fc_layer(loco_model, layer_idx: int) -> bool:
+    return _loco_full_mlp_fc_layer_allowed(layer_idx) and layer_idx in loco_model.loco_full_mlp_fc_owned_layers
 
 def _parse_loco_diag_log_steps() -> frozenset[int]:
     spec = os.environ.get("LOCO_DIAG_LOG_STEPS", "0,1,2,10,50,100").strip().lower()
@@ -1600,7 +1616,8 @@ class NorMuonAndAdam:
         chunk_shape = grad_chunk.shape
         use_loco_full_qk = self._loco_full_optimizer_active and p_cfg.label == "qk_bank" and LOCO_FULL_QK
         use_loco_full_vo = self._loco_full_optimizer_active and p_cfg.label == "vo_bank" and (LOCO_FULL_V or LOCO_FULL_O)
-        use_loco_full_bank = use_loco_full_qk or use_loco_full_vo
+        use_loco_full_mlp_fc = self._loco_full_optimizer_active and p_cfg.label == "mlp_bank" and LOCO_FULL_MLP_FC
+        use_loco_full_bank = use_loco_full_qk or use_loco_full_vo or use_loco_full_mlp_fc
         use_loco_full_before_momentum = use_loco_full_bank and LOCO_FULL_APPLY_BEFORE_MOMENTUM
         use_loco_full_after_momentum = use_loco_full_bank and not LOCO_FULL_APPLY_BEFORE_MOMENTUM
 
@@ -1616,6 +1633,8 @@ class NorMuonAndAdam:
         if use_loco_full_before_momentum and not LOCO_FULL_SCHEDULE_ONLY:
             if use_loco_full_qk:
                 self._loco_full_precondition_qk_operand_inplace(grad_chunk, p_cfg, rank)
+            elif use_loco_full_mlp_fc:
+                self._loco_full_precondition_mlp_fc_operand_inplace(grad_chunk, p_cfg, rank)
             else:
                 self._loco_full_precondition_vo_operand_inplace(grad_chunk, p_cfg, rank)
 
@@ -1631,12 +1650,16 @@ class NorMuonAndAdam:
                 v_chunk = polar_express_from_operand(grad_chunk, split_baddbmm=is_large_matrix)
                 if use_loco_full_qk:
                     self._loco_full_metric_polar_qk_update_inplace(grad_chunk, v_chunk, p_cfg, rank, is_large_matrix)
+                elif use_loco_full_mlp_fc:
+                    self._loco_full_metric_polar_mlp_fc_update_inplace(grad_chunk, v_chunk, p_cfg, rank, is_large_matrix)
                 else:
                     self._loco_full_metric_polar_vo_update_inplace(grad_chunk, v_chunk, p_cfg, rank, is_large_matrix)
             else:
                 if not LOCO_FULL_SCHEDULE_ONLY:
                     if use_loco_full_qk:
                         self._loco_full_precondition_qk_operand_inplace(grad_chunk, p_cfg, rank)
+                    elif use_loco_full_mlp_fc:
+                        self._loco_full_precondition_mlp_fc_operand_inplace(grad_chunk, p_cfg, rank)
                     else:
                         self._loco_full_precondition_vo_operand_inplace(grad_chunk, p_cfg, rank)
                 v_chunk = polar_express_from_operand(grad_chunk, split_baddbmm=is_large_matrix)
@@ -2002,6 +2025,99 @@ class NorMuonAndAdam:
                     before_operand,
                     grad_chunk[mat_idx],
                     float(self._loco_full_blend_t.item()),
+                )
+
+    def _loco_full_precondition_mlp_fc_operand_inplace(self, grad_chunk: Tensor, p_cfg: ParamConfig, rank: int):
+        """Apply cached full-C right preconditioning to MLP c_fc matrices only."""
+        start_idx = rank * p_cfg.chunk_size
+        num_mlp_real = 22
+        for mat_idx in range(p_cfg.chunk_size):
+            global_idx = start_idx + mat_idx
+            if global_idx >= num_mlp_real:
+                grad_chunk[mat_idx].zero_()
+                continue
+            if global_idx % 2 == 1:
+                continue
+            layer_idx = global_idx // 2
+            if not _loco_diag_layer_active(layer_idx, LOCO_DIAG_MLP_LAYER_SET):
+                continue
+            before_norm = grad_chunk[mat_idx].float().norm() if self._loco_log_step else None
+            before_operand = grad_chunk[mat_idx].float().clone() if self._loco_full_log_step else None
+            if LOCO_FULL_PRECOND_BF16:
+                if LOCO_FULL_NORM_RESTORE:
+                    NorMuonAndAdam._loco_full_right_inverse_bf16_precondition_cols_inplace(
+                        grad_chunk[mat_idx],
+                        self.loco_diag_model.loco_full_mlp_fc_inv_bf16[layer_idx],
+                        self._loco_full_blend_t,
+                    )
+                else:
+                    NorMuonAndAdam._loco_full_right_inverse_bf16_no_norm_precondition_cols_inplace(
+                        grad_chunk[mat_idx],
+                        self.loco_diag_model.loco_full_mlp_fc_inv_bf16[layer_idx],
+                        self._loco_full_blend_t,
+                    )
+            else:
+                if LOCO_FULL_NORM_RESTORE:
+                    NorMuonAndAdam._loco_full_right_inverse_precondition_cols_inplace(
+                        grad_chunk[mat_idx],
+                        self.loco_diag_model.loco_full_mlp_fc_inv[layer_idx],
+                        self._loco_full_blend_t,
+                    )
+                else:
+                    NorMuonAndAdam._loco_full_right_inverse_no_norm_precondition_cols_inplace(
+                        grad_chunk[mat_idx],
+                        self.loco_diag_model.loco_full_mlp_fc_inv[layer_idx],
+                        self._loco_full_blend_t,
+                    )
+            if before_norm is not None:
+                self._record_loco_grad_ratio("full_mlp_fc", before_norm, grad_chunk[mat_idx].float().norm())
+            if before_operand is not None:
+                self._record_loco_full_precond_stats(
+                    "full_mlp_fc",
+                    layer_idx,
+                    global_idx,
+                    before_operand,
+                    grad_chunk[mat_idx],
+                    float(self._loco_full_blend_t.item()),
+                )
+
+    def _loco_full_metric_polar_mlp_fc_update_inplace(
+        self,
+        operand_chunk: Tensor,
+        v_chunk: Tensor,
+        p_cfg: ParamConfig,
+        rank: int,
+        split_baddbmm: bool,
+    ):
+        """Apply activation-metric polar to MLP c_fc matrices only."""
+        start_idx = rank * p_cfg.chunk_size
+        num_mlp_real = 22
+        for mat_idx in range(p_cfg.chunk_size):
+            global_idx = start_idx + mat_idx
+            if global_idx >= num_mlp_real:
+                v_chunk[mat_idx].zero_()
+                continue
+            if global_idx % 2 == 1:
+                continue
+            layer_idx = global_idx // 2
+            if not _loco_diag_layer_active(layer_idx, LOCO_DIAG_MLP_LAYER_SET):
+                continue
+            before_update = v_chunk[mat_idx].float().clone() if self._loco_full_log_step else None
+            self._loco_full_chol_metric_polar_update_cols_inplace(
+                operand_chunk[mat_idx],
+                v_chunk[mat_idx],
+                self.loco_diag_model.loco_full_mlp_fc_chol[layer_idx],
+                split_baddbmm,
+            )
+            if before_update is not None:
+                self._record_loco_full_precond_stats(
+                    "full_mlp_fc",
+                    layer_idx,
+                    global_idx,
+                    before_update,
+                    v_chunk[mat_idx],
+                    float(self._loco_full_blend_t.item()),
+                    record_postpolar_ref=False,
                 )
 
     def _loco_diag_mlp_update(self, param: nn.Parameter, grad_chunk: Tensor, p_cfg: ParamConfig, rank: int) -> Tensor:
@@ -2577,10 +2693,12 @@ class GPT(nn.Module):
         self.loco_full_collect = False
         self.loco_full_v_ema_initialized = False
         self.loco_full_o_ema_initialized = False
+        self.loco_full_mlp_fc_ema_initialized = False
         self.loco_full_v_owned_layers = frozenset()
         self.loco_full_qk_owned_layers = frozenset()
         self.loco_full_o_owned_layers = frozenset()
         self.loco_full_attn_in_owned_layers = frozenset()
+        self.loco_full_mlp_fc_owned_layers = frozenset()
         self.loco_full_shrink_rank = min(LOCO_FULL_SHRINK_RANK, model_dim)
         self.loco_full_block_size = LOCO_FULL_BLOCK_SIZE
         self.loco_full_block_count = 0
@@ -2629,6 +2747,13 @@ class GPT(nn.Module):
             self.register_buffer("loco_full_o_inv", torch.eye(head_dim, dtype=torch.float32).repeat(num_layers - 1, num_heads, 1, 1), persistent=False)
             self.register_buffer("loco_full_o_inv_bf16", torch.eye(head_dim, dtype=torch.bfloat16).repeat(num_layers - 1, num_heads, 1, 1), persistent=False)
             self.register_buffer("loco_full_o_eye", torch.eye(head_dim, dtype=torch.float32), persistent=False)
+        if LOCO_FULL_STATS_ACTIVE and LOCO_FULL_MLP_FC:
+            self.register_buffer("loco_full_mlp_fc_gram", torch.zeros(num_layers, model_dim, model_dim, dtype=torch.float32), persistent=False)
+            self.register_buffer("loco_full_mlp_fc_gram_ema", torch.zeros(num_layers, model_dim, model_dim, dtype=torch.float32), persistent=False)
+            self.register_buffer("loco_full_mlp_fc_chol", torch.eye(model_dim, dtype=torch.float32).repeat(num_layers, 1, 1), persistent=False)
+            self.register_buffer("loco_full_mlp_fc_inv", torch.eye(model_dim, dtype=torch.float32).repeat(num_layers, 1, 1), persistent=False)
+            self.register_buffer("loco_full_mlp_fc_inv_bf16", torch.eye(model_dim, dtype=torch.bfloat16).repeat(num_layers, 1, 1), persistent=False)
+            self.register_buffer("loco_full_mlp_fc_eye", torch.eye(model_dim, dtype=torch.float32), persistent=False)
         self.init_mudd(num_layers, model_dim)
 
         # Auto-label parameters
@@ -2650,6 +2775,8 @@ class GPT(nn.Module):
             self.loco_full_v_gram.zero_()
         if LOCO_FULL_STATS_ACTIVE and LOCO_FULL_O:
             self.loco_full_o_gram.zero_()
+        if LOCO_FULL_STATS_ACTIVE and LOCO_FULL_MLP_FC:
+            self.loco_full_mlp_fc_gram.zero_()
 
     @staticmethod
     def _accumulate_feature_diag_(diag: Tensor, x: Tensor):
@@ -2950,6 +3077,13 @@ class GPT(nn.Module):
                     x = resid_lambdas_attn[i] * x + post_lambdas_attn[i] * attn_out + x0_inject[i]
 
             mlp_in = norm(x)
+            if (
+                LOCO_FULL_MLP_FC
+                and self.loco_full_collect
+                and self.training
+                and _loco_full_should_collect_mlp_fc_layer(self, i)
+            ):
+                self._accumulate_feature_gram_(self.loco_full_mlp_fc_gram[i], mlp_in)
             if LOCO_DIAG_MLP and _loco_diag_layer_active(i, LOCO_DIAG_MLP_LAYER_SET) and self.training:
                 if LOCO_DIAG_MLP_FC:
                     self._accumulate_feature_diag_(self.loco_mlp_fc_diag[i], mlp_in)
@@ -3382,12 +3516,15 @@ class TrainingManager():
                 )
             if LOCO_FULL_O:
                 loco_model.loco_full_o_owned_layers = self._owned_full_o_attn_layers(loco_model)
+            if LOCO_FULL_MLP_FC:
+                loco_model.loco_full_mlp_fc_owned_layers = self._owned_full_mlp_fc_layers(loco_model)
             print0(
                 f"loco_full owned_layers rank={rank}: "
                 f"attn_in={sorted(loco_model.loco_full_attn_in_owned_layers)} "
                 f"qk_layers={sorted(loco_model.loco_full_qk_owned_layers)} "
                 f"v_layers={sorted(loco_model.loco_full_v_owned_layers)} "
                 f"o_layers={sorted(loco_model.loco_full_o_owned_layers)} "
+                f"mlp_fc_layers={sorted(loco_model.loco_full_mlp_fc_owned_layers)} "
                 f"filter={LOCO_FULL_FILTER} shrink_rank={loco_model.loco_full_shrink_rank} "
                 f"precond_dtype={LOCO_FULL_PRECOND_DTYPE} norm_restore={int(LOCO_FULL_NORM_RESTORE)} "
                 f"block_size={LOCO_FULL_BLOCK_SIZE} static_norm={int(LOCO_FULL_STATIC_NORM)} "
@@ -3452,6 +3589,22 @@ class TrainingManager():
             if global_idx >= loco_model._num_qk_groups:
                 continue
             layers.add(global_idx // qk_groups_per_layer)
+        return frozenset(layers)
+
+    def _owned_full_mlp_fc_layers(self, loco_model) -> frozenset[int]:
+        if not LOCO_FULL_MLP_FC:
+            return frozenset()
+        mlp_param = self.optimizer._param_by_label["mlp_bank"]
+        mlp_cfg = self.optimizer.param_cfgs[mlp_param]
+        start_idx = rank * mlp_cfg.chunk_size
+        end_idx = start_idx + mlp_cfg.chunk_size
+        num_mlp_real = 22
+        layers = set()
+        for global_idx in range(start_idx, end_idx):
+            if global_idx >= num_mlp_real:
+                continue
+            if global_idx % 2 == 0:
+                layers.add(global_idx // 2)
         return frozenset(layers)
 
     def _prepare_loco_diag_buffers(self, step: int):
@@ -3545,6 +3698,13 @@ class TrainingManager():
             loco_model.loco_full_o_chol.copy_(o_eye)
             loco_model.loco_full_o_inv.copy_(o_eye)
             loco_model.loco_full_o_inv_bf16.copy_(o_eye.to(torch.bfloat16))
+        if LOCO_FULL_MLP_FC:
+            loco_model.loco_full_mlp_fc_ema_initialized = False
+            loco_model.loco_full_mlp_fc_gram_ema.zero_()
+            mlp_eye = loco_model.loco_full_mlp_fc_eye.repeat(loco_model.num_layers, 1, 1)
+            loco_model.loco_full_mlp_fc_chol.copy_(mlp_eye)
+            loco_model.loco_full_mlp_fc_inv.copy_(mlp_eye)
+            loco_model.loco_full_mlp_fc_inv_bf16.copy_(mlp_eye.to(torch.bfloat16))
 
     @torch.no_grad()
     def _prepare_loco_full_buffers(self, step: int):
@@ -3563,6 +3723,8 @@ class TrainingManager():
                         dist.all_reduce(loco_model.loco_full_v_gram, op=dist.ReduceOp.AVG)
                 if LOCO_FULL_O:
                     dist.all_reduce(loco_model.loco_full_o_gram, op=dist.ReduceOp.AVG)
+                if LOCO_FULL_MLP_FC:
+                    dist.all_reduce(loco_model.loco_full_mlp_fc_gram, op=dist.ReduceOp.AVG)
             beta = LOCO_FULL_EMA_BETA
             if LOCO_FULL_ATTN_IN:
                 for layer_idx in sorted(loco_model.loco_full_attn_in_owned_layers):
@@ -3698,6 +3860,46 @@ class TrainingManager():
                     loco_model.loco_full_o_inv[layer_idx].copy_(c_inv)
                     loco_model.loco_full_o_inv_bf16[layer_idx].copy_(c_inv.to(torch.bfloat16))
                 loco_model.loco_full_o_ema_initialized = True
+            if LOCO_FULL_MLP_FC:
+                for layer_idx in sorted(loco_model.loco_full_mlp_fc_owned_layers):
+                    if not _loco_full_should_factor_mlp_fc_layer(loco_model, layer_idx):
+                        continue
+                    gram = loco_model.loco_full_mlp_fc_gram[layer_idx].mul(LOCO_FULL_DENOM_SCALE)
+                    gram = 0.5 * (gram + gram.T)
+                    ema = loco_model.loco_full_mlp_fc_gram_ema[layer_idx]
+                    if not loco_model.loco_full_mlp_fc_ema_initialized:
+                        ema.copy_(gram)
+                    else:
+                        ema.lerp_(gram, 1 - beta)
+                    mean_diag = ema.diagonal().mean().clamp_min(1e-12)
+                    if LOCO_FULL_POWER or LOCO_FULL_FINITE:
+                        c_norm = (ema + (LOCO_FULL_RIDGE_REL * mean_diag) * loco_model.loco_full_mlp_fc_eye).div(
+                            (1.0 + LOCO_FULL_RIDGE_REL) * mean_diag
+                        )
+                        c_norm = 0.5 * (c_norm + c_norm.T)
+                        evals, evecs = torch.linalg.eigh(c_norm)
+                        gain = self._loco_full_spectral_gain(evals)
+                        self._log_loco_full_spectrum("mlp_fc", step, layer_idx, evals, gain)
+                        c_inv = evecs.mul(gain.view(1, -1)) @ evecs.T
+                    else:
+                        c_reg = ema + (LOCO_FULL_RIDGE_REL * mean_diag) * loco_model.loco_full_mlp_fc_eye
+                        c_norm = c_reg.div((1.0 + LOCO_FULL_RIDGE_REL) * mean_diag)
+                        c_norm = 0.5 * (c_norm + c_norm.T)
+                        if LOCO_FULL_LOG_SPECTRUM:
+                            self._log_loco_full_spectrum("mlp_fc", step, layer_idx, torch.linalg.eigvalsh(c_norm))
+                        if LOCO_FULL_METRIC_POLAR:
+                            loco_model.loco_full_mlp_fc_chol[layer_idx].copy_(torch.linalg.cholesky(c_norm))
+                            continue
+                        chol = torch.linalg.cholesky(c_reg)
+                        c_inv = torch.cholesky_inverse(chol)
+                        if LOCO_FULL_NORMINVERSE:
+                            c_inv = c_inv.mul((1.0 + LOCO_FULL_RIDGE_REL) * mean_diag)
+                        loco_model.loco_full_mlp_fc_chol[layer_idx].copy_(chol)
+                    c_inv = 0.5 * (c_inv + c_inv.T)
+                    self._loco_full_static_norm_inplace(c_inv, c_inv.shape[-1])
+                    loco_model.loco_full_mlp_fc_inv[layer_idx].copy_(c_inv)
+                    loco_model.loco_full_mlp_fc_inv_bf16[layer_idx].copy_(c_inv.to(torch.bfloat16))
+                loco_model.loco_full_mlp_fc_ema_initialized = True
         if master_process and step in LOCO_DIAG_LOG_STEP_SET:
             self._log_loco_full_buffers(loco_model, step, refreshed)
 
@@ -3728,21 +3930,40 @@ class TrainingManager():
             log_layers = [layer for layer in sorted(loco_model.loco_full_o_owned_layers) if _loco_full_should_factor_o_layer(loco_model, layer)]
             if not log_layers:
                 print0(f"loco_full step={step} o_headwise_gram_ema refreshed={int(refreshed)} owned_layers=[]", console=True)
-                return
-            d = loco_model.loco_full_o_gram_ema[log_layers].diagonal(dim1=-2, dim2=-1).float()
-            flat = d.flatten()
-            q = torch.quantile(flat, torch.tensor([0.01, 0.50, 0.99], device=flat.device))
-            print0(
-                f"loco_full step={step} o_headwise_gram_ema refreshed={int(refreshed)} "
-                f"owned_layers={log_layers} "
-                f"mean_diag={d.mean().item():.4e} "
-                f"min={d.min().item():.4e} "
-                f"p01={q[0].item():.4e} "
-                f"p50={q[1].item():.4e} "
-                f"p99={q[2].item():.4e} "
-                f"max={d.max().item():.4e}",
-                console=True,
-            )
+            else:
+                d = loco_model.loco_full_o_gram_ema[log_layers].diagonal(dim1=-2, dim2=-1).float()
+                flat = d.flatten()
+                q = torch.quantile(flat, torch.tensor([0.01, 0.50, 0.99], device=flat.device))
+                print0(
+                    f"loco_full step={step} o_headwise_gram_ema refreshed={int(refreshed)} "
+                    f"owned_layers={log_layers} "
+                    f"mean_diag={d.mean().item():.4e} "
+                    f"min={d.min().item():.4e} "
+                    f"p01={q[0].item():.4e} "
+                    f"p50={q[1].item():.4e} "
+                    f"p99={q[2].item():.4e} "
+                    f"max={d.max().item():.4e}",
+                    console=True,
+                )
+        if LOCO_FULL_MLP_FC:
+            log_layers = [layer for layer in sorted(loco_model.loco_full_mlp_fc_owned_layers) if _loco_full_should_factor_mlp_fc_layer(loco_model, layer)]
+            if not log_layers:
+                print0(f"loco_full step={step} mlp_fc_gram_ema refreshed={int(refreshed)} owned_layers=[]", console=True)
+            else:
+                d = loco_model.loco_full_mlp_fc_gram_ema[log_layers].diagonal(dim1=-2, dim2=-1).float()
+                flat = d.flatten()
+                q = torch.quantile(flat, torch.tensor([0.01, 0.50, 0.99], device=flat.device))
+                print0(
+                    f"loco_full step={step} mlp_fc_gram_ema refreshed={int(refreshed)} "
+                    f"owned_layers={log_layers} "
+                    f"mean_diag={d.mean().item():.4e} "
+                    f"min={d.min().item():.4e} "
+                    f"p01={q[0].item():.4e} "
+                    f"p50={q[1].item():.4e} "
+                    f"p99={q[2].item():.4e} "
+                    f"max={d.max().item():.4e}",
+                    console=True,
+                )
 
     def _log_loco_diag_buffers(self, loco_model, step: int):
         def log_diag(name: str, d: Tensor):
@@ -3841,6 +4062,7 @@ class TrainingManager():
             loco_model.loco_full_collect = False
             loco_model.loco_full_v_ema_initialized = False
             loco_model.loco_full_o_ema_initialized = False
+            loco_model.loco_full_mlp_fc_ema_initialized = False
             if LOCO_FULL_ATTN_IN:
                 if LOCO_FULL_BLOCK:
                     loco_model.loco_full_v_block_gram.zero_()
@@ -3848,6 +4070,8 @@ class TrainingManager():
                     loco_model.loco_full_v_gram.zero_()
             if LOCO_FULL_O:
                 loco_model.loco_full_o_gram.zero_()
+            if LOCO_FULL_MLP_FC:
+                loco_model.loco_full_mlp_fc_gram.zero_()
             self._reset_loco_full_preconditioner_state(loco_model)
 
         # Reset NorMuon momentum buffers and split_embed state

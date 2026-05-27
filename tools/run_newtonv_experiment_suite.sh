@@ -1060,6 +1060,82 @@ run_metricsurface_ladder() {
     bash tools/run_newtonv_timing_triplet_gate.sh
 }
 
+run_mlpfc_ladder() {
+  local mfc_steps="${MFC_STEPS:-120}"
+  local mfc_val_every="${MFC_VAL_EVERY:-40}"
+  local mfc_layers="${MFC_LAYERS:-0-1}"
+  local mfc_collect="${MFC_COLLECT_WINDOWS:-0-64}"
+  local mfc_windows="${MFC_WINDOWS:-48-112}"
+
+  run_case mfc_baseline \
+    NEWTONV_VARIANT=baseline \
+    SCREEN_STEPS="${mfc_steps}" \
+    SCREEN_VAL_EVERY="${mfc_val_every}" \
+    bash tools/run_newtonv_timing_triplet_gate.sh
+
+  run_case mfc_noop_after_polar4 \
+    NEWTONV_VARIANT=noop \
+    LOCO_FULL_SURFACES=mlp_fc \
+    LOCO_DIAG_MLP_LAYERS="${mfc_layers}" \
+    LOCO_FULL_COLLECT_WINDOWS="${mfc_collect}" \
+    LOCO_FULL_WINDOWS="${mfc_windows}" \
+    LOCO_FULL_POLAR_ITERS=4 \
+    LOCO_FULL_FILTER=inverse \
+    LOCO_FULL_NORM_RESTORE=1 \
+    SCREEN_STEPS="${mfc_steps}" \
+    SCREEN_VAL_EVERY="${mfc_val_every}" \
+    bash tools/run_newtonv_timing_triplet_gate.sh
+
+  run_case mfc_inverse_before_r020_blend010 \
+    LOCO_FULL_SURFACES=mlp_fc \
+    LOCO_DIAG_MLP_LAYERS="${mfc_layers}" \
+    LOCO_FULL_COLLECT_WINDOWS="${mfc_collect}" \
+    LOCO_FULL_WINDOWS="${mfc_windows}" \
+    LOCO_FULL_APPLY_BEFORE_MOMENTUM=1 \
+    LOCO_FULL_REFRESH_INTERVAL=16 \
+    LOCO_FULL_EMA_BETA=0.8 \
+    LOCO_FULL_RIDGE_REL=0.2 \
+    LOCO_FULL_BLEND_MAX=0.10 \
+    LOCO_FULL_BLEND_STEPS=32 \
+    LOCO_FULL_FILTER=inverse \
+    LOCO_FULL_NORM_RESTORE=1 \
+    SCREEN_STEPS="${mfc_steps}" \
+    SCREEN_VAL_EVERY="${mfc_val_every}" \
+    bash tools/run_newtonv_raw_v01_gate.sh
+
+  run_case mfc_inverse_after_polar4_r020_blend010 \
+    LOCO_FULL_SURFACES=mlp_fc \
+    LOCO_DIAG_MLP_LAYERS="${mfc_layers}" \
+    LOCO_FULL_COLLECT_WINDOWS="${mfc_collect}" \
+    LOCO_FULL_WINDOWS="${mfc_windows}" \
+    LOCO_FULL_REFRESH_INTERVAL=16 \
+    LOCO_FULL_EMA_BETA=0.8 \
+    LOCO_FULL_RIDGE_REL=0.2 \
+    LOCO_FULL_BLEND_MAX=0.10 \
+    LOCO_FULL_BLEND_STEPS=32 \
+    LOCO_FULL_FILTER=inverse \
+    LOCO_FULL_NORM_RESTORE=1 \
+    LOCO_FULL_POLAR_ITERS=4 \
+    SCREEN_STEPS="${mfc_steps}" \
+    SCREEN_VAL_EVERY="${mfc_val_every}" \
+    bash tools/run_newtonv_raw_v01_gate.sh
+
+  run_case mfc_cholmetric_after_polar4_r020_blend005_norm \
+    LOCO_FULL_SURFACES=mlp_fc \
+    LOCO_DIAG_MLP_LAYERS="${mfc_layers}" \
+    LOCO_FULL_COLLECT_WINDOWS="${mfc_collect}" \
+    LOCO_FULL_WINDOWS="${mfc_windows}" \
+    LOCO_FULL_METRIC_POLAR=1 \
+    LOCO_FULL_NORM_RESTORE=1 \
+    LOCO_FULL_RIDGE_REL=0.20 \
+    LOCO_FULL_BLEND_MAX=0.05 \
+    LOCO_FULL_BLEND_STEPS=32 \
+    LOCO_FULL_POLAR_ITERS=4 \
+    SCREEN_STEPS="${mfc_steps}" \
+    SCREEN_VAL_EVERY="${mfc_val_every}" \
+    bash tools/run_newtonv_raw_v01_gate.sh
+}
+
 case "${suite}" in
   timing)
     run_timing_triplet
@@ -1150,6 +1226,9 @@ case "${suite}" in
   metricsurfaces)
     run_metricsurface_ladder
     ;;
+  mlpfc)
+    run_mlpfc_ladder
+    ;;
   all)
     run_timing_triplet
     run_next_ladder
@@ -1161,7 +1240,7 @@ case "${suite}" in
       bash tools/run_newtonv_raw_v01_gate.sh
     ;;
   *)
-    echo "NEWTONV_SUITE must be timing, filters, quick, raw200, promote, polar4, permutations, next, tail, warmmetric, overprecond, overpromote, scheduleonly, preconddiag, schedule_diag, rightfilter, paperstyle, paperfilter, metricpolar, metricpromote, metricv_promote, paper_v_promote, metricsurfaces, or all; got ${suite}" >&2
+    echo "NEWTONV_SUITE must be timing, filters, quick, raw200, promote, polar4, permutations, next, tail, warmmetric, overprecond, overpromote, scheduleonly, preconddiag, schedule_diag, rightfilter, paperstyle, paperfilter, metricpolar, metricpromote, metricv_promote, paper_v_promote, metricsurfaces, mlpfc, or all; got ${suite}" >&2
     exit 2
     ;;
 esac
