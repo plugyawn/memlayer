@@ -272,6 +272,15 @@ run_overprecond_ladder() {
     SCREEN_VAL_EVERY="${next_val_every}" \
     bash tools/run_newtonv_timing_triplet_gate.sh
 
+  run_case over_v01_warm_noop_polar4 \
+    NEWTONV_VARIANT=noop \
+    LOCO_FULL_COLLECT_WINDOWS=0-64 \
+    LOCO_FULL_WINDOWS=48-112 \
+    LOCO_FULL_POLAR_ITERS=4 \
+    SCREEN_STEPS="${next_steps}" \
+    SCREEN_VAL_EVERY="${next_val_every}" \
+    bash tools/run_newtonv_timing_triplet_gate.sh
+
   run_case over_v01_warm_polar5 \
     LOCO_FULL_COLLECT_WINDOWS=0-64 \
     LOCO_FULL_WINDOWS=48-112 \
