@@ -160,6 +160,10 @@ First H100 result:
 | full V layers 7-10, FP32 inverse cache | `.opencode/newtonv_fullv_layers7_10_fp32_screen60.log` | 20 | 6.5388 | 8.677s | 433.84ms | late V is not the 60-step signal |
 | full V layers 7-10, FP32 inverse cache | `.opencode/newtonv_fullv_layers7_10_fp32_screen60.log` | 40 | 5.4445 | 28.463s | 711.58ms | much worse than early/all-layer V |
 | full V layers 7-10, FP32 inverse cache | `.opencode/newtonv_fullv_layers7_10_fp32_screen60.log` | 60 | 4.8640 | 61.288s | 1021.47ms | reject late-only V |
+| full V layers 0-1, end100 | `.opencode/newtonv_fullv_layers0_1_end100_fp32_screen200.log` | 50 | 5.5969 | 25.501s | 510.03ms | better than 0-1 no-end at 50 |
+| full V layers 0-1, end100 | `.opencode/newtonv_fullv_layers0_1_end100_fp32_screen200.log` | 100 | 4.6931 | 74.494s | 744.94ms | weak at 100; no early advantage this run |
+| full V layers 0-1, end100 | `.opencode/newtonv_fullv_layers0_1_end100_fp32_screen200.log` | 150 | 4.1143 | 147.653s | 984.35ms | recovers by 150 |
+| full V layers 0-1, end100 | `.opencode/newtonv_fullv_layers0_1_end100_fp32_screen200.log` | 200 | 3.8793 | 241.799s | 1209.00ms | best loss so far, but not wall-clock viable |
 
 Follow-up implementation change: cache an explicit inverse/preconditioner on
 refresh and use a matrix multiply in the optimizer step. This keeps the
@@ -208,6 +212,11 @@ Owner-local/BF16 verdict:
   `4.8640` at 60. This supports the read that the full-V signal is early-layer
   dominated, with later layers possibly helping persistence only when combined
   with the early layers.
+- Early `0-1` with `LOCO_FULL_END_STEP=100` produced the best final loss so far
+  (`3.8793`) but was slower than always-on `0-1` and all-layer runs. The
+  optimizer already disables full-V application after `END_STEP`; the remaining
+  cost is the first 100 active steps plus the base schedule, not a zero-blend
+  matmul bug.
 
 ## Current Next Actions
 
@@ -215,6 +224,8 @@ Owner-local/BF16 verdict:
    enough of the signal to cut single-GPU cost.
 2. Do not pursue BF16 cached-preconditioner matmul further unless the kernel
    path changes.
-3. For 1xH100, focus next on reducing every-step preconditioner cost or limiting
+3. Add an application cadence knob so full-V can collect/cache normally but only
+   shape the optimizer operand every N steps.
+4. For 1xH100, focus next on reducing every-step preconditioner cost or limiting
    full-V to fewer layers/steps; for 8xH100, remeasure owner-local because each
    rank will own only a subset of V layers.
