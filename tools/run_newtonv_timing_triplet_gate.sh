@@ -10,6 +10,10 @@ windows="${LOCO_FULL_WINDOWS:-0-48}"
 cache_dir="${TORCHINDUCTOR_CACHE_DIR:-${HOME}/.cache/torchinductor-speedrun-newtonv}"
 nproc="${NPROC_PER_NODE:-1}"
 log_path="${LOG_PATH:-.opencode/newtonv_timing_${variant}_screen${steps}.log}"
+norm_restore_default=1
+if [[ "${LOCO_FULL_METRIC_POLAR:-0}" == "1" ]]; then
+  norm_restore_default=0
+fi
 
 python3 tools/make_train_screen.py \
   --source train_gpt.py \
@@ -41,7 +45,8 @@ case "${variant}" in
       LOCO_FULL_WINDOWS="${windows}" \
       LOCO_FULL_NOOP=1 \
       LOCO_FULL_FILTER="${LOCO_FULL_FILTER:-inverse}" \
-      LOCO_FULL_NORM_RESTORE="${LOCO_FULL_NORM_RESTORE:-1}" \
+      LOCO_FULL_METRIC_POLAR="${LOCO_FULL_METRIC_POLAR:-0}" \
+      LOCO_FULL_NORM_RESTORE="${LOCO_FULL_NORM_RESTORE:-${norm_restore_default}}" \
       LOCO_FULL_LOCAL_STATS="${LOCO_FULL_LOCAL_STATS:-1}" \
       LOCO_FULL_REFRESH_INTERVAL="${LOCO_FULL_REFRESH_INTERVAL:-8}" \
       LOCO_FULL_RIDGE_REL="${LOCO_FULL_RIDGE_REL:-0.03}" \
@@ -53,7 +58,8 @@ case "${variant}" in
       LOCO_DIAG_ATTN_LAYERS="${layers}" \
       LOCO_FULL_WINDOWS="${windows}" \
       LOCO_FULL_FILTER="${LOCO_FULL_FILTER:-inverse}" \
-      LOCO_FULL_NORM_RESTORE="${LOCO_FULL_NORM_RESTORE:-1}" \
+      LOCO_FULL_METRIC_POLAR="${LOCO_FULL_METRIC_POLAR:-0}" \
+      LOCO_FULL_NORM_RESTORE="${LOCO_FULL_NORM_RESTORE:-${norm_restore_default}}" \
       LOCO_FULL_LOCAL_STATS="${LOCO_FULL_LOCAL_STATS:-1}" \
       LOCO_FULL_REFRESH_INTERVAL="${LOCO_FULL_REFRESH_INTERVAL:-8}" \
       LOCO_FULL_APPLY_INTERVAL="${LOCO_FULL_APPLY_INTERVAL:-1}" \

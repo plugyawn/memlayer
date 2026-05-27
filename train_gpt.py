@@ -113,9 +113,11 @@ LOCO_FULL_POWER_CLIP = float(os.environ.get("LOCO_FULL_POWER_CLIP", "2.0"))
 LOCO_FULL_FINITE_T = float(os.environ.get("LOCO_FULL_FINITE_T", "2.0"))
 LOCO_FULL_SHRINK_ONLY = os.environ.get("LOCO_FULL_SHRINK_ONLY", "0") == "1"
 LOCO_FULL_BLOCK_SIZE = int(os.environ.get("LOCO_FULL_BLOCK_SIZE", "0"))
+LOCO_FULL_BLOCK = LOCO_FULL_BLOCK_SIZE > 0
 LOCO_FULL_STATIC_NORM = os.environ.get("LOCO_FULL_STATIC_NORM", "1" if LOCO_FULL_POWER or LOCO_FULL_FINITE else "0") == "1"
 LOCO_FULL_POLAR_ITERS = int(os.environ.get("LOCO_FULL_POLAR_ITERS", "5"))
-LOCO_FULL_NORM_RESTORE = os.environ.get("LOCO_FULL_NORM_RESTORE", "0" if LOCO_FULL_NORMINVERSE else "1") == "1"
+LOCO_FULL_METRIC_POLAR = os.environ.get("LOCO_FULL_METRIC_POLAR", "0") == "1"
+LOCO_FULL_NORM_RESTORE = os.environ.get("LOCO_FULL_NORM_RESTORE", "0" if (LOCO_FULL_NORMINVERSE or LOCO_FULL_METRIC_POLAR) else "1") == "1"
 LOCO_FULL_SKIP_VARRED = os.environ.get("LOCO_FULL_SKIP_VARRED", "0") == "1"
 LOCO_FULL_LOG_PRECOND = os.environ.get("LOCO_FULL_LOG_PRECOND", "0") == "1"
 LOCO_FULL_LOG_PRECOND_DETAIL = os.environ.get("LOCO_FULL_LOG_PRECOND_DETAIL", "0") == "1"
@@ -143,8 +145,11 @@ if LOCO_FULL_SHRINK_T <= 0:
     raise ValueError("LOCO_FULL_SHRINK_T must be positive")
 if LOCO_FULL_SHRINK_CLIP < 1:
     raise ValueError("LOCO_FULL_SHRINK_CLIP must be >= 1")
+if LOCO_FULL_METRIC_POLAR and LOCO_FULL_APPLY_BEFORE_MOMENTUM:
+    raise ValueError("LOCO_FULL_METRIC_POLAR is only supported after momentum")
+if LOCO_FULL_METRIC_POLAR and (LOCO_FULL_BLOCK or LOCO_FULL_TOPSHRINK or LOCO_FULL_POWER or LOCO_FULL_FINITE):
+    raise ValueError("LOCO_FULL_METRIC_POLAR currently requires dense inverse/norminverse filter state")
 LOCO_FULL_PRECOND_BF16 = LOCO_FULL_PRECOND_DTYPE == "bf16"
-LOCO_FULL_BLOCK = LOCO_FULL_BLOCK_SIZE > 0
 LOCO_FULL_RESET_EACH_WINDOW = os.environ.get(
     "LOCO_FULL_RESET_EACH_WINDOW",
     "1" if (LOCO_FULL_WINDOWS_SPEC or LOCO_FULL_COLLECT_WINDOWS_SPEC) else "0",
@@ -820,6 +825,7 @@ class NorMuonAndAdam:
         before: Tensor,
         after: Tensor,
         blend: float,
+        record_postpolar_ref: bool = True,
     ):
         if not self._loco_full_log_step:
             return
@@ -850,7 +856,7 @@ class NorMuonAndAdam:
             stat["target_delta_ratio"] = delta_norm.div(before_norm * blend).item()
             stat["target_cos"] = target_cos.item()
         self._record_loco_full_eigen_energy_stats(name, layer_idx, global_idx, before, after, blend)
-        if LOCO_FULL_LOG_POSTPOLAR and not LOCO_FULL_APPLY_BEFORE_MOMENTUM and blend > 1e-12:
+        if record_postpolar_ref and LOCO_FULL_LOG_POSTPOLAR and not LOCO_FULL_APPLY_BEFORE_MOMENTUM and blend > 1e-12:
             self._loco_full_postpolar_refs.append(
                 {
                     "name": name,
@@ -1437,6 +1443,152 @@ class NorMuonAndAdam:
         update.addcmul_(p_slice, mask, value=eff_wd_t)
         p_slice.add_(other=update, alpha=-1.0)
 
+    def _loco_full_chol_metric_polar_update_cols_inplace(
+        self,
+        operand: Tensor,
+        baseline_update: Tensor,
+        chol: Tensor,
+        split_baddbmm: bool,
+    ):
+        """Apply Q = polar(G L^-T) L^-1 and blend it into a baseline Muon update."""
+        original = operand.float()
+        whitened = torch.linalg.solve_triangular(
+            chol,
+            original.T.contiguous(),
+            upper=False,
+        ).T.contiguous()
+        metric_update = polar_express_from_operand(whitened, split_baddbmm=split_baddbmm).float()
+        metric_update = torch.linalg.solve_triangular(
+            chol.T.contiguous(),
+            metric_update.T.contiguous(),
+            upper=True,
+        ).T.contiguous()
+        baseline = baseline_update.float()
+        if LOCO_FULL_NORM_RESTORE:
+            metric_update = metric_update.mul(
+                baseline.norm().div(metric_update.norm().clamp_min(1e-12))
+            )
+        baseline_update.copy_(baseline + float(self._loco_full_blend_t.item()) * (metric_update - baseline))
+
+    def _loco_full_chol_metric_polar_headwise_update_cols_inplace(
+        self,
+        operand: Tensor,
+        baseline_update: Tensor,
+        chol: Tensor,
+        split_baddbmm: bool,
+    ):
+        """Headwise/block activation-metric polar for O's per-head input covariance."""
+        original = operand.float()
+        num_heads = chol.shape[0]
+        head_dim = chol.shape[-1]
+        original_blocks = original.view(original.shape[0], num_heads, head_dim)
+        whitened = torch.linalg.solve_triangular(
+            chol,
+            original_blocks.permute(1, 2, 0).contiguous(),
+            upper=False,
+        ).permute(2, 0, 1).contiguous().view_as(original)
+        metric_update = polar_express_from_operand(whitened, split_baddbmm=split_baddbmm).float()
+        metric_blocks = metric_update.view(metric_update.shape[0], num_heads, head_dim)
+        metric_update = torch.linalg.solve_triangular(
+            chol.transpose(-1, -2).contiguous(),
+            metric_blocks.permute(1, 2, 0).contiguous(),
+            upper=True,
+        ).permute(2, 0, 1).contiguous().view_as(original)
+        baseline = baseline_update.float()
+        if LOCO_FULL_NORM_RESTORE:
+            metric_update = metric_update.mul(
+                baseline.norm().div(metric_update.norm().clamp_min(1e-12))
+            )
+        baseline_update.copy_(baseline + float(self._loco_full_blend_t.item()) * (metric_update - baseline))
+
+    def _loco_full_metric_polar_vo_update_inplace(
+        self,
+        operand_chunk: Tensor,
+        v_chunk: Tensor,
+        p_cfg: ParamConfig,
+        rank: int,
+        split_baddbmm: bool,
+    ):
+        start_idx = rank * p_cfg.chunk_size
+        num_vo_real = self.loco_diag_model._num_attn_layers * 2
+        for mat_idx in range(p_cfg.chunk_size):
+            global_idx = start_idx + mat_idx
+            if global_idx >= num_vo_real:
+                v_chunk[mat_idx].zero_()
+                continue
+            is_o = global_idx % 2 == 1
+            if is_o:
+                if not LOCO_FULL_O:
+                    continue
+            elif not LOCO_FULL_V:
+                continue
+            layer_idx = global_idx // 2
+            model_layer = layer_idx + (layer_idx >= 6)
+            if not _loco_diag_layer_active(model_layer, LOCO_DIAG_ATTN_LAYER_SET):
+                continue
+            before_update = v_chunk[mat_idx].float().clone() if self._loco_full_log_step else None
+            if is_o:
+                self._loco_full_chol_metric_polar_headwise_update_cols_inplace(
+                    operand_chunk[mat_idx],
+                    v_chunk[mat_idx],
+                    self.loco_diag_model.loco_full_o_chol[layer_idx],
+                    split_baddbmm,
+                )
+            else:
+                self._loco_full_chol_metric_polar_update_cols_inplace(
+                    operand_chunk[mat_idx],
+                    v_chunk[mat_idx],
+                    self.loco_diag_model.loco_full_v_chol[layer_idx],
+                    split_baddbmm,
+                )
+            if before_update is not None:
+                self._record_loco_full_precond_stats(
+                    "full_o" if is_o else "full_v",
+                    layer_idx,
+                    global_idx,
+                    before_update,
+                    v_chunk[mat_idx],
+                    float(self._loco_full_blend_t.item()),
+                    record_postpolar_ref=False,
+                )
+
+    def _loco_full_metric_polar_qk_update_inplace(
+        self,
+        operand_chunk: Tensor,
+        v_chunk: Tensor,
+        p_cfg: ParamConfig,
+        rank: int,
+        split_baddbmm: bool,
+    ):
+        start_idx = rank * p_cfg.chunk_size
+        qk_groups_per_layer = 2 * (self.loco_diag_model.num_heads // 2)
+        for mat_idx in range(p_cfg.chunk_size):
+            global_idx = start_idx + mat_idx
+            if global_idx >= self.loco_diag_model._num_qk_groups:
+                v_chunk[mat_idx].zero_()
+                continue
+            layer_idx = global_idx // qk_groups_per_layer
+            model_layer = layer_idx + (layer_idx >= 6)
+            if not _loco_diag_layer_active(model_layer, LOCO_DIAG_ATTN_LAYER_SET):
+                continue
+            before_update = v_chunk[mat_idx].float().clone() if self._loco_full_log_step else None
+            self._loco_full_chol_metric_polar_update_cols_inplace(
+                operand_chunk[mat_idx],
+                v_chunk[mat_idx],
+                self.loco_diag_model.loco_full_v_chol[layer_idx],
+                split_baddbmm,
+            )
+            if before_update is not None:
+                self._record_loco_full_precond_stats(
+                    "full_qk",
+                    layer_idx,
+                    global_idx,
+                    before_update,
+                    v_chunk[mat_idx],
+                    float(self._loco_full_blend_t.item()),
+                    record_postpolar_ref=False,
+                )
+
     # -----------------------------------
     # NorMuon update
 
@@ -1475,13 +1627,20 @@ class NorMuonAndAdam:
         is_large_matrix = chunk_shape[-2] > 1024
         if use_loco_full_after_momentum:
             nesterov_momentum_operand_inplace(grad_chunk, p_state["momentum_buffer"], self._momentum_t)
-            if not LOCO_FULL_SCHEDULE_ONLY:
+            if LOCO_FULL_METRIC_POLAR and not LOCO_FULL_SCHEDULE_ONLY:
+                v_chunk = polar_express_from_operand(grad_chunk, split_baddbmm=is_large_matrix)
                 if use_loco_full_qk:
-                    self._loco_full_precondition_qk_operand_inplace(grad_chunk, p_cfg, rank)
+                    self._loco_full_metric_polar_qk_update_inplace(grad_chunk, v_chunk, p_cfg, rank, is_large_matrix)
                 else:
-                    self._loco_full_precondition_vo_operand_inplace(grad_chunk, p_cfg, rank)
-            v_chunk = polar_express_from_operand(grad_chunk, split_baddbmm=is_large_matrix)
-            self._record_loco_full_postpolar_stats(p_cfg, rank, v_chunk, is_large_matrix)
+                    self._loco_full_metric_polar_vo_update_inplace(grad_chunk, v_chunk, p_cfg, rank, is_large_matrix)
+            else:
+                if not LOCO_FULL_SCHEDULE_ONLY:
+                    if use_loco_full_qk:
+                        self._loco_full_precondition_qk_operand_inplace(grad_chunk, p_cfg, rank)
+                    else:
+                        self._loco_full_precondition_vo_operand_inplace(grad_chunk, p_cfg, rank)
+                v_chunk = polar_express_from_operand(grad_chunk, split_baddbmm=is_large_matrix)
+                self._record_loco_full_postpolar_stats(p_cfg, rank, v_chunk, is_large_matrix)
         else:
             v_chunk = polar_express(
                 grad_chunk, p_state["momentum_buffer"], self._momentum_t,
@@ -3234,6 +3393,7 @@ class TrainingManager():
                 f"block_size={LOCO_FULL_BLOCK_SIZE} static_norm={int(LOCO_FULL_STATIC_NORM)} "
                 f"power_alpha={LOCO_FULL_POWER_ALPHA} power_clip={LOCO_FULL_POWER_CLIP} shrink_only={int(LOCO_FULL_SHRINK_ONLY)} "
                 f"schedule_only={int(LOCO_FULL_SCHEDULE_ONLY)} "
+                f"metric_polar={int(LOCO_FULL_METRIC_POLAR)} "
                 f"polar_iters={LOCO_FULL_POLAR_ITERS} windows={LOCO_FULL_WINDOWS or 'end'} "
                 f"collect_windows={LOCO_FULL_COLLECT_WINDOWS or 'same'} "
                 f"skip_varred={int(LOCO_FULL_SKIP_VARRED)} "
@@ -3372,6 +3532,7 @@ class TrainingManager():
             else:
                 loco_model.loco_full_v_gram_ema.zero_()
                 eye = loco_model.loco_full_eye.repeat(loco_model._num_attn_layers, 1, 1)
+                loco_model.loco_full_v_chol.copy_(eye)
                 loco_model.loco_full_v_inv.copy_(eye)
                 loco_model.loco_full_v_inv_bf16.copy_(eye.to(torch.bfloat16))
                 if LOCO_FULL_TOPSHRINK:
@@ -3381,6 +3542,7 @@ class TrainingManager():
             loco_model.loco_full_o_ema_initialized = False
             loco_model.loco_full_o_gram_ema.zero_()
             o_eye = loco_model.loco_full_o_eye.repeat(loco_model._num_attn_layers, loco_model.num_heads, 1, 1)
+            loco_model.loco_full_o_chol.copy_(o_eye)
             loco_model.loco_full_o_inv.copy_(o_eye)
             loco_model.loco_full_o_inv_bf16.copy_(o_eye.to(torch.bfloat16))
 
@@ -3479,19 +3641,22 @@ class TrainingManager():
                             loco_model.loco_full_v_inv_bf16[layer_idx].copy_(c_inv.to(torch.bfloat16))
                         else:
                             c_reg = ema + (LOCO_FULL_RIDGE_REL * mean_diag) * loco_model.loco_full_eye
+                            c_norm = c_reg.div((1.0 + LOCO_FULL_RIDGE_REL) * mean_diag)
+                            c_norm = 0.5 * (c_norm + c_norm.T)
                             if LOCO_FULL_LOG_SPECTRUM:
-                                c_norm = c_reg.div((1.0 + LOCO_FULL_RIDGE_REL) * mean_diag)
-                                c_norm = 0.5 * (c_norm + c_norm.T)
                                 self._log_loco_full_spectrum("attn_in", step, layer_idx, torch.linalg.eigvalsh(c_norm))
-                            chol = torch.linalg.cholesky(c_reg)
-                            c_inv = torch.cholesky_inverse(chol)
-                            if LOCO_FULL_NORMINVERSE:
-                                c_inv = c_inv.mul((1.0 + LOCO_FULL_RIDGE_REL) * mean_diag)
-                            c_inv = 0.5 * (c_inv + c_inv.T)
-                            self._loco_full_static_norm_inplace(c_inv, c_inv.shape[-1])
-                            loco_model.loco_full_v_chol[layer_idx].copy_(chol)
-                            loco_model.loco_full_v_inv[layer_idx].copy_(c_inv)
-                            loco_model.loco_full_v_inv_bf16[layer_idx].copy_(c_inv.to(torch.bfloat16))
+                            if LOCO_FULL_METRIC_POLAR:
+                                loco_model.loco_full_v_chol[layer_idx].copy_(torch.linalg.cholesky(c_norm))
+                            else:
+                                chol = torch.linalg.cholesky(c_reg)
+                                c_inv = torch.cholesky_inverse(chol)
+                                if LOCO_FULL_NORMINVERSE:
+                                    c_inv = c_inv.mul((1.0 + LOCO_FULL_RIDGE_REL) * mean_diag)
+                                c_inv = 0.5 * (c_inv + c_inv.T)
+                                self._loco_full_static_norm_inplace(c_inv, c_inv.shape[-1])
+                                loco_model.loco_full_v_chol[layer_idx].copy_(chol)
+                                loco_model.loco_full_v_inv[layer_idx].copy_(c_inv)
+                                loco_model.loco_full_v_inv_bf16[layer_idx].copy_(c_inv.to(torch.bfloat16))
                 loco_model.loco_full_v_ema_initialized = True
             if LOCO_FULL_O:
                 for layer_idx in sorted(loco_model.loco_full_o_owned_layers):
@@ -3516,10 +3681,13 @@ class TrainingManager():
                         c_inv = torch.matmul(evecs.mul(gain.unsqueeze(-2)), evecs.transpose(-1, -2))
                     else:
                         c_reg = ema + (LOCO_FULL_RIDGE_REL * mean_diag).view(-1, 1, 1) * loco_model.loco_full_o_eye
+                        c_norm = c_reg.div(((1.0 + LOCO_FULL_RIDGE_REL) * mean_diag).view(-1, 1, 1))
+                        c_norm = 0.5 * (c_norm + c_norm.transpose(-1, -2))
                         if LOCO_FULL_LOG_SPECTRUM:
-                            c_norm = c_reg.div(((1.0 + LOCO_FULL_RIDGE_REL) * mean_diag).view(-1, 1, 1))
-                            c_norm = 0.5 * (c_norm + c_norm.transpose(-1, -2))
                             self._log_loco_full_spectrum("o_headwise", step, layer_idx, torch.linalg.eigvalsh(c_norm))
+                        if LOCO_FULL_METRIC_POLAR:
+                            loco_model.loco_full_o_chol[layer_idx].copy_(torch.linalg.cholesky(c_norm))
+                            continue
                         chol = torch.linalg.cholesky(c_reg)
                         c_inv = torch.cholesky_inverse(chol)
                         if LOCO_FULL_NORMINVERSE:

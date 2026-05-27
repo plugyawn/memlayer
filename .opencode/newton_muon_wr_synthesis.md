@@ -455,6 +455,26 @@ Kill criteria:
 
 ## Implementation Notes Before Next GPU
 
+- `LOCO_FULL_METRIC_POLAR=1` is now the exact Cholesky-whitener probe for the
+  activation-metric polar update:
+
+  ```text
+  Q = polar(G L^-T) L^-1, where C_lambda = L L^T
+  ```
+
+  The cached Cholesky is built from the mean-normalized activation Gram so the
+  outside `L^-1` does not inherit raw token-count scale. This tests "Muon in
+  whitened input coordinates" rather than Newton-Muon's `polar(G C^-1)` endpoint.
+  It is intentionally gated and defaults to no norm restoration when enabled.
+  Prepared suite:
+
+  ```bash
+  NEWTONV_SUITE=metricpolar MP_STEPS=120 MP_VAL_EVERY=40 tools/run_newtonv_experiment_suite.sh
+  ```
+
+  First comparisons: baseline, schedule-only polar4, Cholesky metric V `0-1`
+  polar4/polar5, then QK+V `0-1` polar4.
+
 - `tools/run_newtonv_raw_v01_gate.sh` is the prepared runner for the best raw
   inverse candidate.
 - `tools/run_norminverse_v01_gate.sh` is retained for the failed cheap variant.

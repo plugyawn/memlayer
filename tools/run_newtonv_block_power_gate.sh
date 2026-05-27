@@ -15,6 +15,10 @@ label_windows="${windows//[^0-9A-Za-z]/_}"
 log_path="${LOG_PATH:-.opencode/newtonv_${filter}_block${block_size}_a${alpha}_p${polar_iters}_layers${label_layers}_win${label_windows}_screen${steps}.log}"
 cache_dir="${TORCHINDUCTOR_CACHE_DIR:-${HOME}/.cache/torchinductor-speedrun-newtonv}"
 nproc="${NPROC_PER_NODE:-1}"
+norm_restore_default=0
+if [[ "${LOCO_FULL_METRIC_POLAR:-0}" != "1" && "${LOCO_FULL_FILTER:-power}" == "inverse" ]]; then
+  norm_restore_default=1
+fi
 
 python3 tools/make_train_screen.py \
   --source train_gpt.py \
@@ -32,13 +36,14 @@ LOCO_FULL_SURFACES="${LOCO_FULL_SURFACES:-v}" \
 LOCO_DIAG_ATTN_LAYERS="${layers}" \
 LOCO_FULL_WINDOWS="${windows}" \
 LOCO_FULL_FILTER="${filter}" \
+LOCO_FULL_METRIC_POLAR="${LOCO_FULL_METRIC_POLAR:-0}" \
 LOCO_FULL_BLOCK_SIZE="${block_size}" \
 LOCO_FULL_POWER_ALPHA="${alpha}" \
 LOCO_FULL_POWER_CLIP="${LOCO_FULL_POWER_CLIP:-2.0}" \
 LOCO_FULL_FINITE_T="${LOCO_FULL_FINITE_T:-2.0}" \
 LOCO_FULL_SHRINK_ONLY="${LOCO_FULL_SHRINK_ONLY:-0}" \
 LOCO_FULL_STATIC_NORM="${LOCO_FULL_STATIC_NORM:-1}" \
-LOCO_FULL_NORM_RESTORE="${LOCO_FULL_NORM_RESTORE:-0}" \
+LOCO_FULL_NORM_RESTORE="${LOCO_FULL_NORM_RESTORE:-${norm_restore_default}}" \
 LOCO_FULL_LOCAL_STATS="${LOCO_FULL_LOCAL_STATS:-1}" \
 LOCO_FULL_REFRESH_INTERVAL="${LOCO_FULL_REFRESH_INTERVAL:-8}" \
 LOCO_FULL_APPLY_INTERVAL="${LOCO_FULL_APPLY_INTERVAL:-1}" \

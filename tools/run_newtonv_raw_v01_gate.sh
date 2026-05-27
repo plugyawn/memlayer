@@ -9,6 +9,10 @@ label_layers="${layers//[^0-9A-Za-z]/_}"
 log_path="${LOG_PATH:-.opencode/newtonv_fullv_layers${label_layers}_end100_raw_fp32_screen${steps}.log}"
 cache_dir="${TORCHINDUCTOR_CACHE_DIR:-${HOME}/.cache/torchinductor-speedrun-newtonv}"
 nproc="${NPROC_PER_NODE:-1}"
+norm_restore_default=1
+if [[ "${LOCO_FULL_METRIC_POLAR:-0}" == "1" ]]; then
+  norm_restore_default=0
+fi
 
 python3 tools/make_train_screen.py \
   --source train_gpt.py \
@@ -26,7 +30,8 @@ LOCO_FULL_SURFACES="${LOCO_FULL_SURFACES:-v}" \
 LOCO_DIAG_ATTN_LAYERS="${layers}" \
 LOCO_FULL_END_STEP="${LOCO_FULL_END_STEP:-100}" \
 LOCO_FULL_FILTER="${LOCO_FULL_FILTER:-inverse}" \
-LOCO_FULL_NORM_RESTORE="${LOCO_FULL_NORM_RESTORE:-1}" \
+LOCO_FULL_METRIC_POLAR="${LOCO_FULL_METRIC_POLAR:-0}" \
+LOCO_FULL_NORM_RESTORE="${LOCO_FULL_NORM_RESTORE:-${norm_restore_default}}" \
 LOCO_FULL_LOCAL_STATS="${LOCO_FULL_LOCAL_STATS:-1}" \
 LOCO_FULL_REFRESH_INTERVAL="${LOCO_FULL_REFRESH_INTERVAL:-8}" \
 LOCO_FULL_APPLY_INTERVAL="${LOCO_FULL_APPLY_INTERVAL:-1}" \
@@ -34,4 +39,3 @@ LOCO_FULL_RIDGE_REL="${LOCO_FULL_RIDGE_REL:-0.03}" \
 LOCO_FULL_BLEND_MAX="${LOCO_FULL_BLEND_MAX:-0.25}" \
 LOCO_FULL_PRECOND_DTYPE="${LOCO_FULL_PRECOND_DTYPE:-fp32}" \
 torchrun --standalone --nproc_per_node="${nproc}" train_gpt_screen.py 2>&1 | tee "${log_path}"
-

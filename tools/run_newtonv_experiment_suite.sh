@@ -621,6 +621,59 @@ run_paperstyle_ladder() {
     bash tools/run_newtonv_timing_triplet_gate.sh
 }
 
+run_metricpolar_ladder() {
+  local mp_steps="${MP_STEPS:-120}"
+  local mp_val_every="${MP_VAL_EVERY:-40}"
+
+  run_case mp_baseline \
+    NEWTONV_VARIANT=baseline \
+    SCREEN_STEPS="${mp_steps}" \
+    SCREEN_VAL_EVERY="${mp_val_every}" \
+    bash tools/run_newtonv_timing_triplet_gate.sh
+
+  run_case mp_schedule_noop_polar4 \
+    NEWTONV_VARIANT=noop \
+    LOCO_FULL_WINDOWS=48-112 \
+    LOCO_FULL_POLAR_ITERS=4 \
+    LOCO_FULL_SCHEDULE_ONLY=1 \
+    SCREEN_STEPS="${mp_steps}" \
+    SCREEN_VAL_EVERY="${mp_val_every}" \
+    bash tools/run_newtonv_timing_triplet_gate.sh
+
+  run_case mp_cholmetric_v01_polar4 \
+    LOCO_FULL_COLLECT_WINDOWS=0-64 \
+    LOCO_FULL_WINDOWS=48-112 \
+    LOCO_FULL_METRIC_POLAR=1 \
+    LOCO_FULL_NORM_RESTORE=0 \
+    LOCO_FULL_POLAR_ITERS=4 \
+    SCREEN_STEPS="${mp_steps}" \
+    SCREEN_VAL_EVERY="${mp_val_every}" \
+    bash tools/run_newtonv_raw_v01_gate.sh
+
+  run_case mp_cholmetric_v01_polar5 \
+    LOCO_FULL_COLLECT_WINDOWS=0-64 \
+    LOCO_FULL_WINDOWS=48-112 \
+    LOCO_FULL_METRIC_POLAR=1 \
+    LOCO_FULL_NORM_RESTORE=0 \
+    LOCO_FULL_POLAR_ITERS=5 \
+    SCREEN_STEPS="${mp_steps}" \
+    SCREEN_VAL_EVERY="${mp_val_every}" \
+    bash tools/run_newtonv_raw_v01_gate.sh
+
+  run_case mp_cholmetric_qkv01_polar4 \
+    NEWTONV_VARIANT=active \
+    LOCO_FULL_SURFACES=qk,v \
+    LOCO_DIAG_ATTN_LAYERS=0-1 \
+    LOCO_FULL_COLLECT_WINDOWS=0-64 \
+    LOCO_FULL_WINDOWS=48-112 \
+    LOCO_FULL_METRIC_POLAR=1 \
+    LOCO_FULL_NORM_RESTORE=0 \
+    LOCO_FULL_POLAR_ITERS=4 \
+    SCREEN_STEPS="${mp_steps}" \
+    SCREEN_VAL_EVERY="${mp_val_every}" \
+    bash tools/run_newtonv_timing_triplet_gate.sh
+}
+
 case "${suite}" in
   timing)
     run_timing_triplet
@@ -692,6 +745,9 @@ case "${suite}" in
     ;;
   paperstyle)
     run_paperstyle_ladder
+    ;;
+  metricpolar)
+    run_metricpolar_ladder
     ;;
   all)
     run_timing_triplet
