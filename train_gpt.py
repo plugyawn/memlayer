@@ -91,21 +91,43 @@ LOCO_FULL_RIDGE_REL = float(os.environ.get("LOCO_FULL_RIDGE_REL", "0.03"))
 LOCO_FULL_LOCAL_STATS = os.environ.get("LOCO_FULL_LOCAL_STATS", "1") == "1"
 LOCO_FULL_NOOP = os.environ.get("LOCO_FULL_NOOP", "0") == "1"
 LOCO_FULL_END_STEP = int(os.environ.get("LOCO_FULL_END_STEP", "-1"))
+LOCO_FULL_WINDOWS_SPEC = os.environ.get("LOCO_FULL_WINDOWS", "").strip()
 LOCO_FULL_APPLY_INTERVAL = int(os.environ.get("LOCO_FULL_APPLY_INTERVAL", "1"))
 LOCO_FULL_PRECOND_DTYPE = os.environ.get("LOCO_FULL_PRECOND_DTYPE", "fp32").lower()
 if LOCO_FULL_PRECOND_DTYPE not in {"fp32", "bf16"}:
     raise ValueError("LOCO_FULL_PRECOND_DTYPE must be 'fp32' or 'bf16'")
 LOCO_FULL_FILTER = os.environ.get("LOCO_FULL_FILTER", "inverse").lower()
-if LOCO_FULL_FILTER not in {"inverse", "norminverse", "topshrink"}:
-    raise ValueError("LOCO_FULL_FILTER must be 'inverse', 'norminverse', or 'topshrink'")
+if LOCO_FULL_FILTER not in {"inverse", "norminverse", "topshrink", "power", "finite"}:
+    raise ValueError("LOCO_FULL_FILTER must be 'inverse', 'norminverse', 'topshrink', 'power', or 'finite'")
 LOCO_FULL_NORMINVERSE = LOCO_FULL_FILTER == "norminverse"
 LOCO_FULL_TOPSHRINK = LOCO_FULL_FILTER == "topshrink"
+LOCO_FULL_POWER = LOCO_FULL_FILTER == "power"
+LOCO_FULL_FINITE = LOCO_FULL_FILTER == "finite"
 LOCO_FULL_SHRINK_RANK = int(os.environ.get("LOCO_FULL_SHRINK_RANK", "64"))
 LOCO_FULL_SHRINK_T = float(os.environ.get("LOCO_FULL_SHRINK_T", "1.0"))
 LOCO_FULL_SHRINK_CLIP = float(os.environ.get("LOCO_FULL_SHRINK_CLIP", "2.0"))
+LOCO_FULL_POWER_ALPHA = float(os.environ.get("LOCO_FULL_POWER_ALPHA", "0.75"))
+LOCO_FULL_POWER_CLIP = float(os.environ.get("LOCO_FULL_POWER_CLIP", "2.0"))
+LOCO_FULL_FINITE_T = float(os.environ.get("LOCO_FULL_FINITE_T", "2.0"))
+LOCO_FULL_SHRINK_ONLY = os.environ.get("LOCO_FULL_SHRINK_ONLY", "0") == "1"
+LOCO_FULL_BLOCK_SIZE = int(os.environ.get("LOCO_FULL_BLOCK_SIZE", "0"))
+LOCO_FULL_STATIC_NORM = os.environ.get("LOCO_FULL_STATIC_NORM", "1" if LOCO_FULL_POWER or LOCO_FULL_FINITE else "0") == "1"
+LOCO_FULL_POLAR_ITERS = int(os.environ.get("LOCO_FULL_POLAR_ITERS", "5"))
 LOCO_FULL_NORM_RESTORE = os.environ.get("LOCO_FULL_NORM_RESTORE", "0" if LOCO_FULL_NORMINVERSE else "1") == "1"
 if LOCO_FULL_APPLY_INTERVAL <= 0:
     raise ValueError("LOCO_FULL_APPLY_INTERVAL must be positive")
+if LOCO_FULL_BLOCK_SIZE < 0:
+    raise ValueError("LOCO_FULL_BLOCK_SIZE must be non-negative")
+if LOCO_FULL_POWER_ALPHA <= 0:
+    raise ValueError("LOCO_FULL_POWER_ALPHA must be positive")
+if LOCO_FULL_POWER_CLIP < 1:
+    raise ValueError("LOCO_FULL_POWER_CLIP must be >= 1")
+if LOCO_FULL_FINITE_T <= 0:
+    raise ValueError("LOCO_FULL_FINITE_T must be positive")
+if not (1 <= LOCO_FULL_POLAR_ITERS <= 5):
+    raise ValueError("LOCO_FULL_POLAR_ITERS must be in [1, 5]")
+if LOCO_FULL_BLOCK_SIZE > 0 and LOCO_FULL_TOPSHRINK:
+    raise ValueError("LOCO_FULL_BLOCK_SIZE is not supported with LOCO_FULL_FILTER=topshrink")
 if LOCO_FULL_SHRINK_RANK <= 0:
     raise ValueError("LOCO_FULL_SHRINK_RANK must be positive")
 if LOCO_FULL_SHRINK_T <= 0:
@@ -113,7 +135,31 @@ if LOCO_FULL_SHRINK_T <= 0:
 if LOCO_FULL_SHRINK_CLIP < 1:
     raise ValueError("LOCO_FULL_SHRINK_CLIP must be >= 1")
 LOCO_FULL_PRECOND_BF16 = LOCO_FULL_PRECOND_DTYPE == "bf16"
+LOCO_FULL_BLOCK = LOCO_FULL_BLOCK_SIZE > 0
+LOCO_FULL_RESET_EACH_WINDOW = os.environ.get("LOCO_FULL_RESET_EACH_WINDOW", "1" if LOCO_FULL_WINDOWS_SPEC else "0") == "1"
+LOCO_FULL_BLEND_RESTART_EACH_WINDOW = os.environ.get("LOCO_FULL_BLEND_RESTART_EACH_WINDOW", "1" if LOCO_FULL_WINDOWS_SPEC else "0") == "1"
 LOCO_FEATURE_ACTIVE = LOCO_DIAG_ACTIVE or LOCO_FULL_ACTIVE
+
+def _parse_loco_step_windows(name: str) -> tuple[tuple[int, int], ...]:
+    spec = os.environ.get(name, "").strip().lower()
+    if spec in {"", "all", "*"}:
+        return ()
+    windows = []
+    for part in spec.split(","):
+        part = part.strip()
+        if not part:
+            continue
+        if "-" in part:
+            lo_s, hi_s = part.split("-", 1)
+            lo, hi = int(lo_s), int(hi_s)
+        else:
+            lo = hi = int(part)
+        if lo < 0 or hi < lo:
+            raise ValueError(f"{name} has invalid window {part}")
+        windows.append((lo, hi))
+    return tuple(windows)
+
+LOCO_FULL_WINDOWS = _parse_loco_step_windows("LOCO_FULL_WINDOWS")
 
 def _parse_loco_diag_layers(name: str, count: int, *, disallow: frozenset[int] = frozenset()) -> frozenset[int] | None:
     spec = os.environ.get(name, "all").strip().lower()
@@ -145,12 +191,28 @@ LOCO_DIAG_ATTN_LAYER_SET = _parse_loco_diag_layers("LOCO_DIAG_ATTN_LAYERS", 11, 
 def _loco_diag_layer_active(layer: int, layer_set: frozenset[int] | None) -> bool:
     return layer_set is None or layer in layer_set
 
+def _loco_full_active_at_step(step: int) -> bool:
+    if not LOCO_FULL_ACTIVE:
+        return False
+    if LOCO_FULL_WINDOWS:
+        return any(lo <= step <= hi for lo, hi in LOCO_FULL_WINDOWS)
+    return LOCO_FULL_END_STEP < 0 or step <= LOCO_FULL_END_STEP
+
+def _loco_full_window_start(step: int) -> bool:
+    return bool(LOCO_FULL_WINDOWS) and any(step == lo for lo, _ in LOCO_FULL_WINDOWS)
+
+def _loco_full_blend_step(step: int) -> int:
+    if not (LOCO_FULL_WINDOWS and LOCO_FULL_BLEND_RESTART_EACH_WINDOW):
+        return step
+    starts = [lo for lo, hi in LOCO_FULL_WINDOWS if lo <= step <= hi]
+    return step - max(starts) if starts else step
+
 def _loco_full_should_refresh(step: int) -> bool:
     if not LOCO_FULL_ACTIVE or LOCO_FULL_REFRESH_INTERVAL <= 0:
         return False
-    if LOCO_FULL_END_STEP >= 0 and step > LOCO_FULL_END_STEP:
+    if not _loco_full_active_at_step(step):
         return False
-    return step % LOCO_FULL_REFRESH_INTERVAL == 0
+    return _loco_full_window_start(step) or step % LOCO_FULL_REFRESH_INTERVAL == 0
 
 def _loco_full_attn_in_layer_allowed(attn_idx: int) -> bool:
     model_layer = attn_idx + (attn_idx >= 6)
@@ -311,6 +373,7 @@ polar_express_coeffs = [
     (3.285753657755655, -2.3681294933425376, 0.46449024233003106),
     (2.3465413258596377, -1.7097828382687081, 0.42323551169305323)
 ]
+loco_full_polar_express_coeffs = polar_express_coeffs[:LOCO_FULL_POLAR_ITERS]
 
 @torch.compile(dynamic=False, fullgraph=True) # Must use dynamic=False or else it's much slower
 def polar_express(grad_chunk: torch.Tensor, momentum_buffer: torch.Tensor, momentum_t: torch.Tensor,
@@ -417,7 +480,7 @@ def polar_express_from_operand(g: torch.Tensor, split_baddbmm: bool = False):
         else:
             aX_plus_XB = torch.baddbmm if X.ndim > 2 else torch.addmm
 
-        for a, b, c in polar_express_coeffs:
+        for a, b, c in loco_full_polar_express_coeffs:
             XTX(X, out=A)
             ba_plus_cAA(A, alpha=c, beta=b, out=B)
             if split_baddbmm:
@@ -436,7 +499,7 @@ def polar_express_from_operand(g: torch.Tensor, split_baddbmm: bool = False):
         else:
             aX_plus_BX = torch.baddbmm if X.ndim > 2 else torch.addmm
 
-        for a, b, c in polar_express_coeffs:
+        for a, b, c in loco_full_polar_express_coeffs:
             XXT(X, out=A)
             ba_plus_cAA(A, alpha=c, beta=b, out=B)
             if split_baddbmm:
@@ -695,18 +758,19 @@ class NorMuonAndAdam:
             blend = LOCO_DIAG_BLEND_MAX
         else:
             blend = min(LOCO_DIAG_BLEND_MAX, max(0.0, step / LOCO_DIAG_BLEND_STEPS) * LOCO_DIAG_BLEND_MAX)
-        full_active_now = LOCO_FULL_END_STEP < 0 or step <= LOCO_FULL_END_STEP
+        full_active_now = _loco_full_active_at_step(step)
         if LOCO_FULL_NOOP or not full_active_now:
             full_blend = 0.0
         elif LOCO_FULL_BLEND_STEPS <= 0:
             full_blend = LOCO_FULL_BLEND_MAX
         else:
-            full_blend = min(LOCO_FULL_BLEND_MAX, max(0.0, step / LOCO_FULL_BLEND_STEPS) * LOCO_FULL_BLEND_MAX)
+            full_blend_step = _loco_full_blend_step(step)
+            full_blend = min(LOCO_FULL_BLEND_MAX, max(0.0, full_blend_step / LOCO_FULL_BLEND_STEPS) * LOCO_FULL_BLEND_MAX)
         self._loco_step = step
         self._loco_blend_t.fill_(blend)
         self._loco_full_blend_t.fill_(full_blend)
         apply_full_now = (step % LOCO_FULL_APPLY_INTERVAL) == 0
-        self._loco_full_optimizer_active = self.loco_full_active and apply_full_now and (LOCO_FULL_NOOP or (full_active_now and full_blend != 0.0))
+        self._loco_full_optimizer_active = self.loco_full_active and apply_full_now and full_active_now and (LOCO_FULL_NOOP or full_blend != 0.0)
         self._loco_log_step = globals().get("master_process", False) and step in LOCO_DIAG_LOG_STEP_SET
         self._loco_grad_ratio_stats.clear()
 
@@ -1367,6 +1431,33 @@ class NorMuonAndAdam:
                             self.loco_diag_model.loco_full_o_inv[layer_idx],
                             self._loco_full_blend_t,
                         )
+            elif LOCO_FULL_BLOCK:
+                if LOCO_FULL_PRECOND_BF16:
+                    if LOCO_FULL_NORM_RESTORE:
+                        NorMuonAndAdam._loco_full_block_right_inverse_bf16_precondition_cols_inplace(
+                            grad_chunk[mat_idx],
+                            self.loco_diag_model.loco_full_v_block_inv_bf16[layer_idx],
+                            self._loco_full_blend_t,
+                        )
+                    else:
+                        NorMuonAndAdam._loco_full_block_right_inverse_bf16_no_norm_precondition_cols_inplace(
+                            grad_chunk[mat_idx],
+                            self.loco_diag_model.loco_full_v_block_inv_bf16[layer_idx],
+                            self._loco_full_blend_t,
+                        )
+                else:
+                    if LOCO_FULL_NORM_RESTORE:
+                        NorMuonAndAdam._loco_full_block_right_inverse_precondition_cols_inplace(
+                            grad_chunk[mat_idx],
+                            self.loco_diag_model.loco_full_v_block_inv[layer_idx],
+                            self._loco_full_blend_t,
+                        )
+                    else:
+                        NorMuonAndAdam._loco_full_block_right_inverse_no_norm_precondition_cols_inplace(
+                            grad_chunk[mat_idx],
+                            self.loco_diag_model.loco_full_v_block_inv[layer_idx],
+                            self._loco_full_blend_t,
+                        )
             elif LOCO_FULL_TOPSHRINK:
                 NorMuonAndAdam._loco_full_topshrink_precondition_cols_inplace(
                     grad_chunk[mat_idx],
@@ -1417,7 +1508,34 @@ class NorMuonAndAdam:
             if not _loco_diag_layer_active(model_layer, LOCO_DIAG_ATTN_LAYER_SET):
                 continue
             before_norm = grad_chunk[mat_idx].float().norm() if self._loco_log_step else None
-            if LOCO_FULL_TOPSHRINK:
+            if LOCO_FULL_BLOCK:
+                if LOCO_FULL_PRECOND_BF16:
+                    if LOCO_FULL_NORM_RESTORE:
+                        NorMuonAndAdam._loco_full_block_right_inverse_bf16_precondition_cols_inplace(
+                            grad_chunk[mat_idx],
+                            self.loco_diag_model.loco_full_v_block_inv_bf16[layer_idx],
+                            self._loco_full_blend_t,
+                        )
+                    else:
+                        NorMuonAndAdam._loco_full_block_right_inverse_bf16_no_norm_precondition_cols_inplace(
+                            grad_chunk[mat_idx],
+                            self.loco_diag_model.loco_full_v_block_inv_bf16[layer_idx],
+                            self._loco_full_blend_t,
+                        )
+                else:
+                    if LOCO_FULL_NORM_RESTORE:
+                        NorMuonAndAdam._loco_full_block_right_inverse_precondition_cols_inplace(
+                            grad_chunk[mat_idx],
+                            self.loco_diag_model.loco_full_v_block_inv[layer_idx],
+                            self._loco_full_blend_t,
+                        )
+                    else:
+                        NorMuonAndAdam._loco_full_block_right_inverse_no_norm_precondition_cols_inplace(
+                            grad_chunk[mat_idx],
+                            self.loco_diag_model.loco_full_v_block_inv[layer_idx],
+                            self._loco_full_blend_t,
+                        )
+            elif LOCO_FULL_TOPSHRINK:
                 NorMuonAndAdam._loco_full_topshrink_precondition_cols_inplace(
                     grad_chunk[mat_idx],
                     self.loco_diag_model.loco_full_v_shrink_u[layer_idx],
@@ -1620,6 +1738,60 @@ class NorMuonAndAdam:
         original = grad.float()
         correction = (original @ basis).mul(delta.view(1, -1)) @ basis.T
         grad.copy_(original + blend_tensor.to(torch.float32) * correction)
+
+    @staticmethod
+    @torch.compile(dynamic=False, fullgraph=True)
+    def _loco_full_block_right_inverse_precondition_cols_inplace(grad, c_inv, blend_tensor):
+        original = grad.float()
+        block_count = c_inv.shape[0]
+        block_dim = c_inv.shape[-1]
+        solved = torch.einsum(
+            "obd,bde->obe",
+            original.reshape(original.shape[0], block_count, block_dim),
+            c_inv,
+        ).reshape_as(original)
+        solved = solved.mul(original.norm().div(solved.norm().clamp_min(1e-12)))
+        grad.copy_(original + blend_tensor.to(torch.float32) * (solved - original))
+
+    @staticmethod
+    @torch.compile(dynamic=False, fullgraph=True)
+    def _loco_full_block_right_inverse_no_norm_precondition_cols_inplace(grad, c_inv, blend_tensor):
+        original = grad.float()
+        block_count = c_inv.shape[0]
+        block_dim = c_inv.shape[-1]
+        solved = torch.einsum(
+            "obd,bde->obe",
+            original.reshape(original.shape[0], block_count, block_dim),
+            c_inv,
+        ).reshape_as(original)
+        grad.copy_(original + blend_tensor.to(torch.float32) * (solved - original))
+
+    @staticmethod
+    @torch.compile(dynamic=False, fullgraph=True)
+    def _loco_full_block_right_inverse_bf16_precondition_cols_inplace(grad, c_inv, blend_tensor):
+        original = grad.float()
+        block_count = c_inv.shape[0]
+        block_dim = c_inv.shape[-1]
+        solved = torch.einsum(
+            "obd,bde->obe",
+            original.to(torch.bfloat16).reshape(original.shape[0], block_count, block_dim),
+            c_inv,
+        ).float().reshape_as(original)
+        solved = solved.mul(original.norm().div(solved.norm().clamp_min(1e-12)))
+        grad.copy_(original + blend_tensor.to(torch.float32) * (solved - original))
+
+    @staticmethod
+    @torch.compile(dynamic=False, fullgraph=True)
+    def _loco_full_block_right_inverse_bf16_no_norm_precondition_cols_inplace(grad, c_inv, blend_tensor):
+        original = grad.float()
+        block_count = c_inv.shape[0]
+        block_dim = c_inv.shape[-1]
+        solved = torch.einsum(
+            "obd,bde->obe",
+            original.to(torch.bfloat16).reshape(original.shape[0], block_count, block_dim),
+            c_inv,
+        ).float().reshape_as(original)
+        grad.copy_(original + blend_tensor.to(torch.float32) * (solved - original))
 
     @staticmethod
     @torch.compile(dynamic=False, fullgraph=True)
@@ -1977,14 +2149,44 @@ class GPT(nn.Module):
         self.loco_full_o_owned_layers = frozenset()
         self.loco_full_attn_in_owned_layers = frozenset()
         self.loco_full_shrink_rank = min(LOCO_FULL_SHRINK_RANK, model_dim)
+        self.loco_full_block_size = LOCO_FULL_BLOCK_SIZE
+        self.loco_full_block_count = 0
+        if LOCO_FULL_BLOCK and LOCO_FULL_ATTN_IN:
+            if model_dim % LOCO_FULL_BLOCK_SIZE != 0:
+                raise ValueError(f"LOCO_FULL_BLOCK_SIZE={LOCO_FULL_BLOCK_SIZE} must divide model_dim={model_dim}")
+            self.loco_full_block_count = model_dim // LOCO_FULL_BLOCK_SIZE
         if LOCO_FULL_ATTN_IN:
-            self.register_buffer("loco_full_v_gram", torch.zeros(num_layers - 1, model_dim, model_dim, dtype=torch.float32), persistent=False)
-            self.register_buffer("loco_full_v_gram_ema", torch.zeros(num_layers - 1, model_dim, model_dim, dtype=torch.float32), persistent=False)
-            self.register_buffer("loco_full_v_chol", torch.eye(model_dim, dtype=torch.float32).repeat(num_layers - 1, 1, 1), persistent=False)
-            self.register_buffer("loco_full_v_inv", torch.eye(model_dim, dtype=torch.float32).repeat(num_layers - 1, 1, 1), persistent=False)
-            self.register_buffer("loco_full_v_inv_bf16", torch.eye(model_dim, dtype=torch.bfloat16).repeat(num_layers - 1, 1, 1), persistent=False)
-            self.register_buffer("loco_full_eye", torch.eye(model_dim, dtype=torch.float32), persistent=False)
-            if LOCO_FULL_TOPSHRINK:
+            if LOCO_FULL_BLOCK:
+                block_eye = torch.eye(self.loco_full_block_size, dtype=torch.float32)
+                self.register_buffer(
+                    "loco_full_v_block_gram",
+                    torch.zeros(num_layers - 1, self.loco_full_block_count, self.loco_full_block_size, self.loco_full_block_size, dtype=torch.float32),
+                    persistent=False,
+                )
+                self.register_buffer(
+                    "loco_full_v_block_gram_ema",
+                    torch.zeros(num_layers - 1, self.loco_full_block_count, self.loco_full_block_size, self.loco_full_block_size, dtype=torch.float32),
+                    persistent=False,
+                )
+                self.register_buffer(
+                    "loco_full_v_block_inv",
+                    block_eye.repeat(num_layers - 1, self.loco_full_block_count, 1, 1),
+                    persistent=False,
+                )
+                self.register_buffer(
+                    "loco_full_v_block_inv_bf16",
+                    block_eye.to(torch.bfloat16).repeat(num_layers - 1, self.loco_full_block_count, 1, 1),
+                    persistent=False,
+                )
+                self.register_buffer("loco_full_block_eye", block_eye, persistent=False)
+            else:
+                self.register_buffer("loco_full_v_gram", torch.zeros(num_layers - 1, model_dim, model_dim, dtype=torch.float32), persistent=False)
+                self.register_buffer("loco_full_v_gram_ema", torch.zeros(num_layers - 1, model_dim, model_dim, dtype=torch.float32), persistent=False)
+                self.register_buffer("loco_full_v_chol", torch.eye(model_dim, dtype=torch.float32).repeat(num_layers - 1, 1, 1), persistent=False)
+                self.register_buffer("loco_full_v_inv", torch.eye(model_dim, dtype=torch.float32).repeat(num_layers - 1, 1, 1), persistent=False)
+                self.register_buffer("loco_full_v_inv_bf16", torch.eye(model_dim, dtype=torch.bfloat16).repeat(num_layers - 1, 1, 1), persistent=False)
+                self.register_buffer("loco_full_eye", torch.eye(model_dim, dtype=torch.float32), persistent=False)
+            if LOCO_FULL_TOPSHRINK and not LOCO_FULL_BLOCK:
                 self.register_buffer("loco_full_v_shrink_u", torch.zeros(num_layers - 1, model_dim, self.loco_full_shrink_rank, dtype=torch.float32), persistent=False)
                 self.register_buffer("loco_full_v_shrink_delta", torch.zeros(num_layers - 1, self.loco_full_shrink_rank, dtype=torch.float32), persistent=False)
         if LOCO_FULL_O:
@@ -2009,7 +2211,9 @@ class GPT(nn.Module):
             self.loco_mlp_fc_diag.zero_()
         if LOCO_DIAG_MLP_PROJ:
             self.loco_mlp_proj_diag.zero_()
-        if LOCO_FULL_ATTN_IN:
+        if LOCO_FULL_ATTN_IN and LOCO_FULL_BLOCK:
+            self.loco_full_v_block_gram.zero_()
+        elif LOCO_FULL_ATTN_IN:
             self.loco_full_v_gram.zero_()
         if LOCO_FULL_O:
             self.loco_full_o_gram.zero_()
@@ -2023,6 +2227,11 @@ class GPT(nn.Module):
     def _accumulate_feature_gram_(gram: Tensor, x: Tensor):
         x_flat = x.detach().view(-1, x.shape[-1]).float()
         gram.add_(x_flat.T @ x_flat)
+
+    @staticmethod
+    def _accumulate_feature_block_gram_(block_gram: Tensor, x: Tensor):
+        x_flat = x.detach().reshape(-1, block_gram.shape[0], block_gram.shape[-1]).float()
+        block_gram.add_(torch.einsum("nbd,nbe->bde", x_flat, x_flat))
 
     def init_attn(self, model_dim, head_dim, num_heads, num_layers, max_seq_len):
         # Cache layers for skip / backout snapshots taken at end of loop iter.
@@ -2262,7 +2471,10 @@ class GPT(nn.Module):
                     and self.training
                     and _loco_full_should_collect_attn_in_layer(self, attn_idx)
                 ):
-                    self._accumulate_feature_gram_(self.loco_full_v_gram[attn_idx], attn_in_normed)
+                    if LOCO_FULL_BLOCK:
+                        self._accumulate_feature_block_gram_(self.loco_full_v_block_gram[attn_idx], attn_in_normed)
+                    else:
+                        self._accumulate_feature_gram_(self.loco_full_v_gram[attn_idx], attn_in_normed)
                 B, T = attn_in_normed.size(0), attn_in_normed.size(1)
 
                 if i == self.num_layers - 1:
@@ -2745,6 +2957,9 @@ class TrainingManager():
                 f"o_layers={sorted(loco_model.loco_full_o_owned_layers)} "
                 f"filter={LOCO_FULL_FILTER} shrink_rank={loco_model.loco_full_shrink_rank} "
                 f"precond_dtype={LOCO_FULL_PRECOND_DTYPE} norm_restore={int(LOCO_FULL_NORM_RESTORE)} "
+                f"block_size={LOCO_FULL_BLOCK_SIZE} static_norm={int(LOCO_FULL_STATIC_NORM)} "
+                f"power_alpha={LOCO_FULL_POWER_ALPHA} power_clip={LOCO_FULL_POWER_CLIP} shrink_only={int(LOCO_FULL_SHRINK_ONLY)} "
+                f"polar_iters={LOCO_FULL_POLAR_ITERS} windows={LOCO_FULL_WINDOWS or 'end'} "
                 f"local_stats={int(LOCO_FULL_LOCAL_STATS)} "
                 f"apply_interval={LOCO_FULL_APPLY_INTERVAL}",
                 console=True,
@@ -2818,6 +3033,50 @@ class TrainingManager():
         if master_process and step in LOCO_DIAG_LOG_STEP_SET:
             self._log_loco_diag_buffers(loco_model, step)
 
+    @staticmethod
+    def _loco_full_spectral_gain(evals: Tensor):
+        lam = evals.float().clamp_min(1e-8)
+        if LOCO_FULL_POWER:
+            gain = lam.pow(-LOCO_FULL_POWER_ALPHA)
+            clip = LOCO_FULL_POWER_CLIP
+        else:
+            denom = 1.0 - math.exp(-LOCO_FULL_FINITE_T)
+            gain = (1.0 - torch.exp(-LOCO_FULL_FINITE_T * lam)).div(lam * denom)
+            clip = LOCO_FULL_POWER_CLIP
+        max_gain = 1.0 if LOCO_FULL_SHRINK_ONLY else clip
+        return gain.clamp(min=1.0 / clip, max=max_gain)
+
+    @staticmethod
+    def _loco_full_static_norm_inplace(preconditioner: Tensor, dim: int):
+        if not LOCO_FULL_STATIC_NORM:
+            return
+        scale = math.sqrt(dim) * preconditioner.float().square().sum(dim=(-2, -1), keepdim=True).clamp_min(1e-12).rsqrt()
+        preconditioner.mul_(scale)
+
+    @staticmethod
+    def _reset_loco_full_preconditioner_state(loco_model):
+        if LOCO_FULL_ATTN_IN:
+            loco_model.loco_full_v_ema_initialized = False
+            if LOCO_FULL_BLOCK:
+                loco_model.loco_full_v_block_gram_ema.zero_()
+                block_eye = loco_model.loco_full_block_eye.repeat(loco_model._num_attn_layers, loco_model.loco_full_block_count, 1, 1)
+                loco_model.loco_full_v_block_inv.copy_(block_eye)
+                loco_model.loco_full_v_block_inv_bf16.copy_(block_eye.to(torch.bfloat16))
+            else:
+                loco_model.loco_full_v_gram_ema.zero_()
+                eye = loco_model.loco_full_eye.repeat(loco_model._num_attn_layers, 1, 1)
+                loco_model.loco_full_v_inv.copy_(eye)
+                loco_model.loco_full_v_inv_bf16.copy_(eye.to(torch.bfloat16))
+                if LOCO_FULL_TOPSHRINK:
+                    loco_model.loco_full_v_shrink_u.zero_()
+                    loco_model.loco_full_v_shrink_delta.zero_()
+        if LOCO_FULL_O:
+            loco_model.loco_full_o_ema_initialized = False
+            loco_model.loco_full_o_gram_ema.zero_()
+            o_eye = loco_model.loco_full_o_eye.repeat(loco_model._num_attn_layers, loco_model.num_heads, 1, 1)
+            loco_model.loco_full_o_inv.copy_(o_eye)
+            loco_model.loco_full_o_inv_bf16.copy_(o_eye.to(torch.bfloat16))
+
     @torch.no_grad()
     def _prepare_loco_full_buffers(self, step: int):
         if not LOCO_FULL_ACTIVE:
@@ -2825,9 +3084,14 @@ class TrainingManager():
         loco_model = getattr(self.model, "_orig_mod", self.model)
         refreshed = _loco_full_should_refresh(step)
         if refreshed:
+            if LOCO_FULL_RESET_EACH_WINDOW and _loco_full_window_start(step):
+                self._reset_loco_full_preconditioner_state(loco_model)
             if world_size > 1 and not LOCO_FULL_LOCAL_STATS:
                 if LOCO_FULL_ATTN_IN:
-                    dist.all_reduce(loco_model.loco_full_v_gram, op=dist.ReduceOp.AVG)
+                    if LOCO_FULL_BLOCK:
+                        dist.all_reduce(loco_model.loco_full_v_block_gram, op=dist.ReduceOp.AVG)
+                    else:
+                        dist.all_reduce(loco_model.loco_full_v_gram, op=dist.ReduceOp.AVG)
                 if LOCO_FULL_O:
                     dist.all_reduce(loco_model.loco_full_o_gram, op=dist.ReduceOp.AVG)
             beta = LOCO_FULL_EMA_BETA
@@ -2835,38 +3099,79 @@ class TrainingManager():
                 for layer_idx in sorted(loco_model.loco_full_attn_in_owned_layers):
                     if not _loco_full_should_factor_attn_in_layer(loco_model, layer_idx):
                         continue
-                    gram = loco_model.loco_full_v_gram[layer_idx].mul(LOCO_FULL_DENOM_SCALE)
-                    gram = 0.5 * (gram + gram.T)
-                    ema = loco_model.loco_full_v_gram_ema[layer_idx]
-                    if not loco_model.loco_full_v_ema_initialized:
-                        ema.copy_(gram)
+                    if LOCO_FULL_BLOCK:
+                        gram = loco_model.loco_full_v_block_gram[layer_idx].mul(LOCO_FULL_DENOM_SCALE)
+                        gram = 0.5 * (gram + gram.transpose(-1, -2))
+                        ema = loco_model.loco_full_v_block_gram_ema[layer_idx]
+                        if not loco_model.loco_full_v_ema_initialized:
+                            ema.copy_(gram)
+                        else:
+                            ema.lerp_(gram, 1 - beta)
+                        mean_diag = ema.diagonal(dim1=-2, dim2=-1).mean(dim=-1).clamp_min(1e-12)
+                        if LOCO_FULL_POWER or LOCO_FULL_FINITE:
+                            c_norm = (
+                                ema + (LOCO_FULL_RIDGE_REL * mean_diag).view(-1, 1, 1) * loco_model.loco_full_block_eye
+                            ).div(((1.0 + LOCO_FULL_RIDGE_REL) * mean_diag).view(-1, 1, 1))
+                            c_norm = 0.5 * (c_norm + c_norm.transpose(-1, -2))
+                            evals, evecs = torch.linalg.eigh(c_norm)
+                            gain = self._loco_full_spectral_gain(evals)
+                            c_inv = torch.matmul(evecs.mul(gain.unsqueeze(-2)), evecs.transpose(-1, -2))
+                        else:
+                            c_reg = ema + (LOCO_FULL_RIDGE_REL * mean_diag).view(-1, 1, 1) * loco_model.loco_full_block_eye
+                            chol = torch.linalg.cholesky(c_reg)
+                            c_inv = torch.cholesky_inverse(chol)
+                            if LOCO_FULL_NORMINVERSE:
+                                c_inv = c_inv.mul(((1.0 + LOCO_FULL_RIDGE_REL) * mean_diag).view(-1, 1, 1))
+                        c_inv = 0.5 * (c_inv + c_inv.transpose(-1, -2))
+                        self._loco_full_static_norm_inplace(c_inv, loco_model.loco_full_block_size)
+                        loco_model.loco_full_v_block_inv[layer_idx].copy_(c_inv)
+                        loco_model.loco_full_v_block_inv_bf16[layer_idx].copy_(c_inv.to(torch.bfloat16))
                     else:
-                        ema.lerp_(gram, 1 - beta)
-                    mean_diag = ema.diagonal().mean().clamp_min(1e-12)
-                    if LOCO_FULL_TOPSHRINK:
-                        c_norm = (ema + (LOCO_FULL_RIDGE_REL * mean_diag) * loco_model.loco_full_eye).div(
-                            (1.0 + LOCO_FULL_RIDGE_REL) * mean_diag
-                        )
-                        c_norm = 0.5 * (c_norm + c_norm.T)
-                        evals, evecs = torch.linalg.eigh(c_norm)
-                        lam, idx = torch.topk(evals, k=loco_model.loco_full_shrink_rank, largest=True)
-                        lam = lam.clamp_min(1e-8)
-                        basis = evecs[:, idx].contiguous()
-                        denom = 1.0 - math.exp(-LOCO_FULL_SHRINK_T)
-                        shrink = (1.0 - torch.exp(-LOCO_FULL_SHRINK_T * lam)).div(lam * denom)
-                        shrink = shrink.clamp(min=1.0 / LOCO_FULL_SHRINK_CLIP, max=1.0)
-                        loco_model.loco_full_v_shrink_u[layer_idx].copy_(basis)
-                        loco_model.loco_full_v_shrink_delta[layer_idx].copy_(shrink.sub(1.0))
-                    else:
-                        c_reg = ema + (LOCO_FULL_RIDGE_REL * mean_diag) * loco_model.loco_full_eye
-                        chol = torch.linalg.cholesky(c_reg)
-                        c_inv = torch.cholesky_inverse(chol)
-                        if LOCO_FULL_NORMINVERSE:
-                            c_inv = c_inv.mul((1.0 + LOCO_FULL_RIDGE_REL) * mean_diag)
-                        c_inv = 0.5 * (c_inv + c_inv.T)
-                        loco_model.loco_full_v_chol[layer_idx].copy_(chol)
-                        loco_model.loco_full_v_inv[layer_idx].copy_(c_inv)
-                        loco_model.loco_full_v_inv_bf16[layer_idx].copy_(c_inv.to(torch.bfloat16))
+                        gram = loco_model.loco_full_v_gram[layer_idx].mul(LOCO_FULL_DENOM_SCALE)
+                        gram = 0.5 * (gram + gram.T)
+                        ema = loco_model.loco_full_v_gram_ema[layer_idx]
+                        if not loco_model.loco_full_v_ema_initialized:
+                            ema.copy_(gram)
+                        else:
+                            ema.lerp_(gram, 1 - beta)
+                        mean_diag = ema.diagonal().mean().clamp_min(1e-12)
+                        if LOCO_FULL_TOPSHRINK:
+                            c_norm = (ema + (LOCO_FULL_RIDGE_REL * mean_diag) * loco_model.loco_full_eye).div(
+                                (1.0 + LOCO_FULL_RIDGE_REL) * mean_diag
+                            )
+                            c_norm = 0.5 * (c_norm + c_norm.T)
+                            evals, evecs = torch.linalg.eigh(c_norm)
+                            lam, idx = torch.topk(evals, k=loco_model.loco_full_shrink_rank, largest=True)
+                            lam = lam.clamp_min(1e-8)
+                            basis = evecs[:, idx].contiguous()
+                            denom = 1.0 - math.exp(-LOCO_FULL_SHRINK_T)
+                            shrink = (1.0 - torch.exp(-LOCO_FULL_SHRINK_T * lam)).div(lam * denom)
+                            shrink = shrink.clamp(min=1.0 / LOCO_FULL_SHRINK_CLIP, max=1.0)
+                            loco_model.loco_full_v_shrink_u[layer_idx].copy_(basis)
+                            loco_model.loco_full_v_shrink_delta[layer_idx].copy_(shrink.sub(1.0))
+                        elif LOCO_FULL_POWER or LOCO_FULL_FINITE:
+                            c_norm = (ema + (LOCO_FULL_RIDGE_REL * mean_diag) * loco_model.loco_full_eye).div(
+                                (1.0 + LOCO_FULL_RIDGE_REL) * mean_diag
+                            )
+                            c_norm = 0.5 * (c_norm + c_norm.T)
+                            evals, evecs = torch.linalg.eigh(c_norm)
+                            gain = self._loco_full_spectral_gain(evals)
+                            c_inv = evecs.mul(gain.view(1, -1)) @ evecs.T
+                            c_inv = 0.5 * (c_inv + c_inv.T)
+                            self._loco_full_static_norm_inplace(c_inv, c_inv.shape[-1])
+                            loco_model.loco_full_v_inv[layer_idx].copy_(c_inv)
+                            loco_model.loco_full_v_inv_bf16[layer_idx].copy_(c_inv.to(torch.bfloat16))
+                        else:
+                            c_reg = ema + (LOCO_FULL_RIDGE_REL * mean_diag) * loco_model.loco_full_eye
+                            chol = torch.linalg.cholesky(c_reg)
+                            c_inv = torch.cholesky_inverse(chol)
+                            if LOCO_FULL_NORMINVERSE:
+                                c_inv = c_inv.mul((1.0 + LOCO_FULL_RIDGE_REL) * mean_diag)
+                            c_inv = 0.5 * (c_inv + c_inv.T)
+                            self._loco_full_static_norm_inplace(c_inv, c_inv.shape[-1])
+                            loco_model.loco_full_v_chol[layer_idx].copy_(chol)
+                            loco_model.loco_full_v_inv[layer_idx].copy_(c_inv)
+                            loco_model.loco_full_v_inv_bf16[layer_idx].copy_(c_inv.to(torch.bfloat16))
                 loco_model.loco_full_v_ema_initialized = True
             if LOCO_FULL_O:
                 for layer_idx in sorted(loco_model.loco_full_o_owned_layers):
@@ -2880,13 +3185,23 @@ class TrainingManager():
                     else:
                         ema.lerp_(gram, 1 - beta)
                     mean_diag = ema.diagonal(dim1=-2, dim2=-1).mean(dim=-1).clamp_min(1e-12)
-                    c_reg = ema + (LOCO_FULL_RIDGE_REL * mean_diag).view(-1, 1, 1) * loco_model.loco_full_o_eye
-                    chol = torch.linalg.cholesky(c_reg)
-                    c_inv = torch.cholesky_inverse(chol)
-                    if LOCO_FULL_NORMINVERSE:
-                        c_inv = c_inv.mul(((1.0 + LOCO_FULL_RIDGE_REL) * mean_diag).view(-1, 1, 1))
+                    if LOCO_FULL_POWER or LOCO_FULL_FINITE:
+                        c_norm = (
+                            ema + (LOCO_FULL_RIDGE_REL * mean_diag).view(-1, 1, 1) * loco_model.loco_full_o_eye
+                        ).div(((1.0 + LOCO_FULL_RIDGE_REL) * mean_diag).view(-1, 1, 1))
+                        c_norm = 0.5 * (c_norm + c_norm.transpose(-1, -2))
+                        evals, evecs = torch.linalg.eigh(c_norm)
+                        gain = self._loco_full_spectral_gain(evals)
+                        c_inv = torch.matmul(evecs.mul(gain.unsqueeze(-2)), evecs.transpose(-1, -2))
+                    else:
+                        c_reg = ema + (LOCO_FULL_RIDGE_REL * mean_diag).view(-1, 1, 1) * loco_model.loco_full_o_eye
+                        chol = torch.linalg.cholesky(c_reg)
+                        c_inv = torch.cholesky_inverse(chol)
+                        if LOCO_FULL_NORMINVERSE:
+                            c_inv = c_inv.mul(((1.0 + LOCO_FULL_RIDGE_REL) * mean_diag).view(-1, 1, 1))
+                        loco_model.loco_full_o_chol[layer_idx].copy_(chol)
                     c_inv = 0.5 * (c_inv + c_inv.transpose(-1, -2))
-                    loco_model.loco_full_o_chol[layer_idx].copy_(chol)
+                    self._loco_full_static_norm_inplace(c_inv, c_inv.shape[-1])
                     loco_model.loco_full_o_inv[layer_idx].copy_(c_inv)
                     loco_model.loco_full_o_inv_bf16[layer_idx].copy_(c_inv.to(torch.bfloat16))
                 loco_model.loco_full_o_ema_initialized = True
@@ -2899,7 +3214,10 @@ class TrainingManager():
             if not log_layers:
                 print0(f"loco_full step={step} attn_in_gram_ema refreshed={int(refreshed)} owned_layers=[]", console=True)
             else:
-                d = loco_model.loco_full_v_gram_ema[log_layers].diagonal(dim1=-2, dim2=-1).float()
+                if LOCO_FULL_BLOCK:
+                    d = loco_model.loco_full_v_block_gram_ema[log_layers].diagonal(dim1=-2, dim2=-1).float()
+                else:
+                    d = loco_model.loco_full_v_gram_ema[log_layers].diagonal(dim1=-2, dim2=-1).float()
                 flat = d.flatten()
                 q = torch.quantile(flat, torch.tensor([0.01, 0.50, 0.99], device=flat.device))
                 print0(
@@ -3031,21 +3349,13 @@ class TrainingManager():
             loco_model.loco_full_v_ema_initialized = False
             loco_model.loco_full_o_ema_initialized = False
             if LOCO_FULL_ATTN_IN:
-                loco_model.loco_full_v_gram.zero_()
-                loco_model.loco_full_v_gram_ema.zero_()
-                loco_model.loco_full_v_chol.copy_(loco_model.loco_full_eye.repeat(loco_model._num_attn_layers, 1, 1))
-                loco_model.loco_full_v_inv.copy_(loco_model.loco_full_eye.repeat(loco_model._num_attn_layers, 1, 1))
-                loco_model.loco_full_v_inv_bf16.copy_(loco_model.loco_full_eye.to(torch.bfloat16).repeat(loco_model._num_attn_layers, 1, 1))
-                if LOCO_FULL_TOPSHRINK:
-                    loco_model.loco_full_v_shrink_u.zero_()
-                    loco_model.loco_full_v_shrink_delta.zero_()
+                if LOCO_FULL_BLOCK:
+                    loco_model.loco_full_v_block_gram.zero_()
+                else:
+                    loco_model.loco_full_v_gram.zero_()
             if LOCO_FULL_O:
                 loco_model.loco_full_o_gram.zero_()
-                loco_model.loco_full_o_gram_ema.zero_()
-                o_eye = loco_model.loco_full_o_eye.repeat(loco_model._num_attn_layers, loco_model.num_heads, 1, 1)
-                loco_model.loco_full_o_chol.copy_(o_eye)
-                loco_model.loco_full_o_inv.copy_(o_eye)
-                loco_model.loco_full_o_inv_bf16.copy_(o_eye.to(torch.bfloat16))
+            self._reset_loco_full_preconditioner_state(loco_model)
 
         # Reset NorMuon momentum buffers and split_embed state
         self.optimizer.reset()

@@ -147,6 +147,36 @@ Kill criteria:
 - `tools/run_newtonv_raw_v01_gate.sh` is the prepared runner for the best raw
   inverse candidate.
 - `tools/run_norminverse_v01_gate.sh` is retained for the failed cheap variant.
+- `tools/run_newtonv_timing_triplet_gate.sh` is the clean cost-shape screen:
+  run `baseline`, `noop`, then `active` with the same `SCREEN_STEPS` so we can
+  split plain baseline cost from full-path compile/optimizer overhead and active
+  preconditioner overhead.
+- `tools/run_newtonv_block_power_gate.sh` is the next cheap Newton-Muon filter
+  probe. It uses block `C` on the V input, spectral power/finite filters,
+  static preconditioner norm, no per-step norm restoration, and fewer Polar
+  Express iterations on the full-path operand. First candidate:
+
+  ```bash
+  SCREEN_STEPS=80 SCREEN_VAL_EVERY=20 tools/run_newtonv_block_power_gate.sh
+  ```
+
+  Then quickly test:
+
+  ```bash
+  LOCO_FULL_POWER_ALPHA=0.5 SCREEN_STEPS=80 SCREEN_VAL_EVERY=20 tools/run_newtonv_block_power_gate.sh
+  LOCO_FULL_SHRINK_ONLY=1 LOCO_FULL_STATIC_NORM=0 SCREEN_STEPS=80 SCREEN_VAL_EVERY=20 tools/run_newtonv_block_power_gate.sh
+  LOCO_FULL_FILTER=finite SCREEN_STEPS=80 SCREEN_VAL_EVERY=20 tools/run_newtonv_block_power_gate.sh
+  ```
+
+- Modal launch should pass runner-specific env through `MODAL_EXTRA_ENV_JSON`,
+  for example:
+
+  ```bash
+  MODAL_RUNNER=tools/run_newtonv_timing_triplet_gate.sh \
+  MODAL_EXTRA_ENV_JSON='{"NEWTONV_VARIANT":"baseline"}' \
+  SCREEN_STEPS=120 SCREEN_VAL_EVERY=0 tools/run_modal_newtonv_raw_gate.sh
+  ```
+
 - `tools/modal_h100_probe.py` and `tools/modal_billing_check.sh` are ready, but
   Modal still needs the token secret half before they can authenticate.
 - Do not spend 8xH100 on direct LocoProp-S or full MLP-proj.
