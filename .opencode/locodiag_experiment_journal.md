@@ -99,6 +99,15 @@ The next implementation target is not direct LocoProp-S. It is a narrow
 Newton-Muon-style probe that keeps the NorMuon/Polar-Express stack and inserts a
 right-side input preconditioner after momentum and before Polar Express.
 
+Same-environment baseline on the current H100/software stack:
+
+| run | log | checkpoint | val_loss | train_time | step_avg | decision |
+| --- | --- | ---: | ---: | ---: | ---: | --- |
+| current no-feature baseline | `.opencode/baseline_current_screen200.log` | 50 | 5.6283 | 24.957s | 499.13ms | authoritative comparison for current pod |
+| current no-feature baseline | `.opencode/baseline_current_screen200.log` | 100 | 4.6782 | 75.419s | 754.19ms | much faster old baseline is stale for this environment |
+| current no-feature baseline | `.opencode/baseline_current_screen200.log` | 150 | 4.1168 | 148.254s | 988.36ms | current stage timing matches full-V runs |
+| current no-feature baseline | `.opencode/baseline_current_screen200.log` | 200 | 3.8834 | 242.543s | 1212.71ms | resets promotion threshold |
+
 Implemented locally after the diagonal screens:
 
 - `LOCO_FULL_SURFACES=v` enables only the V matrix in `vo_bank`.
@@ -116,6 +125,12 @@ Implemented locally after the diagonal screens:
 - `LOCO_FULL_NOOP=1` keeps the collection/factorization/application overhead
   while setting blend to zero, so it is a wall-clock control rather than an
   algorithmic candidate.
+
+Important correction after rerunning baseline: the older `3.8998 / 134.977s`
+baseline is not apples-to-apples with the current pod/software/screen harness.
+Use `.opencode/baseline_current_screen200.log` for current decisions. Against
+that baseline, all-layer full V and early-layer pulse are small loss wins in the
+same wall-clock class, not yet WR-ready evidence.
 
 First H100 screens to run after local validation:
 
