@@ -445,3 +445,51 @@ case's explicit env. Also, before-momentum active filters use baseline fused
 polar_express, not LOCO_FULL_POLAR_ITERS, so the before-momentum no-op is the
 matched control for those cases.
 ```
+
+## Cycle 3 H100 Result: paper_v_promote
+
+Started after user override allowing GPUs for the next 3 hours.
+
+Modal app:
+
+```text
+ap-36RFDQ7tIuIjsivgH1DMSL
+```
+
+Parsed results:
+
+```text
+pvp_baseline:                           3.8794, 1590.01ms/step
+pvp_v01_noop_before_r020_blend010:      3.8858,  709.20ms/step
+pvp_v01_noop_after_polar4:              3.8887,  713.78ms/step
+pvp_finite_v01_before_r020_blend010:    3.8899,  712.27ms/step
+pvp_power05_v01_before_r020_blend010:   3.8960,  713.71ms/step
+pvp_inverse_v01_before_r020_blend010:   3.8855,  713.39ms/step
+pvp_cholmetric_v01_after_r020_blend005: 3.8843,  712.87ms/step
+```
+
+Interpretation:
+
+```text
+All paper-style active V 0-1 treatments lost to baseline.
+Both no-op controls also lost to baseline.
+Metric-polar V-only was the best active line, but still lost by 0.0049.
+The baseline step time is contaminated by two large compile/cache stalls and
+should not be used as a cost baseline for this suite.
+```
+
+Decision:
+
+```text
+Do not spend more H100 on V-only right-preconditioning in the current branch.
+The original full-V signal was real enough to justify this ladder, but this
+matched run says the current V placement/filter/window family is not WR-ready.
+```
+
+Next useful branch:
+
+```text
+Implement a narrow full/metric MLP c_fc path if continuing the right-
+preconditioner thesis. It is the clean 768-dimensional surface left by the
+paper/theory path, and current code only has diagonal MLP support.
+```

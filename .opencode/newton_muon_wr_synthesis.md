@@ -705,3 +705,37 @@ MODAL_EXTRA_ENV_JSON='{"NEWTONV_SUITE":"paper_v_promote","NEWTONV_SUITE_LABEL":"
 SCREEN_STEPS=200 SCREEN_VAL_EVERY=50 \
 tools/run_modal_newtonv_raw_gate.sh
 ```
+
+Result on Modal H100:
+
+```text
+pvp_baseline:                              3.8794, 1590.01ms/step
+pvp_v01_noop_before_r020_blend010:         3.8858,  709.20ms/step
+pvp_v01_noop_after_polar4:                 3.8887,  713.78ms/step
+pvp_finite_v01_before_r020_blend010:       3.8899,  712.27ms/step
+pvp_power05_v01_before_r020_blend010:      3.8960,  713.71ms/step
+pvp_inverse_v01_before_r020_blend010:      3.8855,  713.39ms/step
+pvp_cholmetric_v01_after_r020_blend005:    3.8843,  712.87ms/step
+```
+
+The baseline timing included two large compile/cache stalls, so do not compare
+step time literally against the later cases. The loss result is still decisive:
+no active paper-style V filter beat baseline, and no active filter beat its
+matched no-op by a useful margin. The metric-polar safety probe was the best
+active treatment but still lost to baseline by `0.0049`.
+
+Decision:
+
+```text
+Kill V 0-1 right-preconditioning as a WR candidate in this branch.
+Do not run more V-only H100 sweeps unless a new implementation changes the
+surface, placement, or interaction with Muon/NorMuon materially.
+```
+
+Next implementation branch, if continuing the right-preconditioner thesis:
+
+```text
+Narrow full/metric MLP c_fc only. It is the clean 768-dimensional surface that
+the paper-family theory still supports, but current branch does not implement
+full MLP support yet. Keep it 1xH100 only until it beats its own no-op.
+```

@@ -531,3 +531,55 @@ If the no-refresh no-op keeps the `~0.002-0.003` gain with near-baseline timing,
 it becomes a real WR candidate knob independent of Newton-Muon. If it loses the
 gain, the feature-stat side effects or identity right-matmul/norm path are part
 of the behavior and need their own narrower ablation.
+
+## Paper-Style V Promotion Ladder
+
+Source:
+
+```text
+.opencode/modal_newtonv_paper_v_promote_h100_20260527.log
+.opencode/modal_newtonv_paper_v_promote_h100_20260527.parsed.md
+```
+
+Run:
+
+```text
+NEWTONV_SUITE=paper_v_promote
+H100, 1x, 200 steps, val every 50
+collect window 0-64, apply window 48-112
+V layers 0-1
+```
+
+Results:
+
+| case | @50 | @100 | @150 | @200 | final step_avg |
+| --- | ---: | ---: | ---: | ---: | ---: |
+| pvp_baseline | 5.5953 | 4.6720 | 4.1084 | 3.8794 | 1590.01ms |
+| pvp_v01_noop_before_r020_blend010 | 5.6099 | 4.6900 | 4.1156 | 3.8858 | 709.20ms |
+| pvp_v01_noop_after_polar4 | 5.6157 | 4.6892 | 4.1213 | 3.8887 | 713.78ms |
+| pvp_finite_v01_before_r020_blend010 | 5.6150 | 4.6775 | 4.1228 | 3.8899 | 712.27ms |
+| pvp_power05_v01_before_r020_blend010 | 5.6041 | 4.6810 | 4.1274 | 3.8960 | 713.71ms |
+| pvp_inverse_v01_before_r020_blend010 | 5.6377 | 4.6868 | 4.1160 | 3.8855 | 713.39ms |
+| pvp_cholmetric_v01_after_r020_blend005_norm | 5.5978 | 4.6761 | 4.1120 | 3.8843 | 712.87ms |
+
+Read:
+
+- This kills the current V-only right-preconditioner family. No active V line
+  beat baseline at 200, and none beat the relevant no-op controls by a useful
+  margin.
+- The no-op controls also lost to baseline in this run. The earlier no-op wins
+  are not stable enough to carry the current V branch.
+- Metric-polar was the least bad active line, but it still lost to baseline by
+  `0.0049`.
+- The baseline timing is not interpretable as a runtime comparator because it
+  paid large compile/cache stalls at steps 68 and 134. The loss comparison is
+  still valid enough for the promotion decision because every active line is
+  worse than baseline.
+
+Decision:
+
+```text
+No more V-only H100 sweeps in this branch unless the implementation changes
+materially. If continuing the right-preconditioner thesis, move to narrow full
+MLP c_fc support and keep it on 1xH100 until it clears no-op.
+```
