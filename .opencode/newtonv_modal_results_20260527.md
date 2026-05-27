@@ -329,3 +329,78 @@ warm V polar4 with LOCO_FULL_SKIP_VARRED=1
 This tests whether the right-side V metric is being over-normalized by the
 existing Polar/NorMuon variance-reduction stack. Commit `62e7097` added the
 `LOCO_FULL_SKIP_VARRED` knob and an `overprecond` suite for that purpose.
+
+## Overpreconditioning Ladder Results
+
+Log:
+
+- `.opencode/modal_newtonv_overprecond_h100_20260527.log`
+
+Timing/accounting:
+
+- Modal app: `ap-9WOCEPdPIu5SZKslqZsOtb`
+- GPU: `H100`
+- Launched around `2026-05-27 17:28 IST`.
+- Completed around `2026-05-27 17:49 IST`.
+- Modal-reported wall time: `1217.204s`.
+- Return code: `0`.
+
+This run used the remaining GPU-hour allowance after the warm-metric ladder.
+Total active H100 window for both Modal apps was about `17:00-17:49 IST`.
+
+Parsed final results:
+
+| case | final_step | final_val_loss | final_train_time_s | final_step_avg_ms | refresh_step_ms_avg | nonrefresh_step_ms_avg | peak_alloc_mib |
+| --- | --- | --- | --- | --- | --- | --- | --- |
+| over_baseline | 120 | 4.1869 | 72.443 | 603.69 |  | 602.90 | 37327 |
+| over_v01_warm_noop_polar4 | 120 | 4.1798 | 72.776 | 606.46 | 421.28 | 620.61 | 37430 |
+| over_v01_warm_polar5 | 120 | 4.1821 | 72.512 | 604.26 | 385.64 | 621.13 | 37430 |
+| over_v01_warm_polar4 | 120 | 4.1763 | 72.882 | 607.35 | 384.74 | 624.55 | 37430 |
+| over_v01_warm_polar4_skipvr | 120 | 4.1784 | 72.765 | 606.38 | 385.80 | 623.40 | 37430 |
+
+Validation checkpoints:
+
+| case | step 0 | step 40 | step 80 | step 120 |
+| --- | --- | --- | --- | --- |
+| over_baseline | 10.8310 | 5.8303 | 4.6244 | 4.1869 |
+| over_v01_warm_noop_polar4 | 10.8283 | 5.8273 | 4.6108 | 4.1798 |
+| over_v01_warm_polar5 | 10.8279 | 5.7874 | 4.6183 | 4.1821 |
+| over_v01_warm_polar4 | 10.8332 | 5.8336 | 4.6182 | 4.1763 |
+| over_v01_warm_polar4_skipvr | 10.8291 | 5.8563 | 4.6192 | 4.1784 |
+
+Read:
+
+- The full-path no-op control is strong: `4.1798` versus baseline `4.1869`.
+  This means the no-op/polar4 scheduling path itself is useful in this suite.
+- Active Newton-V with polar4 beat both baseline and no-op: `4.1763`, a
+  `0.0106` gain versus baseline and a `0.0035` gain versus no-op.
+- Active Newton-V with polar5 was worse than no-op: `4.1821`.
+- Skipping NorMuon variance reduction was worse than normal polar4:
+  `4.1784` versus `4.1763`. The useful variant keeps variance reduction.
+- Non-refresh timing overhead is small in this 1xH100 suite: best active
+  `607.35ms/step` versus baseline `603.69ms/step`, about `+0.6%`.
+
+Current interpretation:
+
+```text
+The right-side V preconditioner only looks useful when paired with the
+weaker 4-iteration full-path polar schedule.
+
+The no-op full path is itself a strong confound and may be an independent
+optimizer/schedule lever.
+
+Do not skip NorMuon variance reduction.
+```
+
+Next GPU-hour gate:
+
+```text
+200-step same-suite:
+  baseline
+  warm V no-op polar4
+  warm V active polar4
+```
+
+Promote only if active beats both baseline and no-op by at least `0.002` at
+200 steps. If no-op beats active again or active fades, the Newton-specific
+part should be demoted and the no-op polar4 path should become the new branch.

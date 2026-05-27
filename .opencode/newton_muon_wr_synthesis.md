@@ -183,6 +183,29 @@ Polar/NorMuon variance reduction may erase or distort the correction. Commit
 `62e7097` added `LOCO_FULL_SKIP_VARRED=1` plus an `overprecond` suite to test
 that without changing the rest of the optimizer.
 
+The overpreconditioning ladder produced the strongest same-suite result so far:
+
+| case | step 80 | step 120 | read |
+| --- | --- | --- | --- |
+| baseline | `4.6244` | `4.1869` | control |
+| warm V no-op polar4 | `4.6108` | `4.1798` | full-path no-op is strong |
+| warm V active polar5 | `4.6183` | `4.1821` | worse than no-op |
+| warm V active polar4 | `4.6182` | `4.1763` | best result |
+| warm V active polar4, skip varred | `4.6192` | `4.1784` | worse than keeping varred |
+
+The actionable synthesis changed:
+
+```text
+Use V 0-1, collect 0-64, apply 48-112.
+Use LOCO_FULL_POLAR_ITERS=4.
+Keep NorMuon variance reduction.
+Always include the no-op full-path control.
+```
+
+This is not yet WR-ready because the 120-step suite is noisy, but active polar4
+beat both baseline and no-op with nearly baseline step time. The next gate is a
+200-step same-suite baseline/no-op/active run.
+
 ## GPU-Ready Queue
 
 For a fresh 1xH100 or Modal H100:
@@ -193,9 +216,9 @@ For a fresh 1xH100 or Modal H100:
    `SCREEN_STEPS=200 SCREEN_VAL_EVERY=50` with no `LOCO_*` flags.
 3. Do not rerun the old raw V `0-1 END_STEP=100` gate unless it is needed as a
    control.
-4. If continuing Newton-V, run `NEWTONV_SUITE=overprecond` before any 200-step
-   promotion. It compares warm V under polar5, polar4, and
-   `polar4 + LOCO_FULL_SKIP_VARRED=1`.
+4. If continuing Newton-V, run a 200-step same-suite baseline/no-op/active gate
+   for warm V polar4. Do not promote unless active beats both controls by at
+   least `0.002`.
 5. Only if that new hypothesis beats the 200-step baseline, run a small 8-GPU
    smoke to measure owner-local distributed overhead.
 6. Launch a full 8xH100 record attempt only after both the 200-step loss gate
