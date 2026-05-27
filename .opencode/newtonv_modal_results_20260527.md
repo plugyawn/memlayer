@@ -256,3 +256,76 @@ apply:   48-112
 
 That would test the actual init-aware hypothesis: warm the metric during early
 training, but do not perturb V/O until the attention path is less transient.
+
+## Warm-Metric Ladder Results
+
+Log:
+
+- `.opencode/modal_newtonv_warmmetric_h100_20260527.log`
+
+Timing/accounting:
+
+- Modal app: `ap-sSL50qhWTRJ3JKcQBp5FJ3`
+- GPU: `H100`
+- Launched around `2026-05-27 17:00 IST`.
+- Completed around `2026-05-27 17:24 IST`.
+- Modal-reported wall time: `1402.985s`.
+- Return code: `0`.
+
+This run tested the decoupled-window hypothesis:
+
+```text
+collect feature Gram early
+apply Newton-Muon preconditioner later
+```
+
+Parsed final results:
+
+| case | final_step | final_val_loss | final_train_time_s | final_step_avg_ms | refresh_step_ms_avg | nonrefresh_step_ms_avg | peak_alloc_mib |
+| --- | --- | --- | --- | --- | --- | --- | --- |
+| warm_baseline | 120 | 4.1832 | 103.940 | 866.13 |  | 865.33 | 37327 |
+| warm_v01_collect0_48_apply48_112_p4 | 120 | 4.1829 | 67.632 | 563.60 | 348.87 | 576.06 | 37430 |
+| warm_v01_collect0_64_apply48_112_p4 | 120 | 4.1846 | 66.922 | 557.68 | 385.01 | 570.82 | 37430 |
+| warm_o_collect0_64_apply48_112_p4 | 120 | 4.1861 | 67.746 | 564.55 | 455.19 | 572.55 | 37343 |
+| warm_vo_collect0_64_apply48_112_p4 | 120 | 4.1847 | 66.976 | 558.13 | 405.43 | 569.65 | 37447 |
+
+Validation checkpoints:
+
+| case | step 0 | step 40 | step 80 | step 120 |
+| --- | --- | --- | --- | --- |
+| warm_baseline | 10.8319 | 5.8510 | 4.6326 | 4.1832 |
+| warm_v01_collect0_48_apply48_112_p4 | 10.8335 | 5.8165 | 4.6256 | 4.1829 |
+| warm_v01_collect0_64_apply48_112_p4 | 10.8286 | 5.8323 | 4.6282 | 4.1846 |
+| warm_o_collect0_64_apply48_112_p4 | 10.8260 | 5.8174 | 4.6339 | 4.1861 |
+| warm_vo_collect0_64_apply48_112_p4 | 10.8283 | 5.8587 | 4.6248 | 4.1847 |
+
+Read:
+
+- The implementation worked: delayed runs now populate Gram EMA before the apply
+  window instead of starting from a cold metric at step 48.
+- No warm-metric candidate cleared the promotion bar. The best final result was
+  `V 0-1 collect 0-48 / apply 48-112`, `4.1829` versus baseline `4.1832`, only
+  a `0.0003` gain.
+- `collect 0-64` was worse than `collect 0-48`, suggesting later/higher-energy
+  V statistics are not automatically better.
+- Warm O did not reproduce the prior O delayed hit. It finished `4.1861`,
+  clearly worse than baseline.
+- Combined V+O had the best step-80 value, `4.6248`, but faded to `4.1847`.
+
+The current read is that warm feature metrics can move early loss, but the
+effect is still not persistent enough by step 120. This demotes collect/apply
+windowing as a mainline WR path by itself.
+
+Next ladder:
+
+```text
+baseline
+warm V no-op/full-path control
+warm V polar5
+warm V polar4
+warm V polar4 with LOCO_FULL_SKIP_VARRED=1
+```
+
+This tests whether the right-side V metric is being over-normalized by the
+existing Polar/NorMuon variance-reduction stack. Commit `62e7097` added the
+`LOCO_FULL_SKIP_VARRED` knob and an `overprecond` suite for that purpose.
