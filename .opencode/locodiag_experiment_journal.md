@@ -107,6 +107,9 @@ Same-environment baseline on the current H100/software stack:
 | current no-feature baseline | `.opencode/baseline_current_screen200.log` | 100 | 4.6782 | 75.419s | 754.19ms | much faster old baseline is stale for this environment |
 | current no-feature baseline | `.opencode/baseline_current_screen200.log` | 150 | 4.1168 | 148.254s | 988.36ms | current stage timing matches full-V runs |
 | current no-feature baseline | `.opencode/baseline_current_screen200.log` | 200 | 3.8834 | 242.543s | 1212.71ms | resets promotion threshold |
+| full QK, FP32 inverse cache | `.opencode/newtonv_fullqk_fp32_screen60.log` | 20 | 6.5175 | 9.255s | 462.75ms | QK is not immediately toxic |
+| full QK, FP32 inverse cache | `.opencode/newtonv_fullqk_fp32_screen60.log` | 40 | 5.4129 | 30.826s | 770.66ms | weaker than V paths |
+| full QK, FP32 inverse cache | `.opencode/newtonv_fullqk_fp32_screen60.log` | 60 | 4.8402 | 67.420s | 1123.67ms | worse than early V; QK-only is not first candidate |
 
 Implemented locally after the diagonal screens:
 
@@ -125,12 +128,18 @@ Implemented locally after the diagonal screens:
 - `LOCO_FULL_NOOP=1` keeps the collection/factorization/application overhead
   while setting blend to zero, so it is a wall-clock control rather than an
   algorithmic candidate.
+- `LOCO_FULL_SURFACES=qk` reuses the same attention-input Gram for the Q/K bank
+  and applies the cached right preconditioner after momentum before Polar
+  Express.
 
 Important correction after rerunning baseline: the older `3.8998 / 134.977s`
 baseline is not apples-to-apples with the current pod/software/screen harness.
 Use `.opencode/baseline_current_screen200.log` for current decisions. Against
 that baseline, all-layer full V and early-layer pulse are small loss wins in the
 same wall-clock class, not yet WR-ready evidence.
+Full QK is implemented and validated at 60 steps, but it is weaker than V:
+`4.8402` at 60 versus `4.8313` for all-layer V and `4.8211` for V layers `0-1`.
+The next QK check is interaction with V, not QK-only promotion.
 
 First H100 screens to run after local validation:
 
