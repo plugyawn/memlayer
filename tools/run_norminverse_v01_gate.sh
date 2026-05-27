@@ -5,7 +5,7 @@ steps="${SCREEN_STEPS:-60}"
 val_every="${SCREEN_VAL_EVERY:-20}"
 warmup="${SCREEN_WARMUP:-0,1,8,18,19,20,21,24,38,39,40,41,48,58,59,60}"
 log_path="${LOG_PATH:-.opencode/newtonv_fullv_layers0_1_norminverse_nonorm_screen${steps}.log}"
-cache_dir="${TORCHINDUCTOR_CACHE_DIR:-/root/.cache/torchinductor-speedrun-newtonv}"
+cache_dir="${TORCHINDUCTOR_CACHE_DIR:-${HOME}/.cache/torchinductor-speedrun-newtonv}"
 nproc="${NPROC_PER_NODE:-1}"
 
 python3 tools/make_train_screen.py \

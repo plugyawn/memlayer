@@ -345,3 +345,40 @@ SCREEN_STEPS=60 tools/run_norminverse_v01_gate.sh
 
 If the 60-step screen lands at or below `4.825` without a large timing
 regression, promote the same script with `SCREEN_STEPS=200 SCREEN_VAL_EVERY=50`.
+
+## Norminverse V 0-1 Gate
+
+| run | log | checkpoint | val_loss | train_time | step_avg | decision |
+| --- | --- | ---: | ---: | ---: | ---: | --- |
+| V layers 0-1, norminverse, no norm restore, blend 0.25 | `.opencode/newtonv_fullv_layers0_1_norminverse_nonorm_screen60.log` | 20 | 6.5442 | 7.300s | 365.02ms | early loss weaker than raw inverse |
+| V layers 0-1, norminverse, no norm restore, blend 0.25 | `.opencode/newtonv_fullv_layers0_1_norminverse_nonorm_screen60.log` | 40 | 5.3928 | 20.785s | 519.62ms | still plausible |
+| V layers 0-1, norminverse, no norm restore, blend 0.25 | `.opencode/newtonv_fullv_layers0_1_norminverse_nonorm_screen60.log` | 60 | 4.8297 | 40.815s | 680.26ms | misses `<=4.825` promotion gate |
+| V layers 0-1, norminverse, no norm restore, blend 0.50 | `.opencode/newtonv_fullv_layers0_1_norminverse_nonorm_blend05_screen60.log` | 20 | 6.5230 | 7.273s | 363.64ms | stronger at 20 |
+| V layers 0-1, norminverse, no norm restore, blend 0.50 | `.opencode/newtonv_fullv_layers0_1_norminverse_nonorm_blend05_screen60.log` | 40 | 5.4162 | 20.752s | 518.79ms | over-applies by 40 |
+| V layers 0-1, norminverse, no norm restore, blend 0.50 | `.opencode/newtonv_fullv_layers0_1_norminverse_nonorm_blend05_screen60.log` | 60 | 4.8411 | 40.748s | 679.14ms | reject blend increase |
+
+The normalized inverse/no-norm path removes most of the dense inverse timing
+cost, but the loss signal weakened versus the raw inverse + norm-restore
+candidate. Increasing blend to `0.50` confirmed the problem is not simply too
+little strength: the step-50 full-V norm ratio fell to `0.9296` and the 60-step
+loss worsened. Keep the raw `V 0-1 END_STEP=100` result as the best current
+loss candidate, but it still needs a cheaper implementation before promotion.
+
+## Modal Probe Status
+
+Local Modal setup now has:
+
+- `tools/modal_billing_check.sh` for token/billing smoke.
+- `tools/modal_h100_probe.py` for an H100 `nvidia-smi`/`nvcc` spawn probe.
+- `.opencode/modal_speedrun_plan.md` for the Modal run strategy.
+
+The current env only exposes `MODAL_KEY`, and its shape matches a Modal token id.
+Modal auth still needs `MODAL_TOKEN_SECRET`, so no H100 spawn or wallet query was
+possible yet. Once the secret half is present, run:
+
+```bash
+set -a; . /Users/progyan/speedrun/env.local; set +a
+export MODAL_TOKEN_ID="${MODAL_TOKEN_ID:-$MODAL_KEY}"
+tools/modal_billing_check.sh
+modal run tools/modal_h100_probe.py
+```
