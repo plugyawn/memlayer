@@ -149,6 +149,23 @@ The Modal promotion run remeasured this family and landed at `3.8875` versus
 the same-suite baseline `3.8837`, so it is no longer a WR candidate as-is. Keep
 the runner for reproducibility, not for automatic promotion.
 
+The follow-up Modal H100 ladder added 120-step init-aware screens. It did not
+rescue the original Newton-V schedule:
+
+| case | step 120 | read |
+| --- | --- | --- |
+| baseline | `4.1813` | control |
+| V all `0-48`, polar4 | `4.1923` | worse |
+| V `0-1 END_STEP=100`, polar4 | `4.1908` | worse |
+| V `0-1 32-80`, polar4 | `4.1864` | still worse |
+| V `0-1 48-112`, polar4 | `4.1793` | small positive |
+| QK `32-80`, polar4 | `4.1874` | worse |
+| O headwise `32-80`, polar4 | `4.1809` | tiny positive |
+
+That points to an init/schedule issue, not a simple `polar_iters=4` fix. The
+next principled test is to decouple collection and application windows:
+collect `C` early, apply the preconditioner later.
+
 ## GPU-Ready Queue
 
 For a fresh 1xH100 or Modal H100:
