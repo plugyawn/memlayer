@@ -336,3 +336,12 @@ instead of replacing it with top-shrink, while directly testing whether norm
 restoration was a material part of the remaining every-step cost. If this loses
 the signal, fall back to the existing raw inverse + norm-restore candidate and
 replicate `V 0-1 END_STEP=100` before promoting.
+
+Runnable gate command:
+
+```bash
+SCREEN_STEPS=60 tools/run_norminverse_v01_gate.sh
+```
+
+If the 60-step screen lands at or below `4.825` without a large timing
+regression, promote the same script with `SCREEN_STEPS=200 SCREEN_VAL_EVERY=50`.
