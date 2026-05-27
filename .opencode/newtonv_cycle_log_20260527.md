@@ -677,3 +677,42 @@ QMP_STEPS=200
 QMP_VAL_EVERY=50
 QMP_LAYERS=0-1
 ```
+
+## Cycle 5 H100 Result: qkvo_metric_promote
+
+Modal app:
+
+```text
+ap-b3KIPyouTgaox8RorukySL
+```
+
+Parsed 200-step results:
+
+```text
+qmp_baseline:                 3.8945, 670.97ms/step
+qmp_qkvo_noop_metric_polar4:  3.8948, 665.50ms/step
+qmp_qkvo_cholmetric_polar4:   3.8900, 663.11ms/step
+```
+
+Interpretation:
+
+```text
+QKVO 0-1 activation-metric polar is now the best matched-control positive line:
+  vs QKVO no-op: +0.0048 loss improvement
+  vs baseline:   +0.0045 loss improvement
+
+The 100-step screen was not active-positive versus no-op, but the 150/200-step
+anchors were. This looks like a real persistence signal, not just early noise.
+```
+
+Next run:
+
+```text
+NEWTONV_SUITE=qkvo_metric_promote
+QMP_STEPS=120
+QMP_VAL_EVERY=40
+QMP_LAYERS=0-3
+```
+
+Purpose: test whether the QKVO metric-polar signal widens beyond layers 0-1
+without paying for a full 200-step promote first.

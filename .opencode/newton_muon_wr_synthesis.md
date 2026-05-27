@@ -888,3 +888,27 @@ NEWTONV_SUITE=qkvo_metric_promote
 QMP_STEPS=200
 QMP_LAYERS=0-1
 ```
+
+QKVO metric promote result:
+
+```text
+qmp_baseline:                 3.8945
+qmp_qkvo_noop_metric_polar4:  3.8948
+qmp_qkvo_cholmetric_polar4:   3.8900
+```
+
+Read:
+
+```text
+QKVO 0-1 activation-metric polar is the current best surviving
+right-preconditioner result. It beats the matched no-op by 0.0048 and the
+same-suite baseline by 0.0045 at 200.
+```
+
+Next:
+
+```text
+Run the same qkvo_metric_promote suite at 120 steps with QMP_LAYERS=0-3.
+If widened QKVO keeps a no-op-matched signal, promote the widened case to 200.
+If not, replicate QKVO 0-1 before spending more time on tuning.
+```
