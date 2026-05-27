@@ -208,9 +208,29 @@ raw V cases used layers `0-1`. Active polar4 still beat a strong no-op, but it
 was not a matched no-op control. The future `overprecond` and `overpromote`
 suites now force `LOCO_DIAG_ATTN_LAYERS=0-1` for the no-op path.
 
-This is not yet WR-ready because the 120-step suite is noisy and the no-op
-control was mismatched. The next gate is a 200-step same-suite
-baseline/matched-no-op/active run.
+The 200-step matched overpromote gate landed after this. It did not promote
+Newton-specific V:
+
+```text
+baseline:                    3.8882
+V 0-1 no-op polar4:          3.8918
+V 0-1 no-op polar5:          3.8856
+all-V no-op polar4:          3.8851
+V 0-1 active polar5:         3.8869
+V 0-1 active polar4:         3.8887
+```
+
+The best result was all-V no-op polar4, not active Newton-V. This means the
+strongest current signal is the full after-momentum optimizer path itself:
+explicit Nesterov operand, `polar_express_from_operand`, and NorMuon variance
+reduction under the window schedule. The cached V-input right preconditioner is
+not the winning part of this 200-step ladder.
+
+Important implementation nuance: the full-path switch is bank-level. Once
+`LOCO_FULL_SURFACES=v` activates the `vo_bank`, the whole VO bank uses the
+explicit after-momentum path. Layer selection controls feature collection and
+the identity/preconditioner helper, not which matrices use
+`polar_express_from_operand`.
 
 Mechanism note: `LOCO_FULL_NOOP=1` is not the same as baseline. During the
 apply window it sets the full-path blend to zero, but still routes the selected
@@ -222,11 +242,9 @@ raw grad -> Nesterov operand -> full-path helper with blend=0
          -> NorMuon variance reduction
 ```
 
-So the no-op control is really a polar/full-path schedule ablation. The
-overprecond no-op happened to be all-V; the next gate should keep matched V0-1
-no-op polar4/polar5, matched V0-1 active polar4/polar5, and all-V no-op polar4
-so we can separate Newton-specific signal from the polar/full-path schedule
-signal.
+So the no-op control is really a polar/full-path schedule ablation. The matched
+200-step ladder says this ablation is currently more promising than
+right-preconditioned Newton-V.
 
 ## GPU-Ready Queue
 
@@ -238,13 +256,16 @@ For a fresh 1xH100 or Modal H100:
    `SCREEN_STEPS=200 SCREEN_VAL_EVERY=50` with no `LOCO_*` flags.
 3. Do not rerun the old raw V `0-1 END_STEP=100` gate unless it is needed as a
    control.
-4. If continuing Newton-V, run the prepared `NEWTONV_SUITE=overpromote`
-   200-step gate. Do not promote unless active polar4 beats baseline, matched
-   V0-1 no-op polar4, and matched active/no-op polar5 controls by at least
-   `0.002`.
-5. Only if that new hypothesis beats the 200-step baseline, run a small 8-GPU
-   smoke to measure owner-local distributed overhead.
-6. Launch a full 8xH100 record attempt only after both the 200-step loss gate
+4. Do not continue the current Newton-V promotion path without a new reason.
+   The matched 200-step ladder failed the promotion rule.
+5. Next isolate the full-path/no-op schedule with feature-stat work removed.
+   The target controls are baseline, no-refresh VO-bank no-op polar5,
+   no-refresh VO-bank no-op polar4, and matching collection-enabled no-op
+   replicates.
+   Prepared suite: `NEWTONV_SUITE=scheduleonly`.
+6. Only if the no-op schedule keeps a `>=0.002` 200-step gain with near-baseline
+   timing should it get an 8-GPU smoke.
+7. Launch a full 8xH100 record attempt only after both the 200-step loss gate
    and distributed overhead smoke are positive.
 
 Kill criteria:

@@ -87,9 +87,9 @@ full no-op path: explicit momentum operand + polar_express_from_operand with LOC
 
 This makes no-op a useful candidate in its own right, not just a cost control.
 
-## Next H100 Gate
+## Overpromote H100 Gate Result
 
-Use the prepared `overpromote` suite:
+Ran the prepared `overpromote` suite on Modal H100:
 
 ```bash
 NANOGPT_MODAL_GPU=H100 \
@@ -99,24 +99,69 @@ SCREEN_STEPS=200 SCREEN_VAL_EVERY=50 \
 tools/run_modal_newtonv_raw_gate.sh
 ```
 
-It runs:
+Modal app:
 
 ```text
-baseline
-V 0-1 no-op polar4
-V 0-1 no-op polar5
-all-V no-op polar4
-V 0-1 active polar5
-V 0-1 active polar4
+ap-g1YDghiIetiBqd6GxM0ATO
+returncode=0
+wall_time=1366.576s
 ```
 
-Promotion rule:
+Parsed result:
 
 ```text
-Promote only if V 0-1 active polar4 beats baseline, matched V0-1 no-op polar4,
-and the matched active/no-op polar5 controls by at least 0.002 at 200 steps.
+baseline:                    3.8882
+V 0-1 no-op polar4:          3.8918
+V 0-1 no-op polar5:          3.8856
+all-V no-op polar4:          3.8851
+V 0-1 active polar5:         3.8869
+V 0-1 active polar4:         3.8887
 ```
 
-If matched no-op, active polar5, or all-V no-op beats active polar4, demote or
-narrow Newton-specific right preconditioning and study the polar/full-path
-schedule as its own optimizer lever.
+Decision:
+
+```text
+Do not promote Newton-V from this ladder.
+The best result is all-V no-op polar4, not active Newton-V.
+```
+
+Interpretation:
+
+- The full-path/no-op schedule is the strongest current signal.
+- The actual right-preconditioned Newton-V update is not carrying the 200-step
+  win in this window.
+- Active V0-1 polar4 was worse than baseline, despite the 120-step hint.
+- Active V0-1 polar5 beat baseline but lost to both strong no-op controls.
+- Important nuance: no-op/full-path activation is param-bank level. With
+  `LOCO_FULL_SURFACES=v`, the whole `vo_bank` goes through the explicit
+  after-momentum full path; layer selection only controls feature collection and
+  identity/preconditioner helper work.
+
+Next ladder:
+
+```text
+isolate the no-op/full-path schedule with feature-stat work removed:
+  baseline
+  no-refresh VO-bank no-op polar5
+  no-refresh VO-bank no-op polar4
+  current no-op V0-1 polar5 replicate
+  current no-op all-V polar4 replicate
+```
+
+The implementation question is whether we need a `LOCO_FULL_NO_PRECOND` or
+`LOCO_FULL_SCHEDULE_ONLY` mode that skips the right-inverse helper when
+`LOCO_FULL_NOOP=1`, instead of paying for identity matmuls and feature-stat
+collection.
+
+Follow-up patch prepared `LOCO_FULL_SCHEDULE_ONLY=1` and
+`NEWTONV_SUITE=scheduleonly`.
+
+Next H100 command after the required audit window:
+
+```bash
+NANOGPT_MODAL_GPU=H100 \
+MODAL_RUNNER=tools/run_newtonv_experiment_suite.sh \
+MODAL_EXTRA_ENV_JSON='{"NEWTONV_SUITE":"scheduleonly","NEWTONV_SUITE_LABEL":"modal_scheduleonly_h100_20260527","PROMOTE_STEPS":"200","PROMOTE_VAL_EVERY":"50"}' \
+SCREEN_STEPS=200 SCREEN_VAL_EVERY=50 \
+tools/run_modal_newtonv_raw_gate.sh
+```

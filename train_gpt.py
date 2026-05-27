@@ -90,6 +90,7 @@ LOCO_FULL_BLEND_MAX = float(os.environ.get("LOCO_FULL_BLEND_MAX", "0.25"))
 LOCO_FULL_RIDGE_REL = float(os.environ.get("LOCO_FULL_RIDGE_REL", "0.03"))
 LOCO_FULL_LOCAL_STATS = os.environ.get("LOCO_FULL_LOCAL_STATS", "1") == "1"
 LOCO_FULL_NOOP = os.environ.get("LOCO_FULL_NOOP", "0") == "1"
+LOCO_FULL_SCHEDULE_ONLY = os.environ.get("LOCO_FULL_SCHEDULE_ONLY", "0") == "1"
 LOCO_FULL_END_STEP = int(os.environ.get("LOCO_FULL_END_STEP", "-1"))
 LOCO_FULL_WINDOWS_SPEC = os.environ.get("LOCO_FULL_WINDOWS", "").strip()
 LOCO_FULL_COLLECT_WINDOWS_SPEC = os.environ.get("LOCO_FULL_COLLECT_WINDOWS", LOCO_FULL_WINDOWS_SPEC).strip()
@@ -209,6 +210,8 @@ def _loco_full_window_start(step: int) -> bool:
 
 def _loco_full_collect_active_at_step(step: int) -> bool:
     if not LOCO_FULL_ACTIVE:
+        return False
+    if LOCO_FULL_SCHEDULE_ONLY:
         return False
     if LOCO_FULL_COLLECT_WINDOWS:
         return any(lo <= step <= hi for lo, hi in LOCO_FULL_COLLECT_WINDOWS)
@@ -1240,10 +1243,11 @@ class NorMuonAndAdam:
         is_large_matrix = chunk_shape[-2] > 1024
         if use_loco_full_after_momentum:
             nesterov_momentum_operand_inplace(grad_chunk, p_state["momentum_buffer"], self._momentum_t)
-            if use_loco_full_qk_after_momentum:
-                self._loco_full_precondition_qk_operand_inplace(grad_chunk, p_cfg, rank)
-            else:
-                self._loco_full_precondition_vo_operand_inplace(grad_chunk, p_cfg, rank)
+            if not LOCO_FULL_SCHEDULE_ONLY:
+                if use_loco_full_qk_after_momentum:
+                    self._loco_full_precondition_qk_operand_inplace(grad_chunk, p_cfg, rank)
+                else:
+                    self._loco_full_precondition_vo_operand_inplace(grad_chunk, p_cfg, rank)
             v_chunk = polar_express_from_operand(grad_chunk, split_baddbmm=is_large_matrix)
         else:
             v_chunk = polar_express(
@@ -2976,6 +2980,7 @@ class TrainingManager():
                 f"precond_dtype={LOCO_FULL_PRECOND_DTYPE} norm_restore={int(LOCO_FULL_NORM_RESTORE)} "
                 f"block_size={LOCO_FULL_BLOCK_SIZE} static_norm={int(LOCO_FULL_STATIC_NORM)} "
                 f"power_alpha={LOCO_FULL_POWER_ALPHA} power_clip={LOCO_FULL_POWER_CLIP} shrink_only={int(LOCO_FULL_SHRINK_ONLY)} "
+                f"schedule_only={int(LOCO_FULL_SCHEDULE_ONLY)} "
                 f"polar_iters={LOCO_FULL_POLAR_ITERS} windows={LOCO_FULL_WINDOWS or 'end'} "
                 f"collect_windows={LOCO_FULL_COLLECT_WINDOWS or 'same'} "
                 f"skip_varred={int(LOCO_FULL_SKIP_VARRED)} "

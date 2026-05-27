@@ -418,3 +418,76 @@ Mechanism note: `LOCO_FULL_NOOP=1` still uses the full after-momentum path
 during the apply window; it just passes blend zero to the feature preconditioner.
 So the no-op result is not pure overhead. It is a real polar4/full-path schedule
 ablation.
+
+## Overpromote 200-Step Matched Control Results
+
+Log:
+
+- `.opencode/modal_newtonv_overpromote_h100_20260527.log`
+
+Timing/accounting:
+
+- Modal app: `ap-g1YDghiIetiBqd6GxM0ATO`
+- GPU: `H100`
+- Launched around `2026-05-27 18:02 IST`.
+- Completed around `2026-05-27 18:25 IST`.
+- Modal-reported wall time: `1366.576s`.
+- Return code: `0`.
+
+Parsed final results:
+
+| case | final_step | final_val_loss | final_train_time_s | final_step_avg_ms | refresh_step_ms_avg | nonrefresh_step_ms_avg | peak_alloc_mib |
+| --- | --- | --- | --- | --- | --- | --- | --- |
+| overpromote_baseline | 200 | 3.8882 | 121.823 | 609.12 |  | 608.63 | 37327 |
+| overpromote_v01_warm_noop_polar4 | 200 | 3.8918 | 123.243 | 616.22 | 282.01 | 631.47 | 37430 |
+| overpromote_v01_warm_noop_polar5 | 200 | 3.8856 | 120.890 | 604.45 | 282.59 | 619.12 | 37430 |
+| overpromote_vall_warm_noop_polar4 | 200 | 3.8851 | 120.655 | 603.27 | 309.57 | 616.62 | 37430 |
+| overpromote_v01_warm_active_polar5 | 200 | 3.8869 | 120.464 | 602.32 | 280.73 | 616.97 | 37430 |
+| overpromote_v01_warm_active_polar4 | 200 | 3.8887 | 120.959 | 604.79 | 279.69 | 619.62 | 37430 |
+
+Read:
+
+- This demotes Newton-specific V for the current warm-window candidate. Active
+  V0-1 polar4 did not beat baseline or the no-op controls at 200 steps.
+- The strongest line was the no-op/full-path schedule: all-V no-op polar4
+  landed at `3.8851`, a `0.0031` gain versus baseline.
+- Matched V0-1 no-op polar5 also beat baseline: `3.8856`, a `0.0026` gain.
+- Active Newton-V polar5 beat baseline but did not beat the best no-op control:
+  `3.8869` versus `3.8851`.
+- Active Newton-V polar4 finished worse than baseline: `3.8887` versus
+  `3.8882`.
+- No-op is still not pure baseline. It routes the selected bank through the
+  explicit after-momentum full path with `blend=0`, including the right-inverse
+  helper with an identity/zero-effect preconditioner.
+- No-op/full-path activation is bank-level. With `LOCO_FULL_SURFACES=v`, the
+  whole `vo_bank` goes through the explicit after-momentum path; layer selection
+  changes feature collection and identity/preconditioner helper work, not which
+  matrices use `polar_express_from_operand`.
+
+Decision:
+
+```text
+Do not promote Newton-V from this ladder.
+Promote the full-path/no-op schedule to the next isolation ladder.
+```
+
+Next isolation target:
+
+```text
+Separate the useful optimizer-path change from wasted feature-stat work:
+  1. baseline
+  2. full-path VO-bank no-op, no feature refresh/collection, polar5
+  3. full-path VO-bank no-op, no feature refresh/collection, polar4
+  4. current no-op controls with collection enabled for replication
+```
+
+Prepared runner:
+
+```text
+NEWTONV_SUITE=scheduleonly
+```
+
+If the no-refresh no-op keeps the `~0.002-0.003` gain with near-baseline timing,
+it becomes a real WR candidate knob independent of Newton-Muon. If it loses the
+gain, the feature-stat side effects or identity right-matmul/norm path are part
+of the behavior and need their own narrower ablation.

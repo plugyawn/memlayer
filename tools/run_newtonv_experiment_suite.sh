@@ -362,6 +362,54 @@ run_overpromote_ladder() {
     bash tools/run_newtonv_raw_v01_gate.sh
 }
 
+run_schedule_only_ladder() {
+  run_case schedule_baseline \
+    NEWTONV_VARIANT=baseline \
+    SCREEN_STEPS="${promote_steps}" \
+    SCREEN_VAL_EVERY="${promote_val_every}" \
+    bash tools/run_newtonv_timing_triplet_gate.sh
+
+  run_case schedule_vobank_noop_polar5_nostats \
+    NEWTONV_VARIANT=noop \
+    LOCO_DIAG_ATTN_LAYERS=0-1 \
+    LOCO_FULL_WINDOWS=48-112 \
+    LOCO_FULL_POLAR_ITERS=5 \
+    LOCO_FULL_SCHEDULE_ONLY=1 \
+    SCREEN_STEPS="${promote_steps}" \
+    SCREEN_VAL_EVERY="${promote_val_every}" \
+    bash tools/run_newtonv_timing_triplet_gate.sh
+
+  run_case schedule_vobank_noop_polar4_nostats \
+    NEWTONV_VARIANT=noop \
+    LOCO_DIAG_ATTN_LAYERS=all \
+    LOCO_FULL_WINDOWS=48-112 \
+    LOCO_FULL_POLAR_ITERS=4 \
+    LOCO_FULL_SCHEDULE_ONLY=1 \
+    SCREEN_STEPS="${promote_steps}" \
+    SCREEN_VAL_EVERY="${promote_val_every}" \
+    bash tools/run_newtonv_timing_triplet_gate.sh
+
+  run_case schedule_v01_noop_polar5_collect \
+    NEWTONV_VARIANT=noop \
+    LOCO_DIAG_ATTN_LAYERS=0-1 \
+    LOCO_FULL_COLLECT_WINDOWS=0-64 \
+    LOCO_FULL_WINDOWS=48-112 \
+    LOCO_FULL_POLAR_ITERS=5 \
+    SCREEN_STEPS="${promote_steps}" \
+    SCREEN_VAL_EVERY="${promote_val_every}" \
+    bash tools/run_newtonv_timing_triplet_gate.sh
+
+  run_case schedule_vall_noop_polar4_collect \
+    NEWTONV_VARIANT=noop \
+    LOCO_DIAG_ATTN_LAYERS=all \
+    LOCO_FULL_COLLECT_WINDOWS=0-64 \
+    LOCO_FULL_WINDOWS=48-112 \
+    LOCO_FULL_POLAR_ITERS=4 \
+    SCREEN_STEPS="${promote_steps}" \
+    SCREEN_VAL_EVERY="${promote_val_every}" \
+    bash tools/run_newtonv_timing_triplet_gate.sh
+}
+
 case "${suite}" in
   timing)
     run_timing_triplet
@@ -418,6 +466,9 @@ case "${suite}" in
     ;;
   overpromote)
     run_overpromote_ladder
+    ;;
+  scheduleonly)
+    run_schedule_only_ladder
     ;;
   all)
     run_timing_triplet
