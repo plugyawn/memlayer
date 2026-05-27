@@ -13,6 +13,8 @@ promote_steps="${PROMOTE_STEPS:-200}"
 promote_val_every="${PROMOTE_VAL_EVERY:-50}"
 perm_steps="${PERM_STEPS:-80}"
 perm_val_every="${PERM_VAL_EVERY:-20}"
+next_steps="${NEXT_STEPS:-120}"
+next_val_every="${NEXT_VAL_EVERY:-40}"
 
 run_case() {
   local name="$1"
@@ -120,6 +122,77 @@ run_permutation_queue() {
   run_permutation_rest
 }
 
+run_next_ladder() {
+  run_case next_baseline \
+    NEWTONV_VARIANT=baseline \
+    SCREEN_STEPS="${next_steps}" \
+    SCREEN_VAL_EVERY="${next_val_every}" \
+    bash tools/run_newtonv_timing_triplet_gate.sh
+
+  run_case next_noop_vall_win32_80_p4 \
+    NEWTONV_VARIANT=noop \
+    LOCO_DIAG_ATTN_LAYERS=all \
+    LOCO_FULL_WINDOWS=32-80 \
+    LOCO_FULL_POLAR_ITERS=4 \
+    SCREEN_STEPS="${next_steps}" \
+    SCREEN_VAL_EVERY="${next_val_every}" \
+    bash tools/run_newtonv_timing_triplet_gate.sh
+
+  run_case next_polar4_vall_win0_48 \
+    LOCO_DIAG_ATTN_LAYERS=all \
+    LOCO_FULL_WINDOWS=0-48 \
+    LOCO_FULL_POLAR_ITERS=4 \
+    SCREEN_STEPS="${next_steps}" \
+    SCREEN_VAL_EVERY="${next_val_every}" \
+    bash tools/run_newtonv_raw_v01_gate.sh
+
+  run_case next_polar4_v01_end100 \
+    LOCO_FULL_POLAR_ITERS=4 \
+    SCREEN_STEPS="${next_steps}" \
+    SCREEN_VAL_EVERY="${next_val_every}" \
+    bash tools/run_newtonv_raw_v01_gate.sh
+
+  run_case next_polar4_vall_win32_80 \
+    LOCO_DIAG_ATTN_LAYERS=all \
+    LOCO_FULL_WINDOWS=32-80 \
+    LOCO_FULL_POLAR_ITERS=4 \
+    SCREEN_STEPS="${next_steps}" \
+    SCREEN_VAL_EVERY="${next_val_every}" \
+    bash tools/run_newtonv_raw_v01_gate.sh
+
+  run_case next_polar4_v01_win32_80 \
+    LOCO_FULL_WINDOWS=32-80 \
+    LOCO_FULL_POLAR_ITERS=4 \
+    SCREEN_STEPS="${next_steps}" \
+    SCREEN_VAL_EVERY="${next_val_every}" \
+    bash tools/run_newtonv_raw_v01_gate.sh
+
+  run_case next_polar4_v01_win48_112 \
+    LOCO_FULL_WINDOWS=48-112 \
+    LOCO_FULL_POLAR_ITERS=4 \
+    SCREEN_STEPS="${next_steps}" \
+    SCREEN_VAL_EVERY="${next_val_every}" \
+    bash tools/run_newtonv_raw_v01_gate.sh
+
+  run_case next_qk_win32_80_p4 \
+    NEWTONV_VARIANT=active \
+    LOCO_FULL_SURFACES=qk \
+    LOCO_FULL_WINDOWS=32-80 \
+    LOCO_FULL_POLAR_ITERS=4 \
+    SCREEN_STEPS="${next_steps}" \
+    SCREEN_VAL_EVERY="${next_val_every}" \
+    bash tools/run_newtonv_timing_triplet_gate.sh
+
+  run_case next_o_win32_80_p4 \
+    NEWTONV_VARIANT=active \
+    LOCO_FULL_SURFACES=o \
+    LOCO_FULL_WINDOWS=32-80 \
+    LOCO_FULL_POLAR_ITERS=4 \
+    SCREEN_STEPS="${next_steps}" \
+    SCREEN_VAL_EVERY="${next_val_every}" \
+    bash tools/run_newtonv_timing_triplet_gate.sh
+}
+
 case "${suite}" in
   timing)
     run_timing_triplet
@@ -162,8 +235,12 @@ case "${suite}" in
   polar4)
     run_polar4_priority
     ;;
+  next)
+    run_next_ladder
+    ;;
   all)
     run_timing_triplet
+    run_next_ladder
     run_permutation_queue
     run_filter_ladder
     run_case raw_v01_end100 \
@@ -172,7 +249,7 @@ case "${suite}" in
       bash tools/run_newtonv_raw_v01_gate.sh
     ;;
   *)
-    echo "NEWTONV_SUITE must be timing, filters, quick, raw200, promote, polar4, permutations, or all; got ${suite}" >&2
+    echo "NEWTONV_SUITE must be timing, filters, quick, raw200, promote, polar4, permutations, next, or all; got ${suite}" >&2
     exit 2
     ;;
 esac

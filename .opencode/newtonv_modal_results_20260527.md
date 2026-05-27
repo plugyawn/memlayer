@@ -137,3 +137,35 @@ MODAL_EXTRA_ENV_JSON='{"NEWTONV_SUITE":"permutations","NEWTONV_SUITE_LABEL":"mod
 PERM_STEPS=80 PERM_VAL_EVERY=20 \
 tools/run_modal_newtonv_raw_gate.sh
 ```
+
+## Next Ladder
+
+The next paid H100 run should test the two highest-priority suspicions at once:
+
+- `POLAR_ITERS=4` may be the less overpreconditioned Newton-V partner.
+- Starting Newton-V at step 0 may be wrong because attention inputs and
+  optimizer state are still in their init/warmup regime.
+
+Prepared suite:
+
+```bash
+NANOGPT_MODAL_GPU=H100 \
+MODAL_RUNNER=tools/run_newtonv_experiment_suite.sh \
+MODAL_EXTRA_ENV_JSON='{"NEWTONV_SUITE":"next","NEWTONV_SUITE_LABEL":"modal_next_h100"}' \
+NEXT_STEPS=120 NEXT_VAL_EVERY=40 \
+tools/run_modal_newtonv_raw_gate.sh
+```
+
+Cases, in order:
+
+| case | purpose |
+| --- | --- |
+| `next_baseline` | same-suite 120-step baseline |
+| `next_noop_vall_win32_80_p4` | full-path/no-op control for delayed 4-iter window |
+| `next_polar4_vall_win0_48` | clean 4-iter compare against prior all-layer V window |
+| `next_polar4_v01_end100` | clean 4-iter compare against prior early-layer end-step candidate |
+| `next_polar4_vall_win32_80` | delayed all-layer V |
+| `next_polar4_v01_win32_80` | delayed early-layer V |
+| `next_polar4_v01_win48_112` | later early-layer V pulse |
+| `next_qk_win32_80_p4` | delayed QK-only surface control |
+| `next_o_win32_80_p4` | delayed O-only headwise surface control |
