@@ -806,3 +806,30 @@ NEWTONV_SUITE=mlpfc_promote
 MFP_STEPS=200
 MFP_LAYERS=0-1
 ```
+
+200-step promote result:
+
+```text
+mfp_baseline:                                3.8869
+mfp_noop_after_polar4:                       3.8852
+mfp_inverse_before_r020_blend010:            3.8832
+mfp_cholmetric_after_polar4_r020_blend005:   3.8873
+```
+
+Read:
+
+```text
+Before-momentum MLP c_fc inverse persisted to 200 and beat both the baseline
+and the after-polar4 no-op, but the no-op gap is narrow at 0.0020.
+Metric-polar did not persist.
+```
+
+Immediate next control:
+
+```text
+NEWTONV_SUITE=mlpfc_before_control
+```
+
+This runs only the true before-momentum no-op and the same before-momentum
+inverse. If the active line does not beat this matched no-op, the apparent MLP
+c_fc signal is not clean enough to tune further.

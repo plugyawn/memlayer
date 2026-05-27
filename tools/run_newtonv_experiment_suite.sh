@@ -1195,6 +1195,49 @@ run_mlpfc_promote_ladder() {
     bash tools/run_newtonv_raw_v01_gate.sh
 }
 
+run_mlpfc_before_control_ladder() {
+  local mbc_steps="${MBC_STEPS:-200}"
+  local mbc_val_every="${MBC_VAL_EVERY:-50}"
+  local mbc_layers="${MBC_LAYERS:-0-1}"
+  local mbc_collect="${MBC_COLLECT_WINDOWS:-0-64}"
+  local mbc_windows="${MBC_WINDOWS:-48-112}"
+
+  run_case mbc_noop_before_r020_blend010 \
+    LOCO_FULL_NOOP=1 \
+    LOCO_FULL_SURFACES=mlp_fc \
+    LOCO_DIAG_MLP_LAYERS="${mbc_layers}" \
+    LOCO_FULL_COLLECT_WINDOWS="${mbc_collect}" \
+    LOCO_FULL_WINDOWS="${mbc_windows}" \
+    LOCO_FULL_APPLY_BEFORE_MOMENTUM=1 \
+    LOCO_FULL_REFRESH_INTERVAL=16 \
+    LOCO_FULL_EMA_BETA=0.8 \
+    LOCO_FULL_RIDGE_REL=0.2 \
+    LOCO_FULL_BLEND_MAX=0.10 \
+    LOCO_FULL_BLEND_STEPS=32 \
+    LOCO_FULL_FILTER=inverse \
+    LOCO_FULL_NORM_RESTORE=1 \
+    SCREEN_STEPS="${mbc_steps}" \
+    SCREEN_VAL_EVERY="${mbc_val_every}" \
+    bash tools/run_newtonv_raw_v01_gate.sh
+
+  run_case mbc_inverse_before_r020_blend010 \
+    LOCO_FULL_SURFACES=mlp_fc \
+    LOCO_DIAG_MLP_LAYERS="${mbc_layers}" \
+    LOCO_FULL_COLLECT_WINDOWS="${mbc_collect}" \
+    LOCO_FULL_WINDOWS="${mbc_windows}" \
+    LOCO_FULL_APPLY_BEFORE_MOMENTUM=1 \
+    LOCO_FULL_REFRESH_INTERVAL=16 \
+    LOCO_FULL_EMA_BETA=0.8 \
+    LOCO_FULL_RIDGE_REL=0.2 \
+    LOCO_FULL_BLEND_MAX=0.10 \
+    LOCO_FULL_BLEND_STEPS=32 \
+    LOCO_FULL_FILTER=inverse \
+    LOCO_FULL_NORM_RESTORE=1 \
+    SCREEN_STEPS="${mbc_steps}" \
+    SCREEN_VAL_EVERY="${mbc_val_every}" \
+    bash tools/run_newtonv_raw_v01_gate.sh
+}
+
 case "${suite}" in
   timing)
     run_timing_triplet
@@ -1291,6 +1334,9 @@ case "${suite}" in
   mlpfc_promote)
     run_mlpfc_promote_ladder
     ;;
+  mlpfc_before_control)
+    run_mlpfc_before_control_ladder
+    ;;
   all)
     run_timing_triplet
     run_next_ladder
@@ -1302,7 +1348,7 @@ case "${suite}" in
       bash tools/run_newtonv_raw_v01_gate.sh
     ;;
   *)
-    echo "NEWTONV_SUITE must be timing, filters, quick, raw200, promote, polar4, permutations, next, tail, warmmetric, overprecond, overpromote, scheduleonly, preconddiag, schedule_diag, rightfilter, paperstyle, paperfilter, metricpolar, metricpromote, metricv_promote, paper_v_promote, metricsurfaces, mlpfc, mlpfc_promote, or all; got ${suite}" >&2
+    echo "NEWTONV_SUITE must be timing, filters, quick, raw200, promote, polar4, permutations, next, tail, warmmetric, overprecond, overpromote, scheduleonly, preconddiag, schedule_diag, rightfilter, paperstyle, paperfilter, metricpolar, metricpromote, metricv_promote, paper_v_promote, metricsurfaces, mlpfc, mlpfc_promote, mlpfc_before_control, or all; got ${suite}" >&2
     exit 2
     ;;
 esac

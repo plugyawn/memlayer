@@ -566,3 +566,39 @@ MFP_STEPS=200
 MFP_VAL_EVERY=50
 MFP_LAYERS=0-1
 ```
+
+## Cycle 4 H100 Result: mlpfc_promote
+
+Modal app:
+
+```text
+ap-BX5R4IFCoqZpItCHz56tN6
+```
+
+Parsed 200-step results:
+
+```text
+mfp_baseline:                              3.8869, 673.78ms/step
+mfp_noop_after_polar4:                     3.8852, 665.72ms/step
+mfp_inverse_before_r020_blend010:          3.8832, 664.40ms/step
+mfp_cholmetric_after_polar4_r020_blend005: 3.8873, 664.10ms/step
+```
+
+Interpretation:
+
+```text
+Before-momentum inverse is the only MLP c_fc active line that persisted.
+It beat baseline by 0.0037 and after-polar4 no-op by 0.0020.
+Metric-polar lost to baseline by 0.0004 and should not be promoted.
+```
+
+The remaining control hole is ordering-specific: the active line is
+before-momentum, but the no-op in this promote suite is after-momentum polar4.
+Prepared the narrow control suite:
+
+```text
+NEWTONV_SUITE=mlpfc_before_control
+MBC_STEPS=200
+MBC_VAL_EVERY=50
+MBC_LAYERS=0-1
+```
