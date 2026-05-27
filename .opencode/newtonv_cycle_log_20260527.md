@@ -423,3 +423,25 @@ Cadence state:
 Meditation window started around 21:06 IST.
 Do not launch the next H100 before about 22:06 IST unless the user overrides.
 ```
+
+Subagent audit updates:
+
+```text
+Carver: paper_v_promote must beat both no-op controls. Gate active finite/power/
+inverse at B-0.003 and both no-ops by at least 0.002. Gate metric-polar at the
+same no-op margins and at least 0.002 better than the best paper-style active
+filter.
+
+Fermat: if V fails, the narrow full-matrix MLP fallback is c_fc only. It needs
+[11,768,768] Gram/EMA/chol/inv buffers, mlp_bank even-index ownership, gram
+collection at mlp_in = norm(x), and an mlp_bank c_fc-only optimizer helper.
+Worst-rank refresh collection for two owned c_fc layers is roughly 116 GFLOP per
+refresh at final-stage local tokens, so do not implement it unless V leaves a
+reason to continue.
+
+Aristotle: paper_v_promote env propagation works, but inherited LOCO_* vars can
+leak into cases. run_case now sanitizes LOCO_* controls before applying each
+case's explicit env. Also, before-momentum active filters use baseline fused
+polar_express, not LOCO_FULL_POLAR_ITERS, so the before-momentum no-op is the
+matched control for those cases.
+```

@@ -661,6 +661,41 @@ matched no-op path by at least about 0.003 loss. A pure baseline win without a
 no-op win is not enough.
 ```
 
+More precise interpretation:
+
+```text
+B  = pvp_baseline @200
+NB = pvp_v01_noop_before_r020_blend010 @200
+NA = pvp_v01_noop_after_polar4 @200
+A  = best(finite, power0.5, inverse) @200
+M  = pvp_cholmetric_v01_after_r020_blend005_norm @200
+
+Promote paper-style V only if:
+  A <= B - 0.003 and A <= NB - 0.002 and A <= NA - 0.002.
+
+Promote metric-polar V only if:
+  M <= B - 0.003 and M <= NB - 0.002 and M <= NA - 0.002
+  and M <= A - 0.002.
+
+If NB or NA wins by these margins, the Newton-specific claim is dead for this
+suite and the no-op/schedule path is the thing to isolate.
+```
+
+Runner audit before launch:
+
+```text
+The suite env vars do propagate through the nested runner scripts because env
+does not clear inherited variables. To avoid accidental caller-state leakage,
+run_case now explicitly unsets LOCO_* controls before applying each case's
+case-local assignments.
+
+Before-momentum cases still use the baseline fused polar_express path, so
+LOCO_FULL_POLAR_ITERS is not a true polar4 knob for those cases. The
+before-momentum no-op is therefore the matching control for finite/power/inverse
+paper-style cases. The after-momentum no-op polar4 remains the matching control
+for the metric-polar V safety case.
+```
+
 Launch command after the cadence window:
 
 ```bash

@@ -21,7 +21,46 @@ run_case() {
   shift
   local log_path=".opencode/suite_${label}_${name}.log"
   echo "===== NEWTONV_CASE_START ${name} $(date -u +%Y-%m-%dT%H:%M:%SZ) ====="
-  env LOG_PATH="${log_path}" "$@"
+  env \
+    -u LOCO_DIAG \
+    -u LOCO_DIAG_SURFACES \
+    -u LOCO_DIAG_ATTN_LAYERS \
+    -u LOCO_DIAG_MLP_LAYERS \
+    -u LOCO_FULL_SURFACES \
+    -u LOCO_FULL_WINDOWS \
+    -u LOCO_FULL_COLLECT_WINDOWS \
+    -u LOCO_FULL_NOOP \
+    -u LOCO_FULL_SCHEDULE_ONLY \
+    -u LOCO_FULL_END_STEP \
+    -u LOCO_FULL_APPLY_BEFORE_MOMENTUM \
+    -u LOCO_FULL_REFRESH_INTERVAL \
+    -u LOCO_FULL_EMA_BETA \
+    -u LOCO_FULL_RIDGE_REL \
+    -u LOCO_FULL_BLEND_MAX \
+    -u LOCO_FULL_BLEND_STEPS \
+    -u LOCO_FULL_FILTER \
+    -u LOCO_FULL_METRIC_POLAR \
+    -u LOCO_FULL_NORM_RESTORE \
+    -u LOCO_FULL_LOCAL_STATS \
+    -u LOCO_FULL_APPLY_INTERVAL \
+    -u LOCO_FULL_PRECOND_DTYPE \
+    -u LOCO_FULL_POLAR_ITERS \
+    -u LOCO_FULL_BLOCK_SIZE \
+    -u LOCO_FULL_POWER_ALPHA \
+    -u LOCO_FULL_POWER_CLIP \
+    -u LOCO_FULL_FINITE_T \
+    -u LOCO_FULL_SHRINK_ONLY \
+    -u LOCO_FULL_STATIC_NORM \
+    -u LOCO_FULL_SKIP_VARRED \
+    -u LOCO_FULL_RESET_EACH_WINDOW \
+    -u LOCO_FULL_BLEND_RESTART_EACH_WINDOW \
+    -u LOCO_FULL_LOG_PRECOND \
+    -u LOCO_FULL_LOG_PRECOND_DETAIL \
+    -u LOCO_FULL_LOG_SPECTRUM \
+    -u LOCO_FULL_LOG_EIGEN_ENERGY \
+    -u LOCO_FULL_LOG_POSTPOLAR \
+    LOG_PATH="${log_path}" \
+    "$@"
   echo "===== NEWTONV_CASE_END ${name} $(date -u +%Y-%m-%dT%H:%M:%SZ) ====="
 }
 
