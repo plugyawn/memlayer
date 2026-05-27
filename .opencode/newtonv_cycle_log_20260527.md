@@ -638,3 +638,42 @@ SC_LAYERS=0-1
 
 Cases include same-surface no-op controls for QK, O, and QKVO activation-metric
 polar. Do not trust active-only QK/O surface screens after the MLP control miss.
+
+## Cycle 5 H100 Result: surface_control
+
+Modal app:
+
+```text
+ap-tPTH6z4XWZXFGnxCTSENFu
+```
+
+Parsed 120-step results:
+
+```text
+sc_baseline:                 4.1777, 583.25ms/step
+sc_qk_noop_metric_polar4:    4.1865, 584.54ms/step
+sc_qk_cholmetric_polar4:     4.1938, 587.69ms/step
+sc_o_noop_metric_polar4:     4.1810, 585.47ms/step
+sc_o_cholmetric_polar4:      4.1843, 584.41ms/step
+sc_qkvo_noop_metric_polar4:  4.1801, 594.45ms/step
+sc_qkvo_cholmetric_polar4:   4.1761, 590.96ms/step
+```
+
+Interpretation:
+
+```text
+QK-only and O-only metric-polar lose to their same-surface no-op controls.
+QKVO metric-polar is the only active line that beats both no-op and baseline:
+  vs QKVO no-op: +0.0040 loss improvement
+  vs baseline:   +0.0016 loss improvement
+The signal is small, but it is matched-control positive, so promote narrowly.
+```
+
+Prepared follow-up:
+
+```text
+NEWTONV_SUITE=qkvo_metric_promote
+QMP_STEPS=200
+QMP_VAL_EVERY=50
+QMP_LAYERS=0-1
+```

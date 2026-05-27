@@ -859,3 +859,32 @@ SC_LAYERS=0-1
 
 This pairs QK, O, and QKVO activation-metric-polar probes with same-surface
 no-op controls. Active-only surface screens are no longer trusted.
+
+Surface-control 120-step result:
+
+```text
+sc_baseline:                  4.1777
+sc_qk_noop_metric_polar4:     4.1865
+sc_qk_cholmetric_polar4:      4.1938
+sc_o_noop_metric_polar4:      4.1810
+sc_o_cholmetric_polar4:       4.1843
+sc_qkvo_noop_metric_polar4:   4.1801
+sc_qkvo_cholmetric_polar4:    4.1761
+```
+
+Read:
+
+```text
+QK and O are cold in this configuration.
+QKVO is the only matched-control hit: active beats no-op by 0.0040 and baseline
+by 0.0016 at 120. This is small but worth a narrow 200-step promotion because
+it is the first surface-combination signal that survives its own no-op.
+```
+
+Next run:
+
+```text
+NEWTONV_SUITE=qkvo_metric_promote
+QMP_STEPS=200
+QMP_LAYERS=0-1
+```
