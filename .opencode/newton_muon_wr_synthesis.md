@@ -1001,3 +1001,19 @@ the V no-op by 0.0032 at 200 and ties baseline, after showing a much larger
 step-150 gain. The signal faded after the 48-112 window ended, so the next
 question is windowing, not broader surface search.
 ```
+
+V activation-metric extended-window probe:
+
+```text
+48-160 baseline:       3.8861
+48-160 V no-op:        3.8876
+48-160 V metric safe:  3.8915
+```
+
+Read:
+
+```text
+Leaving the safe V metric on longer is worse. The 48-112 result should be
+interpreted as a pulse with delayed benefit, not as a sign that more metric
+application is better.
+```

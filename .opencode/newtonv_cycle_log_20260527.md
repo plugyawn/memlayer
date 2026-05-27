@@ -903,3 +903,54 @@ setting but extend the application window from 48-112 to 48-160. Use a matched
 V no-op with the same window. The question is whether the step-150 active
 signal was real and simply faded after deactivation.
 ```
+
+## Cycle 5 H100 Result: metricv_window 48-160
+
+Modal app:
+
+```text
+ap-Aeq6l1lal9fdlKIw8vTvZ8
+```
+
+Parsed 200-step results:
+
+```text
+mvsw_baseline:                                  3.8861, 780.18ms/step
+mvsw_v01_noop_polar4:                          3.8876, 774.83ms/step
+mvsw_cholmetric_v01_polar4_r020_blend010_norm: 3.8915, 774.51ms/step
+```
+
+Intermediate anchors:
+
+```text
+step 50:
+  baseline         5.5976
+  V no-op          5.6183
+  V metric safe    5.6331
+
+step 100:
+  baseline         4.6788
+  V no-op          4.6831
+  V metric safe    4.6980
+
+step 150:
+  baseline         4.1246
+  V no-op          4.1195
+  V metric safe    4.1204
+```
+
+Interpretation:
+
+```text
+Extending the safe V metric window from 48-112 to 48-160 makes the active
+metric worse. The useful effect from the prior suite appears to be a delayed
+pulse after a shorter window, not a benefit from leaving the metric on longer.
+```
+
+Next:
+
+```text
+Run one shifted short-window probe, e.g. 80-144, to test whether the delayed
+post-window benefit can be moved closer to the 200-step screen. If that fails,
+stop V metric-window tuning.
+```
