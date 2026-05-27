@@ -307,6 +307,45 @@ relative-ridge normalized inverse: (C + rho mean_diag I)^-1, normalized
 Literal `C^{-1}` stays a reference, not the final answer. Promotion requires
 beating the schedule-only control, not just the ordinary baseline.
 
+## Diagnostic Predictions
+
+The next diagnostic run should not be judged only by loss. It should tell us
+whether the intended right-preconditioning mechanism is present.
+
+What would support the mechanism:
+
+```text
+1. C is anisotropic:
+   eig_cond and eig_p99/eig_p50 are meaningfully above 1.
+
+2. The unblended target is not tiny:
+   target_delta is nontrivial even when applied delta is small because blend is
+   still warming.
+
+3. The update changes in the C eigenbasis in the right direction:
+   gain_corr_target is negative, and high_low_target < high_low_before.
+
+4. The effect is stable across steps/layers:
+   the sign and order of magnitude persist after the first refresh, not just at
+   one noisy early point.
+```
+
+What would falsify the current literal Newton-V form:
+
+```text
+1. C is nearly identity or the target_delta is tiny.
+2. gain_corr_target is near zero or positive.
+3. high_low_target increases, meaning high-feature-variance directions are not
+   actually being suppressed.
+4. target_delta is huge and target_cos is low, suggesting C^-1 is rotating too
+   sharply for the tuned Polar/NorMuon stack.
+```
+
+The key ambiguity to resolve is "too weak" versus "wrong shape." If applied
+delta is tiny but target_delta/gain_corr look right, the next move is schedule
+or blend. If target_delta is large but unstable, the next move is clipped
+finite-time inverse or power inverse, not stronger literal inverse.
+
 ## GPU-Ready Queue
 
 For a fresh 1xH100 or Modal H100:
