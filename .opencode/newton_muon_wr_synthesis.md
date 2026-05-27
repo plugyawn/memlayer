@@ -490,6 +490,41 @@ Kill criteria:
   run `NEWTONV_SUITE=metricsurfaces` unless a later tuned promotion restores a
   200-step loss gain.
 
+- `NEWTONV_SUITE=preconddiag` measured why the current right-preconditioner is
+  not surviving as a WR candidate. The unblended target is a large rotation:
+
+  ```text
+  V 0-1 polar4 target_delta: 1.10-1.16
+  V 0-1 polar4 target_cos:   0.32-0.39
+  all-V polar4 target_delta: 1.11-1.20
+  all-V polar4 target_cos:   0.28-0.38
+  ```
+
+  But the restarted blend window makes the actual pre-Polar operand nearly
+  baseline:
+
+  ```text
+  step 50 blend=0.0017 actual_delta~0.0019
+  step 80 blend=0.0267 actual_delta~0.031
+  step 112 blend=0.0533 actual_delta~0.059
+  ```
+
+  Post-Polar deltas are larger but still modest: roughly `5-15%` for V `0-1`
+  and `4-14%` averaged over all V layers. This supports the "washed away"
+  hypothesis: the feature metric is not weak, but the applied correction is
+  extremely damped and then further compressed by Polar/NorMuon.
+
+  Prepared follow-up:
+
+  ```bash
+  NEWTONV_SUITE=paperfilter
+  ```
+
+  This tests schedule-matched V-only controls, paper-style damping
+  (`ridge_rel=0.2`, `refresh=16`, `ema=0.8`), preconditioning before momentum,
+  faster bounded blend (`max=0.10`, `steps=32`), and finite/power clipped
+  filters. Do not run another H100 before the required meditation window ends.
+
 - `tools/run_newtonv_raw_v01_gate.sh` is the prepared runner for the best raw
   inverse candidate.
 - `tools/run_norminverse_v01_gate.sh` is retained for the failed cheap variant.

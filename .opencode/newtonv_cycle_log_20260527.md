@@ -178,6 +178,94 @@ replicates win.
 
 The all-window polar5 control is important because polar5 schedule-only should
 be nearly equivalent to baseline if the fused and explicit paths are
+numerically equivalent to the baseline. The schedule-only suite later rejected
+this as a standalone candidate: all no-stats schedule-only variants were worse
+than their same-suite baseline.
+
+## Cycle 2 GPU Window
+
+Time accounting:
+
+- GPU window started: about `2026-05-27 20:34 IST`.
+- Preconditioner diagnostic H100 app: `ap-XaBa7nvUMlesIsqR7Yk0Wk`,
+  `20:34-20:46 IST`, Modal wall time `688.323s`.
+- GPU window ended: about `2026-05-27 20:46 IST`.
+- Required meditation/audit window: `20:46-21:46 IST`.
+- Next H100 launch allowed: `2026-05-27 21:46 IST`, unless the user overrides.
+
+All NanoGPT Modal apps from this cycle were stopped after completion.
+
+## Preconditioner Diagnostic Result
+
+Log:
+
+- `.opencode/modal_newtonv_preconddiag_h100_20260527.log`
+
+Parsed final results:
+
+| case | step 120 | step avg |
+| --- | ---: | ---: |
+| V 0-1 active polar5 | `4.1853` | `598.50ms` |
+| V 0-1 active polar4 | `4.1828` | `588.14ms` |
+| all-V active polar4 | `4.1813` | `595.09ms` |
+
+This run was primarily diagnostic. It confirmed that the preconditioner target
+is not weak; the current application schedule is weak.
+
+For V `0-1`, polar4:
+
+```text
+target_delta: 1.10-1.16
+target_cos:   0.32-0.39
+```
+
+For all V layers, polar4:
+
+```text
+target_delta: 1.11-1.20
+target_cos:   0.28-0.38
+```
+
+But actual pre-Polar deltas were governed by the restarted blend:
+
+```text
+step 50:  blend=0.0017, actual_delta~0.0019
+step 80:  blend=0.0267, actual_delta~0.031
+step 112: blend=0.0533, actual_delta~0.059
+```
+
+Post-Polar deltas were real but modest:
+
+```text
+V 0-1 polar4: about 5-15%
+all-V polar4: about 4-14%
+```
+
+Read:
+
+```text
+The feature metric is producing a major right-side correction.
+The current branch then mostly washes it out through low blend plus Polar/NorMuon.
+```
+
+Prepared follow-up suite:
+
+```text
+NEWTONV_SUITE=paperfilter
+```
+
+It tests:
+
+```text
+baseline
+matched V0-1 full-path no-op polar4
+V0-1 inverse before momentum, ridge=0.2, refresh=16, ema=0.8, blend max=0.10, blend steps=32
+V0-1 finite-time clipped filter with the same paper-style damping
+V0-1 power-0.5 clipped filter with the same paper-style damping
+```
+
+The rationale is to apply enough of the correction to matter while using
+paper-style damping and clipped filters to avoid raw `C^-1` instability.
 mathematically identical. A window-only win with all-window parity points toward
 a numerical/windowing perturbation rather than a durable optimizer replacement.
 

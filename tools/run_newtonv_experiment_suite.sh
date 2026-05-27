@@ -621,6 +621,83 @@ run_paperstyle_ladder() {
     bash tools/run_newtonv_timing_triplet_gate.sh
 }
 
+run_paperfilter_ladder() {
+  local pf_steps="${PF_STEPS:-120}"
+  local pf_val_every="${PF_VAL_EVERY:-40}"
+  local pf_collect="${PF_COLLECT_WINDOWS:-0-64}"
+  local pf_windows="${PF_WINDOWS:-48-112}"
+
+  run_case pf_baseline \
+    NEWTONV_VARIANT=baseline \
+    SCREEN_STEPS="${pf_steps}" \
+    SCREEN_VAL_EVERY="${pf_val_every}" \
+    bash tools/run_newtonv_timing_triplet_gate.sh
+
+  run_case pf_v01_noop_polar4 \
+    NEWTONV_VARIANT=noop \
+    LOCO_DIAG_ATTN_LAYERS=0-1 \
+    LOCO_FULL_COLLECT_WINDOWS="${pf_collect}" \
+    LOCO_FULL_WINDOWS="${pf_windows}" \
+    LOCO_FULL_POLAR_ITERS=4 \
+    SCREEN_STEPS="${pf_steps}" \
+    SCREEN_VAL_EVERY="${pf_val_every}" \
+    bash tools/run_newtonv_timing_triplet_gate.sh
+
+  run_case pf_inverse_v01_before_polar4_ridge020_blend010 \
+    LOCO_FULL_COLLECT_WINDOWS="${pf_collect}" \
+    LOCO_FULL_WINDOWS="${pf_windows}" \
+    LOCO_FULL_APPLY_BEFORE_MOMENTUM=1 \
+    LOCO_FULL_REFRESH_INTERVAL=16 \
+    LOCO_FULL_EMA_BETA=0.8 \
+    LOCO_FULL_RIDGE_REL=0.2 \
+    LOCO_FULL_BLEND_MAX=0.10 \
+    LOCO_FULL_BLEND_STEPS=32 \
+    LOCO_FULL_POLAR_ITERS=4 \
+    SCREEN_STEPS="${pf_steps}" \
+    SCREEN_VAL_EVERY="${pf_val_every}" \
+    bash tools/run_newtonv_raw_v01_gate.sh
+
+  run_case pf_finite_v01_before_polar4_ridge020_blend010 \
+    LOCO_FULL_COLLECT_WINDOWS="${pf_collect}" \
+    LOCO_FULL_WINDOWS="${pf_windows}" \
+    LOCO_FULL_APPLY_BEFORE_MOMENTUM=1 \
+    LOCO_FULL_REFRESH_INTERVAL=16 \
+    LOCO_FULL_EMA_BETA=0.8 \
+    LOCO_FULL_RIDGE_REL=0.2 \
+    LOCO_FULL_FILTER=finite \
+    LOCO_FULL_FINITE_T=1.0 \
+    LOCO_FULL_POWER_CLIP=2.0 \
+    LOCO_FULL_BLOCK_SIZE=0 \
+    LOCO_FULL_STATIC_NORM=1 \
+    LOCO_FULL_NORM_RESTORE=0 \
+    LOCO_FULL_BLEND_MAX=0.10 \
+    LOCO_FULL_BLEND_STEPS=32 \
+    LOCO_FULL_POLAR_ITERS=4 \
+    SCREEN_STEPS="${pf_steps}" \
+    SCREEN_VAL_EVERY="${pf_val_every}" \
+    bash tools/run_newtonv_block_power_gate.sh
+
+  run_case pf_power05_v01_before_polar4_ridge020_blend010 \
+    LOCO_FULL_COLLECT_WINDOWS="${pf_collect}" \
+    LOCO_FULL_WINDOWS="${pf_windows}" \
+    LOCO_FULL_APPLY_BEFORE_MOMENTUM=1 \
+    LOCO_FULL_REFRESH_INTERVAL=16 \
+    LOCO_FULL_EMA_BETA=0.8 \
+    LOCO_FULL_RIDGE_REL=0.2 \
+    LOCO_FULL_FILTER=power \
+    LOCO_FULL_POWER_ALPHA=0.5 \
+    LOCO_FULL_POWER_CLIP=2.0 \
+    LOCO_FULL_BLOCK_SIZE=0 \
+    LOCO_FULL_STATIC_NORM=1 \
+    LOCO_FULL_NORM_RESTORE=0 \
+    LOCO_FULL_BLEND_MAX=0.10 \
+    LOCO_FULL_BLEND_STEPS=32 \
+    LOCO_FULL_POLAR_ITERS=4 \
+    SCREEN_STEPS="${pf_steps}" \
+    SCREEN_VAL_EVERY="${pf_val_every}" \
+    bash tools/run_newtonv_block_power_gate.sh
+}
+
 run_metricpolar_ladder() {
   local mp_steps="${MP_STEPS:-120}"
   local mp_val_every="${MP_VAL_EVERY:-40}"
@@ -841,6 +918,9 @@ case "${suite}" in
   paperstyle)
     run_paperstyle_ladder
     ;;
+  paperfilter)
+    run_paperfilter_ladder
+    ;;
   metricpolar)
     run_metricpolar_ladder
     ;;
@@ -861,7 +941,7 @@ case "${suite}" in
       bash tools/run_newtonv_raw_v01_gate.sh
     ;;
   *)
-    echo "NEWTONV_SUITE must be timing, filters, quick, raw200, promote, polar4, permutations, next, tail, warmmetric, overprecond, overpromote, scheduleonly, preconddiag, schedule_diag, rightfilter, paperstyle, or all; got ${suite}" >&2
+    echo "NEWTONV_SUITE must be timing, filters, quick, raw200, promote, polar4, permutations, next, tail, warmmetric, overprecond, overpromote, scheduleonly, preconddiag, schedule_diag, rightfilter, paperstyle, paperfilter, metricpolar, metricpromote, metricsurfaces, or all; got ${suite}" >&2
     exit 2
     ;;
 esac
