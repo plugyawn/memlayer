@@ -104,17 +104,19 @@ It runs:
 ```text
 baseline
 V 0-1 no-op polar4
+V 0-1 no-op polar5
 all-V no-op polar4
+V 0-1 active polar5
 V 0-1 active polar4
 ```
 
 Promotion rule:
 
 ```text
-Promote only if V 0-1 active polar4 beats baseline and both no-op controls by
-at least 0.002 at 200 steps.
+Promote only if V 0-1 active polar4 beats baseline, matched V0-1 no-op polar4,
+and the matched active/no-op polar5 controls by at least 0.002 at 200 steps.
 ```
 
-If matched no-op or all-V no-op beats active, demote Newton-specific right
-preconditioning and study the no-op polar4/full-path schedule as its own
-optimizer lever.
+If matched no-op, active polar5, or all-V no-op beats active polar4, demote or
+narrow Newton-specific right preconditioning and study the polar/full-path
+schedule as its own optimizer lever.

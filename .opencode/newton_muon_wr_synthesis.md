@@ -223,9 +223,10 @@ raw grad -> Nesterov operand -> full-path helper with blend=0
 ```
 
 So the no-op control is really a polar/full-path schedule ablation. The
-overprecond no-op happened to be all-V; the next gate should keep both matched
-V0-1 no-op and all-V no-op so we can separate Newton-specific signal from the
-polar4 schedule signal.
+overprecond no-op happened to be all-V; the next gate should keep matched V0-1
+no-op polar4/polar5, matched V0-1 active polar4/polar5, and all-V no-op polar4
+so we can separate Newton-specific signal from the polar/full-path schedule
+signal.
 
 ## GPU-Ready Queue
 
@@ -237,9 +238,10 @@ For a fresh 1xH100 or Modal H100:
    `SCREEN_STEPS=200 SCREEN_VAL_EVERY=50` with no `LOCO_*` flags.
 3. Do not rerun the old raw V `0-1 END_STEP=100` gate unless it is needed as a
    control.
-4. If continuing Newton-V, run a 200-step same-suite baseline/no-op/active gate
-   for warm V polar4. Do not promote unless active beats both controls by at
-   least `0.002`.
+4. If continuing Newton-V, run the prepared `NEWTONV_SUITE=overpromote`
+   200-step gate. Do not promote unless active polar4 beats baseline, matched
+   V0-1 no-op polar4, and matched active/no-op polar5 controls by at least
+   `0.002`.
 5. Only if that new hypothesis beats the 200-step baseline, run a small 8-GPU
    smoke to measure owner-local distributed overhead.
 6. Launch a full 8xH100 record attempt only after both the 200-step loss gate

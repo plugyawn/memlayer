@@ -401,16 +401,18 @@ Next GPU-hour gate:
 200-step same-suite:
   baseline
   warm V 0-1 no-op polar4
+  warm V 0-1 no-op polar5
   warm all-V no-op polar4
+  warm V 0-1 active polar5
   warm V active polar4
 ```
 
 Commit `d5de543` logged the uncorrected overprecond suite; the follow-up patch
 sets `LOCO_DIAG_ATTN_LAYERS=0-1` on the no-op controls for future matched runs.
-Promote only if active beats both baseline and the matched no-op by at least
-`0.002` at 200 steps. If matched no-op beats active or active fades, the
-Newton-specific part should be demoted and the no-op polar4 path should become
-the new branch.
+Promote only if active polar4 beats baseline, matched V0-1 no-op polar4, and
+matched active/no-op polar5 controls by at least `0.002` at 200 steps. If a
+no-op control beats active or active fades, the Newton-specific part should be
+demoted and the no-op polar/full-path schedule should become the new branch.
 
 Mechanism note: `LOCO_FULL_NOOP=1` still uses the full after-momentum path
 during the apply window; it just passes blend zero to the feature preconditioner.
