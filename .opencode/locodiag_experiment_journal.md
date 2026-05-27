@@ -311,3 +311,28 @@ the current full-V win is not explained by top-eigenspace shrink alone at
 `rank=64`, `t=1`, `clip=2`, `apply_interval=4`; either the inverse/bottom
 eigenspace amplification matters, the shrinker needs a stronger application
 schedule, or the low-rank approximation is too lossy.
+
+## Next V 0-1 Candidate
+
+The current best candidate should be restored to the front of the queue:
+
+```text
+LOCO_FULL_SURFACES=v
+LOCO_DIAG_ATTN_LAYERS=0-1
+LOCO_FULL_END_STEP=100
+LOCO_FULL_FILTER=norminverse
+LOCO_FULL_NORM_RESTORE=0
+LOCO_FULL_REFRESH_INTERVAL=8
+LOCO_FULL_APPLY_INTERVAL=1
+LOCO_FULL_RIDGE_REL=0.03
+LOCO_FULL_BLEND_MAX=0.25
+```
+
+`norminverse` caches the inverse of normalized
+`(C + rho * mean_diag * I) / ((1 + rho) * mean_diag)` and therefore can skip the
+two per-step matrix norms used by the original dense inverse path. This is the
+right follow-up to `V 0-1 END_STEP=100`: it keeps the inverse eigensystem signal
+instead of replacing it with top-shrink, while directly testing whether norm
+restoration was a material part of the remaining every-step cost. If this loses
+the signal, fall back to the existing raw inverse + norm-restore candidate and
+replicate `V 0-1 END_STEP=100` before promoting.

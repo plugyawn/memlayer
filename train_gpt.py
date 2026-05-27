@@ -96,12 +96,14 @@ LOCO_FULL_PRECOND_DTYPE = os.environ.get("LOCO_FULL_PRECOND_DTYPE", "fp32").lowe
 if LOCO_FULL_PRECOND_DTYPE not in {"fp32", "bf16"}:
     raise ValueError("LOCO_FULL_PRECOND_DTYPE must be 'fp32' or 'bf16'")
 LOCO_FULL_FILTER = os.environ.get("LOCO_FULL_FILTER", "inverse").lower()
-if LOCO_FULL_FILTER not in {"inverse", "topshrink"}:
-    raise ValueError("LOCO_FULL_FILTER must be 'inverse' or 'topshrink'")
+if LOCO_FULL_FILTER not in {"inverse", "norminverse", "topshrink"}:
+    raise ValueError("LOCO_FULL_FILTER must be 'inverse', 'norminverse', or 'topshrink'")
+LOCO_FULL_NORMINVERSE = LOCO_FULL_FILTER == "norminverse"
 LOCO_FULL_TOPSHRINK = LOCO_FULL_FILTER == "topshrink"
 LOCO_FULL_SHRINK_RANK = int(os.environ.get("LOCO_FULL_SHRINK_RANK", "64"))
 LOCO_FULL_SHRINK_T = float(os.environ.get("LOCO_FULL_SHRINK_T", "1.0"))
 LOCO_FULL_SHRINK_CLIP = float(os.environ.get("LOCO_FULL_SHRINK_CLIP", "2.0"))
+LOCO_FULL_NORM_RESTORE = os.environ.get("LOCO_FULL_NORM_RESTORE", "0" if LOCO_FULL_NORMINVERSE else "1") == "1"
 if LOCO_FULL_APPLY_INTERVAL <= 0:
     raise ValueError("LOCO_FULL_APPLY_INTERVAL must be positive")
 if LOCO_FULL_SHRINK_RANK <= 0:
@@ -1340,17 +1342,31 @@ class NorMuonAndAdam:
             before_norm = grad_chunk[mat_idx].float().norm() if self._loco_log_step else None
             if is_o:
                 if LOCO_FULL_PRECOND_BF16:
-                    NorMuonAndAdam._loco_full_right_inverse_headwise_bf16_precondition_cols_inplace(
-                        grad_chunk[mat_idx],
-                        self.loco_diag_model.loco_full_o_inv_bf16[layer_idx],
-                        self._loco_full_blend_t,
-                    )
+                    if LOCO_FULL_NORM_RESTORE:
+                        NorMuonAndAdam._loco_full_right_inverse_headwise_bf16_precondition_cols_inplace(
+                            grad_chunk[mat_idx],
+                            self.loco_diag_model.loco_full_o_inv_bf16[layer_idx],
+                            self._loco_full_blend_t,
+                        )
+                    else:
+                        NorMuonAndAdam._loco_full_right_inverse_headwise_bf16_no_norm_precondition_cols_inplace(
+                            grad_chunk[mat_idx],
+                            self.loco_diag_model.loco_full_o_inv_bf16[layer_idx],
+                            self._loco_full_blend_t,
+                        )
                 else:
-                    NorMuonAndAdam._loco_full_right_inverse_headwise_precondition_cols_inplace(
-                        grad_chunk[mat_idx],
-                        self.loco_diag_model.loco_full_o_inv[layer_idx],
-                        self._loco_full_blend_t,
-                    )
+                    if LOCO_FULL_NORM_RESTORE:
+                        NorMuonAndAdam._loco_full_right_inverse_headwise_precondition_cols_inplace(
+                            grad_chunk[mat_idx],
+                            self.loco_diag_model.loco_full_o_inv[layer_idx],
+                            self._loco_full_blend_t,
+                        )
+                    else:
+                        NorMuonAndAdam._loco_full_right_inverse_headwise_no_norm_precondition_cols_inplace(
+                            grad_chunk[mat_idx],
+                            self.loco_diag_model.loco_full_o_inv[layer_idx],
+                            self._loco_full_blend_t,
+                        )
             elif LOCO_FULL_TOPSHRINK:
                 NorMuonAndAdam._loco_full_topshrink_precondition_cols_inplace(
                     grad_chunk[mat_idx],
@@ -1359,17 +1375,31 @@ class NorMuonAndAdam:
                     self._loco_full_blend_t,
                 )
             elif LOCO_FULL_PRECOND_BF16:
-                NorMuonAndAdam._loco_full_right_inverse_bf16_precondition_cols_inplace(
-                    grad_chunk[mat_idx],
-                    self.loco_diag_model.loco_full_v_inv_bf16[layer_idx],
-                    self._loco_full_blend_t,
-                )
+                if LOCO_FULL_NORM_RESTORE:
+                    NorMuonAndAdam._loco_full_right_inverse_bf16_precondition_cols_inplace(
+                        grad_chunk[mat_idx],
+                        self.loco_diag_model.loco_full_v_inv_bf16[layer_idx],
+                        self._loco_full_blend_t,
+                    )
+                else:
+                    NorMuonAndAdam._loco_full_right_inverse_bf16_no_norm_precondition_cols_inplace(
+                        grad_chunk[mat_idx],
+                        self.loco_diag_model.loco_full_v_inv_bf16[layer_idx],
+                        self._loco_full_blend_t,
+                    )
             else:
-                NorMuonAndAdam._loco_full_right_inverse_precondition_cols_inplace(
-                    grad_chunk[mat_idx],
-                    self.loco_diag_model.loco_full_v_inv[layer_idx],
-                    self._loco_full_blend_t,
-                )
+                if LOCO_FULL_NORM_RESTORE:
+                    NorMuonAndAdam._loco_full_right_inverse_precondition_cols_inplace(
+                        grad_chunk[mat_idx],
+                        self.loco_diag_model.loco_full_v_inv[layer_idx],
+                        self._loco_full_blend_t,
+                    )
+                else:
+                    NorMuonAndAdam._loco_full_right_inverse_no_norm_precondition_cols_inplace(
+                        grad_chunk[mat_idx],
+                        self.loco_diag_model.loco_full_v_inv[layer_idx],
+                        self._loco_full_blend_t,
+                    )
             if before_norm is not None:
                 self._record_loco_grad_ratio("full_o" if is_o else "full_v", before_norm, grad_chunk[mat_idx].float().norm())
 
@@ -1395,17 +1425,31 @@ class NorMuonAndAdam:
                     self._loco_full_blend_t,
                 )
             elif LOCO_FULL_PRECOND_BF16:
-                NorMuonAndAdam._loco_full_right_inverse_bf16_precondition_cols_inplace(
-                    grad_chunk[mat_idx],
-                    self.loco_diag_model.loco_full_v_inv_bf16[layer_idx],
-                    self._loco_full_blend_t,
-                )
+                if LOCO_FULL_NORM_RESTORE:
+                    NorMuonAndAdam._loco_full_right_inverse_bf16_precondition_cols_inplace(
+                        grad_chunk[mat_idx],
+                        self.loco_diag_model.loco_full_v_inv_bf16[layer_idx],
+                        self._loco_full_blend_t,
+                    )
+                else:
+                    NorMuonAndAdam._loco_full_right_inverse_bf16_no_norm_precondition_cols_inplace(
+                        grad_chunk[mat_idx],
+                        self.loco_diag_model.loco_full_v_inv_bf16[layer_idx],
+                        self._loco_full_blend_t,
+                    )
             else:
-                NorMuonAndAdam._loco_full_right_inverse_precondition_cols_inplace(
-                    grad_chunk[mat_idx],
-                    self.loco_diag_model.loco_full_v_inv[layer_idx],
-                    self._loco_full_blend_t,
-                )
+                if LOCO_FULL_NORM_RESTORE:
+                    NorMuonAndAdam._loco_full_right_inverse_precondition_cols_inplace(
+                        grad_chunk[mat_idx],
+                        self.loco_diag_model.loco_full_v_inv[layer_idx],
+                        self._loco_full_blend_t,
+                    )
+                else:
+                    NorMuonAndAdam._loco_full_right_inverse_no_norm_precondition_cols_inplace(
+                        grad_chunk[mat_idx],
+                        self.loco_diag_model.loco_full_v_inv[layer_idx],
+                        self._loco_full_blend_t,
+                    )
             if before_norm is not None:
                 self._record_loco_grad_ratio("full_qk", before_norm, grad_chunk[mat_idx].float().norm())
 
@@ -1550,10 +1594,24 @@ class NorMuonAndAdam:
 
     @staticmethod
     @torch.compile(dynamic=False, fullgraph=True)
+    def _loco_full_right_inverse_no_norm_precondition_cols_inplace(grad, c_inv, blend_tensor):
+        original = grad.float()
+        solved = original @ c_inv
+        grad.copy_(original + blend_tensor.to(torch.float32) * (solved - original))
+
+    @staticmethod
+    @torch.compile(dynamic=False, fullgraph=True)
     def _loco_full_right_inverse_bf16_precondition_cols_inplace(grad, c_inv, blend_tensor):
         original = grad.float()
         solved = (original.bfloat16() @ c_inv).float()
         solved = solved.mul(original.norm().div(solved.norm().clamp_min(1e-12)))
+        grad.copy_(original + blend_tensor.to(torch.float32) * (solved - original))
+
+    @staticmethod
+    @torch.compile(dynamic=False, fullgraph=True)
+    def _loco_full_right_inverse_bf16_no_norm_precondition_cols_inplace(grad, c_inv, blend_tensor):
+        original = grad.float()
+        solved = (original.bfloat16() @ c_inv).float()
         grad.copy_(original + blend_tensor.to(torch.float32) * (solved - original))
 
     @staticmethod
@@ -1576,6 +1634,16 @@ class NorMuonAndAdam:
 
     @staticmethod
     @torch.compile(dynamic=False, fullgraph=True)
+    def _loco_full_right_inverse_headwise_no_norm_precondition_cols_inplace(grad, c_inv, blend_tensor):
+        original = grad.float()
+        num_heads = c_inv.shape[0]
+        head_dim = c_inv.shape[-1]
+        solved = torch.einsum("ohd,hde->ohe", original.view(original.shape[0], num_heads, head_dim), c_inv)
+        solved = solved.reshape_as(original)
+        grad.copy_(original + blend_tensor.to(torch.float32) * (solved - original))
+
+    @staticmethod
+    @torch.compile(dynamic=False, fullgraph=True)
     def _loco_full_right_inverse_headwise_bf16_precondition_cols_inplace(grad, c_inv, blend_tensor):
         original = grad.float()
         num_heads = c_inv.shape[0]
@@ -1587,6 +1655,20 @@ class NorMuonAndAdam:
         ).float()
         solved = solved.reshape_as(original)
         solved = solved.mul(original.norm().div(solved.norm().clamp_min(1e-12)))
+        grad.copy_(original + blend_tensor.to(torch.float32) * (solved - original))
+
+    @staticmethod
+    @torch.compile(dynamic=False, fullgraph=True)
+    def _loco_full_right_inverse_headwise_bf16_no_norm_precondition_cols_inplace(grad, c_inv, blend_tensor):
+        original = grad.float()
+        num_heads = c_inv.shape[0]
+        head_dim = c_inv.shape[-1]
+        solved = torch.einsum(
+            "ohd,hde->ohe",
+            original.to(torch.bfloat16).view(original.shape[0], num_heads, head_dim),
+            c_inv,
+        ).float()
+        solved = solved.reshape_as(original)
         grad.copy_(original + blend_tensor.to(torch.float32) * (solved - original))
 
     @staticmethod
@@ -2662,7 +2744,8 @@ class TrainingManager():
                 f"v_layers={sorted(loco_model.loco_full_v_owned_layers)} "
                 f"o_layers={sorted(loco_model.loco_full_o_owned_layers)} "
                 f"filter={LOCO_FULL_FILTER} shrink_rank={loco_model.loco_full_shrink_rank} "
-                f"precond_dtype={LOCO_FULL_PRECOND_DTYPE} local_stats={int(LOCO_FULL_LOCAL_STATS)} "
+                f"precond_dtype={LOCO_FULL_PRECOND_DTYPE} norm_restore={int(LOCO_FULL_NORM_RESTORE)} "
+                f"local_stats={int(LOCO_FULL_LOCAL_STATS)} "
                 f"apply_interval={LOCO_FULL_APPLY_INTERVAL}",
                 console=True,
             )
@@ -2778,6 +2861,8 @@ class TrainingManager():
                         c_reg = ema + (LOCO_FULL_RIDGE_REL * mean_diag) * loco_model.loco_full_eye
                         chol = torch.linalg.cholesky(c_reg)
                         c_inv = torch.cholesky_inverse(chol)
+                        if LOCO_FULL_NORMINVERSE:
+                            c_inv = c_inv.mul((1.0 + LOCO_FULL_RIDGE_REL) * mean_diag)
                         c_inv = 0.5 * (c_inv + c_inv.T)
                         loco_model.loco_full_v_chol[layer_idx].copy_(chol)
                         loco_model.loco_full_v_inv[layer_idx].copy_(c_inv)
@@ -2798,6 +2883,8 @@ class TrainingManager():
                     c_reg = ema + (LOCO_FULL_RIDGE_REL * mean_diag).view(-1, 1, 1) * loco_model.loco_full_o_eye
                     chol = torch.linalg.cholesky(c_reg)
                     c_inv = torch.cholesky_inverse(chol)
+                    if LOCO_FULL_NORMINVERSE:
+                        c_inv = c_inv.mul(((1.0 + LOCO_FULL_RIDGE_REL) * mean_diag).view(-1, 1, 1))
                     c_inv = 0.5 * (c_inv + c_inv.transpose(-1, -2))
                     loco_model.loco_full_o_chol[layer_idx].copy_(chol)
                     loco_model.loco_full_o_inv[layer_idx].copy_(c_inv)
