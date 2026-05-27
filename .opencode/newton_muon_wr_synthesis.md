@@ -1310,3 +1310,34 @@ But it changes the next action: replicate window160 first. If it survives, the
 next principled comparison is MLP-fc Cholesky metric-polar / half-whitening
 against this inverse-before path, not another broad V or QKVO sweep.
 ```
+
+MLP-fc window160 replicate:
+
+```text
+200-step r2 result:
+  baseline:        3.8832
+  schedule-only:   3.8862
+  no-op before:    3.8834
+  inverse before:  3.8880
+
+Two-run window160 means:
+  baseline:        3.8863
+  schedule-only:   3.8861
+  no-op before:    3.8868
+  inverse before:  3.8854
+```
+
+Read:
+
+```text
+Window160 did not reproduce strongly. The first run was a clean active-inverse
+hit, but the replicate made inverse-before the worst endpoint arm despite a
+very good step-50 anchor. The two-run mean is still slightly positive, but the
+edge is below promotion quality and not cleaner than the control noise.
+
+The right conclusion is not "MLP-fc C^{-1} is solved"; it is "input metric
+information is mechanically active but unstable under hard inverse-before
+Muonization." The next high-information test is the Cholesky metric-polar /
+half-whitened MLP-fc update, because that explicitly keeps a metric factor
+after the polar step instead of relying on C^{-1} to only rotate the operand.
+```

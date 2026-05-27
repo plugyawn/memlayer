@@ -1617,3 +1617,67 @@ keeps inverse-before ahead of baseline and schedule/no-op at 200, promote
 MLP-fc window160 to the next controlled comparison against Cholesky
 metric-polar / half-whitened MLP-fc.
 ```
+
+## Cycle 15 H100 Result: MLP-fc Window160 Replicate
+
+Modal app:
+
+```text
+ap-FNlEaq0nnrryBkn6m4sDkd
+```
+
+Parsed 200-step results:
+
+```text
+mbc_baseline:                         3.8832, 664.75ms/step
+mbc_schedule_only_before:             3.8862, 606.49ms/step
+mbc_noop_before_r020_blend010:        3.8834, 599.34ms/step
+mbc_inverse_before_r020_blend010:     3.8880, 609.42ms/step
+```
+
+Intermediate anchors:
+
+```text
+step 50:
+  baseline             5.6157
+  schedule-only        5.6031
+  no-op before         5.6189
+  inverse before       5.5892
+
+step 100:
+  baseline             4.6796
+  schedule-only        4.6737
+  no-op before         4.6734
+  inverse before       4.6978
+
+step 150:
+  baseline             4.1116
+  schedule-only        4.1203
+  no-op before         4.1152
+  inverse before       4.1197
+```
+
+Two-run window160 endpoint table:
+
+```text
+                 run A    run B    mean
+baseline         3.8893   3.8832   3.8863
+schedule-only    3.8860   3.8862   3.8861
+no-op before     3.8902   3.8834   3.8868
+inverse before   3.8828   3.8880   3.8854
+```
+
+Decision:
+
+```text
+The window160 active inverse hit did not reproduce cleanly. The two-run mean is
+still slightly positive, but the margin is too small and the replicate loses to
+baseline/no-op at 200. Do not promote MLP-fc inverse-before window160 as a WR
+candidate.
+
+Because the inverse path repeatedly shows early/mid-run non-monotonicity, the
+next controlled use of GPU time is not a third identical replicate. Test the
+stronger Cholesky metric-polar / half-whitened MLP-fc update on the same
+window to see whether preserving more of the input metric helps rather than
+gets washed out by the polar step.
+```
