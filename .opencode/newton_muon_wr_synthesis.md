@@ -982,3 +982,22 @@ right-preconditioning hit we have seen. QKVO metric-polar had one positive
 200-step run, failed its 0-1 replicate, failed 0-3 active widening, and its
 schedule/full-path controls faded by 200.
 ```
+
+V activation-metric promotion:
+
+```text
+mvp_baseline:                                3.8845
+mvp_v01_noop_polar4:                        3.8876
+mvp_cholmetric_v01_polar4_r003_blend025:    3.8892
+mvp_cholmetric_v01_polar4_r020_blend010_norm 3.8844
+```
+
+Read:
+
+```text
+The safe/norm-restored V activation-metric update is not a WR candidate yet,
+but it is the cleanest active matched-control result from this cycle. It beats
+the V no-op by 0.0032 at 200 and ties baseline, after showing a much larger
+step-150 gain. The signal faded after the 48-112 window ended, so the next
+question is windowing, not broader surface search.
+```

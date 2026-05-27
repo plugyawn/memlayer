@@ -842,3 +842,64 @@ Stop broad QKVO control promotion. If spending another H100 run, return to the
 strongest active idea: V/right-preconditioning, but make the test answer a
 specific theory question rather than another broad surface sweep.
 ```
+
+## Cycle 5 H100 Result: metricv_promote
+
+Modal app:
+
+```text
+ap-jMRz1zW0NZCXIOlN4zYgYl
+```
+
+Parsed 200-step results:
+
+```text
+mvp_baseline:                                3.8845, 781.01ms/step
+mvp_v01_noop_polar4:                        3.8876, 714.74ms/step
+mvp_cholmetric_v01_polar4_r003_blend025:    3.8892, 725.79ms/step
+mvp_cholmetric_v01_polar4_r020_blend010_norm 3.8844, 722.88ms/step
+```
+
+Intermediate anchors:
+
+```text
+step 50:
+  baseline                         5.6294
+  V no-op polar4                   5.5982
+  metric r0.03 blend0.25 no-norm   5.6190
+  metric r0.20 blend0.10 norm      5.5839
+
+step 100:
+  baseline                         4.6821
+  V no-op polar4                   4.6720
+  metric r0.03 blend0.25 no-norm   4.6952
+  metric r0.20 blend0.10 norm      4.6822
+
+step 150:
+  baseline                         4.1195
+  V no-op polar4                   4.1215
+  metric r0.03 blend0.25 no-norm   4.1219
+  metric r0.20 blend0.10 norm      4.1105
+```
+
+Interpretation:
+
+```text
+The safe/norm-restored activation-metric V line beat its matched no-op by
+0.0032 at 200, but only tied the same-suite baseline by 0.0001. The meaningful
+signal was at step 150, where it beat baseline by 0.0090 and no-op by 0.0110,
+then faded by 200 after the 48-112 application window had been off for 88
+steps.
+
+The stronger no-norm metric setting is bad in this suite. It loses to baseline
+and no-op by 100/150/200.
+```
+
+Next:
+
+```text
+Run a narrower safe-metric V window probe with the same r0.20/blend0.10/norm
+setting but extend the application window from 48-112 to 48-160. Use a matched
+V no-op with the same window. The question is whether the step-150 active
+signal was real and simply faded after deactivation.
+```
