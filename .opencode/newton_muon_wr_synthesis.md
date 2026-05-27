@@ -539,9 +539,50 @@ Kill criteria:
   suite is now patched so future paper-filter finite/power cases are genuinely
   V `0-1`.
 
+  Code-audit caveat: the paperfilter active cases also set
+  `LOCO_FULL_APPLY_BEFORE_MOMENTUM=1`, and before-momentum full-preconditioning
+  falls back through the baseline fused `polar_express` path. Therefore their
+  `polar4` label did not mean a true four-iteration `polar_express_from_operand`
+  ablation; only the after-momentum full path honors `LOCO_FULL_POLAR_ITERS`.
+  Treat paperfilter as a paper-style damping/before-momentum screen, not as a
+  clean polar4 comparison.
+
   Current read: the feature metric still seems real in diagnostics, but this
   damping/filter family is not the next promotion path until it can beat a
   layer-correct no-op in the same suite.
+
+- The same code audit found that `NEWTONV_SUITE=rightfilter` had the same
+  finite/power `v01` default-layer bug. It is now patched so those cases force
+  `LOCO_DIAG_ATTN_LAYERS=0-1`.
+
+- Result-audit subagent read after the paperfilter run: active Newton-specific
+  variants have not yet beaten no-op/full-path controls at 200, but the
+  feature metric is mechanically real. The cleanest unresolved branch is
+  V-only activation-metric polar: `metricpolar` showed a 120-step V `0-1`
+  positive (`4.1802` vs baseline `4.1840` and schedule-only no-op `4.1868`),
+  while only QK+V was promoted to 200 and tied baseline. The next suite is:
+
+  ```bash
+  NEWTONV_SUITE=metricv_promote
+  ```
+
+  It runs a 200-step baseline, V `0-1` full no-op polar4, V `0-1`
+  metric-polar polar4 with the original ridge/blend/no-norm settings, and a
+  safer ridge `0.20` / blend `0.10` / norm-restore variant. This directly tests
+  `polar(G L^-T) L^-1` on the clean V surface and requires beating the matched
+  no-op, not merely the ordinary baseline.
+
+- Theory/literature subagent read: Newton-Muon, K-FAC, LocoProp, and
+  Shampoo/SOAP all support the same broad idea, namely that the right activation
+  covariance is a real missing factor. The unsettled speedrun choice is not
+  whether the factor exists, but its spectral transfer function and placement:
+  raw `C^-1`, clipped/power/finite inverse, or activation-metric
+  `polar(G C^-1/2) C^-1/2`. The subagent's strongest theory recommendation was
+  an MLP `c_fc` activation-metric/power ladder because `c_fc` is a 768-dim
+  clean affine surface and avoids QK logit coupling. Current branch full-matrix
+  support is only `qk,v,o`; MLP support is diagonal-only. Treat MLP `c_fc`
+  full/metric as the next implementation branch if V-only metric-polar fails to
+  beat no-op but diagnostics still say the right metric is surviving.
 
 - `tools/run_newtonv_raw_v01_gate.sh` is the prepared runner for the best raw
   inverse candidate.

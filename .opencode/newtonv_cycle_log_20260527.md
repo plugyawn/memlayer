@@ -297,6 +297,23 @@ The finite/power labels said `v01`, but those cases used
 The suite has been patched after this run so future paper-filter finite/power
 cases explicitly set `LOCO_DIAG_ATTN_LAYERS=0-1`.
 
+Code-audit subagent `019e6a18-6a0a-7031-945c-7a479ee53498` found the same
+label/default bug in the `rightfilter` suite. It has also been patched so
+`rf_finite_dense_v01_polar4` and `rf_power05_dense_v01_polar4` force
+`LOCO_DIAG_ATTN_LAYERS=0-1`.
+
+The same audit found a separate interpretation issue:
+
+```text
+LOCO_FULL_POLAR_ITERS only affects the after-momentum
+polar_express_from_operand path. Before-momentum full-preconditioning falls
+through the baseline fused polar_express path, so before-momentum cases labeled
+polar4 actually use the baseline polar iteration schedule.
+```
+
+So the paperfilter inverse/finite/power `before_polar4` labels should be read
+as "before momentum with the baseline polar path", not a true polar4 ablation.
+
 Read:
 
 ```text
@@ -305,4 +322,64 @@ step 120. None of the paper-style active filters beat that no-op. The inverse
 case was at least neutral-ish, but finite/power clipped all-V were worse than
 baseline. This does not promote the right-filter family yet; it says the next
 comparison must be no-op-matched and layer-correct.
+```
+
+## Cycle 3 Meditation Window
+
+Started: `2026-05-27 21:06 IST`.
+
+Expected next H100 launch time under the one-hour cadence: about
+`2026-05-27 22:06 IST`, unless the user overrides.
+
+Result-audit subagent `019e6a17-eaf5-7962-bf55-d7d78d7f0e2f` completed. Key
+read:
+
+```text
+The feature metric is mechanically real, but active Newton-specific variants
+have not yet beaten no-op/full-path controls at 200. The paperfilter finite and
+power cases were mislabeled and must be rerun layer-correct before judging V
+0-1. Metric-polar had the cleanest 120-step active hit but QK+V did not persist
+to 200; V-only metric-polar has not yet had a matched 200-step promotion.
+```
+
+Prepared next suite:
+
+```text
+NEWTONV_SUITE=metricv_promote
+```
+
+It runs:
+
+```text
+baseline, 200 steps
+V 0-1 full no-op polar4, collect 0-64, apply 48-112
+V 0-1 metric-polar polar4, ridge 0.03, blend 0.25, no norm restore
+V 0-1 metric-polar polar4, ridge 0.20, blend 0.10, norm restore
+```
+
+This directly tests the stronger activation-metric update
+`polar(G L^-T) L^-1` on V alone, with a matched no-op and one safer/tuned
+variant. Promotion bar: it must beat the same-suite no-op at 200, not just the
+ordinary baseline.
+
+Theory/literature subagent `019e6a18-47be-7142-9df9-f286fbfa8aa8` completed.
+Key read:
+
+```text
+Newton-Muon, K-FAC, LocoProp, Shampoo/SOAP all point at a real right activation
+covariance factor. The unresolved choice is the spectral transfer function and
+where the metric survives relative to Muon/polar. Raw C^-1 everywhere is not
+the default answer; C^-1/2 / power / finite filters and activation-metric polar
+are the theory-clean ways to test "washed away" vs "too aggressive".
+```
+
+It recommended an MLP `c_fc` activation-metric/power ladder as the best theory
+probe. Current branch only has full-matrix machinery for `qk,v,o`; MLP has the
+older diagonal path but not full/metric MLP `c_fc`. So the immediate prepared
+H100 suite remains `metricv_promote`, while the implementation follow-up is:
+
+```text
+Add a narrow MLP c_fc full/metric path only if V-only metric-polar fails or
+ties the no-op at 200 but diagnostics still show the right metric surviving.
+Do not spend 8xH100 on this before a 1xH100 MLP c_fc screen beats no-op.
 ```

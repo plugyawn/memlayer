@@ -530,6 +530,7 @@ run_rightfilter_ladder() {
     bash tools/run_newtonv_raw_v01_gate.sh
 
   run_case rf_finite_dense_v01_polar4 \
+    LOCO_DIAG_ATTN_LAYERS=0-1 \
     LOCO_FULL_COLLECT_WINDOWS=0-64 \
     LOCO_FULL_WINDOWS=48-112 \
     LOCO_FULL_FILTER=finite \
@@ -544,6 +545,7 @@ run_rightfilter_ladder() {
     bash tools/run_newtonv_block_power_gate.sh
 
   run_case rf_power05_dense_v01_polar4 \
+    LOCO_DIAG_ATTN_LAYERS=0-1 \
     LOCO_FULL_COLLECT_WINDOWS=0-64 \
     LOCO_FULL_WINDOWS=48-112 \
     LOCO_FULL_FILTER=power \
@@ -791,6 +793,59 @@ run_metricpromote_ladder() {
     bash tools/run_newtonv_timing_triplet_gate.sh
 }
 
+run_metricv_promote_ladder() {
+  local mvp_steps="${MVP_STEPS:-200}"
+  local mvp_val_every="${MVP_VAL_EVERY:-50}"
+  local mvp_collect="${MVP_COLLECT_WINDOWS:-0-64}"
+  local mvp_windows="${MVP_WINDOWS:-48-112}"
+
+  run_case mvp_baseline \
+    NEWTONV_VARIANT=baseline \
+    SCREEN_STEPS="${mvp_steps}" \
+    SCREEN_VAL_EVERY="${mvp_val_every}" \
+    bash tools/run_newtonv_timing_triplet_gate.sh
+
+  run_case mvp_v01_noop_polar4 \
+    NEWTONV_VARIANT=noop \
+    LOCO_FULL_SURFACES=v \
+    LOCO_DIAG_ATTN_LAYERS=0-1 \
+    LOCO_FULL_COLLECT_WINDOWS="${mvp_collect}" \
+    LOCO_FULL_WINDOWS="${mvp_windows}" \
+    LOCO_FULL_POLAR_ITERS=4 \
+    SCREEN_STEPS="${mvp_steps}" \
+    SCREEN_VAL_EVERY="${mvp_val_every}" \
+    bash tools/run_newtonv_timing_triplet_gate.sh
+
+  run_case mvp_cholmetric_v01_polar4_r003_blend025 \
+    LOCO_FULL_SURFACES=v \
+    LOCO_DIAG_ATTN_LAYERS=0-1 \
+    LOCO_FULL_COLLECT_WINDOWS="${mvp_collect}" \
+    LOCO_FULL_WINDOWS="${mvp_windows}" \
+    LOCO_FULL_METRIC_POLAR=1 \
+    LOCO_FULL_NORM_RESTORE=0 \
+    LOCO_FULL_RIDGE_REL=0.03 \
+    LOCO_FULL_BLEND_MAX=0.25 \
+    LOCO_FULL_POLAR_ITERS=4 \
+    SCREEN_STEPS="${mvp_steps}" \
+    SCREEN_VAL_EVERY="${mvp_val_every}" \
+    bash tools/run_newtonv_raw_v01_gate.sh
+
+  run_case mvp_cholmetric_v01_polar4_r020_blend010_norm \
+    LOCO_FULL_SURFACES=v \
+    LOCO_DIAG_ATTN_LAYERS=0-1 \
+    LOCO_FULL_COLLECT_WINDOWS="${mvp_collect}" \
+    LOCO_FULL_WINDOWS="${mvp_windows}" \
+    LOCO_FULL_METRIC_POLAR=1 \
+    LOCO_FULL_NORM_RESTORE=1 \
+    LOCO_FULL_RIDGE_REL=0.20 \
+    LOCO_FULL_BLEND_MAX=0.10 \
+    LOCO_FULL_BLEND_STEPS=32 \
+    LOCO_FULL_POLAR_ITERS=4 \
+    SCREEN_STEPS="${mvp_steps}" \
+    SCREEN_VAL_EVERY="${mvp_val_every}" \
+    bash tools/run_newtonv_raw_v01_gate.sh
+}
+
 run_metricsurface_ladder() {
   local mps_steps="${MPS_STEPS:-120}"
   local mps_val_every="${MPS_VAL_EVERY:-40}"
@@ -928,6 +983,9 @@ case "${suite}" in
     ;;
   metricpromote)
     run_metricpromote_ladder
+    ;;
+  metricv_promote)
+    run_metricv_promote_ladder
     ;;
   metricsurfaces)
     run_metricsurface_ladder
