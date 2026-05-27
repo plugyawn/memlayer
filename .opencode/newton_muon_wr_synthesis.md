@@ -1217,3 +1217,34 @@ Do not promote an active right-preconditioner unless it beats both:
 If the no-op/control wins, log it as an optimizer-path/control effect and
 separate it from Newton-Muon evidence.
 ```
+
+MLP-fc replicate:
+
+```text
+Run A:
+  baseline:        3.8853
+  schedule-only:   3.8909
+  no-op before:    3.8795
+  inverse before:  3.8875
+
+Run B:
+  baseline:        3.8863
+  schedule-only:   3.8808
+  no-op before:    3.8907
+  inverse before:  3.8789
+```
+
+Read:
+
+```text
+The MLP-fc result is mixed rather than dead. The first controlled run made
+inverse look bad and no-op look good; the direct replicate made inverse best
+and no-op bad. Averaging the two runs gives inverse-before around 0.0026 loss
+better than baseline, but the ordering instability is too large to promote
+yet.
+
+This is now the only Newton-Muon/right-preconditioner line with a plausible
+200-step mean after matched controls. V and broad QKVO power are lower priority.
+The next decision should be a third MLP-fc before-control replicate, not a new
+surface sweep.
+```

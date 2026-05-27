@@ -1403,3 +1403,76 @@ Before spending more on right-preconditioner variants, require matched no-op
 controls in every suite and judge active variants only against those controls,
 not only against baseline.
 ```
+
+## Cycle 12 H100 Result: MLP-fc Before-Momentum Replicate
+
+Modal app:
+
+```text
+ap-DHdHUEDhFSWKtXWprbqO41
+```
+
+Parsed 200-step results:
+
+```text
+mbc_baseline:                         3.8863, 684.14ms/step
+mbc_schedule_only_before:             3.8808, 577.84ms/step
+mbc_noop_before_r020_blend010:        3.8907, 571.52ms/step
+mbc_inverse_before_r020_blend010:     3.8789, 578.71ms/step
+```
+
+Intermediate anchors:
+
+```text
+step 50:
+  baseline             5.6061
+  schedule-only        5.6096
+  no-op before         5.6069
+  inverse before       5.5812
+
+step 100:
+  baseline             4.6751
+  schedule-only        4.6779
+  no-op before         4.6778
+  inverse before       4.6922
+
+step 150:
+  baseline             4.1184
+  schedule-only        4.1126
+  no-op before         4.1213
+  inverse before       4.1075
+```
+
+Diagnostics:
+
+```text
+The replicate reverses the previous suite's endpoint ordering. This time
+active MLP-fc inverse-before is best at 200 and beats the no-op control by
+0.0118, while the no-op control loses to baseline. The active inverse still
+has the unstable curve shape seen elsewhere: strong at step 50, worse at step
+100, strong again at 150/200.
+
+Across the two matched MLP-fc before-control suites:
+  baseline:        3.8853, 3.8863
+  schedule-only:   3.8909, 3.8808
+  no-op before:    3.8795, 3.8907
+  inverse before:  3.8875, 3.8789
+
+Means:
+  baseline:        3.8858
+  schedule-only:   3.8859
+  no-op before:    3.8851
+  inverse before:  3.8832
+```
+
+Decision:
+
+```text
+MLP-fc inverse-before is not dead, but it is not yet WR-ready. The two-run
+mean is positive by roughly 0.0026 against baseline, but the run-to-run
+ordering changes enough that a third replicate is needed before promotion.
+
+If the third replicate has inverse-before beating both baseline and matched
+controls, promote MLP-fc inverse-before to the next longer/checkpointed run.
+If it does not, treat the current mean as below the control/noise floor.
+```
