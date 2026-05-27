@@ -164,6 +164,10 @@ First H100 result:
 | full V layers 0-1, end100 | `.opencode/newtonv_fullv_layers0_1_end100_fp32_screen200.log` | 100 | 4.6931 | 74.494s | 744.94ms | weak at 100; no early advantage this run |
 | full V layers 0-1, end100 | `.opencode/newtonv_fullv_layers0_1_end100_fp32_screen200.log` | 150 | 4.1143 | 147.653s | 984.35ms | recovers by 150 |
 | full V layers 0-1, end100 | `.opencode/newtonv_fullv_layers0_1_end100_fp32_screen200.log` | 200 | 3.8793 | 241.799s | 1209.00ms | best loss so far, but not wall-clock viable |
+| full V layers 0-1, end100, apply every 2 | `.opencode/newtonv_fullv_layers0_1_end100_apply2_fp32_screen200.log` | 50 | 5.6250 | 25.347s | 506.94ms | weaker than apply-every-step |
+| full V layers 0-1, end100, apply every 2 | `.opencode/newtonv_fullv_layers0_1_end100_apply2_fp32_screen200.log` | 100 | 4.6908 | 75.472s | 754.72ms | no useful speed win |
+| full V layers 0-1, end100, apply every 2 | `.opencode/newtonv_fullv_layers0_1_end100_apply2_fp32_screen200.log` | 150 | 4.1211 | 148.546s | 990.31ms | worse loss, same cost class |
+| full V layers 0-1, end100, apply every 2 | `.opencode/newtonv_fullv_layers0_1_end100_apply2_fp32_screen200.log` | 200 | 3.8893 | 242.317s | 1211.58ms | reject apply cadence 2 |
 
 Follow-up implementation change: cache an explicit inverse/preconditioner on
 refresh and use a matrix multiply in the optimizer step. This keeps the
@@ -217,6 +221,9 @@ Owner-local/BF16 verdict:
   optimizer already disables full-V application after `END_STEP`; the remaining
   cost is the first 100 active steps plus the base schedule, not a zero-blend
   matmul bug.
+- `LOCO_FULL_APPLY_INTERVAL=2` did not help. It worsened final loss to `3.8893`
+  and did not materially reduce wall time, so the current 1xH100 cost is not
+  dominated by applying the cached inverse on skipped optimizer steps.
 
 ## Current Next Actions
 
@@ -224,8 +231,8 @@ Owner-local/BF16 verdict:
    enough of the signal to cut single-GPU cost.
 2. Do not pursue BF16 cached-preconditioner matmul further unless the kernel
    path changes.
-3. Add an application cadence knob so full-V can collect/cache normally but only
-   shape the optimizer operand every N steps.
+3. Run a same-environment 200-step baseline on the current pod before using the
+   older baseline timing/loss as a promotion gate.
 4. For 1xH100, focus next on reducing every-step preconditioner cost or limiting
    full-V to fewer layers/steps; for 8xH100, remeasure owner-local because each
    rank will own only a subset of V layers.
