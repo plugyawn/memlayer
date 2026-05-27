@@ -146,6 +146,8 @@ isolate the no-op/full-path schedule with feature-stat work removed:
   baseline
   no-refresh VO-bank no-op polar5
   no-refresh VO-bank no-op polar4
+  no-refresh VO-bank no-op polar5, all-window
+  no-refresh VO-bank no-op polar4, all-window
   current no-op V0-1 polar5 replicate
   current no-op all-V polar4 replicate
 ```
@@ -173,6 +175,11 @@ Promote schedule-only only if a no-stats case beats same-suite baseline by
 and keeps non-refresh timing within about `2-3%` of baseline. Kill it if the
 no-stats variants are within `+/-0.002` of baseline or only the collection
 replicates win.
+
+The all-window polar5 control is important because polar5 schedule-only should
+be nearly equivalent to baseline if the fused and explicit paths are
+mathematically identical. A window-only win with all-window parity points toward
+a numerical/windowing perturbation rather than a durable optimizer replacement.
 
 Next H100 command after the required audit window:
 

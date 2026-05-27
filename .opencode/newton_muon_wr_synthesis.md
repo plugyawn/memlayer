@@ -265,8 +265,8 @@ For a fresh 1xH100 or Modal H100:
    The matched 200-step ladder failed the promotion rule.
 5. Next isolate the full-path/no-op schedule with feature-stat work removed.
    The target controls are baseline, no-refresh VO-bank no-op polar5,
-   no-refresh VO-bank no-op polar4, and matching collection-enabled no-op
-   replicates.
+   no-refresh VO-bank no-op polar4, all-window polar5/polar4 no-refresh
+   controls, and matching collection-enabled no-op replicates.
    Prepared suite: `NEWTONV_SUITE=scheduleonly`.
    `LOCO_FULL_SCHEDULE_ONLY=1` preserves the explicit VO-bank after-momentum
    path but disables feature collection, factor refresh, preconditioner helper

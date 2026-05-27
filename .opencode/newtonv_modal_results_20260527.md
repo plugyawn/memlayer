@@ -493,7 +493,9 @@ Separate the useful optimizer-path change from wasted feature-stat work:
   1. baseline
   2. full-path VO-bank no-op, no feature refresh/collection, polar5
   3. full-path VO-bank no-op, no feature refresh/collection, polar4
-  4. current no-op controls with collection enabled for replication
+  4. full-path VO-bank no-op, no feature refresh/collection, polar5 all-window
+  5. full-path VO-bank no-op, no feature refresh/collection, polar4 all-window
+  6. current no-op controls with collection enabled for replication
 ```
 
 Prepared runner:
@@ -519,6 +521,11 @@ Kill no-stats schedule-only if:
   only collection-enabled no-op variants retain the win
   polar4/polar5 ordering is unstable across same-suite controls
 ```
+
+The all-window polar5 control should be close to baseline if the explicit
+Nesterov-plus-polar5 path is numerically equivalent to baseline's fused
+`polar_express` path. If only the windowed polar5 path wins, treat it as a
+windowed numerical/trajectory perturbation, not a general replacement.
 
 If the no-refresh no-op keeps the `~0.002-0.003` gain with near-baseline timing,
 it becomes a real WR candidate knob independent of Newton-Muon. If it loses the

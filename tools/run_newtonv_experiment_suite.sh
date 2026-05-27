@@ -389,6 +389,26 @@ run_schedule_only_ladder() {
     SCREEN_VAL_EVERY="${promote_val_every}" \
     bash tools/run_newtonv_timing_triplet_gate.sh
 
+  run_case schedule_vobank_noop_polar5_all_nostats \
+    NEWTONV_VARIANT=noop \
+    LOCO_DIAG_ATTN_LAYERS=all \
+    LOCO_FULL_WINDOWS=all \
+    LOCO_FULL_POLAR_ITERS=5 \
+    LOCO_FULL_SCHEDULE_ONLY=1 \
+    SCREEN_STEPS="${promote_steps}" \
+    SCREEN_VAL_EVERY="${promote_val_every}" \
+    bash tools/run_newtonv_timing_triplet_gate.sh
+
+  run_case schedule_vobank_noop_polar4_all_nostats \
+    NEWTONV_VARIANT=noop \
+    LOCO_DIAG_ATTN_LAYERS=all \
+    LOCO_FULL_WINDOWS=all \
+    LOCO_FULL_POLAR_ITERS=4 \
+    LOCO_FULL_SCHEDULE_ONLY=1 \
+    SCREEN_STEPS="${promote_steps}" \
+    SCREEN_VAL_EVERY="${promote_val_every}" \
+    bash tools/run_newtonv_timing_triplet_gate.sh
+
   run_case schedule_v01_noop_polar5_collect \
     NEWTONV_VARIANT=noop \
     LOCO_DIAG_ATTN_LAYERS=0-1 \
