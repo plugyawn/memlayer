@@ -31,16 +31,28 @@ SPECTRUM_RE = re.compile(
     r"gain_p99=(?P<gain_p99>[-+0-9.eE]+) "
     r"gain_max=(?P<gain_max>[-+0-9.eE]+)"
 )
+EIGEN_ENERGY_RE = re.compile(
+    r"loco_full_eigen_energy step=(?P<step>\d+) (?P<name>\w+) "
+    r"global_idx=(?P<global_idx>\d+) layer=(?P<layer>\d+) k=(?P<k>\d+) "
+    r"blend=(?P<blend>[-+0-9.eE]+) "
+    r"high_low_before=(?P<high_low_before>[-+0-9.eE]+) "
+    r"high_low_after=(?P<high_low_after>[-+0-9.eE]+) "
+    r"high_low_target=(?P<high_low_target>[-+0-9.eEnNaA]+) "
+    r"gain_corr_after=(?P<gain_corr_after>[-+0-9.eE]+) "
+    r"gain_corr_target=(?P<gain_corr_target>[-+0-9.eEnNaA]+)"
+)
 
 
 def number(value: str | None):
     if value is None:
         return None
+    if value.lower() == "nan":
+        return None
     return float(value)
 
 
 def parse(path: Path) -> dict[str, list[dict]]:
-    rows = {"precond": [], "spectrum": []}
+    rows = {"precond": [], "spectrum": [], "eigen_energy": []}
     for line in path.read_text(errors="replace").splitlines():
         if m := PRECOND_RE.search(line):
             step = int(m.group("step"))
@@ -58,6 +70,16 @@ def parse(path: Path) -> dict[str, list[dict]]:
             for key, value in m.groupdict().items():
                 row[key] = int(value) if key in {"step", "layer"} else (value if key == "name" else number(value))
             rows["spectrum"].append(row)
+            continue
+        if m := EIGEN_ENERGY_RE.search(line):
+            row = {"log": str(path)}
+            for key, value in m.groupdict().items():
+                row[key] = (
+                    int(value)
+                    if key in {"step", "global_idx", "layer", "k"}
+                    else (value if key == "name" else number(value))
+                )
+            rows["eigen_energy"].append(row)
     return rows
 
 
@@ -82,11 +104,12 @@ def main() -> None:
     parser.add_argument("--json", action="store_true")
     args = parser.parse_args()
 
-    merged = {"precond": [], "spectrum": []}
+    merged = {"precond": [], "spectrum": [], "eigen_energy": []}
     for path in args.logs:
         parsed = parse(path)
         merged["precond"].extend(parsed["precond"])
         merged["spectrum"].extend(parsed["spectrum"])
+        merged["eigen_energy"].extend(parsed["eigen_energy"])
 
     if args.json:
         print(json.dumps(merged, indent=2, sort_keys=True))
@@ -121,6 +144,22 @@ def main() -> None:
                 "gain_p50",
                 "gain_p99",
                 "gain_max",
+            ],
+        )
+    if merged["eigen_energy"]:
+        print("## Eigen Energy")
+        print_table(
+            merged["eigen_energy"],
+            [
+                "step",
+                "name",
+                "layer",
+                "blend",
+                "high_low_before",
+                "high_low_after",
+                "high_low_target",
+                "gain_corr_after",
+                "gain_corr_target",
             ],
         )
 

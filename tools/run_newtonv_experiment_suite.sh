@@ -441,6 +441,7 @@ run_precond_diag_ladder() {
     LOCO_FULL_POLAR_ITERS=5 \
     LOCO_FULL_LOG_PRECOND=1 \
     LOCO_FULL_LOG_SPECTRUM=1 \
+    LOCO_FULL_LOG_EIGEN_ENERGY=1 \
     LOCO_DIAG_LOG_STEPS="${diag_log_steps}" \
     SCREEN_STEPS="${diag_steps}" \
     SCREEN_VAL_EVERY="${diag_val_every}" \
@@ -452,6 +453,7 @@ run_precond_diag_ladder() {
     LOCO_FULL_POLAR_ITERS=4 \
     LOCO_FULL_LOG_PRECOND=1 \
     LOCO_FULL_LOG_SPECTRUM=1 \
+    LOCO_FULL_LOG_EIGEN_ENERGY=1 \
     LOCO_DIAG_LOG_STEPS="${diag_log_steps}" \
     SCREEN_STEPS="${diag_steps}" \
     SCREEN_VAL_EVERY="${diag_val_every}" \
@@ -464,6 +466,7 @@ run_precond_diag_ladder() {
     LOCO_FULL_POLAR_ITERS=4 \
     LOCO_FULL_LOG_PRECOND=1 \
     LOCO_FULL_LOG_SPECTRUM=1 \
+    LOCO_FULL_LOG_EIGEN_ENERGY=1 \
     LOCO_DIAG_LOG_STEPS="${diag_log_steps}" \
     SCREEN_STEPS="${diag_steps}" \
     SCREEN_VAL_EVERY="${diag_val_every}" \

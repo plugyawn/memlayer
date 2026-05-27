@@ -120,6 +120,7 @@ LOCO_FULL_SKIP_VARRED = os.environ.get("LOCO_FULL_SKIP_VARRED", "0") == "1"
 LOCO_FULL_LOG_PRECOND = os.environ.get("LOCO_FULL_LOG_PRECOND", "0") == "1"
 LOCO_FULL_LOG_PRECOND_DETAIL = os.environ.get("LOCO_FULL_LOG_PRECOND_DETAIL", "0") == "1"
 LOCO_FULL_LOG_SPECTRUM = os.environ.get("LOCO_FULL_LOG_SPECTRUM", "0") == "1"
+LOCO_FULL_LOG_EIGEN_ENERGY = os.environ.get("LOCO_FULL_LOG_EIGEN_ENERGY", "0") == "1"
 if LOCO_FULL_APPLY_INTERVAL <= 0:
     raise ValueError("LOCO_FULL_APPLY_INTERVAL must be positive")
 if LOCO_FULL_BLOCK_SIZE < 0:
@@ -722,6 +723,7 @@ class NorMuonAndAdam:
         self._loco_full_log_step = False
         self._loco_grad_ratio_stats = []
         self._loco_full_precond_stats = []
+        self._loco_full_eigen_energy_stats = []
         self.param_table = param_table
         self.scatter_order = scatter_order
         self.work_order = work_order
@@ -798,6 +800,7 @@ class NorMuonAndAdam:
         self._loco_full_log_step = self._loco_log_step and LOCO_FULL_LOG_PRECOND
         self._loco_grad_ratio_stats.clear()
         self._loco_full_precond_stats.clear()
+        self._loco_full_eigen_energy_stats.clear()
 
     def _record_loco_grad_ratio(self, name: str, before: Tensor, after: Tensor):
         if not self._loco_log_step:
@@ -842,7 +845,71 @@ class NorMuonAndAdam:
             stat["target_norm_ratio"] = target_norm.div(before_norm).item()
             stat["target_delta_ratio"] = delta_norm.div(before_norm * blend).item()
             stat["target_cos"] = target_cos.item()
+        self._record_loco_full_eigen_energy_stats(name, layer_idx, global_idx, before, after, blend)
         self._loco_full_precond_stats.append(stat)
+
+    def _record_loco_full_eigen_energy_stats(
+        self,
+        name: str,
+        layer_idx: int,
+        global_idx: int,
+        before: Tensor,
+        after: Tensor,
+        blend: float,
+    ):
+        if not (self._loco_full_log_step and LOCO_FULL_LOG_EIGEN_ENERGY):
+            return
+        if name not in {"full_v", "full_qk"} or LOCO_FULL_BLOCK:
+            return
+        ema = self.loco_diag_model.loco_full_v_gram_ema[layer_idx].float()
+        if not torch.isfinite(ema).all() or ema.abs().sum() == 0:
+            return
+        mean_diag = ema.diagonal().mean().clamp_min(1e-12)
+        c_norm = (ema + (LOCO_FULL_RIDGE_REL * mean_diag) * self.loco_diag_model.loco_full_eye).div(
+            (1.0 + LOCO_FULL_RIDGE_REL) * mean_diag
+        )
+        c_norm = 0.5 * (c_norm + c_norm.T)
+        evals, evecs = torch.linalg.eigh(c_norm)
+
+        def energy(mat: Tensor) -> Tensor:
+            return (mat.float() @ evecs).square().sum(dim=0).clamp_min(1e-30)
+
+        def high_low_ratio(e: Tensor, idx: Tensor, k: int) -> Tensor:
+            high = e[idx[:k]].mean()
+            low = e[idx[-k:]].mean().clamp_min(1e-30)
+            return high.div(low)
+
+        def log_corr(x: Tensor, y: Tensor) -> Tensor:
+            x = x - x.mean()
+            y = y - y.mean()
+            denom = x.square().mean().sqrt().mul(y.square().mean().sqrt()).clamp_min(1e-12)
+            return x.mul(y).mean().div(denom)
+
+        before_e = energy(before)
+        after_e = energy(after)
+        idx = torch.argsort(evals, descending=True)
+        k = min(64, max(1, evals.numel() // 4))
+        log_lam = evals.float().clamp_min(1e-12).log()
+        after_gain = after_e.div(before_e).clamp_min(1e-30).log()
+        stat = {
+            "name": name,
+            "layer": int(layer_idx),
+            "global_idx": int(global_idx),
+            "blend": float(blend),
+            "k": int(k),
+            "high_low_before": high_low_ratio(before_e, idx, k).item(),
+            "high_low_after": high_low_ratio(after_e, idx, k).item(),
+            "gain_corr_after": log_corr(log_lam, after_gain).item(),
+            "high_low_target": None,
+            "gain_corr_target": None,
+        }
+        if blend > 1e-12:
+            target = before.float() + (after.float() - before.float()).div(blend)
+            target_e = energy(target)
+            target_gain = target_e.div(before_e).clamp_min(1e-30).log()
+            stat["high_low_target"] = high_low_ratio(target_e, idx, k).item()
+            stat["gain_corr_target"] = log_corr(log_lam, target_gain).item()
+        self._loco_full_eigen_energy_stats.append(stat)
 
     def _flush_loco_grad_ratio_stats(self):
         self._flush_loco_full_precond_stats()
@@ -905,6 +972,20 @@ class NorMuonAndAdam:
         if details:
             print0(f"loco_full_precond_detail step={self._loco_step} " + " | ".join(details), console=True)
         self._loco_full_precond_stats.clear()
+        if self._loco_full_eigen_energy_stats:
+            for stat in self._loco_full_eigen_energy_stats:
+                print0(
+                    f"loco_full_eigen_energy step={self._loco_step} {stat['name']} "
+                    f"global_idx={stat['global_idx']} layer={stat['layer']} k={stat['k']} "
+                    f"blend={stat['blend']:.4e} "
+                    f"high_low_before={stat['high_low_before']:.4e} "
+                    f"high_low_after={stat['high_low_after']:.4e} "
+                    f"high_low_target={stat['high_low_target'] if stat['high_low_target'] is not None else float('nan'):.4e} "
+                    f"gain_corr_after={stat['gain_corr_after']:.6f} "
+                    f"gain_corr_target={stat['gain_corr_target'] if stat['gain_corr_target'] is not None else float('nan'):.6f}",
+                    console=True,
+                )
+            self._loco_full_eigen_energy_stats.clear()
 
     def _build_param_cfg(self, param: nn.Parameter, label: str):
         """Build config for a single parameter from param_table."""

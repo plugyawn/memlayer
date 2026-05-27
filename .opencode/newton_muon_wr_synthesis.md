@@ -330,7 +330,7 @@ For a fresh 1xH100 or Modal H100:
    path but disables feature collection, factor refresh, preconditioner helper
    calls, and full-stat buffer allocation.
    Diagnostic cases enable `LOCO_FULL_LOG_PRECOND=1` and
-   `LOCO_FULL_LOG_SPECTRUM=1`, then parse with
+   `LOCO_FULL_LOG_SPECTRUM=1`, plus eigenbasis energy checks, then parse with
    `tools/parse_loco_full_diagnostics.py`.
    Promotion bar: no-stats schedule-only must beat same-suite baseline by
    `>=0.003` at 200 steps, match or beat the collection-enabled no-op replicate,
