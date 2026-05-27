@@ -475,6 +475,21 @@ Kill criteria:
   First comparisons: baseline, schedule-only polar4, Cholesky metric V `0-1`
   polar4/polar5, then QK+V `0-1` polar4.
 
+  Promotion result on Modal H100, 200 steps:
+
+  ```text
+  baseline:                 3.8859, 670.37ms/step
+  qk+v 0-1 metric polar4:   3.8859, 663.17ms/step
+  qk+v 0-1 blend100:        3.8933, 660.27ms/step
+  ```
+
+  The 120-step QK+V metric-polar hit did not persist to 200. Blend100 briefly
+  improved the 50-step screen (`5.6039` vs `5.6099`) but was worse by 100, 150,
+  and 200. Treat this as "metric-polar has early surface sensitivity but needs
+  damping/window/scale tuning", not as a hot surface-expansion candidate. Do not
+  run `NEWTONV_SUITE=metricsurfaces` unless a later tuned promotion restores a
+  200-step loss gain.
+
 - `tools/run_newtonv_raw_v01_gate.sh` is the prepared runner for the best raw
   inverse candidate.
 - `tools/run_norminverse_v01_gate.sh` is retained for the failed cheap variant.
