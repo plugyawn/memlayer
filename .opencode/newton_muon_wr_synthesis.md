@@ -1095,3 +1095,29 @@ structure, and V remains the cleanest attention value regression surface. The
 next productive probe should isolate the NorMuon variance-reduction interaction
 or test a narrower shrink-only form, not increase alpha or widen QKVO.
 ```
+
+V variance-reduction interaction:
+
+```text
+160-step baseline:             4.0065
+V no-op polar4:                4.0061
+V no-op polar4 skip-varred:    4.0073
+V metric with varred:          4.0090
+V metric skip-varred:          4.0080
+```
+
+Read:
+
+```text
+Skipping NorMuon variance reduction is not enough. It does not make the V
+metric endpoint positive, and it worsens the matched no-op endpoint. That
+weakens the "post-polar variance reduction is erasing the signal" hypothesis.
+
+The one remaining lead is temporal: V metric skip-varred has a large step-50
+hit, 5.5670 versus 5.5911 baseline and 5.5839 no-op, but fades by step 75 and
+is worse by step 100. The metric is not washed out mechanically; it is too
+strong or useful for too short a window. If we spend another H100 slice, the
+only V metric follow-up worth running is a short-pulse screen such as 48-56
+and 48-64. Longer V windows, broader QKVO, and stronger spectral powers should
+not be promoted.
+```

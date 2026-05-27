@@ -1130,3 +1130,77 @@ interaction directly, or test a much narrower surface/form such as O-headwise
 only with a conservative shrink-only filter. Broad QKVO is too entangled with
 softmax/logit dynamics to use as the next cheap promotion line.
 ```
+
+## Cycle 8 H100 Result: V Variance-Reduction Interaction
+
+Modal app:
+
+```text
+ap-7ultOtC7HSn4b0xrUIyF0V
+```
+
+Parsed 160-step results:
+
+```text
+vvr_baseline:                                4.0065, 750.78ms/step
+vvr_v01_noop_polar4:                        4.0061, 869.36ms/step
+vvr_v01_noop_polar4_skipvr:                 4.0073, 654.55ms/step
+vvr_metric_v01_varred_r020_blend010_norm:   4.0090, 653.28ms/step
+vvr_metric_v01_skipvr_r020_blend010_norm:   4.0080, 656.06ms/step
+```
+
+Intermediate anchors:
+
+```text
+step 50:
+  baseline          5.5911
+  no-op             5.5839
+  no-op skip varred 5.5818
+  metric varred     5.5849
+  metric skipvarred 5.5670
+
+step 75:
+  baseline          4.9977
+  no-op             4.9707
+  no-op skip varred 5.0041
+  metric varred     4.9743
+  metric skipvarred 4.9860
+
+step 100:
+  baseline          4.4857
+  no-op             4.4880
+  no-op skip varred 4.4883
+  metric varred     4.4869
+  metric skipvarred 4.4893
+
+step 150:
+  baseline          4.0479
+  no-op             4.0473
+  no-op skip varred 4.0487
+  metric varred     4.0504
+  metric skipvarred 4.0494
+```
+
+Diagnostics:
+
+```text
+The V activation-metric update is mechanically active. Target deltas are
+roughly 0.73-0.85, with target cosines around 0.64-0.74. At full blend the
+applied metric delta is roughly 0.07-0.076 with cosine around 0.9975.
+
+Skipping NorMuon variance reduction is not a general rescue. The no-op skip
+control is worse than the normal no-op by the endpoint, and the active metric
+skip-varred line still loses by 160. However, the active skip-varred metric
+case has a real step-50 hit: 5.5670 versus baseline 5.5911 and normal no-op
+5.5839. That signal fades by step 75 and reverses by step 100.
+```
+
+Decision:
+
+```text
+Do not promote skip-varred V metric. It does not fix the endpoint and it makes
+the no-op control worse. But keep the step-50 hit as a narrow lead: the metric
+may be useful as a very short pulse, not as a 48-112 window. The next cheap
+probe, if any, should test short active windows such as 48-56 and 48-64 against
+matched no-op controls.
+```
