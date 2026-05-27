@@ -1248,3 +1248,34 @@ This is now the only Newton-Muon/right-preconditioner line with a plausible
 The next decision should be a third MLP-fc before-control replicate, not a new
 surface sweep.
 ```
+
+MLP-fc three-run read:
+
+```text
+200-step means:
+  baseline:        3.8873
+  schedule-only:   3.8850
+  no-op before:    3.8872
+  inverse before:  3.8846
+
+150-step means:
+  baseline:        4.1232
+  schedule-only:   4.1191
+  no-op before:    4.1205
+  inverse before:  4.1145
+```
+
+Read:
+
+```text
+MLP-fc inverse-before is now the best active right-preconditioner remaining,
+but it is marginal at 200. The 150-step mean is meaningfully better, which
+suggests the preconditioner can accelerate the middle of the run but does not
+carry enough endpoint advantage under this window/blend.
+
+The practical next lever is not "more C^{-1} everywhere"; it is making this
+MLP-fc before-momentum signal survive to the endpoint with a cleaner schedule:
+shorter or decayed application, lower blend, or a control-matched window study.
+Do not call it WR-ready until it beats schedule-only by more than the current
+0.0004 mean gap at 200.
+```

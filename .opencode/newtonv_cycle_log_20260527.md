@@ -1476,3 +1476,76 @@ If the third replicate has inverse-before beating both baseline and matched
 controls, promote MLP-fc inverse-before to the next longer/checkpointed run.
 If it does not, treat the current mean as below the control/noise floor.
 ```
+
+## Cycle 13 H100 Result: MLP-fc Before-Momentum Third Replicate
+
+Modal app:
+
+```text
+ap-vpqU5R6hwjyD9RDXKgBpMh
+```
+
+Parsed 200-step results:
+
+```text
+mbc_baseline:                         3.8903, 706.63ms/step
+mbc_schedule_only_before:             3.8833, 618.07ms/step
+mbc_noop_before_r020_blend010:        3.8915, 601.79ms/step
+mbc_inverse_before_r020_blend010:     3.8873, 593.47ms/step
+```
+
+Intermediate anchors:
+
+```text
+step 50:
+  baseline             5.6045
+  schedule-only        5.6042
+  no-op before         5.6043
+  inverse before       5.6119
+
+step 100:
+  baseline             4.6847
+  schedule-only        4.6931
+  no-op before         4.6959
+  inverse before       4.6764
+
+step 150:
+  baseline             4.1315
+  schedule-only        4.1203
+  no-op before         4.1277
+  inverse before       4.1176
+```
+
+Three-run endpoint table:
+
+```text
+                 run A    run B    run C    mean
+baseline         3.8853   3.8863   3.8903   3.8873
+schedule-only    3.8909   3.8808   3.8833   3.8850
+no-op before     3.8795   3.8907   3.8915   3.8872
+inverse before   3.8875   3.8789   3.8873   3.8846
+```
+
+Three-run step-150 table:
+
+```text
+                 run A    run B    run C    mean
+baseline         4.1196   4.1184   4.1315   4.1232
+schedule-only    4.1245   4.1126   4.1203   4.1191
+no-op before     4.1124   4.1213   4.1277   4.1205
+inverse before   4.1184   4.1075   4.1176   4.1145
+```
+
+Decision:
+
+```text
+MLP-fc inverse-before is the best active right-preconditioner line remaining,
+but the margin is not WR-grade. Its three-run 200-step mean beats baseline by
+0.0027 and schedule-only by only 0.0004. At step 150 the signal is clearer:
+inverse-before beats baseline by 0.0087 and schedule-only by 0.0046.
+
+Do not promote to a record attempt. The only plausible follow-up is a targeted
+MLP-fc timing/window study that tries to preserve the step-150 benefit without
+endpoint fade. New surface sweeps should remain lower priority until this is
+understood.
+```
