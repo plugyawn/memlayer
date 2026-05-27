@@ -928,3 +928,30 @@ Do not widen QKVO to 0-3 in this form. The full-path/window no-op is strong,
 but the active metric-polar update loses to it by 0.0089 at 120.
 Return to QKVO 0-1 and replicate the 200-step matched-control win.
 ```
+
+QKVO 0-1 replicate:
+
+```text
+qmp_baseline:                 3.8856
+qmp_qkvo_noop_metric_polar4:  3.8869
+qmp_qkvo_cholmetric_polar4:   3.8872
+```
+
+Decision:
+
+```text
+The QKVO 0-1 metric-polar 200-step win did not replicate. Treat the active
+metric result as variance-scale, not promotion-ready. The stronger repeated
+observation is that full-path/window controls can move loss substantially.
+```
+
+Next isolation:
+
+```text
+NEWTONV_SUITE=qkvo_schedule
+QS_STEPS=200
+QS_LAYERS=0-3
+```
+
+This tests whether the strong QKVO 0-3 no-op/window signal survives as a
+schedule-only full-path change without feature-stat/preconditioner work.

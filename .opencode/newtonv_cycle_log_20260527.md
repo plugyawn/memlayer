@@ -752,3 +752,41 @@ QMP_LAYERS=0-1
 
 Purpose: replicate the QKVO 0-1 200-step active win before tuning windows,
 blend, or ridge.
+
+## Cycle 5 H100 Result: qkvo_metric_repl
+
+Modal app:
+
+```text
+ap-pXpIjbZKwzP0924aTXwy8s
+```
+
+Parsed 200-step results:
+
+```text
+qmp_baseline:                 3.8856, 602.28ms/step
+qmp_qkvo_noop_metric_polar4:  3.8869, 590.51ms/step
+qmp_qkvo_cholmetric_polar4:   3.8872, 592.70ms/step
+```
+
+Interpretation:
+
+```text
+The QKVO 0-1 active metric-polar win did not replicate.
+It lost to the matched no-op by 0.0003 and to baseline by 0.0016.
+Treat QKVO 0-1 active as variance-scale until a tuned variant produces a larger
+matched-control gap.
+```
+
+Prepared schedule/full-path isolation:
+
+```text
+NEWTONV_SUITE=qkvo_schedule
+QS_STEPS=200
+QS_VAL_EVERY=50
+QS_LAYERS=0-3
+```
+
+Purpose: test whether the strong 0-3 no-op/window result survives when stripped
+down to `LOCO_FULL_SCHEDULE_ONLY=1`, i.e. explicit after-momentum polar4 path
+without full feature-stat collection/preconditioner work.
