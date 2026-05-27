@@ -383,3 +383,43 @@ Add a narrow MLP c_fc full/metric path only if V-only metric-polar fails or
 ties the no-op at 200 but diagnostics still show the right metric surviving.
 Do not spend 8xH100 on this before a 1xH100 MLP c_fc screen beats no-op.
 ```
+
+## Cycle 3 Plan Revision
+
+Timestamp: `2026-05-27 21:29 IST`.
+
+User instruction: do not read PR233. The PR233 audit path is dropped.
+
+The next H100 run is now:
+
+```text
+NEWTONV_SUITE=paper_v_promote
+```
+
+Reason:
+
+```text
+metricv_promote answers the clean V-only activation-metric question, but the
+current stronger blocker is that before-momentum/paper-style filters were not
+judged against a before-momentum no-op, and finite/power V 0-1 were only
+patched after the last H100 run.
+```
+
+The new suite runs:
+
+```text
+baseline
+V 0-1 before-momentum no-op, ridge 0.20, blend 0.10 shape
+V 0-1 after-momentum no-op polar4
+V 0-1 finite-time clipped filter, ridge 0.20
+V 0-1 power 0.5 clipped filter, ridge 0.20
+V 0-1 inverse, ridge 0.20
+V 0-1 metric-polar, ridge 0.20, blend 0.05, norm restore
+```
+
+Cadence state:
+
+```text
+Meditation window started around 21:06 IST.
+Do not launch the next H100 before about 22:06 IST unless the user overrides.
+```

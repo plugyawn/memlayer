@@ -846,6 +846,124 @@ run_metricv_promote_ladder() {
     bash tools/run_newtonv_raw_v01_gate.sh
 }
 
+run_paper_v_promote_ladder() {
+  local pvp_steps="${PVP_STEPS:-200}"
+  local pvp_val_every="${PVP_VAL_EVERY:-50}"
+  local pvp_collect="${PVP_COLLECT_WINDOWS:-0-64}"
+  local pvp_windows="${PVP_WINDOWS:-48-112}"
+
+  run_case pvp_baseline \
+    NEWTONV_VARIANT=baseline \
+    SCREEN_STEPS="${pvp_steps}" \
+    SCREEN_VAL_EVERY="${pvp_val_every}" \
+    bash tools/run_newtonv_timing_triplet_gate.sh
+
+  run_case pvp_v01_noop_before_r020_blend010 \
+    LOCO_FULL_NOOP=1 \
+    LOCO_FULL_SURFACES=v \
+    LOCO_DIAG_ATTN_LAYERS=0-1 \
+    LOCO_FULL_COLLECT_WINDOWS="${pvp_collect}" \
+    LOCO_FULL_WINDOWS="${pvp_windows}" \
+    LOCO_FULL_APPLY_BEFORE_MOMENTUM=1 \
+    LOCO_FULL_REFRESH_INTERVAL=16 \
+    LOCO_FULL_EMA_BETA=0.8 \
+    LOCO_FULL_RIDGE_REL=0.2 \
+    LOCO_FULL_BLEND_MAX=0.10 \
+    LOCO_FULL_BLEND_STEPS=32 \
+    LOCO_FULL_FILTER=inverse \
+    LOCO_FULL_NORM_RESTORE=1 \
+    SCREEN_STEPS="${pvp_steps}" \
+    SCREEN_VAL_EVERY="${pvp_val_every}" \
+    bash tools/run_newtonv_raw_v01_gate.sh
+
+  run_case pvp_v01_noop_after_polar4 \
+    NEWTONV_VARIANT=noop \
+    LOCO_FULL_SURFACES=v \
+    LOCO_DIAG_ATTN_LAYERS=0-1 \
+    LOCO_FULL_COLLECT_WINDOWS="${pvp_collect}" \
+    LOCO_FULL_WINDOWS="${pvp_windows}" \
+    LOCO_FULL_POLAR_ITERS=4 \
+    LOCO_FULL_FILTER=inverse \
+    LOCO_FULL_NORM_RESTORE=1 \
+    SCREEN_STEPS="${pvp_steps}" \
+    SCREEN_VAL_EVERY="${pvp_val_every}" \
+    bash tools/run_newtonv_timing_triplet_gate.sh
+
+  run_case pvp_finite_v01_before_r020_blend010 \
+    LOCO_FULL_SURFACES=v \
+    LOCO_DIAG_ATTN_LAYERS=0-1 \
+    LOCO_FULL_COLLECT_WINDOWS="${pvp_collect}" \
+    LOCO_FULL_WINDOWS="${pvp_windows}" \
+    LOCO_FULL_APPLY_BEFORE_MOMENTUM=1 \
+    LOCO_FULL_REFRESH_INTERVAL=16 \
+    LOCO_FULL_EMA_BETA=0.8 \
+    LOCO_FULL_RIDGE_REL=0.2 \
+    LOCO_FULL_FILTER=finite \
+    LOCO_FULL_FINITE_T=1.0 \
+    LOCO_FULL_POWER_CLIP=2.0 \
+    LOCO_FULL_BLOCK_SIZE=0 \
+    LOCO_FULL_STATIC_NORM=1 \
+    LOCO_FULL_NORM_RESTORE=0 \
+    LOCO_FULL_BLEND_MAX=0.10 \
+    LOCO_FULL_BLEND_STEPS=32 \
+    SCREEN_STEPS="${pvp_steps}" \
+    SCREEN_VAL_EVERY="${pvp_val_every}" \
+    bash tools/run_newtonv_block_power_gate.sh
+
+  run_case pvp_power05_v01_before_r020_blend010 \
+    LOCO_FULL_SURFACES=v \
+    LOCO_DIAG_ATTN_LAYERS=0-1 \
+    LOCO_FULL_COLLECT_WINDOWS="${pvp_collect}" \
+    LOCO_FULL_WINDOWS="${pvp_windows}" \
+    LOCO_FULL_APPLY_BEFORE_MOMENTUM=1 \
+    LOCO_FULL_REFRESH_INTERVAL=16 \
+    LOCO_FULL_EMA_BETA=0.8 \
+    LOCO_FULL_RIDGE_REL=0.2 \
+    LOCO_FULL_FILTER=power \
+    LOCO_FULL_POWER_ALPHA=0.5 \
+    LOCO_FULL_POWER_CLIP=2.0 \
+    LOCO_FULL_BLOCK_SIZE=0 \
+    LOCO_FULL_STATIC_NORM=1 \
+    LOCO_FULL_NORM_RESTORE=0 \
+    LOCO_FULL_BLEND_MAX=0.10 \
+    LOCO_FULL_BLEND_STEPS=32 \
+    SCREEN_STEPS="${pvp_steps}" \
+    SCREEN_VAL_EVERY="${pvp_val_every}" \
+    bash tools/run_newtonv_block_power_gate.sh
+
+  run_case pvp_inverse_v01_before_r020_blend010 \
+    LOCO_FULL_SURFACES=v \
+    LOCO_DIAG_ATTN_LAYERS=0-1 \
+    LOCO_FULL_COLLECT_WINDOWS="${pvp_collect}" \
+    LOCO_FULL_WINDOWS="${pvp_windows}" \
+    LOCO_FULL_APPLY_BEFORE_MOMENTUM=1 \
+    LOCO_FULL_REFRESH_INTERVAL=16 \
+    LOCO_FULL_EMA_BETA=0.8 \
+    LOCO_FULL_RIDGE_REL=0.2 \
+    LOCO_FULL_BLEND_MAX=0.10 \
+    LOCO_FULL_BLEND_STEPS=32 \
+    LOCO_FULL_FILTER=inverse \
+    LOCO_FULL_NORM_RESTORE=1 \
+    SCREEN_STEPS="${pvp_steps}" \
+    SCREEN_VAL_EVERY="${pvp_val_every}" \
+    bash tools/run_newtonv_raw_v01_gate.sh
+
+  run_case pvp_cholmetric_v01_after_r020_blend005_norm \
+    LOCO_FULL_SURFACES=v \
+    LOCO_DIAG_ATTN_LAYERS=0-1 \
+    LOCO_FULL_COLLECT_WINDOWS="${pvp_collect}" \
+    LOCO_FULL_WINDOWS="${pvp_windows}" \
+    LOCO_FULL_METRIC_POLAR=1 \
+    LOCO_FULL_NORM_RESTORE=1 \
+    LOCO_FULL_RIDGE_REL=0.20 \
+    LOCO_FULL_BLEND_MAX=0.05 \
+    LOCO_FULL_BLEND_STEPS=32 \
+    LOCO_FULL_POLAR_ITERS=4 \
+    SCREEN_STEPS="${pvp_steps}" \
+    SCREEN_VAL_EVERY="${pvp_val_every}" \
+    bash tools/run_newtonv_raw_v01_gate.sh
+}
+
 run_metricsurface_ladder() {
   local mps_steps="${MPS_STEPS:-120}"
   local mps_val_every="${MPS_VAL_EVERY:-40}"
@@ -987,6 +1105,9 @@ case "${suite}" in
   metricv_promote)
     run_metricv_promote_ladder
     ;;
+  paper_v_promote)
+    run_paper_v_promote_ladder
+    ;;
   metricsurfaces)
     run_metricsurface_ladder
     ;;
@@ -1001,7 +1122,7 @@ case "${suite}" in
       bash tools/run_newtonv_raw_v01_gate.sh
     ;;
   *)
-    echo "NEWTONV_SUITE must be timing, filters, quick, raw200, promote, polar4, permutations, next, tail, warmmetric, overprecond, overpromote, scheduleonly, preconddiag, schedule_diag, rightfilter, paperstyle, paperfilter, metricpolar, metricpromote, metricsurfaces, or all; got ${suite}" >&2
+    echo "NEWTONV_SUITE must be timing, filters, quick, raw200, promote, polar4, permutations, next, tail, warmmetric, overprecond, overpromote, scheduleonly, preconddiag, schedule_diag, rightfilter, paperstyle, paperfilter, metricpolar, metricpromote, metricv_promote, paper_v_promote, metricsurfaces, or all; got ${suite}" >&2
     exit 2
     ;;
 esac

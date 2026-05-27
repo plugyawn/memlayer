@@ -620,3 +620,53 @@ Kill criteria:
 - `tools/modal_h100_probe.py` and `tools/modal_billing_check.sh` are ready, but
   Modal still needs the token secret half before they can authenticate.
 - Do not spend 8xH100 on direct LocoProp-S or full MLP-proj.
+
+## Cycle 3, Revised Next Ladder
+
+At `2026-05-27 21:29 IST`, the next H100 slot is still held until about
+`22:06 IST` by the one-hour think/run cadence. PR233 is explicitly out of
+scope; continue only on this branch.
+
+The next run should be `NEWTONV_SUITE=paper_v_promote`, not broad surface
+expansion. It is a 200-step, no-op-matched V `0-1` ladder:
+
+```text
+pvp_baseline
+pvp_v01_noop_before_r020_blend010
+pvp_v01_noop_after_polar4
+pvp_finite_v01_before_r020_blend010
+pvp_power05_v01_before_r020_blend010
+pvp_inverse_v01_before_r020_blend010
+pvp_cholmetric_v01_after_r020_blend005_norm
+```
+
+Why this ladder:
+
+```text
+1. The only persistent active signal remains full V inverse.
+2. Prior active variants did not beat no-op/full-path controls at 200.
+3. Paper-style Newton-Muon uses stronger damping than our first V screens:
+   ridge_rel about 0.2, refresh 16/32, EMA 0.8/0.95.
+4. Before-momentum variants need a before-momentum no-op control because
+   LOCO_FULL_POLAR_ITERS only affects the after-momentum operand path.
+5. Metric-polar keeps C^-1/2 outside Polar, so test it only as a damped V-only
+   safety probe before touching QK/O again.
+```
+
+Promotion rule for this ladder:
+
+```text
+At 200 steps, an active treatment must beat both the ordinary baseline and the
+matched no-op path by at least about 0.003 loss. A pure baseline win without a
+no-op win is not enough.
+```
+
+Launch command after the cadence window:
+
+```bash
+NANOGPT_MODAL_GPU=H100 \
+MODAL_RUNNER=tools/run_newtonv_experiment_suite.sh \
+MODAL_EXTRA_ENV_JSON='{"NEWTONV_SUITE":"paper_v_promote","NEWTONV_SUITE_LABEL":"modal_paper_v_promote_h100_20260527","PVP_STEPS":"200","PVP_VAL_EVERY":"50"}' \
+SCREEN_STEPS=200 SCREEN_VAL_EVERY=50 \
+tools/run_modal_newtonv_raw_gate.sh
+```
