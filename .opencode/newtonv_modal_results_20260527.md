@@ -445,12 +445,27 @@ Parsed final results:
 | overpromote_v01_warm_active_polar5 | 200 | 3.8869 | 120.464 | 602.32 | 280.73 | 616.97 | 37430 |
 | overpromote_v01_warm_active_polar4 | 200 | 3.8887 | 120.959 | 604.79 | 279.69 | 619.62 | 37430 |
 
+Validation checkpoints:
+
+| case | step 50 | step 100 | step 150 | step 200 | delta vs baseline @200 |
+| --- | ---: | ---: | ---: | ---: | ---: |
+| overpromote_baseline | 5.5870 | 4.6961 | 4.1168 | 3.8882 | +0.0000 |
+| overpromote_v01_warm_noop_polar4 | 5.6061 | 4.6909 | 4.1338 | 3.8918 | +0.0036 |
+| overpromote_v01_warm_noop_polar5 | 5.6231 | 4.6886 | 4.1190 | 3.8856 | -0.0026 |
+| overpromote_vall_warm_noop_polar4 | 5.6231 | 4.7031 | 4.1176 | 3.8851 | -0.0031 |
+| overpromote_v01_warm_active_polar5 | 5.6301 | 4.6890 | 4.1164 | 3.8869 | -0.0013 |
+| overpromote_v01_warm_active_polar4 | 5.6403 | 4.6826 | 4.1220 | 3.8887 | +0.0005 |
+
 Read:
 
 - This demotes Newton-specific V for the current warm-window candidate. Active
   V0-1 polar4 did not beat baseline or the no-op controls at 200 steps.
 - The strongest line was the no-op/full-path schedule: all-V no-op polar4
   landed at `3.8851`, a `0.0031` gain versus baseline.
+- The winning no-op lines were not uniformly better early. Both strong controls
+  were worse at step 50, recovered around steps 100-150, then won by step 200.
+  Treat this as an optimizer-trajectory effect, not a simple first-50-step
+  acceleration.
 - Matched V0-1 no-op polar5 also beat baseline: `3.8856`, a `0.0026` gain.
 - Active Newton-V polar5 beat baseline but did not beat the best no-op control:
   `3.8869` versus `3.8851`.
@@ -485,6 +500,20 @@ Prepared runner:
 
 ```text
 NEWTONV_SUITE=scheduleonly
+```
+
+Promotion rule:
+
+```text
+Promote no-stats schedule-only if:
+  final @200 <= baseline - 0.003
+  final @200 <= collection-enabled no-op replicate
+  non-refresh timing <= baseline * 1.03
+
+Kill no-stats schedule-only if:
+  final @200 is within +/-0.002 of baseline or worse
+  only collection-enabled no-op variants retain the win
+  polar4/polar5 ordering is unstable across same-suite controls
 ```
 
 If the no-refresh no-op keeps the `~0.002-0.003` gain with near-baseline timing,

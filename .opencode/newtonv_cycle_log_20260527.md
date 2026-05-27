@@ -132,6 +132,8 @@ Interpretation:
   win in this window.
 - Active V0-1 polar4 was worse than baseline, despite the 120-step hint.
 - Active V0-1 polar5 beat baseline but lost to both strong no-op controls.
+- The best no-op controls were worse at step 50 and only won by step 200, so
+  the signal is a late trajectory change rather than an early acceleration.
 - Important nuance: no-op/full-path activation is param-bank level. With
   `LOCO_FULL_SURFACES=v`, the whole `vo_bank` goes through the explicit
   after-momentum full path; layer selection only controls feature collection and
@@ -155,6 +157,22 @@ collection.
 
 Follow-up patch prepared `LOCO_FULL_SCHEDULE_ONLY=1` and
 `NEWTONV_SUITE=scheduleonly`.
+
+Code-audit read:
+
+```text
+LOCO_FULL_SCHEDULE_ONLY=1:
+  - disables full feature collection and factor refresh
+  - skips the right-preconditioner / identity helper
+  - preserves explicit Nesterov operand -> polar_express_from_operand
+  - still allocates the full-stat buffers because LOCO_FULL_SURFACES is active
+```
+
+Promote schedule-only only if a no-stats case beats same-suite baseline by
+`>=0.003` at step 200, matches or beats the collection-enabled no-op replicate,
+and keeps non-refresh timing within about `2-3%` of baseline. Kill it if the
+no-stats variants are within `+/-0.002` of baseline or only the collection
+replicates win.
 
 Next H100 command after the required audit window:
 

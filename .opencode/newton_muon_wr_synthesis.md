@@ -226,6 +226,11 @@ explicit Nesterov operand, `polar_express_from_operand`, and NorMuon variance
 reduction under the window schedule. The cached V-input right preconditioner is
 not the winning part of this 200-step ladder.
 
+This was not a pure early-speedup result. The best no-op controls were worse at
+step 50 and only won by step 200, so the mechanism is likely a trajectory or
+regularization change in the VO-bank optimizer path rather than a simple early
+loss accelerator.
+
 Important implementation nuance: the full-path switch is bank-level. Once
 `LOCO_FULL_SURFACES=v` activates the `vo_bank`, the whole VO bank uses the
 explicit after-momentum path. Layer selection controls feature collection and
@@ -263,6 +268,9 @@ For a fresh 1xH100 or Modal H100:
    no-refresh VO-bank no-op polar4, and matching collection-enabled no-op
    replicates.
    Prepared suite: `NEWTONV_SUITE=scheduleonly`.
+   Promotion bar: no-stats schedule-only must beat same-suite baseline by
+   `>=0.003` at 200 steps, match or beat the collection-enabled no-op replicate,
+   and keep non-refresh timing within roughly `2-3%` of baseline.
 6. Only if the no-op schedule keeps a `>=0.002` 200-step gain with near-baseline
    timing should it get an 8-GPU smoke.
 7. Launch a full 8xH100 record attempt only after both the 200-step loss gate
