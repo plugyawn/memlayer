@@ -401,6 +401,7 @@ Next GPU-hour gate:
 200-step same-suite:
   baseline
   warm V 0-1 no-op polar4
+  warm all-V no-op polar4
   warm V active polar4
 ```
 
@@ -410,3 +411,8 @@ Promote only if active beats both baseline and the matched no-op by at least
 `0.002` at 200 steps. If matched no-op beats active or active fades, the
 Newton-specific part should be demoted and the no-op polar4 path should become
 the new branch.
+
+Mechanism note: `LOCO_FULL_NOOP=1` still uses the full after-momentum path
+during the apply window; it just passes blend zero to the feature preconditioner.
+So the no-op result is not pure overhead. It is a real polar4/full-path schedule
+ablation.

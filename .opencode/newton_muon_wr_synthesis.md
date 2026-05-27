@@ -212,6 +212,21 @@ This is not yet WR-ready because the 120-step suite is noisy and the no-op
 control was mismatched. The next gate is a 200-step same-suite
 baseline/matched-no-op/active run.
 
+Mechanism note: `LOCO_FULL_NOOP=1` is not the same as baseline. During the
+apply window it sets the full-path blend to zero, but still routes the selected
+matrix bank through:
+
+```text
+raw grad -> Nesterov operand -> full-path helper with blend=0
+         -> polar_express_from_operand(LOCO_FULL_POLAR_ITERS)
+         -> NorMuon variance reduction
+```
+
+So the no-op control is really a polar/full-path schedule ablation. The
+overprecond no-op happened to be all-V; the next gate should keep both matched
+V0-1 no-op and all-V no-op so we can separate Newton-specific signal from the
+polar4 schedule signal.
+
 ## GPU-Ready Queue
 
 For a fresh 1xH100 or Modal H100:

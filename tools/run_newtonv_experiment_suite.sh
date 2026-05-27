@@ -325,6 +325,16 @@ run_overpromote_ladder() {
     SCREEN_VAL_EVERY="${promote_val_every}" \
     bash tools/run_newtonv_timing_triplet_gate.sh
 
+  run_case overpromote_vall_warm_noop_polar4 \
+    NEWTONV_VARIANT=noop \
+    LOCO_DIAG_ATTN_LAYERS=all \
+    LOCO_FULL_COLLECT_WINDOWS=0-64 \
+    LOCO_FULL_WINDOWS=48-112 \
+    LOCO_FULL_POLAR_ITERS=4 \
+    SCREEN_STEPS="${promote_steps}" \
+    SCREEN_VAL_EVERY="${promote_val_every}" \
+    bash tools/run_newtonv_timing_triplet_gate.sh
+
   run_case overpromote_v01_warm_active_polar4 \
     LOCO_FULL_COLLECT_WINDOWS=0-64 \
     LOCO_FULL_WINDOWS=48-112 \
