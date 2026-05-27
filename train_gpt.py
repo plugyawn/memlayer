@@ -95,8 +95,21 @@ LOCO_FULL_APPLY_INTERVAL = int(os.environ.get("LOCO_FULL_APPLY_INTERVAL", "1"))
 LOCO_FULL_PRECOND_DTYPE = os.environ.get("LOCO_FULL_PRECOND_DTYPE", "fp32").lower()
 if LOCO_FULL_PRECOND_DTYPE not in {"fp32", "bf16"}:
     raise ValueError("LOCO_FULL_PRECOND_DTYPE must be 'fp32' or 'bf16'")
+LOCO_FULL_FILTER = os.environ.get("LOCO_FULL_FILTER", "inverse").lower()
+if LOCO_FULL_FILTER not in {"inverse", "topshrink"}:
+    raise ValueError("LOCO_FULL_FILTER must be 'inverse' or 'topshrink'")
+LOCO_FULL_TOPSHRINK = LOCO_FULL_FILTER == "topshrink"
+LOCO_FULL_SHRINK_RANK = int(os.environ.get("LOCO_FULL_SHRINK_RANK", "64"))
+LOCO_FULL_SHRINK_T = float(os.environ.get("LOCO_FULL_SHRINK_T", "1.0"))
+LOCO_FULL_SHRINK_CLIP = float(os.environ.get("LOCO_FULL_SHRINK_CLIP", "2.0"))
 if LOCO_FULL_APPLY_INTERVAL <= 0:
     raise ValueError("LOCO_FULL_APPLY_INTERVAL must be positive")
+if LOCO_FULL_SHRINK_RANK <= 0:
+    raise ValueError("LOCO_FULL_SHRINK_RANK must be positive")
+if LOCO_FULL_SHRINK_T <= 0:
+    raise ValueError("LOCO_FULL_SHRINK_T must be positive")
+if LOCO_FULL_SHRINK_CLIP < 1:
+    raise ValueError("LOCO_FULL_SHRINK_CLIP must be >= 1")
 LOCO_FULL_PRECOND_BF16 = LOCO_FULL_PRECOND_DTYPE == "bf16"
 LOCO_FEATURE_ACTIVE = LOCO_DIAG_ACTIVE or LOCO_FULL_ACTIVE
 
@@ -1338,6 +1351,13 @@ class NorMuonAndAdam:
                         self.loco_diag_model.loco_full_o_inv[layer_idx],
                         self._loco_full_blend_t,
                     )
+            elif LOCO_FULL_TOPSHRINK:
+                NorMuonAndAdam._loco_full_topshrink_precondition_cols_inplace(
+                    grad_chunk[mat_idx],
+                    self.loco_diag_model.loco_full_v_shrink_u[layer_idx],
+                    self.loco_diag_model.loco_full_v_shrink_delta[layer_idx],
+                    self._loco_full_blend_t,
+                )
             elif LOCO_FULL_PRECOND_BF16:
                 NorMuonAndAdam._loco_full_right_inverse_bf16_precondition_cols_inplace(
                     grad_chunk[mat_idx],
@@ -1367,7 +1387,14 @@ class NorMuonAndAdam:
             if not _loco_diag_layer_active(model_layer, LOCO_DIAG_ATTN_LAYER_SET):
                 continue
             before_norm = grad_chunk[mat_idx].float().norm() if self._loco_log_step else None
-            if LOCO_FULL_PRECOND_BF16:
+            if LOCO_FULL_TOPSHRINK:
+                NorMuonAndAdam._loco_full_topshrink_precondition_cols_inplace(
+                    grad_chunk[mat_idx],
+                    self.loco_diag_model.loco_full_v_shrink_u[layer_idx],
+                    self.loco_diag_model.loco_full_v_shrink_delta[layer_idx],
+                    self._loco_full_blend_t,
+                )
+            elif LOCO_FULL_PRECOND_BF16:
                 NorMuonAndAdam._loco_full_right_inverse_bf16_precondition_cols_inplace(
                     grad_chunk[mat_idx],
                     self.loco_diag_model.loco_full_v_inv_bf16[layer_idx],
@@ -1528,6 +1555,13 @@ class NorMuonAndAdam:
         solved = (original.bfloat16() @ c_inv).float()
         solved = solved.mul(original.norm().div(solved.norm().clamp_min(1e-12)))
         grad.copy_(original + blend_tensor.to(torch.float32) * (solved - original))
+
+    @staticmethod
+    @torch.compile(dynamic=False, fullgraph=True)
+    def _loco_full_topshrink_precondition_cols_inplace(grad, basis, delta, blend_tensor):
+        original = grad.float()
+        correction = (original @ basis).mul(delta.view(1, -1)) @ basis.T
+        grad.copy_(original + blend_tensor.to(torch.float32) * correction)
 
     @staticmethod
     @torch.compile(dynamic=False, fullgraph=True)
@@ -1860,6 +1894,7 @@ class GPT(nn.Module):
         self.loco_full_qk_owned_layers = frozenset()
         self.loco_full_o_owned_layers = frozenset()
         self.loco_full_attn_in_owned_layers = frozenset()
+        self.loco_full_shrink_rank = min(LOCO_FULL_SHRINK_RANK, model_dim)
         if LOCO_FULL_ATTN_IN:
             self.register_buffer("loco_full_v_gram", torch.zeros(num_layers - 1, model_dim, model_dim, dtype=torch.float32), persistent=False)
             self.register_buffer("loco_full_v_gram_ema", torch.zeros(num_layers - 1, model_dim, model_dim, dtype=torch.float32), persistent=False)
@@ -1867,6 +1902,9 @@ class GPT(nn.Module):
             self.register_buffer("loco_full_v_inv", torch.eye(model_dim, dtype=torch.float32).repeat(num_layers - 1, 1, 1), persistent=False)
             self.register_buffer("loco_full_v_inv_bf16", torch.eye(model_dim, dtype=torch.bfloat16).repeat(num_layers - 1, 1, 1), persistent=False)
             self.register_buffer("loco_full_eye", torch.eye(model_dim, dtype=torch.float32), persistent=False)
+            if LOCO_FULL_TOPSHRINK:
+                self.register_buffer("loco_full_v_shrink_u", torch.zeros(num_layers - 1, model_dim, self.loco_full_shrink_rank, dtype=torch.float32), persistent=False)
+                self.register_buffer("loco_full_v_shrink_delta", torch.zeros(num_layers - 1, self.loco_full_shrink_rank, dtype=torch.float32), persistent=False)
         if LOCO_FULL_O:
             self.register_buffer("loco_full_o_gram", torch.zeros(num_layers - 1, num_heads, head_dim, head_dim, dtype=torch.float32), persistent=False)
             self.register_buffer("loco_full_o_gram_ema", torch.zeros(num_layers - 1, num_heads, head_dim, head_dim, dtype=torch.float32), persistent=False)
@@ -2623,6 +2661,7 @@ class TrainingManager():
                 f"qk_layers={sorted(loco_model.loco_full_qk_owned_layers)} "
                 f"v_layers={sorted(loco_model.loco_full_v_owned_layers)} "
                 f"o_layers={sorted(loco_model.loco_full_o_owned_layers)} "
+                f"filter={LOCO_FULL_FILTER} shrink_rank={loco_model.loco_full_shrink_rank} "
                 f"precond_dtype={LOCO_FULL_PRECOND_DTYPE} local_stats={int(LOCO_FULL_LOCAL_STATS)} "
                 f"apply_interval={LOCO_FULL_APPLY_INTERVAL}",
                 console=True,
@@ -2721,13 +2760,28 @@ class TrainingManager():
                     else:
                         ema.lerp_(gram, 1 - beta)
                     mean_diag = ema.diagonal().mean().clamp_min(1e-12)
-                    c_reg = ema + (LOCO_FULL_RIDGE_REL * mean_diag) * loco_model.loco_full_eye
-                    chol = torch.linalg.cholesky(c_reg)
-                    c_inv = torch.cholesky_inverse(chol)
-                    c_inv = 0.5 * (c_inv + c_inv.T)
-                    loco_model.loco_full_v_chol[layer_idx].copy_(chol)
-                    loco_model.loco_full_v_inv[layer_idx].copy_(c_inv)
-                    loco_model.loco_full_v_inv_bf16[layer_idx].copy_(c_inv.to(torch.bfloat16))
+                    if LOCO_FULL_TOPSHRINK:
+                        c_norm = (ema + (LOCO_FULL_RIDGE_REL * mean_diag) * loco_model.loco_full_eye).div(
+                            (1.0 + LOCO_FULL_RIDGE_REL) * mean_diag
+                        )
+                        c_norm = 0.5 * (c_norm + c_norm.T)
+                        evals, evecs = torch.linalg.eigh(c_norm)
+                        lam, idx = torch.topk(evals, k=loco_model.loco_full_shrink_rank, largest=True)
+                        lam = lam.clamp_min(1e-8)
+                        basis = evecs[:, idx].contiguous()
+                        denom = 1.0 - math.exp(-LOCO_FULL_SHRINK_T)
+                        shrink = (1.0 - torch.exp(-LOCO_FULL_SHRINK_T * lam)).div(lam * denom)
+                        shrink = shrink.clamp(min=1.0 / LOCO_FULL_SHRINK_CLIP, max=1.0)
+                        loco_model.loco_full_v_shrink_u[layer_idx].copy_(basis)
+                        loco_model.loco_full_v_shrink_delta[layer_idx].copy_(shrink.sub(1.0))
+                    else:
+                        c_reg = ema + (LOCO_FULL_RIDGE_REL * mean_diag) * loco_model.loco_full_eye
+                        chol = torch.linalg.cholesky(c_reg)
+                        c_inv = torch.cholesky_inverse(chol)
+                        c_inv = 0.5 * (c_inv + c_inv.T)
+                        loco_model.loco_full_v_chol[layer_idx].copy_(chol)
+                        loco_model.loco_full_v_inv[layer_idx].copy_(c_inv)
+                        loco_model.loco_full_v_inv_bf16[layer_idx].copy_(c_inv.to(torch.bfloat16))
                 loco_model.loco_full_v_ema_initialized = True
             if LOCO_FULL_O:
                 for layer_idx in sorted(loco_model.loco_full_o_owned_layers):
@@ -2895,6 +2949,9 @@ class TrainingManager():
                 loco_model.loco_full_v_chol.copy_(loco_model.loco_full_eye.repeat(loco_model._num_attn_layers, 1, 1))
                 loco_model.loco_full_v_inv.copy_(loco_model.loco_full_eye.repeat(loco_model._num_attn_layers, 1, 1))
                 loco_model.loco_full_v_inv_bf16.copy_(loco_model.loco_full_eye.to(torch.bfloat16).repeat(loco_model._num_attn_layers, 1, 1))
+                if LOCO_FULL_TOPSHRINK:
+                    loco_model.loco_full_v_shrink_u.zero_()
+                    loco_model.loco_full_v_shrink_delta.zero_()
             if LOCO_FULL_O:
                 loco_model.loco_full_o_gram.zero_()
                 loco_model.loco_full_o_gram_ema.zero_()
