@@ -712,6 +712,63 @@ run_metricpromote_ladder() {
     bash tools/run_newtonv_timing_triplet_gate.sh
 }
 
+run_metricsurface_ladder() {
+  local mps_steps="${MPS_STEPS:-120}"
+  local mps_val_every="${MPS_VAL_EVERY:-40}"
+
+  run_case mps_qk01_cholmetric_polar4 \
+    NEWTONV_VARIANT=active \
+    LOCO_FULL_SURFACES=qk \
+    LOCO_DIAG_ATTN_LAYERS=0-1 \
+    LOCO_FULL_COLLECT_WINDOWS=0-64 \
+    LOCO_FULL_WINDOWS=48-112 \
+    LOCO_FULL_METRIC_POLAR=1 \
+    LOCO_FULL_NORM_RESTORE=0 \
+    LOCO_FULL_POLAR_ITERS=4 \
+    SCREEN_STEPS="${mps_steps}" \
+    SCREEN_VAL_EVERY="${mps_val_every}" \
+    bash tools/run_newtonv_timing_triplet_gate.sh
+
+  run_case mps_o01_cholmetric_polar4 \
+    NEWTONV_VARIANT=active \
+    LOCO_FULL_SURFACES=o \
+    LOCO_DIAG_ATTN_LAYERS=0-1 \
+    LOCO_FULL_COLLECT_WINDOWS=0-64 \
+    LOCO_FULL_WINDOWS=48-112 \
+    LOCO_FULL_METRIC_POLAR=1 \
+    LOCO_FULL_NORM_RESTORE=0 \
+    LOCO_FULL_POLAR_ITERS=4 \
+    SCREEN_STEPS="${mps_steps}" \
+    SCREEN_VAL_EVERY="${mps_val_every}" \
+    bash tools/run_newtonv_timing_triplet_gate.sh
+
+  run_case mps_qkvo01_cholmetric_polar4 \
+    NEWTONV_VARIANT=active \
+    LOCO_FULL_SURFACES=qk,v,o \
+    LOCO_DIAG_ATTN_LAYERS=0-1 \
+    LOCO_FULL_COLLECT_WINDOWS=0-64 \
+    LOCO_FULL_WINDOWS=48-112 \
+    LOCO_FULL_METRIC_POLAR=1 \
+    LOCO_FULL_NORM_RESTORE=0 \
+    LOCO_FULL_POLAR_ITERS=4 \
+    SCREEN_STEPS="${mps_steps}" \
+    SCREEN_VAL_EVERY="${mps_val_every}" \
+    bash tools/run_newtonv_timing_triplet_gate.sh
+
+  run_case mps_qkv03_cholmetric_polar4 \
+    NEWTONV_VARIANT=active \
+    LOCO_FULL_SURFACES=qk,v \
+    LOCO_DIAG_ATTN_LAYERS=0-3 \
+    LOCO_FULL_COLLECT_WINDOWS=0-64 \
+    LOCO_FULL_WINDOWS=48-112 \
+    LOCO_FULL_METRIC_POLAR=1 \
+    LOCO_FULL_NORM_RESTORE=0 \
+    LOCO_FULL_POLAR_ITERS=4 \
+    SCREEN_STEPS="${mps_steps}" \
+    SCREEN_VAL_EVERY="${mps_val_every}" \
+    bash tools/run_newtonv_timing_triplet_gate.sh
+}
+
 case "${suite}" in
   timing)
     run_timing_triplet
@@ -789,6 +846,9 @@ case "${suite}" in
     ;;
   metricpromote)
     run_metricpromote_ladder
+    ;;
+  metricsurfaces)
+    run_metricsurface_ladder
     ;;
   all)
     run_timing_triplet
