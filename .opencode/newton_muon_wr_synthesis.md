@@ -325,11 +325,16 @@ What would support the mechanism:
 3. The update changes in the C eigenbasis in the right direction:
    gain_corr_target is negative, and high_low_target < high_low_before.
 
-4. The effect is stable across steps/layers:
+4. C does not commute with the update's right geometry:
+   comm_norm and offdiag_frac are nontrivial. If C is diagonal in the right
+   singular basis of the Nesterov operand, exact polar will erase the
+   preconditioner.
+
+5. The effect is stable across steps/layers:
    the sign and order of magnitude persist after the first refresh, not just at
    one noisy early point.
 
-5. Polar does not erase it:
+6. Polar does not erase it:
    postpolar delta is nontrivial versus the same Nesterov operand without
    f(C). If postpolar cos is essentially 1, the right filter is being absorbed
    before it can matter.
@@ -342,8 +347,10 @@ What would falsify the current literal Newton-V form:
 2. gain_corr_target is near zero or positive.
 3. high_low_target increases, meaning high-feature-variance directions are not
    actually being suppressed.
-4. postpolar delta is near zero even when target_delta is nontrivial.
-5. target_delta is huge and target_cos is low, suggesting C^-1 is rotating too
+4. comm_norm/offdiag_frac are near zero, meaning C mostly only rescales the
+   right singular directions Muon will discard anyway.
+5. postpolar delta is near zero even when target_delta is nontrivial.
+6. target_delta is huge and target_cos is low, suggesting C^-1 is rotating too
    sharply for the tuned Polar/NorMuon stack.
 ```
 
@@ -351,6 +358,13 @@ The key ambiguity to resolve is "too weak" versus "wrong shape." If applied
 delta is tiny but target_delta/gain_corr look right, the next move is schedule
 or blend. If target_delta is large but unstable, the next move is clipped
 finite-time inverse or power inverse, not stronger literal inverse.
+
+The exact-sign caveat matters: `polar(G C^-1)` can only beat `polar(G)` through
+changing singular subspaces, not through keeping Newton singular values. If the
+logs show low commutator/off-diagonal mass but high raw target_delta, the
+preconditioner is mostly doing work that exact Muon discards. If the commutator
+is high but post-Polar delta is low, practical Polar/NorMuon is washing out the
+useful rotation.
 
 Prepared follow-up suite if the diagnostic run supports "right metric exists,
 literal inverse is too sharp":

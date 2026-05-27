@@ -933,6 +933,13 @@ class NorMuonAndAdam:
         k = min(64, max(1, evals.numel() // 4))
         log_lam = evals.float().clamp_min(1e-12).log()
         after_gain = after_e.div(before_e).clamp_min(1e-30).log()
+        gram_g = before.float().T @ before.float()
+        gram_g = 0.5 * (gram_g + gram_g.T)
+        comm = gram_g @ c_norm - c_norm @ gram_g
+        comm_norm = comm.norm().div(gram_g.norm().mul(c_norm.norm()).clamp_min(1e-12))
+        gram_g_in_c_basis = evecs.T @ gram_g @ evecs
+        offdiag = gram_g_in_c_basis - torch.diag(torch.diagonal(gram_g_in_c_basis))
+        offdiag_frac = offdiag.norm().div(gram_g_in_c_basis.norm().clamp_min(1e-12))
         stat = {
             "name": name,
             "layer": int(layer_idx),
@@ -942,6 +949,8 @@ class NorMuonAndAdam:
             "high_low_before": high_low_ratio(before_e, idx, k).item(),
             "high_low_after": high_low_ratio(after_e, idx, k).item(),
             "gain_corr_after": log_corr(log_lam, after_gain).item(),
+            "comm_norm": comm_norm.item(),
+            "offdiag_frac": offdiag_frac.item(),
             "high_low_target": None,
             "gain_corr_target": None,
         }
@@ -1024,7 +1033,9 @@ class NorMuonAndAdam:
                     f"high_low_after={stat['high_low_after']:.4e} "
                     f"high_low_target={stat['high_low_target'] if stat['high_low_target'] is not None else float('nan'):.4e} "
                     f"gain_corr_after={stat['gain_corr_after']:.6f} "
-                    f"gain_corr_target={stat['gain_corr_target'] if stat['gain_corr_target'] is not None else float('nan'):.6f}",
+                    f"gain_corr_target={stat['gain_corr_target'] if stat['gain_corr_target'] is not None else float('nan'):.6f} "
+                    f"comm_norm={stat['comm_norm']:.4e} "
+                    f"offdiag_frac={stat['offdiag_frac']:.4e}",
                     console=True,
                 )
             self._loco_full_eigen_energy_stats.clear()

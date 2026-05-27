@@ -40,7 +40,9 @@ EIGEN_ENERGY_RE = re.compile(
     r"high_low_after=(?P<high_low_after>[-+0-9.eE]+) "
     r"high_low_target=(?P<high_low_target>[-+0-9.eEnNaA]+) "
     r"gain_corr_after=(?P<gain_corr_after>[-+0-9.eE]+) "
-    r"gain_corr_target=(?P<gain_corr_target>[-+0-9.eEnNaA]+)"
+    r"gain_corr_target=(?P<gain_corr_target>[-+0-9.eEnNaA]+) "
+    r"comm_norm=(?P<comm_norm>[-+0-9.eE]+) "
+    r"offdiag_frac=(?P<offdiag_frac>[-+0-9.eE]+)"
 )
 POSTPOLAR_RE = re.compile(r"loco_full_postpolar step=(?P<step>\d+) (?P<body>.*)$")
 POSTPOLAR_SEG_RE = re.compile(
@@ -189,6 +191,8 @@ def main() -> None:
                 "high_low_target",
                 "gain_corr_after",
                 "gain_corr_target",
+                "comm_norm",
+                "offdiag_frac",
             ],
         )
     if merged["postpolar"]:
