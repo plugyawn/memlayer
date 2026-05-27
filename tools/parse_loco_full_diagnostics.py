@@ -5,6 +5,7 @@ import re
 from pathlib import Path
 
 
+CASE_START_RE = re.compile(r"^===== NEWTONV_CASE_START\s+(\S+)")
 PRECOND_RE = re.compile(r"loco_full_precond step=(?P<step>\d+) (?P<body>.*)$")
 PRECOND_SEG_RE = re.compile(
     r"(?P<name>\w+):n=(?P<n>\d+) layers=(?P<layers>[^ ]+) "
@@ -60,12 +61,16 @@ def number(value: str | None):
 
 def parse(path: Path) -> dict[str, list[dict]]:
     rows = {"precond": [], "spectrum": [], "eigen_energy": [], "postpolar": []}
+    current_case = path.stem
     for line in path.read_text(errors="replace").splitlines():
+        if m := CASE_START_RE.match(line):
+            current_case = m.group(1)
+            continue
         if m := PRECOND_RE.search(line):
             step = int(m.group("step"))
             for segment in m.group("body").split(" | "):
                 if sm := PRECOND_SEG_RE.fullmatch(segment.strip()):
-                    row = {"log": str(path), "step": step}
+                    row = {"case": current_case, "log": str(path), "step": step}
                     row.update({k: v for k, v in sm.groupdict().items() if k in {"name", "layers"}})
                     for key, value in sm.groupdict().items():
                         if key not in {"name", "layers"}:
@@ -73,13 +78,13 @@ def parse(path: Path) -> dict[str, list[dict]]:
                     rows["precond"].append(row)
             continue
         if m := SPECTRUM_RE.search(line):
-            row = {"log": str(path)}
+            row = {"case": current_case, "log": str(path)}
             for key, value in m.groupdict().items():
                 row[key] = int(value) if key in {"step", "layer"} else (value if key == "name" else number(value))
             rows["spectrum"].append(row)
             continue
         if m := EIGEN_ENERGY_RE.search(line):
-            row = {"log": str(path)}
+            row = {"case": current_case, "log": str(path)}
             for key, value in m.groupdict().items():
                 row[key] = (
                     int(value)
@@ -92,7 +97,7 @@ def parse(path: Path) -> dict[str, list[dict]]:
             step = int(m.group("step"))
             for segment in m.group("body").split(" | "):
                 if sm := POSTPOLAR_SEG_RE.fullmatch(segment.strip()):
-                    row = {"log": str(path), "step": step}
+                    row = {"case": current_case, "log": str(path), "step": step}
                     for key, value in sm.groupdict().items():
                         row[key] = (
                             int(value)
@@ -142,6 +147,7 @@ def main() -> None:
             merged["precond"],
             [
                 "step",
+                "case",
                 "name",
                 "layers",
                 "blend",
@@ -157,6 +163,7 @@ def main() -> None:
             merged["spectrum"],
             [
                 "step",
+                "case",
                 "name",
                 "layer",
                 "eig_p50",
@@ -173,6 +180,7 @@ def main() -> None:
             merged["eigen_energy"],
             [
                 "step",
+                "case",
                 "name",
                 "layer",
                 "blend",
@@ -187,7 +195,7 @@ def main() -> None:
         print("## Post-Polar")
         print_table(
             merged["postpolar"],
-            ["step", "name", "layer", "delta", "cos", "norm"],
+            ["step", "case", "name", "layer", "delta", "cos", "norm"],
         )
 
 
