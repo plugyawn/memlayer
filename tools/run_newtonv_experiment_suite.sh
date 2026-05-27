@@ -1136,6 +1136,65 @@ run_mlpfc_ladder() {
     bash tools/run_newtonv_raw_v01_gate.sh
 }
 
+run_mlpfc_promote_ladder() {
+  local mfp_steps="${MFP_STEPS:-200}"
+  local mfp_val_every="${MFP_VAL_EVERY:-50}"
+  local mfp_layers="${MFP_LAYERS:-0-1}"
+  local mfp_collect="${MFP_COLLECT_WINDOWS:-0-64}"
+  local mfp_windows="${MFP_WINDOWS:-48-112}"
+
+  run_case mfp_baseline \
+    NEWTONV_VARIANT=baseline \
+    SCREEN_STEPS="${mfp_steps}" \
+    SCREEN_VAL_EVERY="${mfp_val_every}" \
+    bash tools/run_newtonv_timing_triplet_gate.sh
+
+  run_case mfp_noop_after_polar4 \
+    NEWTONV_VARIANT=noop \
+    LOCO_FULL_SURFACES=mlp_fc \
+    LOCO_DIAG_MLP_LAYERS="${mfp_layers}" \
+    LOCO_FULL_COLLECT_WINDOWS="${mfp_collect}" \
+    LOCO_FULL_WINDOWS="${mfp_windows}" \
+    LOCO_FULL_POLAR_ITERS=4 \
+    LOCO_FULL_FILTER=inverse \
+    LOCO_FULL_NORM_RESTORE=1 \
+    SCREEN_STEPS="${mfp_steps}" \
+    SCREEN_VAL_EVERY="${mfp_val_every}" \
+    bash tools/run_newtonv_timing_triplet_gate.sh
+
+  run_case mfp_inverse_before_r020_blend010 \
+    LOCO_FULL_SURFACES=mlp_fc \
+    LOCO_DIAG_MLP_LAYERS="${mfp_layers}" \
+    LOCO_FULL_COLLECT_WINDOWS="${mfp_collect}" \
+    LOCO_FULL_WINDOWS="${mfp_windows}" \
+    LOCO_FULL_APPLY_BEFORE_MOMENTUM=1 \
+    LOCO_FULL_REFRESH_INTERVAL=16 \
+    LOCO_FULL_EMA_BETA=0.8 \
+    LOCO_FULL_RIDGE_REL=0.2 \
+    LOCO_FULL_BLEND_MAX=0.10 \
+    LOCO_FULL_BLEND_STEPS=32 \
+    LOCO_FULL_FILTER=inverse \
+    LOCO_FULL_NORM_RESTORE=1 \
+    SCREEN_STEPS="${mfp_steps}" \
+    SCREEN_VAL_EVERY="${mfp_val_every}" \
+    bash tools/run_newtonv_raw_v01_gate.sh
+
+  run_case mfp_cholmetric_after_polar4_r020_blend005_norm \
+    LOCO_FULL_SURFACES=mlp_fc \
+    LOCO_DIAG_MLP_LAYERS="${mfp_layers}" \
+    LOCO_FULL_COLLECT_WINDOWS="${mfp_collect}" \
+    LOCO_FULL_WINDOWS="${mfp_windows}" \
+    LOCO_FULL_METRIC_POLAR=1 \
+    LOCO_FULL_NORM_RESTORE=1 \
+    LOCO_FULL_RIDGE_REL=0.20 \
+    LOCO_FULL_BLEND_MAX=0.05 \
+    LOCO_FULL_BLEND_STEPS=32 \
+    LOCO_FULL_POLAR_ITERS=4 \
+    SCREEN_STEPS="${mfp_steps}" \
+    SCREEN_VAL_EVERY="${mfp_val_every}" \
+    bash tools/run_newtonv_raw_v01_gate.sh
+}
+
 case "${suite}" in
   timing)
     run_timing_triplet
@@ -1229,6 +1288,9 @@ case "${suite}" in
   mlpfc)
     run_mlpfc_ladder
     ;;
+  mlpfc_promote)
+    run_mlpfc_promote_ladder
+    ;;
   all)
     run_timing_triplet
     run_next_ladder
@@ -1240,7 +1302,7 @@ case "${suite}" in
       bash tools/run_newtonv_raw_v01_gate.sh
     ;;
   *)
-    echo "NEWTONV_SUITE must be timing, filters, quick, raw200, promote, polar4, permutations, next, tail, warmmetric, overprecond, overpromote, scheduleonly, preconddiag, schedule_diag, rightfilter, paperstyle, paperfilter, metricpolar, metricpromote, metricv_promote, paper_v_promote, metricsurfaces, mlpfc, or all; got ${suite}" >&2
+    echo "NEWTONV_SUITE must be timing, filters, quick, raw200, promote, polar4, permutations, next, tail, warmmetric, overprecond, overpromote, scheduleonly, preconddiag, schedule_diag, rightfilter, paperstyle, paperfilter, metricpolar, metricpromote, metricv_promote, paper_v_promote, metricsurfaces, mlpfc, mlpfc_promote, or all; got ${suite}" >&2
     exit 2
     ;;
 esac

@@ -525,3 +525,44 @@ mfc_inverse_before_r020_blend010
 mfc_inverse_after_polar4_r020_blend010
 mfc_cholmetric_after_polar4_r020_blend005_norm
 ```
+
+## Cycle 4 H100 Result: mlpfc
+
+Modal app:
+
+```text
+ap-41D4sbAUkJPoCzKPeq7ffw
+```
+
+Parsed 120-step results:
+
+```text
+mfc_baseline:                              4.1828, 755.21ms/step
+mfc_noop_after_polar4:                     4.1816, 636.21ms/step
+mfc_inverse_before_r020_blend010:          4.1781, 627.92ms/step
+mfc_inverse_after_polar4_r020_blend010:    4.1814, 632.27ms/step
+mfc_cholmetric_after_polar4_r020_blend005: 4.1788, 631.37ms/step
+```
+
+Interpretation:
+
+```text
+The MLP c_fc full-Gram path produced the first same-suite right-preconditioner
+signal that beats both baseline and no-op controls in this cycle.
+
+Best line is before-momentum inverse:
+  baseline gap: 0.0047
+  no-op gap:   0.0035
+
+Metric-polar also clears the control, but trails before-momentum inverse by
+0.0007 at 120.
+```
+
+Prepared follow-up:
+
+```text
+NEWTONV_SUITE=mlpfc_promote
+MFP_STEPS=200
+MFP_VAL_EVERY=50
+MFP_LAYERS=0-1
+```

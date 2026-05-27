@@ -778,3 +778,31 @@ Do not promote unless an active mlp_fc treatment beats same-suite baseline and
 the same-suite mlp_fc no-op by at least ~0.002 at 120. If it does, repeat at
 200 before widening layers.
 ```
+
+Result:
+
+```text
+mfc_baseline:                                 4.1828
+mfc_noop_after_polar4:                        4.1816
+mfc_inverse_before_r020_blend010:             4.1781
+mfc_inverse_after_polar4_r020_blend010:       4.1814
+mfc_cholmetric_after_polar4_r020_blend005:    4.1788
+```
+
+Read:
+
+```text
+MLP c_fc now has a real same-suite active signal at 120.
+Before-momentum inverse beats baseline by 0.0047 and no-op by 0.0035.
+Metric-polar also beats baseline/no-op, but slightly trails before-momentum
+inverse at the final screen.
+After-momentum inverse is mostly a no-op-level result.
+```
+
+Next run:
+
+```text
+NEWTONV_SUITE=mlpfc_promote
+MFP_STEPS=200
+MFP_LAYERS=0-1
+```
