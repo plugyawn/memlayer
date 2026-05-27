@@ -433,7 +433,7 @@ run_schedule_only_ladder() {
 run_precond_diag_ladder() {
   local diag_steps="${DIAG_STEPS:-120}"
   local diag_val_every="${DIAG_VAL_EVERY:-40}"
-  local diag_log_steps="${DIAG_LOG_STEPS:-48,50,64,80,100,112,120}"
+  local diag_log_steps="${DIAG_LOG_STEPS:-50,64,80,100,112}"
 
   run_case diag_v01_warm_active_polar5 \
     LOCO_FULL_COLLECT_WINDOWS=0-64 \
