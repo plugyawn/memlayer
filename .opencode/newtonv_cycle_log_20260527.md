@@ -1004,3 +1004,60 @@ Decision:
 Stop V metric-window tuning. The useful-looking activation-metric effect is
 not stable enough at 200, and stronger/longer/later windows all worsen it.
 ```
+
+## Cycle 6 H100 Result: v_spectral_shape 0-1 V Pulse
+
+Modal app:
+
+```text
+ap-HMCkfT0iHOfJgC86PeB8v1
+```
+
+Parsed 160-step results:
+
+```text
+vss_baseline_a:                         4.0069, 586.99ms/step
+vss_baseline_b:                         4.0068, 552.24ms/step
+vss_v01_noop_polar4:                    4.0030, 691.25ms/step
+vss_metric_v01_r020_blend010_norm:      4.0080, 646.72ms/step
+vss_power05_v01_r020_blend010:          4.0066, 646.55ms/step
+vss_power075_v01_r020_blend010:         4.0098, 645.66ms/step
+```
+
+Interpretation:
+
+```text
+The V 0-1 pulse is not hot under matched 160-step controls. The two baselines
+are nearly identical, and the V polar4 no-op beats both active preconditioners.
+Safe activation-metric polar loses to baseline by ~0.0012 and to no-op by
+0.0050. C^-0.5 is roughly baseline-neutral but still loses to no-op by 0.0036.
+C^-0.75 is worse.
+```
+
+Diagnostics:
+
+```text
+Activation-metric polar target_delta is large, ~0.74-0.86, with target cosine
+~0.63-0.73. With blend capped at 0.10, the actually applied post-polar delta is
+only ~0.07-0.075 at steps 80/100/112 and cosine remains ~0.9975.
+
+Power C^-0.5 is gentler: target_delta ~0.26-0.41 and applied blended delta
+~0.03-0.034 by steps 80/100/112. Power C^-0.75 is stronger:
+target_delta ~0.39-0.50 and applied blended delta ~0.04-0.043 by steps
+80/100/112. Neither translated into a same-suite loss win.
+```
+
+Decision:
+
+```text
+Do not spend more H100 time on V 0-1 pulse/window tuning in the current
+post-momentum metric/inverse-power form. The input metric is mechanically
+active and anisotropic, but the loss signal is dominated by the polar4/no-op
+path and the active right-preconditioner does not beat that control.
+
+Next productive direction should change semantics rather than window/ridge
+microtuning: either a direct NorMuon interaction test such as skip/alter
+variance reduction during the short pulse, or a different clean surface with a
+matched no-op and diagnostics. If continuing V, use it as a mechanism probe,
+not a WR candidate.
+```

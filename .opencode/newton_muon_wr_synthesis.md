@@ -1034,3 +1034,37 @@ into the 200-step endpoint. The 80-144 active case loses to baseline and no-op
 at 100, 150, and 200. Stop V metric-window tuning unless a new implementation
 changes the update semantics materially.
 ```
+
+V spectral-shape pulse probe:
+
+```text
+160-step baseline A:       4.0069
+160-step baseline B:       4.0068
+V no-op polar4:            4.0030
+V metric-polar safe:       4.0080
+V power alpha=0.5:         4.0066
+V power alpha=0.75:        4.0098
+```
+
+Read:
+
+```text
+Changing the V transfer function does not rescue the 0-1 pulse. The no-op
+path is the best line in the same suite. Metric-polar, C^-0.5, and C^-0.75 all
+fail to beat it. The diagnostics are still useful: V Grams are anisotropic and
+the metric update is not mathematically null, but the applied blended update is
+small and the loss curve does not reward it.
+```
+
+Current decision:
+
+```text
+The right-preconditioner axis remains theoretically sound, but this branch's
+V 0-1 post-momentum pulse is no longer the right WR lever. Further V work
+needs a semantic change, not another window/ridge sweep. The most suspicious
+remaining interaction is NorMuon variance reduction after the metric/power
+update: it can leave optimizer-state tails and may erase or reweight the
+intended right-preconditioned direction. If we test V again, the next probe
+should isolate variance reduction or apply the metric in a form that does not
+fight the post-polar NorMuon normalization.
+```

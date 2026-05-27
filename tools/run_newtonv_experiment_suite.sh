@@ -924,6 +924,111 @@ run_metricv_window_ladder() {
     bash tools/run_newtonv_raw_v01_gate.sh
 }
 
+run_v_spectral_shape_ladder() {
+  local vss_steps="${VSS_STEPS:-160}"
+  local vss_val_every="${VSS_VAL_EVERY:-25}"
+  local vss_collect="${VSS_COLLECT_WINDOWS:-0-64}"
+  local vss_windows="${VSS_WINDOWS:-48-112}"
+  local vss_log_steps="${VSS_LOG_STEPS:-48,50,56,64,80,100,112,150,160}"
+
+  run_case vss_baseline_a \
+    NEWTONV_VARIANT=baseline \
+    SCREEN_STEPS="${vss_steps}" \
+    SCREEN_VAL_EVERY="${vss_val_every}" \
+    bash tools/run_newtonv_timing_triplet_gate.sh
+
+  run_case vss_baseline_b \
+    NEWTONV_VARIANT=baseline \
+    SCREEN_STEPS="${vss_steps}" \
+    SCREEN_VAL_EVERY="${vss_val_every}" \
+    bash tools/run_newtonv_timing_triplet_gate.sh
+
+  run_case vss_v01_noop_polar4 \
+    NEWTONV_VARIANT=noop \
+    LOCO_FULL_SURFACES=v \
+    LOCO_DIAG_ATTN_LAYERS=0-1 \
+    LOCO_FULL_COLLECT_WINDOWS="${vss_collect}" \
+    LOCO_FULL_WINDOWS="${vss_windows}" \
+    LOCO_FULL_POLAR_ITERS=4 \
+    SCREEN_STEPS="${vss_steps}" \
+    SCREEN_VAL_EVERY="${vss_val_every}" \
+    bash tools/run_newtonv_timing_triplet_gate.sh
+
+  run_case vss_metric_v01_r020_blend010_norm \
+    LOCO_FULL_SURFACES=v \
+    LOCO_DIAG_ATTN_LAYERS=0-1 \
+    LOCO_FULL_COLLECT_WINDOWS="${vss_collect}" \
+    LOCO_FULL_WINDOWS="${vss_windows}" \
+    LOCO_FULL_METRIC_POLAR=1 \
+    LOCO_FULL_NORM_RESTORE=1 \
+    LOCO_FULL_RIDGE_REL=0.20 \
+    LOCO_FULL_BLEND_MAX=0.10 \
+    LOCO_FULL_BLEND_STEPS=32 \
+    LOCO_FULL_POLAR_ITERS=4 \
+    LOCO_FULL_LOG_PRECOND=1 \
+    LOCO_FULL_LOG_PRECOND_DETAIL=1 \
+    LOCO_FULL_LOG_SPECTRUM=1 \
+    LOCO_FULL_LOG_EIGEN_ENERGY=1 \
+    LOCO_DIAG_LOG_STEPS="${vss_log_steps}" \
+    SCREEN_STEPS="${vss_steps}" \
+    SCREEN_VAL_EVERY="${vss_val_every}" \
+    bash tools/run_newtonv_raw_v01_gate.sh
+
+  run_case vss_power05_v01_r020_blend010 \
+    LOCO_FULL_SURFACES=v \
+    LOCO_DIAG_ATTN_LAYERS=0-1 \
+    LOCO_FULL_COLLECT_WINDOWS="${vss_collect}" \
+    LOCO_FULL_WINDOWS="${vss_windows}" \
+    LOCO_FULL_REFRESH_INTERVAL=16 \
+    LOCO_FULL_EMA_BETA=0.8 \
+    LOCO_FULL_RIDGE_REL=0.20 \
+    LOCO_FULL_FILTER=power \
+    LOCO_FULL_POWER_ALPHA=0.5 \
+    LOCO_FULL_POWER_CLIP=2.0 \
+    LOCO_FULL_BLOCK_SIZE=0 \
+    LOCO_FULL_STATIC_NORM=1 \
+    LOCO_FULL_NORM_RESTORE=1 \
+    LOCO_FULL_BLEND_MAX=0.10 \
+    LOCO_FULL_BLEND_STEPS=32 \
+    LOCO_FULL_POLAR_ITERS=4 \
+    LOCO_FULL_LOG_PRECOND=1 \
+    LOCO_FULL_LOG_PRECOND_DETAIL=1 \
+    LOCO_FULL_LOG_SPECTRUM=1 \
+    LOCO_FULL_LOG_EIGEN_ENERGY=1 \
+    LOCO_FULL_LOG_POSTPOLAR=1 \
+    LOCO_DIAG_LOG_STEPS="${vss_log_steps}" \
+    SCREEN_STEPS="${vss_steps}" \
+    SCREEN_VAL_EVERY="${vss_val_every}" \
+    bash tools/run_newtonv_block_power_gate.sh
+
+  run_case vss_power075_v01_r020_blend010 \
+    LOCO_FULL_SURFACES=v \
+    LOCO_DIAG_ATTN_LAYERS=0-1 \
+    LOCO_FULL_COLLECT_WINDOWS="${vss_collect}" \
+    LOCO_FULL_WINDOWS="${vss_windows}" \
+    LOCO_FULL_REFRESH_INTERVAL=16 \
+    LOCO_FULL_EMA_BETA=0.8 \
+    LOCO_FULL_RIDGE_REL=0.20 \
+    LOCO_FULL_FILTER=power \
+    LOCO_FULL_POWER_ALPHA=0.75 \
+    LOCO_FULL_POWER_CLIP=2.0 \
+    LOCO_FULL_BLOCK_SIZE=0 \
+    LOCO_FULL_STATIC_NORM=1 \
+    LOCO_FULL_NORM_RESTORE=1 \
+    LOCO_FULL_BLEND_MAX=0.10 \
+    LOCO_FULL_BLEND_STEPS=32 \
+    LOCO_FULL_POLAR_ITERS=4 \
+    LOCO_FULL_LOG_PRECOND=1 \
+    LOCO_FULL_LOG_PRECOND_DETAIL=1 \
+    LOCO_FULL_LOG_SPECTRUM=1 \
+    LOCO_FULL_LOG_EIGEN_ENERGY=1 \
+    LOCO_FULL_LOG_POSTPOLAR=1 \
+    LOCO_DIAG_LOG_STEPS="${vss_log_steps}" \
+    SCREEN_STEPS="${vss_steps}" \
+    SCREEN_VAL_EVERY="${vss_val_every}" \
+    bash tools/run_newtonv_block_power_gate.sh
+}
+
 run_paper_v_promote_ladder() {
   local pvp_steps="${PVP_STEPS:-200}"
   local pvp_val_every="${PVP_VAL_EVERY:-50}"
@@ -1534,6 +1639,9 @@ case "${suite}" in
   metricv_window)
     run_metricv_window_ladder
     ;;
+  v_spectral_shape)
+    run_v_spectral_shape_ladder
+    ;;
   paper_v_promote)
     run_paper_v_promote_ladder
     ;;
@@ -1569,7 +1677,7 @@ case "${suite}" in
       bash tools/run_newtonv_raw_v01_gate.sh
     ;;
   *)
-    echo "NEWTONV_SUITE must be timing, filters, quick, raw200, promote, polar4, permutations, next, tail, warmmetric, overprecond, overpromote, scheduleonly, preconddiag, schedule_diag, rightfilter, paperstyle, paperfilter, metricpolar, metricpromote, metricv_promote, metricv_window, paper_v_promote, metricsurfaces, surface_control, qkvo_metric_promote, qkvo_schedule, mlpfc, mlpfc_promote, mlpfc_before_control, or all; got ${suite}" >&2
+    echo "NEWTONV_SUITE must be timing, filters, quick, raw200, promote, polar4, permutations, next, tail, warmmetric, overprecond, overpromote, scheduleonly, preconddiag, schedule_diag, rightfilter, paperstyle, paperfilter, metricpolar, metricpromote, metricv_promote, metricv_window, v_spectral_shape, paper_v_promote, metricsurfaces, surface_control, qkvo_metric_promote, qkvo_schedule, mlpfc, mlpfc_promote, mlpfc_before_control, or all; got ${suite}" >&2
     exit 2
     ;;
 esac
