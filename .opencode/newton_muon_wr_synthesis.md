@@ -161,7 +161,9 @@ For a fresh 1xH100 or Modal H100:
    control.
 4. If continuing Newton-V, first test the overpreconditioning hypothesis: reduce
    or gate the existing Muon/NorMuon normalization on V while the right-side
-   feature preconditioner is active.
+   feature preconditioner is active. The prepared cheap proxy is now the
+   `polar4` suite, which runs the dense inverse Newton-V candidates with
+   `LOCO_FULL_POLAR_ITERS=4` first.
 5. Only if that new hypothesis beats the 200-step baseline, run a small 8-GPU
    smoke to measure owner-local distributed overhead.
 6. Launch a full 8xH100 record attempt only after both the 200-step loss gate

@@ -69,7 +69,23 @@ run_filter_ladder() {
     bash tools/run_newtonv_block_power_gate.sh
 }
 
-run_permutation_queue() {
+run_polar4_priority() {
+  run_case polar4_vall_win48 \
+    LOCO_DIAG_ATTN_LAYERS=all \
+    LOCO_FULL_WINDOWS=0-48 \
+    LOCO_FULL_POLAR_ITERS=4 \
+    SCREEN_STEPS="${perm_steps}" \
+    SCREEN_VAL_EVERY="${perm_val_every}" \
+    bash tools/run_newtonv_raw_v01_gate.sh
+
+  run_case polar4_v01_end100 \
+    LOCO_FULL_POLAR_ITERS=4 \
+    SCREEN_STEPS="${perm_steps}" \
+    SCREEN_VAL_EVERY="${perm_val_every}" \
+    bash tools/run_newtonv_raw_v01_gate.sh
+}
+
+run_permutation_rest() {
   run_case perm_v01_win48 \
     LOCO_FULL_WINDOWS=0-48 \
     SCREEN_STEPS="${perm_steps}" \
@@ -78,20 +94,6 @@ run_permutation_queue() {
 
   run_case perm_v01_win64 \
     LOCO_FULL_WINDOWS=0-64 \
-    SCREEN_STEPS="${perm_steps}" \
-    SCREEN_VAL_EVERY="${perm_val_every}" \
-    bash tools/run_newtonv_raw_v01_gate.sh
-
-  run_case perm_v01_end100_p4 \
-    LOCO_FULL_POLAR_ITERS=4 \
-    SCREEN_STEPS="${perm_steps}" \
-    SCREEN_VAL_EVERY="${perm_val_every}" \
-    bash tools/run_newtonv_raw_v01_gate.sh
-
-  run_case perm_vall_win48_p4 \
-    LOCO_DIAG_ATTN_LAYERS=all \
-    LOCO_FULL_WINDOWS=0-48 \
-    LOCO_FULL_POLAR_ITERS=4 \
     SCREEN_STEPS="${perm_steps}" \
     SCREEN_VAL_EVERY="${perm_val_every}" \
     bash tools/run_newtonv_raw_v01_gate.sh
@@ -113,6 +115,11 @@ run_permutation_queue() {
     bash tools/run_newtonv_timing_triplet_gate.sh
 }
 
+run_permutation_queue() {
+  run_polar4_priority
+  run_permutation_rest
+}
+
 case "${suite}" in
   timing)
     run_timing_triplet
@@ -122,6 +129,7 @@ case "${suite}" in
     ;;
   quick)
     run_timing_triplet
+    run_polar4_priority
     run_filter_ladder
     ;;
   raw200)
@@ -151,17 +159,20 @@ case "${suite}" in
   permutations)
     run_permutation_queue
     ;;
+  polar4)
+    run_polar4_priority
+    ;;
   all)
     run_timing_triplet
-    run_filter_ladder
     run_permutation_queue
+    run_filter_ladder
     run_case raw_v01_end100 \
       SCREEN_STEPS="${raw_steps}" \
       SCREEN_VAL_EVERY="${raw_val_every}" \
       bash tools/run_newtonv_raw_v01_gate.sh
     ;;
   *)
-    echo "NEWTONV_SUITE must be timing, filters, quick, raw200, promote, permutations, or all; got ${suite}" >&2
+    echo "NEWTONV_SUITE must be timing, filters, quick, raw200, promote, polar4, permutations, or all; got ${suite}" >&2
     exit 2
     ;;
 esac

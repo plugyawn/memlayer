@@ -107,10 +107,10 @@ downtune knob, keep it to the permutations that can still answer a question:
 
 | case | purpose |
 | --- | --- |
+| `V all, window 0-48, POLAR_ITERS=4` | highest-priority direct test of 4-iter Polar with dense inverse Newton-V |
+| `V 0-1, END_STEP=100, POLAR_ITERS=4` | highest-priority direct test on the early-layer pulse candidate |
 | `V 0-1, window 0-48` | separate early pulse from the current `END_STEP=100` fade |
 | `V 0-1, window 0-64` | check whether the useful pulse lasts slightly past the 60-step hit |
-| `V 0-1, END_STEP=100, POLAR_ITERS=4` | cheapest available overpreconditioning proxy |
-| `V all, window 0-48, POLAR_ITERS=4` | same proxy on the all-layer short signal |
 | `qk` only, window `0-48` | surface control for the attention-input Gram |
 | `o` only, window `0-48` | output-feature control, only if the first four are not dead |
 
@@ -118,7 +118,17 @@ Run these only as 80-step screens first. Promote nothing unless it beats the
 80-step baseline and the no-op control by a clear margin; the 200-step promotion
 suite showed that a pretty early loss is not enough.
 
-Prepared runner:
+Highest-priority prepared runner:
+
+```bash
+NANOGPT_MODAL_GPU=H100 \
+MODAL_RUNNER=tools/run_newtonv_experiment_suite.sh \
+MODAL_EXTRA_ENV_JSON='{"NEWTONV_SUITE":"polar4","NEWTONV_SUITE_LABEL":"modal_polar4_h100"}' \
+PERM_STEPS=80 PERM_VAL_EVERY=20 \
+tools/run_modal_newtonv_raw_gate.sh
+```
+
+Full permutation runner, only if the two `polar4` cases stay alive:
 
 ```bash
 NANOGPT_MODAL_GPU=H100 \
