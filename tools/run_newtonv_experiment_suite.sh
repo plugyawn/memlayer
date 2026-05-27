@@ -604,6 +604,21 @@ run_paperstyle_ladder() {
     SCREEN_STEPS="${ps_steps}" \
     SCREEN_VAL_EVERY="${ps_val_every}" \
     bash tools/run_newtonv_raw_v01_gate.sh
+
+  run_case ps_qkv_before_polar5_ridge020 \
+    NEWTONV_VARIANT=active \
+    LOCO_FULL_SURFACES=qk,v \
+    LOCO_DIAG_ATTN_LAYERS=all \
+    LOCO_FULL_COLLECT_WINDOWS=0-64 \
+    LOCO_FULL_WINDOWS=48-112 \
+    LOCO_FULL_APPLY_BEFORE_MOMENTUM=1 \
+    LOCO_FULL_REFRESH_INTERVAL=16 \
+    LOCO_FULL_EMA_BETA=0.8 \
+    LOCO_FULL_RIDGE_REL=0.2 \
+    LOCO_FULL_POLAR_ITERS=5 \
+    SCREEN_STEPS="${ps_steps}" \
+    SCREEN_VAL_EVERY="${ps_val_every}" \
+    bash tools/run_newtonv_timing_triplet_gate.sh
 }
 
 case "${suite}" in

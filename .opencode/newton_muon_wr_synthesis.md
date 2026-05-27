@@ -393,7 +393,10 @@ NEWTONV_SUITE=paperstyle
 
 This does not yet reproduce the full paper surface set, but it tests the most
 important mismatch for V: precondition raw grad before momentum with
-`refresh=16`, `ema=0.8`, and `ridge_rel=0.2`.
+`refresh=16`, `ema=0.8`, and `ridge_rel=0.2`. It also includes a QK+V shared
+attention-input-Gram case, which is closer to the reference packed-QKV
+treatment. Full MLP block parity is more invasive because the current fused MLP
+path does not cheaply expose the 4x768 block feature Grams.
 
 ## GPU-Ready Queue
 
