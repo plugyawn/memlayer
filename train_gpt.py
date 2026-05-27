@@ -89,9 +89,12 @@ LOCO_FULL_RIDGE_REL = float(os.environ.get("LOCO_FULL_RIDGE_REL", "0.03"))
 LOCO_FULL_LOCAL_STATS = os.environ.get("LOCO_FULL_LOCAL_STATS", "1") == "1"
 LOCO_FULL_NOOP = os.environ.get("LOCO_FULL_NOOP", "0") == "1"
 LOCO_FULL_END_STEP = int(os.environ.get("LOCO_FULL_END_STEP", "-1"))
+LOCO_FULL_APPLY_INTERVAL = int(os.environ.get("LOCO_FULL_APPLY_INTERVAL", "1"))
 LOCO_FULL_PRECOND_DTYPE = os.environ.get("LOCO_FULL_PRECOND_DTYPE", "fp32").lower()
 if LOCO_FULL_PRECOND_DTYPE not in {"fp32", "bf16"}:
     raise ValueError("LOCO_FULL_PRECOND_DTYPE must be 'fp32' or 'bf16'")
+if LOCO_FULL_APPLY_INTERVAL <= 0:
+    raise ValueError("LOCO_FULL_APPLY_INTERVAL must be positive")
 LOCO_FULL_PRECOND_BF16 = LOCO_FULL_PRECOND_DTYPE == "bf16"
 LOCO_FEATURE_ACTIVE = LOCO_DIAG_ACTIVE or LOCO_FULL_ACTIVE
 
@@ -673,7 +676,8 @@ class NorMuonAndAdam:
         self._loco_step = step
         self._loco_blend_t.fill_(blend)
         self._loco_full_blend_t.fill_(full_blend)
-        self._loco_full_optimizer_active = self.loco_full_active and (LOCO_FULL_NOOP or (full_active_now and full_blend != 0.0))
+        apply_full_now = (step % LOCO_FULL_APPLY_INTERVAL) == 0
+        self._loco_full_optimizer_active = self.loco_full_active and apply_full_now and (LOCO_FULL_NOOP or (full_active_now and full_blend != 0.0))
         self._loco_log_step = globals().get("master_process", False) and step in LOCO_DIAG_LOG_STEP_SET
         self._loco_grad_ratio_stats.clear()
 
@@ -2500,7 +2504,8 @@ class TrainingManager():
             loco_model.loco_full_v_owned_layers = self._owned_full_v_attn_layers(loco_model)
             print0(
                 f"loco_full owned_v_layers rank={rank}: {sorted(loco_model.loco_full_v_owned_layers)} "
-                f"precond_dtype={LOCO_FULL_PRECOND_DTYPE} local_stats={int(LOCO_FULL_LOCAL_STATS)}",
+                f"precond_dtype={LOCO_FULL_PRECOND_DTYPE} local_stats={int(LOCO_FULL_LOCAL_STATS)} "
+                f"apply_interval={LOCO_FULL_APPLY_INTERVAL}",
                 console=True,
             )
 
