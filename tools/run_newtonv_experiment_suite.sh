@@ -265,6 +265,39 @@ run_warmmetric_ladder() {
     bash tools/run_newtonv_timing_triplet_gate.sh
 }
 
+run_overprecond_ladder() {
+  run_case over_baseline \
+    NEWTONV_VARIANT=baseline \
+    SCREEN_STEPS="${next_steps}" \
+    SCREEN_VAL_EVERY="${next_val_every}" \
+    bash tools/run_newtonv_timing_triplet_gate.sh
+
+  run_case over_v01_warm_polar5 \
+    LOCO_FULL_COLLECT_WINDOWS=0-64 \
+    LOCO_FULL_WINDOWS=48-112 \
+    LOCO_FULL_POLAR_ITERS=5 \
+    SCREEN_STEPS="${next_steps}" \
+    SCREEN_VAL_EVERY="${next_val_every}" \
+    bash tools/run_newtonv_raw_v01_gate.sh
+
+  run_case over_v01_warm_polar4 \
+    LOCO_FULL_COLLECT_WINDOWS=0-64 \
+    LOCO_FULL_WINDOWS=48-112 \
+    LOCO_FULL_POLAR_ITERS=4 \
+    SCREEN_STEPS="${next_steps}" \
+    SCREEN_VAL_EVERY="${next_val_every}" \
+    bash tools/run_newtonv_raw_v01_gate.sh
+
+  run_case over_v01_warm_polar4_skipvr \
+    LOCO_FULL_COLLECT_WINDOWS=0-64 \
+    LOCO_FULL_WINDOWS=48-112 \
+    LOCO_FULL_POLAR_ITERS=4 \
+    LOCO_FULL_SKIP_VARRED=1 \
+    SCREEN_STEPS="${next_steps}" \
+    SCREEN_VAL_EVERY="${next_val_every}" \
+    bash tools/run_newtonv_raw_v01_gate.sh
+}
+
 case "${suite}" in
   timing)
     run_timing_triplet
@@ -316,6 +349,9 @@ case "${suite}" in
   warmmetric)
     run_warmmetric_ladder
     ;;
+  overprecond)
+    run_overprecond_ladder
+    ;;
   all)
     run_timing_triplet
     run_next_ladder
@@ -327,7 +363,7 @@ case "${suite}" in
       bash tools/run_newtonv_raw_v01_gate.sh
     ;;
   *)
-    echo "NEWTONV_SUITE must be timing, filters, quick, raw200, promote, polar4, permutations, next, tail, warmmetric, or all; got ${suite}" >&2
+    echo "NEWTONV_SUITE must be timing, filters, quick, raw200, promote, polar4, permutations, next, tail, warmmetric, overprecond, or all; got ${suite}" >&2
     exit 2
     ;;
 esac

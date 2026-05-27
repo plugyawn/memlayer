@@ -115,6 +115,7 @@ LOCO_FULL_BLOCK_SIZE = int(os.environ.get("LOCO_FULL_BLOCK_SIZE", "0"))
 LOCO_FULL_STATIC_NORM = os.environ.get("LOCO_FULL_STATIC_NORM", "1" if LOCO_FULL_POWER or LOCO_FULL_FINITE else "0") == "1"
 LOCO_FULL_POLAR_ITERS = int(os.environ.get("LOCO_FULL_POLAR_ITERS", "5"))
 LOCO_FULL_NORM_RESTORE = os.environ.get("LOCO_FULL_NORM_RESTORE", "0" if LOCO_FULL_NORMINVERSE else "1") == "1"
+LOCO_FULL_SKIP_VARRED = os.environ.get("LOCO_FULL_SKIP_VARRED", "0") == "1"
 if LOCO_FULL_APPLY_INTERVAL <= 0:
     raise ValueError("LOCO_FULL_APPLY_INTERVAL must be positive")
 if LOCO_FULL_BLOCK_SIZE < 0:
@@ -1252,9 +1253,10 @@ class NorMuonAndAdam:
 
         # Variance reduction
         red_dim = -1 if chunk_shape[-2] >= chunk_shape[-1] else -2
-        v_chunk = NorMuonAndAdam._apply_normuon_variance_reduction(
-            v_chunk, p_state["second_momentum_buffer"], p_cfg.beta2, red_dim
-        )
+        if not (use_loco_full_after_momentum and LOCO_FULL_SKIP_VARRED):
+            v_chunk = NorMuonAndAdam._apply_normuon_variance_reduction(
+                v_chunk, p_state["second_momentum_buffer"], p_cfg.beta2, red_dim
+            )
 
         # Update parameter, in place, with cautious weight decay
         param_view = param.data.view(p_cfg.reshape)
@@ -2976,6 +2978,7 @@ class TrainingManager():
                 f"power_alpha={LOCO_FULL_POWER_ALPHA} power_clip={LOCO_FULL_POWER_CLIP} shrink_only={int(LOCO_FULL_SHRINK_ONLY)} "
                 f"polar_iters={LOCO_FULL_POLAR_ITERS} windows={LOCO_FULL_WINDOWS or 'end'} "
                 f"collect_windows={LOCO_FULL_COLLECT_WINDOWS or 'same'} "
+                f"skip_varred={int(LOCO_FULL_SKIP_VARRED)} "
                 f"local_stats={int(LOCO_FULL_LOCAL_STATS)} "
                 f"apply_interval={LOCO_FULL_APPLY_INTERVAL}",
                 console=True,
