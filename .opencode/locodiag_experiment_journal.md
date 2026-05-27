@@ -273,6 +273,9 @@ Owner-local/BF16 verdict:
 | headwise full O, FP32 inverse cache | `.opencode/newtonv_fullo_headwise_fp32_screen60.log` | 20 | 6.5519 | 9.245s | 462.27ms | not an early loss hit |
 | headwise full O, FP32 inverse cache | `.opencode/newtonv_fullo_headwise_fp32_screen60.log` | 40 | 5.4137 | 100.230s | 2505.76ms | one-time refresh compile spike made timing unusable |
 | headwise full O, FP32 inverse cache | `.opencode/newtonv_fullo_headwise_fp32_screen60.log` | 60 | 4.8395 | 134.701s | 2245.01ms | reject as current candidate |
+| full V top-shrink r64 t1 clip2 apply4 | `.opencode/newtonv_fullv_topshrink_r64_t1_clip2_apply4_screen60.log` | 20 | 6.5495 | 9.325s | 466.23ms | no early V-inverse loss signal |
+| full V top-shrink r64 t1 clip2 apply4 | `.opencode/newtonv_fullv_topshrink_r64_t1_clip2_apply4_screen60.log` | 40 | 5.4214 | 31.285s | 782.11ms | faster than dense V, but worse loss |
+| full V top-shrink r64 t1 clip2 apply4 | `.opencode/newtonv_fullv_topshrink_r64_t1_clip2_apply4_screen60.log` | 60 | 4.8453 | 68.499s | 1141.66ms | reject first low-rank shrink filter |
 
 Headwise O is cheaper in principle than dense 768-wide V, but the current
 compiled path hit a `~74s` refresh compile spike at step 25 and still landed
@@ -299,3 +302,12 @@ LOCO_FULL_APPLY_INTERVAL=4
 LOCO_FULL_REFRESH_INTERVAL=8
 LOCO_FULL_RIDGE_REL=0.03
 ```
+
+Verdict: the first top-shrink filter did not preserve the useful full-V inverse
+loss signal. It avoided the catastrophic O refresh compile spike, but finished
+at `4.8453`, behind full QK (`4.8402`), full O (`4.8395`), all-layer full V
+inverse (`4.8313` post-plumbing), and V layers `0-1` (`4.8211`). This suggests
+the current full-V win is not explained by top-eigenspace shrink alone at
+`rank=64`, `t=1`, `clip=2`, `apply_interval=4`; either the inverse/bottom
+eigenspace amplification matters, the shrinker needs a stronger application
+schedule, or the low-rank approximation is too lossy.
