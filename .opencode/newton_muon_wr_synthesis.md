@@ -955,3 +955,30 @@ QS_LAYERS=0-3
 
 This tests whether the strong QKVO 0-3 no-op/window signal survives as a
 schedule-only full-path change without feature-stat/preconditioner work.
+
+QKVO schedule/full-path isolation:
+
+```text
+qs_baseline:                    3.8824, 684.54ms/step
+qs_qkvo_schedule_only_polar4:   3.8867, 669.62ms/step
+qs_qkvo_noop_metric_polar4:     3.8881, 669.80ms/step
+```
+
+Decision:
+
+```text
+The QKVO 0-3 no-op/window result did not survive a same-suite 200-step
+isolation. Schedule-only led at 50/100 but faded by 150 and lost by 200.
+Full-path no-op also lost by 200. Treat broad QKVO control wins as
+variance/early-pulse effects until a stronger active line appears.
+```
+
+Current synthesis:
+
+```text
+The right-preconditioner thesis is not dead, but the robust evidence has
+narrowed again. The full-V inverse result remains the cleanest active
+right-preconditioning hit we have seen. QKVO metric-polar had one positive
+200-step run, failed its 0-1 replicate, failed 0-3 active widening, and its
+schedule/full-path controls faded by 200.
+```

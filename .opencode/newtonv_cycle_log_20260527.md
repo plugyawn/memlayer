@@ -790,3 +790,55 @@ QS_LAYERS=0-3
 Purpose: test whether the strong 0-3 no-op/window result survives when stripped
 down to `LOCO_FULL_SCHEDULE_ONLY=1`, i.e. explicit after-momentum polar4 path
 without full feature-stat collection/preconditioner work.
+
+## Cycle 5 H100 Result: qkvo_schedule
+
+Modal app:
+
+```text
+ap-bzu37ARFUvH95JtkPI9LLM
+```
+
+Parsed 200-step results:
+
+```text
+qs_baseline:                    3.8824, 684.54ms/step
+qs_qkvo_schedule_only_polar4:   3.8867, 669.62ms/step
+qs_qkvo_noop_metric_polar4:     3.8881, 669.80ms/step
+```
+
+Intermediate anchors:
+
+```text
+step 50:
+  baseline                 5.6186
+  schedule-only polar4     5.6077
+  full-path no-op metric   5.6113
+
+step 100:
+  baseline                 4.6878
+  schedule-only polar4     4.6701
+  full-path no-op metric   4.6893
+
+step 150:
+  baseline                 4.1124
+  schedule-only polar4     4.1181
+  full-path no-op metric   4.1171
+```
+
+Interpretation:
+
+```text
+Both QKVO controls produced early movement and then faded by 200.
+Schedule-only was ahead through 100 but lost by 150/200. Full-path no-op was
+not stable either. The earlier QKVO no-op/window hit should not be treated as a
+promotion-ready WR lever.
+```
+
+Next:
+
+```text
+Stop broad QKVO control promotion. If spending another H100 run, return to the
+strongest active idea: V/right-preconditioning, but make the test answer a
+specific theory question rather than another broad surface sweep.
+```
