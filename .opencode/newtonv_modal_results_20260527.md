@@ -169,3 +169,14 @@ Cases, in order:
 | `next_polar4_v01_win48_112` | later early-layer V pulse |
 | `next_qk_win32_80_p4` | delayed QK-only surface control |
 | `next_o_win32_80_p4` | delayed O-only headwise surface control |
+
+If the `next` suite is interrupted after the V cases, resume only the remaining
+tail:
+
+```bash
+NANOGPT_MODAL_GPU=H100 \
+MODAL_RUNNER=tools/run_newtonv_experiment_suite.sh \
+MODAL_EXTRA_ENV_JSON='{"NEWTONV_SUITE":"tail","NEWTONV_SUITE_LABEL":"modal_tail_h100"}' \
+NEXT_STEPS=120 NEXT_VAL_EVERY=40 \
+tools/run_modal_newtonv_raw_gate.sh
+```

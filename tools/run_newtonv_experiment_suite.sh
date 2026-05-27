@@ -193,6 +193,33 @@ run_next_ladder() {
     bash tools/run_newtonv_timing_triplet_gate.sh
 }
 
+run_next_tail() {
+  run_case tail_polar4_v01_win48_112 \
+    LOCO_FULL_WINDOWS=48-112 \
+    LOCO_FULL_POLAR_ITERS=4 \
+    SCREEN_STEPS="${next_steps}" \
+    SCREEN_VAL_EVERY="${next_val_every}" \
+    bash tools/run_newtonv_raw_v01_gate.sh
+
+  run_case tail_qk_win32_80_p4 \
+    NEWTONV_VARIANT=active \
+    LOCO_FULL_SURFACES=qk \
+    LOCO_FULL_WINDOWS=32-80 \
+    LOCO_FULL_POLAR_ITERS=4 \
+    SCREEN_STEPS="${next_steps}" \
+    SCREEN_VAL_EVERY="${next_val_every}" \
+    bash tools/run_newtonv_timing_triplet_gate.sh
+
+  run_case tail_o_win32_80_p4 \
+    NEWTONV_VARIANT=active \
+    LOCO_FULL_SURFACES=o \
+    LOCO_FULL_WINDOWS=32-80 \
+    LOCO_FULL_POLAR_ITERS=4 \
+    SCREEN_STEPS="${next_steps}" \
+    SCREEN_VAL_EVERY="${next_val_every}" \
+    bash tools/run_newtonv_timing_triplet_gate.sh
+}
+
 case "${suite}" in
   timing)
     run_timing_triplet
@@ -238,6 +265,9 @@ case "${suite}" in
   next)
     run_next_ladder
     ;;
+  tail)
+    run_next_tail
+    ;;
   all)
     run_timing_triplet
     run_next_ladder
@@ -249,7 +279,7 @@ case "${suite}" in
       bash tools/run_newtonv_raw_v01_gate.sh
     ;;
   *)
-    echo "NEWTONV_SUITE must be timing, filters, quick, raw200, promote, polar4, permutations, next, or all; got ${suite}" >&2
+    echo "NEWTONV_SUITE must be timing, filters, quick, raw200, promote, polar4, permutations, next, tail, or all; got ${suite}" >&2
     exit 2
     ;;
 esac
