@@ -833,3 +833,29 @@ NEWTONV_SUITE=mlpfc_before_control
 This runs only the true before-momentum no-op and the same before-momentum
 inverse. If the active line does not beat this matched no-op, the apparent MLP
 c_fc signal is not clean enough to tune further.
+
+Matched before-momentum control result:
+
+```text
+mbc_noop_before_r020_blend010:     3.8824
+mbc_inverse_before_r020_blend010:  3.8887
+```
+
+Decision:
+
+```text
+Kill MLP c_fc before-momentum inverse as a current WR candidate.
+The 120/200-step positive read was mostly an ordering/window/full-path effect,
+not reliable right-preconditioner geometry.
+```
+
+Prepared next H100 scan:
+
+```text
+NEWTONV_SUITE=surface_control
+SC_STEPS=120
+SC_LAYERS=0-1
+```
+
+This pairs QK, O, and QKVO activation-metric-polar probes with same-surface
+no-op controls. Active-only surface screens are no longer trusted.

@@ -1060,6 +1060,98 @@ run_metricsurface_ladder() {
     bash tools/run_newtonv_timing_triplet_gate.sh
 }
 
+run_surface_control_ladder() {
+  local sc_steps="${SC_STEPS:-120}"
+  local sc_val_every="${SC_VAL_EVERY:-40}"
+  local sc_layers="${SC_LAYERS:-0-1}"
+  local sc_collect="${SC_COLLECT_WINDOWS:-0-64}"
+  local sc_windows="${SC_WINDOWS:-48-112}"
+
+  run_case sc_baseline \
+    NEWTONV_VARIANT=baseline \
+    SCREEN_STEPS="${sc_steps}" \
+    SCREEN_VAL_EVERY="${sc_val_every}" \
+    bash tools/run_newtonv_timing_triplet_gate.sh
+
+  run_case sc_qk_noop_metric_polar4 \
+    NEWTONV_VARIANT=noop \
+    LOCO_FULL_SURFACES=qk \
+    LOCO_DIAG_ATTN_LAYERS="${sc_layers}" \
+    LOCO_FULL_COLLECT_WINDOWS="${sc_collect}" \
+    LOCO_FULL_WINDOWS="${sc_windows}" \
+    LOCO_FULL_METRIC_POLAR=1 \
+    LOCO_FULL_NORM_RESTORE=0 \
+    LOCO_FULL_POLAR_ITERS=4 \
+    SCREEN_STEPS="${sc_steps}" \
+    SCREEN_VAL_EVERY="${sc_val_every}" \
+    bash tools/run_newtonv_timing_triplet_gate.sh
+
+  run_case sc_qk_cholmetric_polar4 \
+    NEWTONV_VARIANT=active \
+    LOCO_FULL_SURFACES=qk \
+    LOCO_DIAG_ATTN_LAYERS="${sc_layers}" \
+    LOCO_FULL_COLLECT_WINDOWS="${sc_collect}" \
+    LOCO_FULL_WINDOWS="${sc_windows}" \
+    LOCO_FULL_METRIC_POLAR=1 \
+    LOCO_FULL_NORM_RESTORE=0 \
+    LOCO_FULL_POLAR_ITERS=4 \
+    SCREEN_STEPS="${sc_steps}" \
+    SCREEN_VAL_EVERY="${sc_val_every}" \
+    bash tools/run_newtonv_timing_triplet_gate.sh
+
+  run_case sc_o_noop_metric_polar4 \
+    NEWTONV_VARIANT=noop \
+    LOCO_FULL_SURFACES=o \
+    LOCO_DIAG_ATTN_LAYERS="${sc_layers}" \
+    LOCO_FULL_COLLECT_WINDOWS="${sc_collect}" \
+    LOCO_FULL_WINDOWS="${sc_windows}" \
+    LOCO_FULL_METRIC_POLAR=1 \
+    LOCO_FULL_NORM_RESTORE=0 \
+    LOCO_FULL_POLAR_ITERS=4 \
+    SCREEN_STEPS="${sc_steps}" \
+    SCREEN_VAL_EVERY="${sc_val_every}" \
+    bash tools/run_newtonv_timing_triplet_gate.sh
+
+  run_case sc_o_cholmetric_polar4 \
+    NEWTONV_VARIANT=active \
+    LOCO_FULL_SURFACES=o \
+    LOCO_DIAG_ATTN_LAYERS="${sc_layers}" \
+    LOCO_FULL_COLLECT_WINDOWS="${sc_collect}" \
+    LOCO_FULL_WINDOWS="${sc_windows}" \
+    LOCO_FULL_METRIC_POLAR=1 \
+    LOCO_FULL_NORM_RESTORE=0 \
+    LOCO_FULL_POLAR_ITERS=4 \
+    SCREEN_STEPS="${sc_steps}" \
+    SCREEN_VAL_EVERY="${sc_val_every}" \
+    bash tools/run_newtonv_timing_triplet_gate.sh
+
+  run_case sc_qkvo_noop_metric_polar4 \
+    NEWTONV_VARIANT=noop \
+    LOCO_FULL_SURFACES=qk,v,o \
+    LOCO_DIAG_ATTN_LAYERS="${sc_layers}" \
+    LOCO_FULL_COLLECT_WINDOWS="${sc_collect}" \
+    LOCO_FULL_WINDOWS="${sc_windows}" \
+    LOCO_FULL_METRIC_POLAR=1 \
+    LOCO_FULL_NORM_RESTORE=0 \
+    LOCO_FULL_POLAR_ITERS=4 \
+    SCREEN_STEPS="${sc_steps}" \
+    SCREEN_VAL_EVERY="${sc_val_every}" \
+    bash tools/run_newtonv_timing_triplet_gate.sh
+
+  run_case sc_qkvo_cholmetric_polar4 \
+    NEWTONV_VARIANT=active \
+    LOCO_FULL_SURFACES=qk,v,o \
+    LOCO_DIAG_ATTN_LAYERS="${sc_layers}" \
+    LOCO_FULL_COLLECT_WINDOWS="${sc_collect}" \
+    LOCO_FULL_WINDOWS="${sc_windows}" \
+    LOCO_FULL_METRIC_POLAR=1 \
+    LOCO_FULL_NORM_RESTORE=0 \
+    LOCO_FULL_POLAR_ITERS=4 \
+    SCREEN_STEPS="${sc_steps}" \
+    SCREEN_VAL_EVERY="${sc_val_every}" \
+    bash tools/run_newtonv_timing_triplet_gate.sh
+}
+
 run_mlpfc_ladder() {
   local mfc_steps="${MFC_STEPS:-120}"
   local mfc_val_every="${MFC_VAL_EVERY:-40}"
@@ -1328,6 +1420,9 @@ case "${suite}" in
   metricsurfaces)
     run_metricsurface_ladder
     ;;
+  surface_control)
+    run_surface_control_ladder
+    ;;
   mlpfc)
     run_mlpfc_ladder
     ;;
@@ -1348,7 +1443,7 @@ case "${suite}" in
       bash tools/run_newtonv_raw_v01_gate.sh
     ;;
   *)
-    echo "NEWTONV_SUITE must be timing, filters, quick, raw200, promote, polar4, permutations, next, tail, warmmetric, overprecond, overpromote, scheduleonly, preconddiag, schedule_diag, rightfilter, paperstyle, paperfilter, metricpolar, metricpromote, metricv_promote, paper_v_promote, metricsurfaces, mlpfc, mlpfc_promote, mlpfc_before_control, or all; got ${suite}" >&2
+    echo "NEWTONV_SUITE must be timing, filters, quick, raw200, promote, polar4, permutations, next, tail, warmmetric, overprecond, overpromote, scheduleonly, preconddiag, schedule_diag, rightfilter, paperstyle, paperfilter, metricpolar, metricpromote, metricv_promote, paper_v_promote, metricsurfaces, surface_control, mlpfc, mlpfc_promote, mlpfc_before_control, or all; got ${suite}" >&2
     exit 2
     ;;
 esac

@@ -602,3 +602,39 @@ MBC_STEPS=200
 MBC_VAL_EVERY=50
 MBC_LAYERS=0-1
 ```
+
+## Cycle 4 H100 Result: mlpfc_before_control
+
+Modal app:
+
+```text
+ap-SZQgOkSelB2k5IEFxEuOeh
+```
+
+Parsed 200-step results:
+
+```text
+mbc_noop_before_r020_blend010:    3.8824, 608.17ms/step
+mbc_inverse_before_r020_blend010: 3.8887, 603.72ms/step
+```
+
+Interpretation:
+
+```text
+The matched before-momentum no-op beats the active inverse by 0.0063.
+This kills the MLP c_fc inverse candidate as currently formulated.
+The previous positive promote result was not a clean geometry win because its
+control was after-momentum polar4, not the true before-momentum path.
+```
+
+Prepared controlled surface scan:
+
+```text
+NEWTONV_SUITE=surface_control
+SC_STEPS=120
+SC_VAL_EVERY=40
+SC_LAYERS=0-1
+```
+
+Cases include same-surface no-op controls for QK, O, and QKVO activation-metric
+polar. Do not trust active-only QK/O surface screens after the MLP control miss.
