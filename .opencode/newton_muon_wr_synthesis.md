@@ -1279,3 +1279,34 @@ shorter or decayed application, lower blend, or a control-matched window study.
 Do not call it WR-ready until it beats schedule-only by more than the current
 0.0004 mean gap at 200.
 ```
+
+MLP-fc window160 probe:
+
+```text
+200-step same-suite result:
+  baseline:        3.8893
+  schedule-only:   3.8860
+  no-op before:    3.8902
+  inverse before:  3.8828
+
+150-step same-suite result:
+  baseline:        4.1198
+  schedule-only:   4.1223
+  no-op before:    4.1210
+  inverse before:  4.1139
+```
+
+Read:
+
+```text
+Extending the active MLP-fc before-momentum window to 48-160 is the first
+post-control result where the active right-preconditioner clearly beats both
+same-suite controls at the endpoint. The active inverse gain is 0.0065 over
+baseline and 0.0032 over schedule-only at 200, with a larger 150-step gain.
+
+This does not make it WR-ready. It is still one replicate, and the Modal timing
+path has a shared late-run slowdown that makes wall-clock conclusions dirty.
+But it changes the next action: replicate window160 first. If it survives, the
+next principled comparison is MLP-fc Cholesky metric-polar / half-whitening
+against this inverse-before path, not another broad V or QKVO sweep.
+```

@@ -1549,3 +1549,71 @@ MLP-fc timing/window study that tries to preserve the step-150 benefit without
 endpoint fade. New surface sweeps should remain lower priority until this is
 understood.
 ```
+
+## Cycle 14 H100 Result: MLP-fc Window160 Probe
+
+Modal app:
+
+```text
+ap-lCZoBA0K66I5F2u9LVuFoF
+```
+
+Parsed 200-step results:
+
+```text
+mbc_baseline:                         3.8893, 792.69ms/step
+mbc_schedule_only_before:             3.8860, 753.39ms/step
+mbc_noop_before_r020_blend010:        3.8902, 740.21ms/step
+mbc_inverse_before_r020_blend010:     3.8828, 749.43ms/step
+```
+
+Intermediate anchors:
+
+```text
+step 50:
+  baseline             5.5966
+  schedule-only        5.6374
+  no-op before         5.5889
+  inverse before       5.5965
+
+step 100:
+  baseline             4.6676
+  schedule-only        4.6803
+  no-op before         4.6827
+  inverse before       4.6777
+
+step 150:
+  baseline             4.1198
+  schedule-only        4.1223
+  no-op before         4.1210
+  inverse before       4.1139
+```
+
+Diagnostics:
+
+```text
+Extending the MLP-fc before-momentum active window from 48-112 to 48-160
+preserved and amplified the middle-run gain. The active inverse path is the
+only arm that beats all matched controls at both step 150 and step 200:
+  step 150: inverse beats baseline by 0.0059 and schedule-only by 0.0084
+  step 200: inverse beats baseline by 0.0065 and schedule-only by 0.0032
+
+The no-op/control story stayed important. No-op wins at step 50 but fades and
+loses at 200, while schedule-only wins modestly at 200. The active inverse
+therefore clears the matched-control bar in this run, but only by one
+replicate.
+
+Timing from this Modal path remains hard to interpret because all arms hit the
+same late-run step-time jump. Use the same-app loss ordering; do not read these
+step averages as current-path WR timing.
+```
+
+Decision:
+
+```text
+This is the strongest MLP-fc before-momentum result so far. Queue an immediate
+same-suite replicate before spending GPU time on new surfaces. If the replicate
+keeps inverse-before ahead of baseline and schedule/no-op at 200, promote
+MLP-fc window160 to the next controlled comparison against Cholesky
+metric-polar / half-whitened MLP-fc.
+```
