@@ -10,13 +10,14 @@ if [[ -n "${MODAL_SECRET:-}" && -z "${MODAL_TOKEN_SECRET:-}" ]]; then
   export MODAL_TOKEN_SECRET="${MODAL_SECRET}"
 fi
 
-gpu="${MODAL_GPU:-${MODAL_NANOGPT_GPU:-H100!}}"
+gpu="${NANOGPT_MODAL_GPU:-${MODAL_GPU:-${MODAL_NANOGPT_GPU:-H100}}}"
 case "${gpu}" in
   H100|H100!|GH200) ;;
   *) echo "Only H100/H100! or GH200 are allowed; got MODAL_GPU=${gpu}" >&2; exit 2 ;;
 esac
 export MODAL_GPU="${gpu}"
 export MODAL_NANOGPT_GPU="${gpu}"
+export NANOGPT_MODAL_GPU="${gpu}"
 
 if ! command -v modal >/dev/null 2>&1; then
   if [[ -x "tmp/modal-venv/bin/modal" ]]; then

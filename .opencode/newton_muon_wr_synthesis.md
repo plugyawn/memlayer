@@ -74,6 +74,37 @@ The important result is not any single screen; it is the pattern:
 | norminverse blend `0.50` | `4.8411` at 60 | over-application hurts |
 | top-shrink | `4.8453` at 60 | top-eigenspace shrink alone is insufficient |
 
+## Modal Update - 2026-05-27
+
+The fresh Modal H100 suite demotes the current Newton-V candidates. Raw logs and
+parsed tables are in `.opencode/newtonv_modal_results_20260527.md`.
+
+Short 80-step screen:
+
+| case | val loss | step avg |
+| --- | --- | --- |
+| baseline | `4.5380` | `450.74ms` |
+| no-op full path | `4.5231` | `451.94ms` |
+| active dense inverse | `4.5186` | `453.32ms` |
+| best block filter | `4.5315` | `466.46ms` |
+
+Promotion 200-step screen:
+
+| case | step 50 | step 100 | step 150 | step 200 |
+| --- | --- | --- | --- | --- |
+| baseline | `5.6052` | `4.6861` | `4.1150` | `3.8837` |
+| all-layer inverse, window `0-48` | `5.5893` | `4.6956` | `4.1265` | `3.8954` |
+| layers `0-1`, end step `100` | `5.5970` | `4.6782` | `4.1145` | `3.8875` |
+
+Read:
+
+```text
+The short-screen V signal remains real.
+The current inverse schedules fade by 200 steps.
+The block/power filters did not rescue the cost or preserve the loss gain.
+The current branch should not launch a WR attempt without a new hypothesis.
+```
+
 The strongest read:
 
 ```text
@@ -81,6 +112,7 @@ V-input eigensystem matters.
 Literal inverse plus norm restoration keeps the useful direction.
 Removing norm restoration or replacing inverse with top-shrink loses signal.
 The cost problem is still every-step preconditioner application, not only refresh.
+The 200-step problem is now at least as important as the cost problem.
 ```
 
 On `world_size=1`, owner-local does not reduce the layer count because the one
@@ -89,9 +121,9 @@ representative: each rank owns only its `vo_bank` shard. That means the current
 1xH100 timing is pessimistic for the true distributed update path, but not
 enough to justify an 8x launch before another short distributed smoke.
 
-## Candidate To Keep Warm
+## Candidate Status
 
-Current best loss candidate:
+The previous best loss candidate was:
 
 ```text
 LOCO_FULL_SURFACES=v
@@ -113,9 +145,9 @@ Runner:
 SCREEN_STEPS=200 SCREEN_VAL_EVERY=50 tools/run_newtonv_raw_v01_gate.sh
 ```
 
-This is the candidate to remeasure first when a GPU is available. The cheaper
-norminverse runner remains useful as a control, but it is no longer first in
-queue.
+The Modal promotion run remeasured this family and landed at `3.8875` versus
+the same-suite baseline `3.8837`, so it is no longer a WR candidate as-is. Keep
+the runner for reproducibility, not for automatic promotion.
 
 ## GPU-Ready Queue
 
@@ -125,14 +157,15 @@ For a fresh 1xH100 or Modal H100:
    and a tiny `torchrun` compile.
 2. Run a current-environment baseline screen if the image/hardware changed:
    `SCREEN_STEPS=200 SCREEN_VAL_EVERY=50` with no `LOCO_*` flags.
-3. Run the raw V `0-1 END_STEP=100` gate:
-   `SCREEN_STEPS=200 SCREEN_VAL_EVERY=50 tools/run_newtonv_raw_v01_gate.sh`.
-4. If step-200 loss is still around `<=3.880` and timing is not worse than the
-   same-environment baseline, run a second replicate.
-5. If 1x remains wall-clock negative but loss positive, run a small 8-GPU smoke
-   only to measure owner-local distributed overhead, not a full WR attempt.
-6. Launch a full 8xH100 record attempt only after the distributed overhead smoke
-   says the preconditioner path is near-baseline time.
+3. Do not rerun the old raw V `0-1 END_STEP=100` gate unless it is needed as a
+   control.
+4. If continuing Newton-V, first test the overpreconditioning hypothesis: reduce
+   or gate the existing Muon/NorMuon normalization on V while the right-side
+   feature preconditioner is active.
+5. Only if that new hypothesis beats the 200-step baseline, run a small 8-GPU
+   smoke to measure owner-local distributed overhead.
+6. Launch a full 8xH100 record attempt only after both the 200-step loss gate
+   and distributed overhead smoke are positive.
 
 Kill criteria:
 

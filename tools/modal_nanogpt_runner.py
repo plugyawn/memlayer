@@ -13,7 +13,10 @@ APP_NAME = "nanogpt-speedrun-newton-muon"
 REMOTE_ROOT = Path("/root/speedrun")
 CACHE_MOUNT = Path("/root/.cache")
 DATA_MOUNT = REMOTE_ROOT / "data" / "fineweb10B"
-DEFAULT_GPU = os.environ.get("MODAL_NANOGPT_GPU", os.environ.get("MODAL_GPU", "H100!"))
+DEFAULT_GPU = os.environ.get(
+    "NANOGPT_MODAL_GPU",
+    os.environ.get("MODAL_NANOGPT_GPU", os.environ.get("MODAL_GPU", "H100")),
+)
 
 if DEFAULT_GPU not in {"H100", "H100!", "GH200"}:
     raise ValueError("Only H100/H100! or GH200 are allowed for this speedrun runner.")
@@ -24,6 +27,7 @@ def _ignore_source(path: Path) -> bool:
     name = path.name
     return (
         ".git" in parts
+        or ".opencode" in parts
         or "__pycache__" in parts
         or "tmp" in parts
         or "logs" in parts
@@ -88,6 +92,16 @@ def _parse_training_summary(output: str) -> dict[str, object]:
     }
 
 
+def _loads_extra_env(extra_env_json: str) -> dict[str, str]:
+    try:
+        parsed = json.loads(extra_env_json)
+    except json.JSONDecodeError:
+        parsed, _ = json.JSONDecoder().raw_decode(extra_env_json)
+    if not isinstance(parsed, dict):
+        raise ValueError("extra_env_json must decode to an object")
+    return {str(k): str(v) for k, v in parsed.items()}
+
+
 @app.function(
     cpu=4,
     memory=8192,
@@ -116,7 +130,7 @@ def _ensure_data(data_chunks: int = 2) -> dict[str, object]:
     gpu=DEFAULT_GPU,
     cpu=16,
     memory=131072,
-    ephemeral_disk=262144,
+    ephemeral_disk=524288,
     timeout=14400,
     startup_timeout=1800,
     scaledown_window=60,
@@ -184,6 +198,6 @@ def run(
     log_path: str | None = None,
     extra_env_json: str = "{}",
 ) -> None:
-    extra_env = json.loads(extra_env_json)
+    extra_env = _loads_extra_env(extra_env_json)
     result = run_screen.remote(runner, steps, val_every, nproc, data_chunks, log_path, extra_env)
     print(json.dumps(result, indent=2, sort_keys=True))
