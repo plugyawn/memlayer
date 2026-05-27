@@ -674,6 +674,44 @@ run_metricpolar_ladder() {
     bash tools/run_newtonv_timing_triplet_gate.sh
 }
 
+run_metricpromote_ladder() {
+  local mpp_steps="${MPP_STEPS:-200}"
+  local mpp_val_every="${MPP_VAL_EVERY:-50}"
+
+  run_case mpp_baseline \
+    NEWTONV_VARIANT=baseline \
+    SCREEN_STEPS="${mpp_steps}" \
+    SCREEN_VAL_EVERY="${mpp_val_every}" \
+    bash tools/run_newtonv_timing_triplet_gate.sh
+
+  run_case mpp_cholmetric_qkv01_polar4 \
+    NEWTONV_VARIANT=active \
+    LOCO_FULL_SURFACES=qk,v \
+    LOCO_DIAG_ATTN_LAYERS=0-1 \
+    LOCO_FULL_COLLECT_WINDOWS=0-64 \
+    LOCO_FULL_WINDOWS=48-112 \
+    LOCO_FULL_METRIC_POLAR=1 \
+    LOCO_FULL_NORM_RESTORE=0 \
+    LOCO_FULL_POLAR_ITERS=4 \
+    SCREEN_STEPS="${mpp_steps}" \
+    SCREEN_VAL_EVERY="${mpp_val_every}" \
+    bash tools/run_newtonv_timing_triplet_gate.sh
+
+  run_case mpp_cholmetric_qkv01_polar4_blend100 \
+    NEWTONV_VARIANT=active \
+    LOCO_FULL_SURFACES=qk,v \
+    LOCO_DIAG_ATTN_LAYERS=0-1 \
+    LOCO_FULL_COLLECT_WINDOWS=0-64 \
+    LOCO_FULL_WINDOWS=48-112 \
+    LOCO_FULL_METRIC_POLAR=1 \
+    LOCO_FULL_NORM_RESTORE=0 \
+    LOCO_FULL_POLAR_ITERS=4 \
+    LOCO_FULL_BLEND_STEPS=100 \
+    SCREEN_STEPS="${mpp_steps}" \
+    SCREEN_VAL_EVERY="${mpp_val_every}" \
+    bash tools/run_newtonv_timing_triplet_gate.sh
+}
+
 case "${suite}" in
   timing)
     run_timing_triplet
@@ -748,6 +786,9 @@ case "${suite}" in
     ;;
   metricpolar)
     run_metricpolar_ladder
+    ;;
+  metricpromote)
+    run_metricpromote_ladder
     ;;
   all)
     run_timing_triplet
