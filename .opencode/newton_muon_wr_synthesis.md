@@ -368,6 +368,33 @@ dense finite-time inverse V 0-1, t=1, clip=2
 dense power inverse V 0-1, alpha=0.5, clip=2
 ```
 
+## Reference Mismatch
+
+The public Newton-Muon reproduction code is not the same experiment as our
+current Newton-V ladder. The reference implementation:
+
+```text
+applies inverse activation covariance before momentum
+uses PRECOND_EVERY=16
+uses PRECOND_EWMA=0.80
+uses ridge = 0.2 * trace(C) / d
+preconditions packed QKV together, O, MLP expansion, and blockwise MLP contraction
+```
+
+Our current branch has mostly tested a narrower, after-momentum V/O/QK variant
+with weaker ridge. That is still a valid speedrun probe, but it is not a
+faithful reproduction of the paper's NanoGPT claim.
+
+Prepared follow-up suite for the ordering/damping question:
+
+```text
+NEWTONV_SUITE=paperstyle
+```
+
+This does not yet reproduce the full paper surface set, but it tests the most
+important mismatch for V: precondition raw grad before momentum with
+`refresh=16`, `ema=0.8`, and `ridge_rel=0.2`.
+
 ## GPU-Ready Queue
 
 For a fresh 1xH100 or Modal H100:

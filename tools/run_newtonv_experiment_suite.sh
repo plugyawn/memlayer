@@ -558,6 +558,54 @@ run_rightfilter_ladder() {
     bash tools/run_newtonv_block_power_gate.sh
 }
 
+run_paperstyle_ladder() {
+  local ps_steps="${PS_STEPS:-120}"
+  local ps_val_every="${PS_VAL_EVERY:-40}"
+
+  run_case ps_baseline \
+    NEWTONV_VARIANT=baseline \
+    SCREEN_STEPS="${ps_steps}" \
+    SCREEN_VAL_EVERY="${ps_val_every}" \
+    bash tools/run_newtonv_timing_triplet_gate.sh
+
+  run_case ps_v01_before_polar5_ridge020 \
+    LOCO_FULL_COLLECT_WINDOWS=0-64 \
+    LOCO_FULL_WINDOWS=48-112 \
+    LOCO_FULL_APPLY_BEFORE_MOMENTUM=1 \
+    LOCO_FULL_REFRESH_INTERVAL=16 \
+    LOCO_FULL_EMA_BETA=0.8 \
+    LOCO_FULL_RIDGE_REL=0.2 \
+    LOCO_FULL_POLAR_ITERS=5 \
+    SCREEN_STEPS="${ps_steps}" \
+    SCREEN_VAL_EVERY="${ps_val_every}" \
+    bash tools/run_newtonv_raw_v01_gate.sh
+
+  run_case ps_v01_before_polar4_ridge020 \
+    LOCO_FULL_COLLECT_WINDOWS=0-64 \
+    LOCO_FULL_WINDOWS=48-112 \
+    LOCO_FULL_APPLY_BEFORE_MOMENTUM=1 \
+    LOCO_FULL_REFRESH_INTERVAL=16 \
+    LOCO_FULL_EMA_BETA=0.8 \
+    LOCO_FULL_RIDGE_REL=0.2 \
+    LOCO_FULL_POLAR_ITERS=4 \
+    SCREEN_STEPS="${ps_steps}" \
+    SCREEN_VAL_EVERY="${ps_val_every}" \
+    bash tools/run_newtonv_raw_v01_gate.sh
+
+  run_case ps_vall_before_polar5_ridge020 \
+    LOCO_DIAG_ATTN_LAYERS=all \
+    LOCO_FULL_COLLECT_WINDOWS=0-64 \
+    LOCO_FULL_WINDOWS=48-112 \
+    LOCO_FULL_APPLY_BEFORE_MOMENTUM=1 \
+    LOCO_FULL_REFRESH_INTERVAL=16 \
+    LOCO_FULL_EMA_BETA=0.8 \
+    LOCO_FULL_RIDGE_REL=0.2 \
+    LOCO_FULL_POLAR_ITERS=5 \
+    SCREEN_STEPS="${ps_steps}" \
+    SCREEN_VAL_EVERY="${ps_val_every}" \
+    bash tools/run_newtonv_raw_v01_gate.sh
+}
+
 case "${suite}" in
   timing)
     run_timing_triplet
@@ -627,6 +675,9 @@ case "${suite}" in
   rightfilter)
     run_rightfilter_ladder
     ;;
+  paperstyle)
+    run_paperstyle_ladder
+    ;;
   all)
     run_timing_triplet
     run_next_ladder
@@ -638,7 +689,7 @@ case "${suite}" in
       bash tools/run_newtonv_raw_v01_gate.sh
     ;;
   *)
-    echo "NEWTONV_SUITE must be timing, filters, quick, raw200, promote, polar4, permutations, next, tail, warmmetric, overprecond, overpromote, scheduleonly, preconddiag, schedule_diag, rightfilter, or all; got ${suite}" >&2
+    echo "NEWTONV_SUITE must be timing, filters, quick, raw200, promote, polar4, permutations, next, tail, warmmetric, overprecond, overpromote, scheduleonly, preconddiag, schedule_diag, rightfilter, paperstyle, or all; got ${suite}" >&2
     exit 2
     ;;
 esac
