@@ -265,3 +265,37 @@ Owner-local/BF16 verdict:
 4. For 1xH100, focus next on reducing every-step preconditioner cost or limiting
    full-V to fewer layers/steps; for 8xH100, remeasure owner-local because each
    rank will own only a subset of V layers.
+
+## QK/O Surface Checks
+
+| run | log | checkpoint | val_loss | train_time | step_avg | decision |
+| --- | --- | ---: | ---: | ---: | ---: | --- |
+| headwise full O, FP32 inverse cache | `.opencode/newtonv_fullo_headwise_fp32_screen60.log` | 20 | 6.5519 | 9.245s | 462.27ms | not an early loss hit |
+| headwise full O, FP32 inverse cache | `.opencode/newtonv_fullo_headwise_fp32_screen60.log` | 40 | 5.4137 | 100.230s | 2505.76ms | one-time refresh compile spike made timing unusable |
+| headwise full O, FP32 inverse cache | `.opencode/newtonv_fullo_headwise_fp32_screen60.log` | 60 | 4.8395 | 134.701s | 2245.01ms | reject as current candidate |
+
+Headwise O is cheaper in principle than dense 768-wide V, but the current
+compiled path hit a `~74s` refresh compile spike at step 25 and still landed
+behind the best V screens. The O Gram diagonal is much more heavy-tailed by step
+50 (`p99=1.1395e5`, `max=2.4055e5`), and the preconditioned O operand norm ratio
+had already moved to `~0.971`. This is not a reason to promote O before fixing
+the V path.
+
+## Low-Rank V Filter Plan
+
+Implemented next: `LOCO_FULL_FILTER=topshrink` for V/QK attention-input Grams.
+The refresh path eigendecomposes normalized `C`, caches top-rank eigenvectors
+and finite-time shrink deltas, and the optimizer applies
+`M <- M + blend * (M U diag(delta) U.T)` after momentum and before Polar
+Express. It deliberately does no per-step norm restoration. First screen:
+
+```text
+LOCO_FULL_SURFACES=v
+LOCO_FULL_FILTER=topshrink
+LOCO_FULL_SHRINK_RANK=64
+LOCO_FULL_SHRINK_T=1.0
+LOCO_FULL_SHRINK_CLIP=2.0
+LOCO_FULL_APPLY_INTERVAL=4
+LOCO_FULL_REFRESH_INTERVAL=8
+LOCO_FULL_RIDGE_REL=0.03
+```
