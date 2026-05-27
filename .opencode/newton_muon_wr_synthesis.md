@@ -251,6 +251,62 @@ So the no-op control is really a polar/full-path schedule ablation. The matched
 200-step ladder says this ablation is currently more promising than
 right-preconditioned Newton-V.
 
+## Right-Preconditioner Read
+
+Do not read the overpromote miss as "input geometry is useless." The stronger
+and more defensible read is:
+
+```text
+The current literal Newton-V payload did not beat the matched VO-bank full-path
+schedule, but the right-preconditioner family remains the mathematically
+correct object to test.
+```
+
+Why:
+
+- Newton-Muon's claim is exactly that Muon neglects the right preconditioning
+  induced by the input second moment.
+- LocoProp-S reaches the same right-factor through local affine squared-loss
+  optimization.
+- K-FAC reaches the same object as the activation covariance factor in a
+  Kronecker approximation to natural gradient.
+- Our own full-V inverse runs showed algorithmic signal before the matched
+  no-op controls exposed the schedule confound.
+
+What failed locally is more specific:
+
+```text
+raw/near-literal C^{-1}
++ weak/restarted blend in a short warm window
++ already tuned Polar/NorMuon normalization
++ VO-bank full-path schedule confound
+```
+
+That does not falsify right preconditioning. It says the right next question is
+not "V or no V?" but "what filter f(C), what schedule, and what matched
+Muon/Polar baseline?"
+
+The next Newton-family test, after the schedule-only proof, should be
+schedule-matched:
+
+```text
+baseline: ordinary NorMuon/Polar
+control:  VO-bank schedule-only full path
+treatment: same VO-bank schedule + damped f(C)
+```
+
+Candidate right filters should avoid unbounded bottom-eigenspace amplification:
+
+```text
+finite-time inverse, clipped:      h_t(lambda)
+power inverse, clipped:            lambda^-alpha with alpha <= 0.5
+top-eigenspace shrink only:        I + U_top (s - 1) U_top^T
+relative-ridge normalized inverse: (C + rho mean_diag I)^-1, normalized
+```
+
+Literal `C^{-1}` stays a reference, not the final answer. Promotion requires
+beating the schedule-only control, not just the ordinary baseline.
+
 ## GPU-Ready Queue
 
 For a fresh 1xH100 or Modal H100:
@@ -263,14 +319,19 @@ For a fresh 1xH100 or Modal H100:
    control.
 4. Do not continue the current Newton-V promotion path without a new reason.
    The matched 200-step ladder failed the promotion rule.
-5. Next isolate the full-path/no-op schedule with feature-stat work removed.
+5. Next isolate the full-path/no-op schedule with feature-stat work removed,
+   and run sparse right-preconditioner diagnostics in the same H100 window if
+   time permits.
    The target controls are baseline, no-refresh VO-bank no-op polar5,
    no-refresh VO-bank no-op polar4, all-window polar5/polar4 no-refresh
    controls, and matching collection-enabled no-op replicates.
-   Prepared suite: `NEWTONV_SUITE=scheduleonly`.
+   Prepared suite: `NEWTONV_SUITE=schedule_diag`.
    `LOCO_FULL_SCHEDULE_ONLY=1` preserves the explicit VO-bank after-momentum
    path but disables feature collection, factor refresh, preconditioner helper
    calls, and full-stat buffer allocation.
+   Diagnostic cases enable `LOCO_FULL_LOG_PRECOND=1` and
+   `LOCO_FULL_LOG_SPECTRUM=1`, then parse with
+   `tools/parse_loco_full_diagnostics.py`.
    Promotion bar: no-stats schedule-only must beat same-suite baseline by
    `>=0.003` at 200 steps, match or beat the collection-enabled no-op replicate,
    and keep non-refresh timing within roughly `2-3%` of baseline.

@@ -430,6 +430,51 @@ run_schedule_only_ladder() {
     bash tools/run_newtonv_timing_triplet_gate.sh
 }
 
+run_precond_diag_ladder() {
+  local diag_steps="${DIAG_STEPS:-120}"
+  local diag_val_every="${DIAG_VAL_EVERY:-40}"
+  local diag_log_steps="${DIAG_LOG_STEPS:-48,50,64,80,100,112,120}"
+
+  run_case diag_v01_warm_active_polar5 \
+    LOCO_FULL_COLLECT_WINDOWS=0-64 \
+    LOCO_FULL_WINDOWS=48-112 \
+    LOCO_FULL_POLAR_ITERS=5 \
+    LOCO_FULL_LOG_PRECOND=1 \
+    LOCO_FULL_LOG_SPECTRUM=1 \
+    LOCO_DIAG_LOG_STEPS="${diag_log_steps}" \
+    SCREEN_STEPS="${diag_steps}" \
+    SCREEN_VAL_EVERY="${diag_val_every}" \
+    bash tools/run_newtonv_raw_v01_gate.sh
+
+  run_case diag_v01_warm_active_polar4 \
+    LOCO_FULL_COLLECT_WINDOWS=0-64 \
+    LOCO_FULL_WINDOWS=48-112 \
+    LOCO_FULL_POLAR_ITERS=4 \
+    LOCO_FULL_LOG_PRECOND=1 \
+    LOCO_FULL_LOG_SPECTRUM=1 \
+    LOCO_DIAG_LOG_STEPS="${diag_log_steps}" \
+    SCREEN_STEPS="${diag_steps}" \
+    SCREEN_VAL_EVERY="${diag_val_every}" \
+    bash tools/run_newtonv_raw_v01_gate.sh
+
+  run_case diag_vall_warm_active_polar4 \
+    LOCO_DIAG_ATTN_LAYERS=all \
+    LOCO_FULL_COLLECT_WINDOWS=0-64 \
+    LOCO_FULL_WINDOWS=48-112 \
+    LOCO_FULL_POLAR_ITERS=4 \
+    LOCO_FULL_LOG_PRECOND=1 \
+    LOCO_FULL_LOG_SPECTRUM=1 \
+    LOCO_DIAG_LOG_STEPS="${diag_log_steps}" \
+    SCREEN_STEPS="${diag_steps}" \
+    SCREEN_VAL_EVERY="${diag_val_every}" \
+    bash tools/run_newtonv_raw_v01_gate.sh
+}
+
+run_schedule_diag_ladder() {
+  run_schedule_only_ladder
+  run_precond_diag_ladder
+}
+
 case "${suite}" in
   timing)
     run_timing_triplet
@@ -490,6 +535,12 @@ case "${suite}" in
   scheduleonly)
     run_schedule_only_ladder
     ;;
+  preconddiag)
+    run_precond_diag_ladder
+    ;;
+  schedule_diag)
+    run_schedule_diag_ladder
+    ;;
   all)
     run_timing_triplet
     run_next_ladder
@@ -501,7 +552,7 @@ case "${suite}" in
       bash tools/run_newtonv_raw_v01_gate.sh
     ;;
   *)
-    echo "NEWTONV_SUITE must be timing, filters, quick, raw200, promote, polar4, permutations, next, tail, warmmetric, overprecond, overpromote, scheduleonly, or all; got ${suite}" >&2
+    echo "NEWTONV_SUITE must be timing, filters, quick, raw200, promote, polar4, permutations, next, tail, warmmetric, overprecond, overpromote, scheduleonly, preconddiag, schedule_diag, or all; got ${suite}" >&2
     exit 2
     ;;
 esac

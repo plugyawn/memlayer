@@ -117,6 +117,9 @@ LOCO_FULL_STATIC_NORM = os.environ.get("LOCO_FULL_STATIC_NORM", "1" if LOCO_FULL
 LOCO_FULL_POLAR_ITERS = int(os.environ.get("LOCO_FULL_POLAR_ITERS", "5"))
 LOCO_FULL_NORM_RESTORE = os.environ.get("LOCO_FULL_NORM_RESTORE", "0" if LOCO_FULL_NORMINVERSE else "1") == "1"
 LOCO_FULL_SKIP_VARRED = os.environ.get("LOCO_FULL_SKIP_VARRED", "0") == "1"
+LOCO_FULL_LOG_PRECOND = os.environ.get("LOCO_FULL_LOG_PRECOND", "0") == "1"
+LOCO_FULL_LOG_PRECOND_DETAIL = os.environ.get("LOCO_FULL_LOG_PRECOND_DETAIL", "0") == "1"
+LOCO_FULL_LOG_SPECTRUM = os.environ.get("LOCO_FULL_LOG_SPECTRUM", "0") == "1"
 if LOCO_FULL_APPLY_INTERVAL <= 0:
     raise ValueError("LOCO_FULL_APPLY_INTERVAL must be positive")
 if LOCO_FULL_BLOCK_SIZE < 0:
@@ -716,7 +719,9 @@ class NorMuonAndAdam:
         self._loco_full_optimizer_active = False
         self._loco_step = 0
         self._loco_log_step = False
+        self._loco_full_log_step = False
         self._loco_grad_ratio_stats = []
+        self._loco_full_precond_stats = []
         self.param_table = param_table
         self.scatter_order = scatter_order
         self.work_order = work_order
@@ -790,7 +795,9 @@ class NorMuonAndAdam:
         apply_full_now = (step % LOCO_FULL_APPLY_INTERVAL) == 0
         self._loco_full_optimizer_active = self.loco_full_active and apply_full_now and full_active_now and (LOCO_FULL_NOOP or full_blend != 0.0)
         self._loco_log_step = globals().get("master_process", False) and step in LOCO_DIAG_LOG_STEP_SET
+        self._loco_full_log_step = self._loco_log_step and LOCO_FULL_LOG_PRECOND
         self._loco_grad_ratio_stats.clear()
+        self._loco_full_precond_stats.clear()
 
     def _record_loco_grad_ratio(self, name: str, before: Tensor, after: Tensor):
         if not self._loco_log_step:
@@ -798,7 +805,47 @@ class NorMuonAndAdam:
         ratio = after.float().div(before.float().clamp_min(1e-12)).item()
         self._loco_grad_ratio_stats.append((name, ratio))
 
+    def _record_loco_full_precond_stats(
+        self,
+        name: str,
+        layer_idx: int,
+        global_idx: int,
+        before: Tensor,
+        after: Tensor,
+        blend: float,
+    ):
+        if not self._loco_full_log_step:
+            return
+        before = before.float()
+        after = after.float()
+        before_norm = before.norm().clamp_min(1e-12)
+        after_norm = after.norm().clamp_min(1e-12)
+        delta = after - before
+        delta_norm = delta.norm()
+        cos = before.flatten().dot(after.flatten()).div(before_norm * after_norm).clamp(-1.0, 1.0)
+        stat = {
+            "name": name,
+            "layer": int(layer_idx),
+            "global_idx": int(global_idx),
+            "blend": float(blend),
+            "norm_ratio": after_norm.div(before_norm).item(),
+            "delta_ratio": delta_norm.div(before_norm).item(),
+            "cos": cos.item(),
+            "target_norm_ratio": None,
+            "target_delta_ratio": None,
+            "target_cos": None,
+        }
+        if blend > 1e-12:
+            target = before + delta.div(blend)
+            target_norm = target.norm().clamp_min(1e-12)
+            target_cos = before.flatten().dot(target.flatten()).div(before_norm * target_norm).clamp(-1.0, 1.0)
+            stat["target_norm_ratio"] = target_norm.div(before_norm).item()
+            stat["target_delta_ratio"] = delta_norm.div(before_norm * blend).item()
+            stat["target_cos"] = target_cos.item()
+        self._loco_full_precond_stats.append(stat)
+
     def _flush_loco_grad_ratio_stats(self):
+        self._flush_loco_full_precond_stats()
         if not self._loco_grad_ratio_stats:
             return
         grouped = {}
@@ -813,6 +860,51 @@ class NorMuonAndAdam:
             )
         print0(f"loco_diag_grad_ratio step={self._loco_step} " + " | ".join(parts), console=True)
         self._loco_grad_ratio_stats.clear()
+
+    def _flush_loco_full_precond_stats(self):
+        if not self._loco_full_precond_stats:
+            return
+
+        def mean(values):
+            return sum(values) / max(len(values), 1)
+
+        grouped = {}
+        for stat in self._loco_full_precond_stats:
+            grouped.setdefault(stat["name"], []).append(stat)
+        parts = []
+        details = []
+        for name in sorted(grouped):
+            stats = grouped[name]
+            layers = ",".join(str(x) for x in sorted({stat["layer"] for stat in stats}))
+            norm_ratios = [stat["norm_ratio"] for stat in stats]
+            delta_ratios = [stat["delta_ratio"] for stat in stats]
+            cos_values = [stat["cos"] for stat in stats]
+            target_delta_ratios = [stat["target_delta_ratio"] for stat in stats if stat["target_delta_ratio"] is not None]
+            target_cos_values = [stat["target_cos"] for stat in stats if stat["target_cos"] is not None]
+            segment = (
+                f"{name}:n={len(stats)} layers={layers} "
+                f"blend={mean([stat['blend'] for stat in stats]):.4e} "
+                f"norm={mean(norm_ratios):.4e}/{min(norm_ratios):.4e}/{max(norm_ratios):.4e} "
+                f"delta={mean(delta_ratios):.4e}/{min(delta_ratios):.4e}/{max(delta_ratios):.4e} "
+                f"cos={mean(cos_values):.6f}/{min(cos_values):.6f}/{max(cos_values):.6f}"
+            )
+            if target_delta_ratios:
+                segment += (
+                    f" target_delta={mean(target_delta_ratios):.4e}/{min(target_delta_ratios):.4e}/{max(target_delta_ratios):.4e} "
+                    f"target_cos={mean(target_cos_values):.6f}/{min(target_cos_values):.6f}/{max(target_cos_values):.6f}"
+                )
+            parts.append(segment)
+            if LOCO_FULL_LOG_PRECOND_DETAIL:
+                details.extend(
+                    f"{name}:g{stat['global_idx']}:l{stat['layer']}:delta={stat['delta_ratio']:.4e}:"
+                    f"target_delta={stat['target_delta_ratio'] if stat['target_delta_ratio'] is not None else float('nan'):.4e}:"
+                    f"cos={stat['cos']:.6f}"
+                    for stat in stats
+                )
+        print0(f"loco_full_precond step={self._loco_step} " + " | ".join(parts), console=True)
+        if details:
+            print0(f"loco_full_precond_detail step={self._loco_step} " + " | ".join(details), console=True)
+        self._loco_full_precond_stats.clear()
 
     def _build_param_cfg(self, param: nn.Parameter, label: str):
         """Build config for a single parameter from param_table."""
@@ -1424,6 +1516,7 @@ class NorMuonAndAdam:
             if not _loco_diag_layer_active(model_layer, LOCO_DIAG_ATTN_LAYER_SET):
                 continue
             before_norm = grad_chunk[mat_idx].float().norm() if self._loco_log_step else None
+            before_operand = grad_chunk[mat_idx].float().clone() if self._loco_full_log_step else None
             if is_o:
                 if LOCO_FULL_PRECOND_BF16:
                     if LOCO_FULL_NORM_RESTORE:
@@ -1513,6 +1606,15 @@ class NorMuonAndAdam:
                     )
             if before_norm is not None:
                 self._record_loco_grad_ratio("full_o" if is_o else "full_v", before_norm, grad_chunk[mat_idx].float().norm())
+            if before_operand is not None:
+                self._record_loco_full_precond_stats(
+                    "full_o" if is_o else "full_v",
+                    layer_idx,
+                    global_idx,
+                    before_operand,
+                    grad_chunk[mat_idx],
+                    float(self._loco_full_blend_t.item()),
+                )
 
     def _loco_full_precondition_qk_operand_inplace(self, grad_chunk: Tensor, p_cfg: ParamConfig, rank: int):
         """Apply cached full-C Newton-Muon right preconditioning to Q/K groups."""
@@ -1528,6 +1630,7 @@ class NorMuonAndAdam:
             if not _loco_diag_layer_active(model_layer, LOCO_DIAG_ATTN_LAYER_SET):
                 continue
             before_norm = grad_chunk[mat_idx].float().norm() if self._loco_log_step else None
+            before_operand = grad_chunk[mat_idx].float().clone() if self._loco_full_log_step else None
             if LOCO_FULL_BLOCK:
                 if LOCO_FULL_PRECOND_BF16:
                     if LOCO_FULL_NORM_RESTORE:
@@ -1590,6 +1693,15 @@ class NorMuonAndAdam:
                     )
             if before_norm is not None:
                 self._record_loco_grad_ratio("full_qk", before_norm, grad_chunk[mat_idx].float().norm())
+            if before_operand is not None:
+                self._record_loco_full_precond_stats(
+                    "full_qk",
+                    layer_idx,
+                    global_idx,
+                    before_operand,
+                    grad_chunk[mat_idx],
+                    float(self._loco_full_blend_t.item()),
+                )
 
     def _loco_diag_mlp_update(self, param: nn.Parameter, grad_chunk: Tensor, p_cfg: ParamConfig, rank: int) -> Tensor:
         """Apply direct diagonal LocoProp-S to MLP bank matrices."""
@@ -3076,6 +3188,34 @@ class TrainingManager():
         scale = math.sqrt(dim) * preconditioner.float().square().sum(dim=(-2, -1), keepdim=True).clamp_min(1e-12).rsqrt()
         preconditioner.mul_(scale)
 
+    def _log_loco_full_spectrum(self, name: str, step: int, layer_idx: int, evals: Tensor, gain: Tensor | None = None):
+        if not (master_process and LOCO_FULL_LOG_SPECTRUM and step in LOCO_DIAG_LOG_STEP_SET):
+            return
+        eig = evals.float().flatten().clamp_min(1e-12)
+        q = torch.quantile(eig, torch.tensor([0.01, 0.50, 0.99], device=eig.device))
+        if gain is None:
+            g = eig.reciprocal()
+        else:
+            g = gain.float().flatten().clamp_min(1e-12)
+        gq = torch.quantile(g, torch.tensor([0.01, 0.50, 0.99], device=g.device))
+        print0(
+            f"loco_full_spectrum step={step} {name} layer={layer_idx} "
+            f"eig_mean={eig.mean().item():.4e} "
+            f"eig_min={eig.min().item():.4e} "
+            f"eig_p01={q[0].item():.4e} "
+            f"eig_p50={q[1].item():.4e} "
+            f"eig_p99={q[2].item():.4e} "
+            f"eig_max={eig.max().item():.4e} "
+            f"eig_cond={eig.max().div(eig.min()).item():.4e} "
+            f"gain_mean={g.mean().item():.4e} "
+            f"gain_min={g.min().item():.4e} "
+            f"gain_p01={gq[0].item():.4e} "
+            f"gain_p50={gq[1].item():.4e} "
+            f"gain_p99={gq[2].item():.4e} "
+            f"gain_max={g.max().item():.4e}",
+            console=True,
+        )
+
     @staticmethod
     def _reset_loco_full_preconditioner_state(loco_model):
         if not LOCO_FULL_STATS_ACTIVE:
@@ -3140,9 +3280,14 @@ class TrainingManager():
                             c_norm = 0.5 * (c_norm + c_norm.transpose(-1, -2))
                             evals, evecs = torch.linalg.eigh(c_norm)
                             gain = self._loco_full_spectral_gain(evals)
+                            self._log_loco_full_spectrum("attn_in_block", step, layer_idx, evals, gain)
                             c_inv = torch.matmul(evecs.mul(gain.unsqueeze(-2)), evecs.transpose(-1, -2))
                         else:
                             c_reg = ema + (LOCO_FULL_RIDGE_REL * mean_diag).view(-1, 1, 1) * loco_model.loco_full_block_eye
+                            if LOCO_FULL_LOG_SPECTRUM:
+                                c_norm = c_reg.div(((1.0 + LOCO_FULL_RIDGE_REL) * mean_diag).view(-1, 1, 1))
+                                c_norm = 0.5 * (c_norm + c_norm.transpose(-1, -2))
+                                self._log_loco_full_spectrum("attn_in_block", step, layer_idx, torch.linalg.eigvalsh(c_norm))
                             chol = torch.linalg.cholesky(c_reg)
                             c_inv = torch.cholesky_inverse(chol)
                             if LOCO_FULL_NORMINVERSE:
@@ -3172,6 +3317,9 @@ class TrainingManager():
                             denom = 1.0 - math.exp(-LOCO_FULL_SHRINK_T)
                             shrink = (1.0 - torch.exp(-LOCO_FULL_SHRINK_T * lam)).div(lam * denom)
                             shrink = shrink.clamp(min=1.0 / LOCO_FULL_SHRINK_CLIP, max=1.0)
+                            gain = torch.ones_like(evals)
+                            gain[idx] = shrink
+                            self._log_loco_full_spectrum("attn_in", step, layer_idx, evals, gain)
                             loco_model.loco_full_v_shrink_u[layer_idx].copy_(basis)
                             loco_model.loco_full_v_shrink_delta[layer_idx].copy_(shrink.sub(1.0))
                         elif LOCO_FULL_POWER or LOCO_FULL_FINITE:
@@ -3181,6 +3329,7 @@ class TrainingManager():
                             c_norm = 0.5 * (c_norm + c_norm.T)
                             evals, evecs = torch.linalg.eigh(c_norm)
                             gain = self._loco_full_spectral_gain(evals)
+                            self._log_loco_full_spectrum("attn_in", step, layer_idx, evals, gain)
                             c_inv = evecs.mul(gain.view(1, -1)) @ evecs.T
                             c_inv = 0.5 * (c_inv + c_inv.T)
                             self._loco_full_static_norm_inplace(c_inv, c_inv.shape[-1])
@@ -3188,6 +3337,10 @@ class TrainingManager():
                             loco_model.loco_full_v_inv_bf16[layer_idx].copy_(c_inv.to(torch.bfloat16))
                         else:
                             c_reg = ema + (LOCO_FULL_RIDGE_REL * mean_diag) * loco_model.loco_full_eye
+                            if LOCO_FULL_LOG_SPECTRUM:
+                                c_norm = c_reg.div((1.0 + LOCO_FULL_RIDGE_REL) * mean_diag)
+                                c_norm = 0.5 * (c_norm + c_norm.T)
+                                self._log_loco_full_spectrum("attn_in", step, layer_idx, torch.linalg.eigvalsh(c_norm))
                             chol = torch.linalg.cholesky(c_reg)
                             c_inv = torch.cholesky_inverse(chol)
                             if LOCO_FULL_NORMINVERSE:
@@ -3217,9 +3370,14 @@ class TrainingManager():
                         c_norm = 0.5 * (c_norm + c_norm.transpose(-1, -2))
                         evals, evecs = torch.linalg.eigh(c_norm)
                         gain = self._loco_full_spectral_gain(evals)
+                        self._log_loco_full_spectrum("o_headwise", step, layer_idx, evals, gain)
                         c_inv = torch.matmul(evecs.mul(gain.unsqueeze(-2)), evecs.transpose(-1, -2))
                     else:
                         c_reg = ema + (LOCO_FULL_RIDGE_REL * mean_diag).view(-1, 1, 1) * loco_model.loco_full_o_eye
+                        if LOCO_FULL_LOG_SPECTRUM:
+                            c_norm = c_reg.div(((1.0 + LOCO_FULL_RIDGE_REL) * mean_diag).view(-1, 1, 1))
+                            c_norm = 0.5 * (c_norm + c_norm.transpose(-1, -2))
+                            self._log_loco_full_spectrum("o_headwise", step, layer_idx, torch.linalg.eigvalsh(c_norm))
                         chol = torch.linalg.cholesky(c_reg)
                         c_inv = torch.cholesky_inverse(chol)
                         if LOCO_FULL_NORMINVERSE:
