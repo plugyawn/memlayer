@@ -954,3 +954,53 @@ Run one shifted short-window probe, e.g. 80-144, to test whether the delayed
 post-window benefit can be moved closer to the 200-step screen. If that fails,
 stop V metric-window tuning.
 ```
+
+## Cycle 5 H100 Result: metricv_window 80-144
+
+Modal app:
+
+```text
+ap-677aXmcCbXmr9H9M8CBfHp
+```
+
+Parsed 200-step results:
+
+```text
+mvsw_baseline:                                  3.8844, 675.96ms/step
+mvsw_v01_noop_polar4:                          3.8850, 594.75ms/step
+mvsw_cholmetric_v01_polar4_r020_blend010_norm: 3.8864, 588.46ms/step
+```
+
+Intermediate anchors:
+
+```text
+step 50:
+  baseline         5.6286
+  V no-op          5.5933
+  V metric safe    5.6219
+
+step 100:
+  baseline         4.6631
+  V no-op          4.6690
+  V metric safe    4.6769
+
+step 150:
+  baseline         4.1120
+  V no-op          4.1104
+  V metric safe    4.1202
+```
+
+Interpretation:
+
+```text
+The shifted 80-144 window also fails. Active metric loses to both baseline and
+matched no-op at 100/150/200. The earlier 48-112 safe-metric step-150 hit does
+not turn into a 200-step improvement by shifting the window later.
+```
+
+Decision:
+
+```text
+Stop V metric-window tuning. The useful-looking activation-metric effect is
+not stable enough at 200, and stronger/longer/later windows all worsen it.
+```

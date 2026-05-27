@@ -1017,3 +1017,20 @@ Leaving the safe V metric on longer is worse. The 48-112 result should be
 interpreted as a pulse with delayed benefit, not as a sign that more metric
 application is better.
 ```
+
+V activation-metric shifted-window probe:
+
+```text
+80-144 baseline:       3.8844
+80-144 V no-op:        3.8850
+80-144 V metric safe:  3.8864
+```
+
+Read:
+
+```text
+Shifting the safe V metric window later does not preserve the step-150 pulse
+into the 200-step endpoint. The 80-144 active case loses to baseline and no-op
+at 100, 150, and 200. Stop V metric-window tuning unless a new implementation
+changes the update semantics materially.
+```
