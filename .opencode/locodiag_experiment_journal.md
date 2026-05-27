@@ -110,6 +110,9 @@ Same-environment baseline on the current H100/software stack:
 | full QK, FP32 inverse cache | `.opencode/newtonv_fullqk_fp32_screen60.log` | 20 | 6.5175 | 9.255s | 462.75ms | QK is not immediately toxic |
 | full QK, FP32 inverse cache | `.opencode/newtonv_fullqk_fp32_screen60.log` | 40 | 5.4129 | 30.826s | 770.66ms | weaker than V paths |
 | full QK, FP32 inverse cache | `.opencode/newtonv_fullqk_fp32_screen60.log` | 60 | 4.8402 | 67.420s | 1123.67ms | worse than early V; QK-only is not first candidate |
+| full QK+V, FP32 inverse cache | `.opencode/newtonv_fullqk_v_fp32_screen60.log` | 20 | 6.5404 | 9.303s | 465.17ms | combined QK+V is worse early |
+| full QK+V, FP32 inverse cache | `.opencode/newtonv_fullqk_v_fp32_screen60.log` | 40 | 5.4332 | 31.724s | 793.10ms | QK hurts V signal |
+| full QK+V, FP32 inverse cache | `.opencode/newtonv_fullqk_v_fp32_screen60.log` | 60 | 4.8533 | 69.981s | 1166.36ms | reject QK+V |
 
 Implemented locally after the diagonal screens:
 
@@ -140,6 +143,8 @@ same wall-clock class, not yet WR-ready evidence.
 Full QK is implemented and validated at 60 steps, but it is weaker than V:
 `4.8402` at 60 versus `4.8313` for all-layer V and `4.8211` for V layers `0-1`.
 The next QK check is interaction with V, not QK-only promotion.
+QK+V interaction is negative: `4.8533` at 60. QK should be deprioritized unless
+a later full-run hypothesis specifically needs it.
 
 First H100 screens to run after local validation:
 
