@@ -912,3 +912,19 @@ Run the same qkvo_metric_promote suite at 120 steps with QMP_LAYERS=0-3.
 If widened QKVO keeps a no-op-matched signal, promote the widened case to 200.
 If not, replicate QKVO 0-1 before spending more time on tuning.
 ```
+
+QKVO 0-3 screen:
+
+```text
+qmp_baseline:                 4.1873
+qmp_qkvo_noop_metric_polar4:  4.1744
+qmp_qkvo_cholmetric_polar4:   4.1833
+```
+
+Decision:
+
+```text
+Do not widen QKVO to 0-3 in this form. The full-path/window no-op is strong,
+but the active metric-polar update loses to it by 0.0089 at 120.
+Return to QKVO 0-1 and replicate the 200-step matched-control win.
+```

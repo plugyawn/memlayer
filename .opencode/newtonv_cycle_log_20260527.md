@@ -716,3 +716,39 @@ QMP_LAYERS=0-3
 
 Purpose: test whether the QKVO metric-polar signal widens beyond layers 0-1
 without paying for a full 200-step promote first.
+
+## Cycle 5 H100 Result: qkvo_metric_l03
+
+Modal app:
+
+```text
+ap-HKcnDQwWoAVkrczZujriJ5
+```
+
+Parsed 120-step results:
+
+```text
+qmp_baseline:                 4.1873, 586.24ms/step
+qmp_qkvo_noop_metric_polar4:  4.1744, 591.79ms/step
+qmp_qkvo_cholmetric_polar4:   4.1833, 594.18ms/step
+```
+
+Interpretation:
+
+```text
+Widening QKVO to layers 0-3 is not an active metric win.
+The no-op/full-path/window effect is very strong, but active metric-polar loses
+to that matched no-op by 0.0089 at 120.
+```
+
+Next run:
+
+```text
+NEWTONV_SUITE=qkvo_metric_promote
+QMP_STEPS=200
+QMP_VAL_EVERY=50
+QMP_LAYERS=0-1
+```
+
+Purpose: replicate the QKVO 0-1 200-step active win before tuning windows,
+blend, or ridge.
