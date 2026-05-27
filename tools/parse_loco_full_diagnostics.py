@@ -41,6 +41,13 @@ EIGEN_ENERGY_RE = re.compile(
     r"gain_corr_after=(?P<gain_corr_after>[-+0-9.eE]+) "
     r"gain_corr_target=(?P<gain_corr_target>[-+0-9.eEnNaA]+)"
 )
+POSTPOLAR_RE = re.compile(r"loco_full_postpolar step=(?P<step>\d+) (?P<body>.*)$")
+POSTPOLAR_SEG_RE = re.compile(
+    r"(?P<name>\w+):g(?P<global_idx>\d+):l(?P<layer>\d+):"
+    r"delta=(?P<delta>[-+0-9.eE]+):"
+    r"cos=(?P<cos>[-+0-9.eE]+):"
+    r"norm=(?P<norm>[-+0-9.eE]+)"
+)
 
 
 def number(value: str | None):
@@ -52,7 +59,7 @@ def number(value: str | None):
 
 
 def parse(path: Path) -> dict[str, list[dict]]:
-    rows = {"precond": [], "spectrum": [], "eigen_energy": []}
+    rows = {"precond": [], "spectrum": [], "eigen_energy": [], "postpolar": []}
     for line in path.read_text(errors="replace").splitlines():
         if m := PRECOND_RE.search(line):
             step = int(m.group("step"))
@@ -80,6 +87,19 @@ def parse(path: Path) -> dict[str, list[dict]]:
                     else (value if key == "name" else number(value))
                 )
             rows["eigen_energy"].append(row)
+            continue
+        if m := POSTPOLAR_RE.search(line):
+            step = int(m.group("step"))
+            for segment in m.group("body").split(" | "):
+                if sm := POSTPOLAR_SEG_RE.fullmatch(segment.strip()):
+                    row = {"log": str(path), "step": step}
+                    for key, value in sm.groupdict().items():
+                        row[key] = (
+                            int(value)
+                            if key in {"global_idx", "layer"}
+                            else (value if key == "name" else number(value))
+                        )
+                    rows["postpolar"].append(row)
     return rows
 
 
@@ -104,12 +124,13 @@ def main() -> None:
     parser.add_argument("--json", action="store_true")
     args = parser.parse_args()
 
-    merged = {"precond": [], "spectrum": [], "eigen_energy": []}
+    merged = {"precond": [], "spectrum": [], "eigen_energy": [], "postpolar": []}
     for path in args.logs:
         parsed = parse(path)
         merged["precond"].extend(parsed["precond"])
         merged["spectrum"].extend(parsed["spectrum"])
         merged["eigen_energy"].extend(parsed["eigen_energy"])
+        merged["postpolar"].extend(parsed["postpolar"])
 
     if args.json:
         print(json.dumps(merged, indent=2, sort_keys=True))
@@ -161,6 +182,12 @@ def main() -> None:
                 "gain_corr_after",
                 "gain_corr_target",
             ],
+        )
+    if merged["postpolar"]:
+        print("## Post-Polar")
+        print_table(
+            merged["postpolar"],
+            ["step", "name", "layer", "delta", "cos", "norm"],
         )
 
 

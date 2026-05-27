@@ -121,6 +121,7 @@ LOCO_FULL_LOG_PRECOND = os.environ.get("LOCO_FULL_LOG_PRECOND", "0") == "1"
 LOCO_FULL_LOG_PRECOND_DETAIL = os.environ.get("LOCO_FULL_LOG_PRECOND_DETAIL", "0") == "1"
 LOCO_FULL_LOG_SPECTRUM = os.environ.get("LOCO_FULL_LOG_SPECTRUM", "0") == "1"
 LOCO_FULL_LOG_EIGEN_ENERGY = os.environ.get("LOCO_FULL_LOG_EIGEN_ENERGY", "0") == "1"
+LOCO_FULL_LOG_POSTPOLAR = os.environ.get("LOCO_FULL_LOG_POSTPOLAR", "0") == "1"
 if LOCO_FULL_APPLY_INTERVAL <= 0:
     raise ValueError("LOCO_FULL_APPLY_INTERVAL must be positive")
 if LOCO_FULL_BLOCK_SIZE < 0:
@@ -724,6 +725,7 @@ class NorMuonAndAdam:
         self._loco_grad_ratio_stats = []
         self._loco_full_precond_stats = []
         self._loco_full_eigen_energy_stats = []
+        self._loco_full_postpolar_refs = []
         self.param_table = param_table
         self.scatter_order = scatter_order
         self.work_order = work_order
@@ -801,6 +803,7 @@ class NorMuonAndAdam:
         self._loco_grad_ratio_stats.clear()
         self._loco_full_precond_stats.clear()
         self._loco_full_eigen_energy_stats.clear()
+        self._loco_full_postpolar_refs.clear()
 
     def _record_loco_grad_ratio(self, name: str, before: Tensor, after: Tensor):
         if not self._loco_log_step:
@@ -846,7 +849,45 @@ class NorMuonAndAdam:
             stat["target_delta_ratio"] = delta_norm.div(before_norm * blend).item()
             stat["target_cos"] = target_cos.item()
         self._record_loco_full_eigen_energy_stats(name, layer_idx, global_idx, before, after, blend)
+        if LOCO_FULL_LOG_POSTPOLAR and blend > 1e-12:
+            self._loco_full_postpolar_refs.append(
+                {
+                    "name": name,
+                    "layer": int(layer_idx),
+                    "global_idx": int(global_idx),
+                    "before": before.detach().clone(),
+                }
+            )
         self._loco_full_precond_stats.append(stat)
+
+    def _record_loco_full_postpolar_stats(self, p_cfg: ParamConfig, rank: int, v_chunk: Tensor, split_baddbmm: bool):
+        if not (self._loco_full_log_step and LOCO_FULL_LOG_POSTPOLAR and self._loco_full_postpolar_refs):
+            return
+        by_global_idx = {
+            stat["global_idx"]: stat for stat in self._loco_full_postpolar_refs
+        }
+        start_idx = rank * p_cfg.chunk_size
+        parts = []
+        for mat_idx in range(p_cfg.chunk_size):
+            global_idx = start_idx + mat_idx
+            stat = by_global_idx.get(global_idx)
+            if stat is None:
+                continue
+            baseline_polar = polar_express_from_operand(stat["before"].clone(), split_baddbmm=split_baddbmm).float()
+            precond_polar = v_chunk[mat_idx].float()
+            base_norm = baseline_polar.norm().clamp_min(1e-12)
+            precond_norm = precond_polar.norm().clamp_min(1e-12)
+            delta = precond_polar - baseline_polar
+            cos = baseline_polar.flatten().dot(precond_polar.flatten()).div(base_norm * precond_norm).clamp(-1.0, 1.0)
+            parts.append(
+                f"{stat['name']}:g{global_idx}:l{stat['layer']}:"
+                f"delta={delta.norm().div(base_norm).item():.4e}:"
+                f"cos={cos.item():.6f}:"
+                f"norm={precond_norm.div(base_norm).item():.4e}"
+            )
+        if parts:
+            print0(f"loco_full_postpolar step={self._loco_step} " + " | ".join(parts), console=True)
+        self._loco_full_postpolar_refs.clear()
 
     def _record_loco_full_eigen_energy_stats(
         self,
@@ -1421,6 +1462,7 @@ class NorMuonAndAdam:
                 else:
                     self._loco_full_precondition_vo_operand_inplace(grad_chunk, p_cfg, rank)
             v_chunk = polar_express_from_operand(grad_chunk, split_baddbmm=is_large_matrix)
+            self._record_loco_full_postpolar_stats(p_cfg, rank, v_chunk, is_large_matrix)
         else:
             v_chunk = polar_express(
                 grad_chunk, p_state["momentum_buffer"], self._momentum_t,

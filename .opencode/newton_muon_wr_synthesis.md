@@ -328,6 +328,11 @@ What would support the mechanism:
 4. The effect is stable across steps/layers:
    the sign and order of magnitude persist after the first refresh, not just at
    one noisy early point.
+
+5. Polar does not erase it:
+   postpolar delta is nontrivial versus the same Nesterov operand without
+   f(C). If postpolar cos is essentially 1, the right filter is being absorbed
+   before it can matter.
 ```
 
 What would falsify the current literal Newton-V form:
@@ -337,7 +342,8 @@ What would falsify the current literal Newton-V form:
 2. gain_corr_target is near zero or positive.
 3. high_low_target increases, meaning high-feature-variance directions are not
    actually being suppressed.
-4. target_delta is huge and target_cos is low, suggesting C^-1 is rotating too
+4. postpolar delta is near zero even when target_delta is nontrivial.
+5. target_delta is huge and target_cos is low, suggesting C^-1 is rotating too
    sharply for the tuned Polar/NorMuon stack.
 ```
 
@@ -369,8 +375,8 @@ For a fresh 1xH100 or Modal H100:
    path but disables feature collection, factor refresh, preconditioner helper
    calls, and full-stat buffer allocation.
    Diagnostic cases enable `LOCO_FULL_LOG_PRECOND=1` and
-   `LOCO_FULL_LOG_SPECTRUM=1`, plus eigenbasis energy checks, then parse with
-   `tools/parse_loco_full_diagnostics.py`.
+   `LOCO_FULL_LOG_SPECTRUM=1`, plus eigenbasis energy and post-Polar survival
+   checks, then parse with `tools/parse_loco_full_diagnostics.py`.
    Promotion bar: no-stats schedule-only must beat same-suite baseline by
    `>=0.003` at 200 steps, match or beat the collection-enabled no-op replicate,
    and keep non-refresh timing within roughly `2-3%` of baseline.
