@@ -352,6 +352,22 @@ delta is tiny but target_delta/gain_corr look right, the next move is schedule
 or blend. If target_delta is large but unstable, the next move is clipped
 finite-time inverse or power inverse, not stronger literal inverse.
 
+Prepared follow-up suite if the diagnostic run supports "right metric exists,
+literal inverse is too sharp":
+
+```text
+NEWTONV_SUITE=rightfilter
+```
+
+It matches baseline and schedule-only controls against:
+
+```text
+inverse V 0-1, polar4
+topshrink V 0-1, rank 64, t=1, clip=2
+dense finite-time inverse V 0-1, t=1, clip=2
+dense power inverse V 0-1, alpha=0.5, clip=2
+```
+
 ## GPU-Ready Queue
 
 For a fresh 1xH100 or Modal H100:

@@ -481,6 +481,83 @@ run_schedule_diag_ladder() {
   run_precond_diag_ladder
 }
 
+run_rightfilter_ladder() {
+  local rf_steps="${RF_STEPS:-120}"
+  local rf_val_every="${RF_VAL_EVERY:-40}"
+
+  run_case rf_baseline \
+    NEWTONV_VARIANT=baseline \
+    SCREEN_STEPS="${rf_steps}" \
+    SCREEN_VAL_EVERY="${rf_val_every}" \
+    bash tools/run_newtonv_timing_triplet_gate.sh
+
+  run_case rf_schedule_noop_polar5 \
+    NEWTONV_VARIANT=noop \
+    LOCO_FULL_WINDOWS=48-112 \
+    LOCO_FULL_POLAR_ITERS=5 \
+    LOCO_FULL_SCHEDULE_ONLY=1 \
+    SCREEN_STEPS="${rf_steps}" \
+    SCREEN_VAL_EVERY="${rf_val_every}" \
+    bash tools/run_newtonv_timing_triplet_gate.sh
+
+  run_case rf_schedule_noop_polar4 \
+    NEWTONV_VARIANT=noop \
+    LOCO_FULL_WINDOWS=48-112 \
+    LOCO_FULL_POLAR_ITERS=4 \
+    LOCO_FULL_SCHEDULE_ONLY=1 \
+    SCREEN_STEPS="${rf_steps}" \
+    SCREEN_VAL_EVERY="${rf_val_every}" \
+    bash tools/run_newtonv_timing_triplet_gate.sh
+
+  run_case rf_inverse_v01_polar4 \
+    LOCO_FULL_COLLECT_WINDOWS=0-64 \
+    LOCO_FULL_WINDOWS=48-112 \
+    LOCO_FULL_POLAR_ITERS=4 \
+    SCREEN_STEPS="${rf_steps}" \
+    SCREEN_VAL_EVERY="${rf_val_every}" \
+    bash tools/run_newtonv_raw_v01_gate.sh
+
+  run_case rf_topshrink_v01_polar4 \
+    LOCO_FULL_COLLECT_WINDOWS=0-64 \
+    LOCO_FULL_WINDOWS=48-112 \
+    LOCO_FULL_FILTER=topshrink \
+    LOCO_FULL_SHRINK_RANK=64 \
+    LOCO_FULL_SHRINK_T=1.0 \
+    LOCO_FULL_SHRINK_CLIP=2.0 \
+    LOCO_FULL_POLAR_ITERS=4 \
+    SCREEN_STEPS="${rf_steps}" \
+    SCREEN_VAL_EVERY="${rf_val_every}" \
+    bash tools/run_newtonv_raw_v01_gate.sh
+
+  run_case rf_finite_dense_v01_polar4 \
+    LOCO_FULL_COLLECT_WINDOWS=0-64 \
+    LOCO_FULL_WINDOWS=48-112 \
+    LOCO_FULL_FILTER=finite \
+    LOCO_FULL_BLOCK_SIZE=0 \
+    LOCO_FULL_FINITE_T=1.0 \
+    LOCO_FULL_POWER_CLIP=2.0 \
+    LOCO_FULL_STATIC_NORM=1 \
+    LOCO_FULL_NORM_RESTORE=0 \
+    LOCO_FULL_POLAR_ITERS=4 \
+    SCREEN_STEPS="${rf_steps}" \
+    SCREEN_VAL_EVERY="${rf_val_every}" \
+    bash tools/run_newtonv_block_power_gate.sh
+
+  run_case rf_power05_dense_v01_polar4 \
+    LOCO_FULL_COLLECT_WINDOWS=0-64 \
+    LOCO_FULL_WINDOWS=48-112 \
+    LOCO_FULL_FILTER=power \
+    LOCO_FULL_BLOCK_SIZE=0 \
+    LOCO_FULL_POWER_ALPHA=0.5 \
+    LOCO_FULL_POWER_CLIP=2.0 \
+    LOCO_FULL_STATIC_NORM=1 \
+    LOCO_FULL_NORM_RESTORE=0 \
+    LOCO_FULL_POLAR_ITERS=4 \
+    SCREEN_STEPS="${rf_steps}" \
+    SCREEN_VAL_EVERY="${rf_val_every}" \
+    bash tools/run_newtonv_block_power_gate.sh
+}
+
 case "${suite}" in
   timing)
     run_timing_triplet
@@ -547,6 +624,9 @@ case "${suite}" in
   schedule_diag)
     run_schedule_diag_ladder
     ;;
+  rightfilter)
+    run_rightfilter_ladder
+    ;;
   all)
     run_timing_triplet
     run_next_ladder
@@ -558,7 +638,7 @@ case "${suite}" in
       bash tools/run_newtonv_raw_v01_gate.sh
     ;;
   *)
-    echo "NEWTONV_SUITE must be timing, filters, quick, raw200, promote, polar4, permutations, next, tail, warmmetric, overprecond, overpromote, scheduleonly, preconddiag, schedule_diag, or all; got ${suite}" >&2
+    echo "NEWTONV_SUITE must be timing, filters, quick, raw200, promote, polar4, permutations, next, tail, warmmetric, overprecond, overpromote, scheduleonly, preconddiag, schedule_diag, rightfilter, or all; got ${suite}" >&2
     exit 2
     ;;
 esac
