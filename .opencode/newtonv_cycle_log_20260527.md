@@ -1270,3 +1270,71 @@ LOCO_FULL_SCHEDULE_ONLY=1 48-56 polar4 pulse reproduces the win. If it does,
 promote that schedule-only pulse to 200; if it fails, treat the 48-56 no-op
 result as a noisy/full-stat artifact.
 ```
+
+## Cycle 10 H100 Result: V Schedule-Pulse Control
+
+Modal app:
+
+```text
+ap-Vio3sAUTa6vmVglYIPgcdE
+```
+
+Parsed 120-step results:
+
+```text
+vsc_baseline:                         4.1799, 674.66ms/step
+vsc_v01_noop_polar4_win48_56:         4.1854, 573.09ms/step
+vsc_schedule_only_polar4_win48_56:    4.1894, 577.43ms/step
+vsc_schedule_only_polar4_win48_64:    4.1823, 570.99ms/step
+```
+
+Intermediate anchors:
+
+```text
+step 50:
+  baseline             5.5422
+  no-op 48-56          5.5437
+  schedule 48-56       5.5477
+  schedule 48-64       5.5420
+
+step 75:
+  baseline             4.7273
+  no-op 48-56          4.7425
+  schedule 48-56       4.7487
+  schedule 48-64       4.7303
+
+step 100:
+  baseline             4.3298
+  no-op 48-56          4.3363
+  schedule 48-56       4.3426
+  schedule 48-64       4.3310
+```
+
+Diagnostics:
+
+```text
+The 48-56 no-op/polar4 result from Cycle 9 did not reproduce in the matched
+control suite. Removing feature-stat work with LOCO_FULL_SCHEDULE_ONLY=1 also
+does not recover the win. The wider 48-64 schedule-only pulse is closest, but
+still loses at 75/100/120.
+
+All three active-path cases show the same late compiled-path timing shape:
+steps before the active region are ~238-240ms in the screen, the active path
+raises steps to ~440ms, and a large one-time path transition appears around
+step 81. This means the schedule-only path is not a free optimizer tweak in
+the current implementation.
+```
+
+Decision:
+
+```text
+Do not promote the V short-pulse path. The old 48-56 no-op lead was not stable
+under a same-suite control, and schedule-only polar4 did not isolate a cheap
+beneficial schedule effect.
+
+For the next H100 slice, stop V window tuning. The remaining promising branch
+is MLP-fc: previous 200-step screens showed a small MLP-fc before-momentum
+signal, but the no-op/control path may be the real source. Run an MLP-fc
+before-momentum isolation suite with same-run baseline, no-op-before, and
+active inverse-before before spending on broader surfaces.
+```

@@ -1147,3 +1147,37 @@ the no-op win. If schedule-only holds, it is a plausible low-overhead optimizer
 schedule tweak. If schedule-only fails, the no-op result is likely tied to the
 feature-stat path or noise and should not be promoted.
 ```
+
+Schedule-pulse control:
+
+```text
+120-step baseline:                      4.1799
+V no-op polar4 48-56:                   4.1854
+V schedule-only polar4 48-56:           4.1894
+V schedule-only polar4 48-64:           4.1823
+```
+
+Read:
+
+```text
+The short V schedule lead did not reproduce. The same-suite baseline is better
+than the 48-56 full no-op path, and stripping stats with SCHEDULE_ONLY makes
+the 48-56 arm worse. The 48-64 schedule-only arm is the closest control, but it
+still loses at 75/100/120. This kills the immediate "cheap polar4 pulse" WR
+promotion.
+
+The broader conclusion is unchanged but sharper: the current V implementation
+can make mechanically nonzero right-preconditioned updates, and the exact
+Cholesky metric-polar object has been tested, but the stable endpoint win is
+not there. More V window/schedule tuning is now low value.
+```
+
+Current direction:
+
+```text
+Focus on the remaining 768-dimensional surface with a real same-code hint:
+MLP-fc. Prior MLP-fc screens showed a small 200-step endpoint improvement for
+before-momentum inverse, but a follow-up no-op-before control looked even
+better. The next useful experiment is not another V run; it is a same-run
+MLP-fc isolation with baseline, no-op-before, and active inverse-before.
+```
