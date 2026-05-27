@@ -268,6 +268,9 @@ For a fresh 1xH100 or Modal H100:
    no-refresh VO-bank no-op polar4, and matching collection-enabled no-op
    replicates.
    Prepared suite: `NEWTONV_SUITE=scheduleonly`.
+   `LOCO_FULL_SCHEDULE_ONLY=1` preserves the explicit VO-bank after-momentum
+   path but disables feature collection, factor refresh, preconditioner helper
+   calls, and full-stat buffer allocation.
    Promotion bar: no-stats schedule-only must beat same-suite baseline by
    `>=0.003` at 200 steps, match or beat the collection-enabled no-op replicate,
    and keep non-refresh timing within roughly `2-3%` of baseline.

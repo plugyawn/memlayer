@@ -144,6 +144,7 @@ LOCO_FULL_RESET_EACH_WINDOW = os.environ.get(
     "1" if (LOCO_FULL_WINDOWS_SPEC or LOCO_FULL_COLLECT_WINDOWS_SPEC) else "0",
 ) == "1"
 LOCO_FULL_BLEND_RESTART_EACH_WINDOW = os.environ.get("LOCO_FULL_BLEND_RESTART_EACH_WINDOW", "1" if LOCO_FULL_WINDOWS_SPEC else "0") == "1"
+LOCO_FULL_STATS_ACTIVE = LOCO_FULL_ACTIVE and not LOCO_FULL_SCHEDULE_ONLY
 LOCO_FEATURE_ACTIVE = LOCO_DIAG_ACTIVE or LOCO_FULL_ACTIVE
 
 def _parse_loco_step_windows(name: str, spec: str | None = None) -> tuple[tuple[int, int], ...]:
@@ -209,9 +210,7 @@ def _loco_full_window_start(step: int) -> bool:
     return bool(LOCO_FULL_WINDOWS) and any(step == lo for lo, _ in LOCO_FULL_WINDOWS)
 
 def _loco_full_collect_active_at_step(step: int) -> bool:
-    if not LOCO_FULL_ACTIVE:
-        return False
-    if LOCO_FULL_SCHEDULE_ONLY:
+    if not LOCO_FULL_STATS_ACTIVE:
         return False
     if LOCO_FULL_COLLECT_WINDOWS:
         return any(lo <= step <= hi for lo, hi in LOCO_FULL_COLLECT_WINDOWS)
@@ -227,7 +226,7 @@ def _loco_full_blend_step(step: int) -> int:
     return step - max(starts) if starts else step
 
 def _loco_full_should_refresh(step: int) -> bool:
-    if not LOCO_FULL_ACTIVE or LOCO_FULL_REFRESH_INTERVAL <= 0:
+    if not LOCO_FULL_STATS_ACTIVE or LOCO_FULL_REFRESH_INTERVAL <= 0:
         return False
     if not _loco_full_collect_active_at_step(step):
         return False
@@ -2176,7 +2175,7 @@ class GPT(nn.Module):
             if model_dim % LOCO_FULL_BLOCK_SIZE != 0:
                 raise ValueError(f"LOCO_FULL_BLOCK_SIZE={LOCO_FULL_BLOCK_SIZE} must divide model_dim={model_dim}")
             self.loco_full_block_count = model_dim // LOCO_FULL_BLOCK_SIZE
-        if LOCO_FULL_ATTN_IN:
+        if LOCO_FULL_STATS_ACTIVE and LOCO_FULL_ATTN_IN:
             if LOCO_FULL_BLOCK:
                 block_eye = torch.eye(self.loco_full_block_size, dtype=torch.float32)
                 self.register_buffer(
@@ -2210,7 +2209,7 @@ class GPT(nn.Module):
             if LOCO_FULL_TOPSHRINK and not LOCO_FULL_BLOCK:
                 self.register_buffer("loco_full_v_shrink_u", torch.zeros(num_layers - 1, model_dim, self.loco_full_shrink_rank, dtype=torch.float32), persistent=False)
                 self.register_buffer("loco_full_v_shrink_delta", torch.zeros(num_layers - 1, self.loco_full_shrink_rank, dtype=torch.float32), persistent=False)
-        if LOCO_FULL_O:
+        if LOCO_FULL_STATS_ACTIVE and LOCO_FULL_O:
             self.register_buffer("loco_full_o_gram", torch.zeros(num_layers - 1, num_heads, head_dim, head_dim, dtype=torch.float32), persistent=False)
             self.register_buffer("loco_full_o_gram_ema", torch.zeros(num_layers - 1, num_heads, head_dim, head_dim, dtype=torch.float32), persistent=False)
             self.register_buffer("loco_full_o_chol", torch.eye(head_dim, dtype=torch.float32).repeat(num_layers - 1, num_heads, 1, 1), persistent=False)
@@ -2232,11 +2231,11 @@ class GPT(nn.Module):
             self.loco_mlp_fc_diag.zero_()
         if LOCO_DIAG_MLP_PROJ:
             self.loco_mlp_proj_diag.zero_()
-        if LOCO_FULL_ATTN_IN and LOCO_FULL_BLOCK:
+        if LOCO_FULL_STATS_ACTIVE and LOCO_FULL_ATTN_IN and LOCO_FULL_BLOCK:
             self.loco_full_v_block_gram.zero_()
-        elif LOCO_FULL_ATTN_IN:
+        elif LOCO_FULL_STATS_ACTIVE and LOCO_FULL_ATTN_IN:
             self.loco_full_v_gram.zero_()
-        if LOCO_FULL_O:
+        if LOCO_FULL_STATS_ACTIVE and LOCO_FULL_O:
             self.loco_full_o_gram.zero_()
 
     @staticmethod
@@ -3079,6 +3078,8 @@ class TrainingManager():
 
     @staticmethod
     def _reset_loco_full_preconditioner_state(loco_model):
+        if not LOCO_FULL_STATS_ACTIVE:
+            return
         if LOCO_FULL_ATTN_IN:
             loco_model.loco_full_v_ema_initialized = False
             if LOCO_FULL_BLOCK:
@@ -3103,7 +3104,7 @@ class TrainingManager():
 
     @torch.no_grad()
     def _prepare_loco_full_buffers(self, step: int):
-        if not LOCO_FULL_ACTIVE:
+        if not LOCO_FULL_STATS_ACTIVE:
             return
         loco_model = getattr(self.model, "_orig_mod", self.model)
         refreshed = _loco_full_should_refresh(step)
@@ -3367,7 +3368,7 @@ class TrainingManager():
         if state is not None:
             self.optimizer.load_state_dict(state)
 
-        if LOCO_FULL_ACTIVE:
+        if LOCO_FULL_STATS_ACTIVE:
             loco_model = getattr(self.model, "_orig_mod", self.model)
             loco_model.loco_full_collect = False
             loco_model.loco_full_v_ema_initialized = False

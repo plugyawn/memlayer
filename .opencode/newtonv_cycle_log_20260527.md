@@ -165,7 +165,7 @@ LOCO_FULL_SCHEDULE_ONLY=1:
   - disables full feature collection and factor refresh
   - skips the right-preconditioner / identity helper
   - preserves explicit Nesterov operand -> polar_express_from_operand
-  - still allocates the full-stat buffers because LOCO_FULL_SURFACES is active
+  - after the follow-up guard, does not allocate or zero full-stat buffers
 ```
 
 Promote schedule-only only if a no-stats case beats same-suite baseline by

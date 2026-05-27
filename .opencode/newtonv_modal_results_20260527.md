@@ -502,6 +502,10 @@ Prepared runner:
 NEWTONV_SUITE=scheduleonly
 ```
 
+Implementation note: `LOCO_FULL_SCHEDULE_ONLY=1` now preserves the explicit
+VO-bank after-momentum path while disabling feature collection, factor refresh,
+right-preconditioner helper calls, and full-stat buffer allocation/zeroing.
+
 Promotion rule:
 
 ```text
