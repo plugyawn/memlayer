@@ -1374,6 +1374,90 @@ run_qkvo_schedule_ladder() {
     bash tools/run_newtonv_timing_triplet_gate.sh
 }
 
+run_qkvo_power_shape_ladder() {
+  local qps_steps="${QPS_STEPS:-160}"
+  local qps_val_every="${QPS_VAL_EVERY:-25}"
+  local qps_layers="${QPS_LAYERS:-0-1}"
+  local qps_collect="${QPS_COLLECT_WINDOWS:-0-64}"
+  local qps_windows="${QPS_WINDOWS:-48-112}"
+  local qps_log_steps="${QPS_LOG_STEPS:-48,50,56,64,80,100,112,150,160}"
+
+  run_case qps_baseline \
+    NEWTONV_VARIANT=baseline \
+    SCREEN_STEPS="${qps_steps}" \
+    SCREEN_VAL_EVERY="${qps_val_every}" \
+    bash tools/run_newtonv_timing_triplet_gate.sh
+
+  run_case qps_qkvo_noop_polar4 \
+    NEWTONV_VARIANT=noop \
+    LOCO_FULL_SURFACES=qk,v,o \
+    LOCO_DIAG_ATTN_LAYERS="${qps_layers}" \
+    LOCO_FULL_COLLECT_WINDOWS="${qps_collect}" \
+    LOCO_FULL_WINDOWS="${qps_windows}" \
+    LOCO_FULL_METRIC_POLAR=1 \
+    LOCO_FULL_NORM_RESTORE=0 \
+    LOCO_FULL_POLAR_ITERS=4 \
+    SCREEN_STEPS="${qps_steps}" \
+    SCREEN_VAL_EVERY="${qps_val_every}" \
+    bash tools/run_newtonv_timing_triplet_gate.sh
+
+  run_case qps_qkvo_power05_r020_blend010 \
+    NEWTONV_VARIANT=active \
+    LOCO_FULL_SURFACES=qk,v,o \
+    LOCO_DIAG_ATTN_LAYERS="${qps_layers}" \
+    LOCO_FULL_COLLECT_WINDOWS="${qps_collect}" \
+    LOCO_FULL_WINDOWS="${qps_windows}" \
+    LOCO_FULL_REFRESH_INTERVAL=16 \
+    LOCO_FULL_EMA_BETA=0.8 \
+    LOCO_FULL_RIDGE_REL=0.20 \
+    LOCO_FULL_FILTER=power \
+    LOCO_FULL_POWER_ALPHA=0.5 \
+    LOCO_FULL_POWER_CLIP=2.0 \
+    LOCO_FULL_BLOCK_SIZE=0 \
+    LOCO_FULL_STATIC_NORM=1 \
+    LOCO_FULL_NORM_RESTORE=1 \
+    LOCO_FULL_BLEND_MAX=0.10 \
+    LOCO_FULL_BLEND_STEPS=32 \
+    LOCO_FULL_POLAR_ITERS=4 \
+    LOCO_FULL_LOG_PRECOND=1 \
+    LOCO_FULL_LOG_PRECOND_DETAIL=1 \
+    LOCO_FULL_LOG_SPECTRUM=1 \
+    LOCO_FULL_LOG_EIGEN_ENERGY=1 \
+    LOCO_FULL_LOG_POSTPOLAR=1 \
+    LOCO_DIAG_LOG_STEPS="${qps_log_steps}" \
+    SCREEN_STEPS="${qps_steps}" \
+    SCREEN_VAL_EVERY="${qps_val_every}" \
+    bash tools/run_newtonv_timing_triplet_gate.sh
+
+  run_case qps_qkvo_power075_r020_blend010 \
+    NEWTONV_VARIANT=active \
+    LOCO_FULL_SURFACES=qk,v,o \
+    LOCO_DIAG_ATTN_LAYERS="${qps_layers}" \
+    LOCO_FULL_COLLECT_WINDOWS="${qps_collect}" \
+    LOCO_FULL_WINDOWS="${qps_windows}" \
+    LOCO_FULL_REFRESH_INTERVAL=16 \
+    LOCO_FULL_EMA_BETA=0.8 \
+    LOCO_FULL_RIDGE_REL=0.20 \
+    LOCO_FULL_FILTER=power \
+    LOCO_FULL_POWER_ALPHA=0.75 \
+    LOCO_FULL_POWER_CLIP=2.0 \
+    LOCO_FULL_BLOCK_SIZE=0 \
+    LOCO_FULL_STATIC_NORM=1 \
+    LOCO_FULL_NORM_RESTORE=1 \
+    LOCO_FULL_BLEND_MAX=0.10 \
+    LOCO_FULL_BLEND_STEPS=32 \
+    LOCO_FULL_POLAR_ITERS=4 \
+    LOCO_FULL_LOG_PRECOND=1 \
+    LOCO_FULL_LOG_PRECOND_DETAIL=1 \
+    LOCO_FULL_LOG_SPECTRUM=1 \
+    LOCO_FULL_LOG_EIGEN_ENERGY=1 \
+    LOCO_FULL_LOG_POSTPOLAR=1 \
+    LOCO_DIAG_LOG_STEPS="${qps_log_steps}" \
+    SCREEN_STEPS="${qps_steps}" \
+    SCREEN_VAL_EVERY="${qps_val_every}" \
+    bash tools/run_newtonv_timing_triplet_gate.sh
+}
+
 run_mlpfc_ladder() {
   local mfc_steps="${MFC_STEPS:-120}"
   local mfc_val_every="${MFC_VAL_EVERY:-40}"
@@ -1657,6 +1741,9 @@ case "${suite}" in
   qkvo_schedule)
     run_qkvo_schedule_ladder
     ;;
+  qkvo_power_shape)
+    run_qkvo_power_shape_ladder
+    ;;
   mlpfc)
     run_mlpfc_ladder
     ;;
@@ -1677,7 +1764,7 @@ case "${suite}" in
       bash tools/run_newtonv_raw_v01_gate.sh
     ;;
   *)
-    echo "NEWTONV_SUITE must be timing, filters, quick, raw200, promote, polar4, permutations, next, tail, warmmetric, overprecond, overpromote, scheduleonly, preconddiag, schedule_diag, rightfilter, paperstyle, paperfilter, metricpolar, metricpromote, metricv_promote, metricv_window, v_spectral_shape, paper_v_promote, metricsurfaces, surface_control, qkvo_metric_promote, qkvo_schedule, mlpfc, mlpfc_promote, mlpfc_before_control, or all; got ${suite}" >&2
+    echo "NEWTONV_SUITE must be timing, filters, quick, raw200, promote, polar4, permutations, next, tail, warmmetric, overprecond, overpromote, scheduleonly, preconddiag, schedule_diag, rightfilter, paperstyle, paperfilter, metricpolar, metricpromote, metricv_promote, metricv_window, v_spectral_shape, paper_v_promote, metricsurfaces, surface_control, qkvo_metric_promote, qkvo_schedule, qkvo_power_shape, mlpfc, mlpfc_promote, mlpfc_before_control, or all; got ${suite}" >&2
     exit 2
     ;;
 esac

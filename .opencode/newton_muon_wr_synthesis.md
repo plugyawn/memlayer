@@ -1068,3 +1068,30 @@ intended right-preconditioned direction. If we test V again, the next probe
 should isolate variance reduction or apply the metric in a form that does not
 fight the post-polar NorMuon normalization.
 ```
+
+QKVO power-shape probe:
+
+```text
+160-step baseline:         3.9992
+QKVO no-op polar4:         4.0051
+QKVO power alpha=0.5:      4.0061
+QKVO power alpha=0.75:     4.0211
+```
+
+Read:
+
+```text
+Broad QKVO right-preconditioning is not rescuing the line. The power filters
+are mechanically active: QK/O target deltas are roughly 0.45-0.53 in the active
+window, V target deltas are roughly 0.34-0.42, and post-polar QK deltas reach
+about 0.15-0.18. The update is not being washed to zero. The loss simply
+dislikes this broad attention-surface filter, and stronger spectral power is
+worse.
+
+This shifts the diagnosis away from "we need more surface coverage" and toward
+"we need the right placement/normalization contract." Q/K are especially
+entangled with softmax logits and entropy, O-headwise has a different metric
+structure, and V remains the cleanest attention value regression surface. The
+next productive probe should isolate the NorMuon variance-reduction interaction
+or test a narrower shrink-only form, not increase alpha or widen QKVO.
+```

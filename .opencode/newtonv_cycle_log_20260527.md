@@ -1061,3 +1061,72 @@ variance reduction during the short pulse, or a different clean surface with a
 matched no-op and diagnostics. If continuing V, use it as a mechanism probe,
 not a WR candidate.
 ```
+
+## Cycle 7 H100 Result: qkvo_power_shape 0-1 Pulse
+
+Modal app:
+
+```text
+ap-zCFeSrQ2lO3c0LYYzKkIYA
+```
+
+Parsed 160-step results:
+
+```text
+qps_baseline:                    3.9992, 622.61ms/step
+qps_qkvo_noop_polar4:            4.0051, 696.15ms/step
+qps_qkvo_power05_r020_blend010:  4.0061, 649.08ms/step
+qps_qkvo_power075_r020_blend010: 4.0211, 630.52ms/step
+```
+
+Intermediate anchors:
+
+```text
+step 50:
+  baseline        5.5510
+  QKVO no-op      5.5728
+  QKVO power 0.5  5.5807
+  QKVO power 0.75 5.6175
+
+step 100:
+  baseline        4.4756
+  QKVO no-op      4.4805
+  QKVO power 0.5  4.4793
+  QKVO power 0.75 4.5143
+
+step 150:
+  baseline        4.0404
+  QKVO no-op      4.0461
+  QKVO power 0.5  4.0469
+  QKVO power 0.75 4.0627
+```
+
+Diagnostics:
+
+```text
+The QKVO power filters are not mechanically null. By steps 80/100/112, alpha
+0.5 has target deltas around 0.45 for QK/O and 0.34-0.37 for V. Alpha 0.75 is
+stronger, with target deltas around 0.51-0.53 for QK/O and 0.42 for V. The
+post-polar update changes are visible, not washed away: QK post-polar deltas
+reach about 0.15-0.18 in the active window, with O/V also moving.
+
+The spectra are also strongly anisotropic. Attention-input eig_p99 is roughly
+9-10 at refreshes, O-headwise eig_p99 is often 8-14, and clipped gains hit the
+2.0 cap heavily for alpha 0.75.
+```
+
+Decision:
+
+```text
+Do not promote broad QKVO inverse-power transfer. It changes the update and
+touches the expected surfaces, but the loss gets worse. Alpha 0.5 is slightly
+worse than both baseline and no-op; alpha 0.75 is clearly harmful. This argues
+against "make the right preconditioner stronger across all attention surfaces"
+as the next WR lever.
+
+The next meaningful experiment should isolate semantics rather than add more
+surfaces or more spectral strength: either test the NorMuon variance-reduction
+interaction directly, or test a much narrower surface/form such as O-headwise
+only with a conservative shrink-only filter. Broad QKVO is too entangled with
+softmax/logit dynamics to use as the next cheap promotion line.
+```
