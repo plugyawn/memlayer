@@ -372,6 +372,9 @@ Read:
 
 - The full-path no-op control is strong: `4.1798` versus baseline `4.1869`.
   This means the no-op/polar4 scheduling path itself is useful in this suite.
+- Caveat: this no-op control used the timing-triplet runner default
+  `LOCO_DIAG_ATTN_LAYERS=all`, while the active raw V cases used layers `0-1`.
+  Treat active-vs-noop as suggestive, not a matched-control result.
 - Active Newton-V with polar4 beat both baseline and no-op: `4.1763`, a
   `0.0106` gain versus baseline and a `0.0035` gain versus no-op.
 - Active Newton-V with polar5 was worse than no-op: `4.1821`.
@@ -397,10 +400,13 @@ Next GPU-hour gate:
 ```text
 200-step same-suite:
   baseline
-  warm V no-op polar4
+  warm V 0-1 no-op polar4
   warm V active polar4
 ```
 
-Promote only if active beats both baseline and no-op by at least `0.002` at
-200 steps. If no-op beats active again or active fades, the Newton-specific
-part should be demoted and the no-op polar4 path should become the new branch.
+Commit `d5de543` logged the uncorrected overprecond suite; the follow-up patch
+sets `LOCO_DIAG_ATTN_LAYERS=0-1` on the no-op controls for future matched runs.
+Promote only if active beats both baseline and the matched no-op by at least
+`0.002` at 200 steps. If matched no-op beats active or active fades, the
+Newton-specific part should be demoted and the no-op polar4 path should become
+the new branch.

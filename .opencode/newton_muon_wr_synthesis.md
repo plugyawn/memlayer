@@ -202,9 +202,15 @@ Keep NorMuon variance reduction.
 Always include the no-op full-path control.
 ```
 
-This is not yet WR-ready because the 120-step suite is noisy, but active polar4
-beat both baseline and no-op with nearly baseline step time. The next gate is a
-200-step same-suite baseline/no-op/active run.
+Important caveat from the post-run audit: the overprecond no-op used the
+timing-triplet runner's default `LOCO_DIAG_ATTN_LAYERS=all`, while the active
+raw V cases used layers `0-1`. Active polar4 still beat a strong no-op, but it
+was not a matched no-op control. The future `overprecond` and `overpromote`
+suites now force `LOCO_DIAG_ATTN_LAYERS=0-1` for the no-op path.
+
+This is not yet WR-ready because the 120-step suite is noisy and the no-op
+control was mismatched. The next gate is a 200-step same-suite
+baseline/matched-no-op/active run.
 
 ## GPU-Ready Queue
 

@@ -274,6 +274,7 @@ run_overprecond_ladder() {
 
   run_case over_v01_warm_noop_polar4 \
     NEWTONV_VARIANT=noop \
+    LOCO_DIAG_ATTN_LAYERS=0-1 \
     LOCO_FULL_COLLECT_WINDOWS=0-64 \
     LOCO_FULL_WINDOWS=48-112 \
     LOCO_FULL_POLAR_ITERS=4 \
@@ -316,6 +317,7 @@ run_overpromote_ladder() {
 
   run_case overpromote_v01_warm_noop_polar4 \
     NEWTONV_VARIANT=noop \
+    LOCO_DIAG_ATTN_LAYERS=0-1 \
     LOCO_FULL_COLLECT_WINDOWS=0-64 \
     LOCO_FULL_WINDOWS=48-112 \
     LOCO_FULL_POLAR_ITERS=4 \
