@@ -658,6 +658,7 @@ run_paperfilter_ladder() {
     bash tools/run_newtonv_raw_v01_gate.sh
 
   run_case pf_finite_v01_before_polar4_ridge020_blend010 \
+    LOCO_DIAG_ATTN_LAYERS=0-1 \
     LOCO_FULL_COLLECT_WINDOWS="${pf_collect}" \
     LOCO_FULL_WINDOWS="${pf_windows}" \
     LOCO_FULL_APPLY_BEFORE_MOMENTUM=1 \
@@ -678,6 +679,7 @@ run_paperfilter_ladder() {
     bash tools/run_newtonv_block_power_gate.sh
 
   run_case pf_power05_v01_before_polar4_ridge020_blend010 \
+    LOCO_DIAG_ATTN_LAYERS=0-1 \
     LOCO_FULL_COLLECT_WINDOWS="${pf_collect}" \
     LOCO_FULL_WINDOWS="${pf_windows}" \
     LOCO_FULL_APPLY_BEFORE_MOMENTUM=1 \

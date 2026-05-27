@@ -266,15 +266,43 @@ V0-1 power-0.5 clipped filter with the same paper-style damping
 
 The rationale is to apply enough of the correction to matter while using
 paper-style damping and clipped filters to avoid raw `C^-1` instability.
-mathematically identical. A window-only win with all-window parity points toward
-a numerical/windowing perturbation rather than a durable optimizer replacement.
 
-Next H100 command after the required audit window:
+## Cycle 3 GPU Window
 
-```bash
-NANOGPT_MODAL_GPU=H100 \
-MODAL_RUNNER=tools/run_newtonv_experiment_suite.sh \
-MODAL_EXTRA_ENV_JSON='{"NEWTONV_SUITE":"scheduleonly","NEWTONV_SUITE_LABEL":"modal_scheduleonly_h100_20260527","PROMOTE_STEPS":"200","PROMOTE_VAL_EVERY":"50"}' \
-SCREEN_STEPS=200 SCREEN_VAL_EVERY=50 \
-tools/run_modal_newtonv_raw_gate.sh
+Time accounting:
+
+- GPU window started: about `2026-05-27 20:49 IST`.
+- Paper-filter H100 app: `ap-RRaRNWPzXSTvV4xqol8yil`,
+  `20:49-21:06 IST`, Modal wall time `979.974s`.
+- GPU window ended: about `2026-05-27 21:06 IST`.
+
+Logs:
+
+- `.opencode/modal_newtonv_paperfilter_h100_20260527.log`
+- `.opencode/modal_newtonv_paperfilter_h100_20260527.parsed.md`
+- `.opencode/modal_newtonv_paperfilter_h100_20260527.diagnostics.md`
+
+Parsed final results:
+
+| case | step 120 | step avg |
+| --- | ---: | ---: |
+| baseline | `4.1851` | `572.28ms` |
+| V 0-1 no-op polar4 | `4.1803` | `572.24ms` |
+| V 0-1 inverse, before momentum, ridge 0.20, blend 0.10 | `4.1834` | `570.48ms` |
+| all-V finite clipped, before momentum, ridge 0.20, blend 0.10 | `4.1861` | `574.58ms` |
+| all-V power 0.5 clipped, before momentum, ridge 0.20, blend 0.10 | `4.1866` | `575.01ms` |
+
+The finite/power labels said `v01`, but those cases used
+`tools/run_newtonv_block_power_gate.sh`, whose default layer set was `all`.
+The suite has been patched after this run so future paper-filter finite/power
+cases explicitly set `LOCO_DIAG_ATTN_LAYERS=0-1`.
+
+Read:
+
+```text
+The schedule/no-op polar4 control beat the same-suite baseline by 0.0048 at
+step 120. None of the paper-style active filters beat that no-op. The inverse
+case was at least neutral-ish, but finite/power clipped all-V were worse than
+baseline. This does not promote the right-filter family yet; it says the next
+comparison must be no-op-matched and layer-correct.
 ```

@@ -514,16 +514,34 @@ Kill criteria:
   hypothesis: the feature metric is not weak, but the applied correction is
   extremely damped and then further compressed by Polar/NorMuon.
 
-  Prepared follow-up:
+  Follow-up run:
 
   ```bash
   NEWTONV_SUITE=paperfilter
   ```
 
-  This tests schedule-matched V-only controls, paper-style damping
+  This tested schedule-matched controls, paper-style damping
   (`ridge_rel=0.2`, `refresh=16`, `ema=0.8`), preconditioning before momentum,
   faster bounded blend (`max=0.10`, `steps=32`), and finite/power clipped
-  filters. Do not run another H100 before the required meditation window ends.
+  filters. Modal H100 result, 120 steps:
+
+  ```text
+  baseline:             4.1851, 572.28ms/step
+  V 0-1 no-op polar4:   4.1803, 572.24ms/step
+  V 0-1 inverse:        4.1834, 570.48ms/step
+  all-V finite clipped: 4.1861, 574.58ms/step
+  all-V power 0.5:      4.1866, 575.01ms/step
+  ```
+
+  The active filters did not beat the same-suite no-op/polar4 control. Also,
+  the finite/power cases were mislabeled `v01`; they actually ran all V layers
+  because the block-power runner defaulted `LOCO_DIAG_ATTN_LAYERS=all`. The
+  suite is now patched so future paper-filter finite/power cases are genuinely
+  V `0-1`.
+
+  Current read: the feature metric still seems real in diagnostics, but this
+  damping/filter family is not the next promotion path until it can beat a
+  layer-correct no-op in the same suite.
 
 - `tools/run_newtonv_raw_v01_gate.sh` is the prepared runner for the best raw
   inverse candidate.
