@@ -1338,3 +1338,68 @@ signal, but the no-op/control path may be the real source. Run an MLP-fc
 before-momentum isolation suite with same-run baseline, no-op-before, and
 active inverse-before before spending on broader surfaces.
 ```
+
+## Cycle 11 H100 Result: MLP-fc Before-Momentum Control
+
+Modal app:
+
+```text
+ap-4zLTjHcCLOPB8D8RIfza6D
+```
+
+Parsed 200-step results:
+
+```text
+mbc_baseline:                         3.8853, 661.15ms/step
+mbc_schedule_only_before:             3.8909, 610.83ms/step
+mbc_noop_before_r020_blend010:        3.8795, 596.16ms/step
+mbc_inverse_before_r020_blend010:     3.8875, 584.43ms/step
+```
+
+Intermediate anchors:
+
+```text
+step 50:
+  baseline             5.6108
+  schedule-only        5.6057
+  no-op before         5.5920
+  inverse before       5.6149
+
+step 100:
+  baseline             4.6850
+  schedule-only        4.6784
+  no-op before         4.6906
+  inverse before       4.6715
+
+step 150:
+  baseline             4.1196
+  schedule-only        4.1245
+  no-op before         4.1124
+  inverse before       4.1184
+```
+
+Diagnostics:
+
+```text
+The no-op-before control has blend=0 and logs full_mlp_fc grad ratios of
+exactly 1.0, but it wins the endpoint by 0.0058. The active inverse-before arm
+does not beat baseline or no-op at 200, despite being mechanically active
+(grad ratio ~0.996 at step 50 and ~0.951 at step 100).
+
+Schedule-only-before, which avoids stats/preconditioner work, loses at 150 and
+200. Therefore the endpoint win is not a cheap schedule-only path effect, and
+the active right-preconditioner does not explain the MLP-fc win.
+```
+
+Decision:
+
+```text
+Do not promote MLP-fc inverse. The best MLP-fc result is a zero-blend control,
+not Newton-Muon alpha. This should be treated as a reproducibility/control
+warning: feature-stat collection plus zero-blend optimizer plumbing can move a
+200-step screen by more than several active preconditioner effects.
+
+Before spending more on right-preconditioner variants, require matched no-op
+controls in every suite and judge active variants only against those controls,
+not only against baseline.
+```

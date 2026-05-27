@@ -1181,3 +1181,39 @@ before-momentum inverse, but a follow-up no-op-before control looked even
 better. The next useful experiment is not another V run; it is a same-run
 MLP-fc isolation with baseline, no-op-before, and active inverse-before.
 ```
+
+MLP-fc before-momentum control:
+
+```text
+200-step baseline:                       3.8853
+MLP-fc schedule-only before:             3.8909
+MLP-fc no-op before, stats path:         3.8795
+MLP-fc inverse before:                   3.8875
+```
+
+Read:
+
+```text
+The MLP-fc right-preconditioner did not survive the matched control. The
+active inverse-before line is mechanically active, but it loses to baseline at
+200 and is far worse than the zero-blend no-op-before control. The no-op
+control's grad ratio is exactly 1.0, so its endpoint win is not an applied
+Newton-Muon update.
+
+This is the strongest warning so far that the screens are sensitive to control
+path, compile path, or run noise at the 0.005-loss scale. Any future claim
+must beat a matched no-op control, not just the baseline. By that standard,
+current V, QKVO-power, and MLP-fc active preconditioners have not produced a
+WR-ready signal.
+```
+
+Updated operating rule:
+
+```text
+Do not promote an active right-preconditioner unless it beats both:
+  1. same-suite baseline
+  2. same-suite no-op/control with identical stats and optimizer routing
+
+If the no-op/control wins, log it as an optimizer-path/control effect and
+separate it from Newton-Muon evidence.
+```
