@@ -1121,3 +1121,29 @@ only V metric follow-up worth running is a short-pulse screen such as 48-56
 and 48-64. Longer V windows, broader QKVO, and stronger spectral powers should
 not be promoted.
 ```
+
+Short-pulse result:
+
+```text
+120-step baseline:              4.1902
+V no-op polar4 48-56:           4.1832
+V metric skip-varred 48-56:     4.1835
+V no-op polar4 48-64:           4.1851
+V metric skip-varred 48-64:     4.1842
+```
+
+Read:
+
+```text
+The shortest pulse preserved the early benefit, but the right-preconditioner
+still did not add alpha. The best line is the 48-56 no-op/polar4 path. It beats
+baseline at 50/75/100/120, and the active metric version is effectively tied
+but slightly worse at the endpoint.
+
+This changes the immediate WR lever: promote the cheap schedule/path effect,
+not Newton-V. Before spending on a 200-step run, strip the feature-stat work
+with LOCO_FULL_SCHEDULE_ONLY=1 and verify that a 48-56 polar4 pulse reproduces
+the no-op win. If schedule-only holds, it is a plausible low-overhead optimizer
+schedule tweak. If schedule-only fails, the no-op result is likely tied to the
+feature-stat path or noise and should not be promoted.
+```

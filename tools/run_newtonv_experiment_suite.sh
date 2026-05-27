@@ -1539,6 +1539,88 @@ run_v_varred_interaction_ladder() {
     bash tools/run_newtonv_raw_v01_gate.sh
 }
 
+run_v_short_pulse_ladder() {
+  local vsp_steps="${VSP_STEPS:-120}"
+  local vsp_val_every="${VSP_VAL_EVERY:-25}"
+  local vsp_layers="${VSP_LAYERS:-0-1}"
+  local vsp_collect="${VSP_COLLECT_WINDOWS:-0-64}"
+  local vsp_win_short="${VSP_WINDOW_SHORT:-48-56}"
+  local vsp_win_mid="${VSP_WINDOW_MID:-48-64}"
+  local vsp_log_steps="${VSP_LOG_STEPS:-48,50,56,64,75,100,120}"
+
+  run_case vsp_baseline \
+    NEWTONV_VARIANT=baseline \
+    SCREEN_STEPS="${vsp_steps}" \
+    SCREEN_VAL_EVERY="${vsp_val_every}" \
+    bash tools/run_newtonv_timing_triplet_gate.sh
+
+  run_case vsp_v01_noop_polar4_win48_56 \
+    NEWTONV_VARIANT=noop \
+    LOCO_FULL_SURFACES=v \
+    LOCO_DIAG_ATTN_LAYERS="${vsp_layers}" \
+    LOCO_FULL_COLLECT_WINDOWS="${vsp_collect}" \
+    LOCO_FULL_WINDOWS="${vsp_win_short}" \
+    LOCO_FULL_POLAR_ITERS=4 \
+    SCREEN_STEPS="${vsp_steps}" \
+    SCREEN_VAL_EVERY="${vsp_val_every}" \
+    bash tools/run_newtonv_timing_triplet_gate.sh
+
+  run_case vsp_metric_skipvr_win48_56 \
+    LOCO_FULL_SURFACES=v \
+    LOCO_DIAG_ATTN_LAYERS="${vsp_layers}" \
+    LOCO_FULL_COLLECT_WINDOWS="${vsp_collect}" \
+    LOCO_FULL_WINDOWS="${vsp_win_short}" \
+    LOCO_FULL_METRIC_POLAR=1 \
+    LOCO_FULL_NORM_RESTORE=1 \
+    LOCO_FULL_RIDGE_REL=0.20 \
+    LOCO_FULL_BLEND_MAX=0.10 \
+    LOCO_FULL_BLEND_STEPS=32 \
+    LOCO_FULL_POLAR_ITERS=4 \
+    LOCO_FULL_SKIP_VARRED=1 \
+    LOCO_FULL_LOG_PRECOND=1 \
+    LOCO_FULL_LOG_PRECOND_DETAIL=1 \
+    LOCO_FULL_LOG_SPECTRUM=1 \
+    LOCO_FULL_LOG_EIGEN_ENERGY=1 \
+    LOCO_FULL_LOG_POSTPOLAR=1 \
+    LOCO_DIAG_LOG_STEPS="${vsp_log_steps}" \
+    SCREEN_STEPS="${vsp_steps}" \
+    SCREEN_VAL_EVERY="${vsp_val_every}" \
+    bash tools/run_newtonv_raw_v01_gate.sh
+
+  run_case vsp_v01_noop_polar4_win48_64 \
+    NEWTONV_VARIANT=noop \
+    LOCO_FULL_SURFACES=v \
+    LOCO_DIAG_ATTN_LAYERS="${vsp_layers}" \
+    LOCO_FULL_COLLECT_WINDOWS="${vsp_collect}" \
+    LOCO_FULL_WINDOWS="${vsp_win_mid}" \
+    LOCO_FULL_POLAR_ITERS=4 \
+    SCREEN_STEPS="${vsp_steps}" \
+    SCREEN_VAL_EVERY="${vsp_val_every}" \
+    bash tools/run_newtonv_timing_triplet_gate.sh
+
+  run_case vsp_metric_skipvr_win48_64 \
+    LOCO_FULL_SURFACES=v \
+    LOCO_DIAG_ATTN_LAYERS="${vsp_layers}" \
+    LOCO_FULL_COLLECT_WINDOWS="${vsp_collect}" \
+    LOCO_FULL_WINDOWS="${vsp_win_mid}" \
+    LOCO_FULL_METRIC_POLAR=1 \
+    LOCO_FULL_NORM_RESTORE=1 \
+    LOCO_FULL_RIDGE_REL=0.20 \
+    LOCO_FULL_BLEND_MAX=0.10 \
+    LOCO_FULL_BLEND_STEPS=32 \
+    LOCO_FULL_POLAR_ITERS=4 \
+    LOCO_FULL_SKIP_VARRED=1 \
+    LOCO_FULL_LOG_PRECOND=1 \
+    LOCO_FULL_LOG_PRECOND_DETAIL=1 \
+    LOCO_FULL_LOG_SPECTRUM=1 \
+    LOCO_FULL_LOG_EIGEN_ENERGY=1 \
+    LOCO_FULL_LOG_POSTPOLAR=1 \
+    LOCO_DIAG_LOG_STEPS="${vsp_log_steps}" \
+    SCREEN_STEPS="${vsp_steps}" \
+    SCREEN_VAL_EVERY="${vsp_val_every}" \
+    bash tools/run_newtonv_raw_v01_gate.sh
+}
+
 run_mlpfc_ladder() {
   local mfc_steps="${MFC_STEPS:-120}"
   local mfc_val_every="${MFC_VAL_EVERY:-40}"
@@ -1828,6 +1910,9 @@ case "${suite}" in
   v_varred_interaction)
     run_v_varred_interaction_ladder
     ;;
+  v_short_pulse)
+    run_v_short_pulse_ladder
+    ;;
   mlpfc)
     run_mlpfc_ladder
     ;;
@@ -1848,7 +1933,7 @@ case "${suite}" in
       bash tools/run_newtonv_raw_v01_gate.sh
     ;;
   *)
-    echo "NEWTONV_SUITE must be timing, filters, quick, raw200, promote, polar4, permutations, next, tail, warmmetric, overprecond, overpromote, scheduleonly, preconddiag, schedule_diag, rightfilter, paperstyle, paperfilter, metricpolar, metricpromote, metricv_promote, metricv_window, v_spectral_shape, paper_v_promote, metricsurfaces, surface_control, qkvo_metric_promote, qkvo_schedule, qkvo_power_shape, v_varred_interaction, mlpfc, mlpfc_promote, mlpfc_before_control, or all; got ${suite}" >&2
+    echo "NEWTONV_SUITE must be timing, filters, quick, raw200, promote, polar4, permutations, next, tail, warmmetric, overprecond, overpromote, scheduleonly, preconddiag, schedule_diag, rightfilter, paperstyle, paperfilter, metricpolar, metricpromote, metricv_promote, metricv_window, v_spectral_shape, paper_v_promote, metricsurfaces, surface_control, qkvo_metric_promote, qkvo_schedule, qkvo_power_shape, v_varred_interaction, v_short_pulse, mlpfc, mlpfc_promote, mlpfc_before_control, or all; got ${suite}" >&2
     exit 2
     ;;
 esac

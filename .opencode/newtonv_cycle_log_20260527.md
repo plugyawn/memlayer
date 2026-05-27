@@ -1204,3 +1204,69 @@ may be useful as a very short pulse, not as a 48-112 window. The next cheap
 probe, if any, should test short active windows such as 48-56 and 48-64 against
 matched no-op controls.
 ```
+
+## Cycle 9 H100 Result: V Short-Pulse Screen
+
+Modal app:
+
+```text
+ap-7Vpd7FYmM3fDmxMmXGbO8E
+```
+
+Parsed 120-step results:
+
+```text
+vsp_baseline:                    4.1902, 637.12ms/step
+vsp_v01_noop_polar4_win48_56:    4.1832, 582.21ms/step
+vsp_metric_skipvr_win48_56:      4.1835, 587.16ms/step
+vsp_v01_noop_polar4_win48_64:    4.1851, 579.96ms/step
+vsp_metric_skipvr_win48_64:      4.1842, 583.26ms/step
+```
+
+Intermediate anchors:
+
+```text
+step 50:
+  baseline        5.5815
+  no-op 48-56     5.5312
+  metric 48-56    5.5399
+  no-op 48-64     5.5650
+  metric 48-64    5.5393
+
+step 75:
+  baseline        4.7404
+  no-op 48-56     4.7275
+  metric 48-56    4.7310
+  no-op 48-64     4.7361
+  metric 48-64    4.7315
+
+step 100:
+  baseline        4.3414
+  no-op 48-56     4.3339
+  metric 48-56    4.3335
+  no-op 48-64     4.3398
+  metric 48-64    4.3355
+```
+
+Diagnostics:
+
+```text
+The short V metric deltas are mechanically active but small in the applied
+window: for 48-56, target deltas are ~0.80 at steps 50/56 and applied deltas
+are ~0.005 and ~0.020. For 48-64, target deltas are ~0.79-0.81 and applied
+deltas grow to ~0.039 by step 64.
+```
+
+Decision:
+
+```text
+The right preconditioner still does not beat the matched short-pulse control.
+The best line is the 48-56 no-op/polar4 path, not the metric line. This is a
+real lead, but it is an optimizer-path/polar-iteration schedule lead rather
+than Newton-Muon evidence.
+
+Next cheap probe should remove feature-stat overhead and check whether a
+LOCO_FULL_SCHEDULE_ONLY=1 48-56 polar4 pulse reproduces the win. If it does,
+promote that schedule-only pulse to 200; if it fails, treat the 48-56 no-op
+result as a noisy/full-stat artifact.
+```
