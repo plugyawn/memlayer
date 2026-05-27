@@ -220,6 +220,51 @@ run_next_tail() {
     bash tools/run_newtonv_timing_triplet_gate.sh
 }
 
+run_warmmetric_ladder() {
+  run_case warm_baseline \
+    NEWTONV_VARIANT=baseline \
+    SCREEN_STEPS="${next_steps}" \
+    SCREEN_VAL_EVERY="${next_val_every}" \
+    bash tools/run_newtonv_timing_triplet_gate.sh
+
+  run_case warm_v01_collect0_48_apply48_112_p4 \
+    LOCO_FULL_COLLECT_WINDOWS=0-48 \
+    LOCO_FULL_WINDOWS=48-112 \
+    LOCO_FULL_POLAR_ITERS=4 \
+    SCREEN_STEPS="${next_steps}" \
+    SCREEN_VAL_EVERY="${next_val_every}" \
+    bash tools/run_newtonv_raw_v01_gate.sh
+
+  run_case warm_v01_collect0_64_apply48_112_p4 \
+    LOCO_FULL_COLLECT_WINDOWS=0-64 \
+    LOCO_FULL_WINDOWS=48-112 \
+    LOCO_FULL_POLAR_ITERS=4 \
+    SCREEN_STEPS="${next_steps}" \
+    SCREEN_VAL_EVERY="${next_val_every}" \
+    bash tools/run_newtonv_raw_v01_gate.sh
+
+  run_case warm_o_collect0_64_apply48_112_p4 \
+    NEWTONV_VARIANT=active \
+    LOCO_FULL_SURFACES=o \
+    LOCO_FULL_COLLECT_WINDOWS=0-64 \
+    LOCO_FULL_WINDOWS=48-112 \
+    LOCO_FULL_POLAR_ITERS=4 \
+    SCREEN_STEPS="${next_steps}" \
+    SCREEN_VAL_EVERY="${next_val_every}" \
+    bash tools/run_newtonv_timing_triplet_gate.sh
+
+  run_case warm_vo_collect0_64_apply48_112_p4 \
+    NEWTONV_VARIANT=active \
+    LOCO_FULL_SURFACES=v,o \
+    LOCO_DIAG_ATTN_LAYERS=0-1 \
+    LOCO_FULL_COLLECT_WINDOWS=0-64 \
+    LOCO_FULL_WINDOWS=48-112 \
+    LOCO_FULL_POLAR_ITERS=4 \
+    SCREEN_STEPS="${next_steps}" \
+    SCREEN_VAL_EVERY="${next_val_every}" \
+    bash tools/run_newtonv_timing_triplet_gate.sh
+}
+
 case "${suite}" in
   timing)
     run_timing_triplet
@@ -268,6 +313,9 @@ case "${suite}" in
   tail)
     run_next_tail
     ;;
+  warmmetric)
+    run_warmmetric_ladder
+    ;;
   all)
     run_timing_triplet
     run_next_ladder
@@ -279,7 +327,7 @@ case "${suite}" in
       bash tools/run_newtonv_raw_v01_gate.sh
     ;;
   *)
-    echo "NEWTONV_SUITE must be timing, filters, quick, raw200, promote, polar4, permutations, next, tail, or all; got ${suite}" >&2
+    echo "NEWTONV_SUITE must be timing, filters, quick, raw200, promote, polar4, permutations, next, tail, warmmetric, or all; got ${suite}" >&2
     exit 2
     ;;
 esac

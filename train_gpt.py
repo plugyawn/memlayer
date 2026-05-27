@@ -92,6 +92,7 @@ LOCO_FULL_LOCAL_STATS = os.environ.get("LOCO_FULL_LOCAL_STATS", "1") == "1"
 LOCO_FULL_NOOP = os.environ.get("LOCO_FULL_NOOP", "0") == "1"
 LOCO_FULL_END_STEP = int(os.environ.get("LOCO_FULL_END_STEP", "-1"))
 LOCO_FULL_WINDOWS_SPEC = os.environ.get("LOCO_FULL_WINDOWS", "").strip()
+LOCO_FULL_COLLECT_WINDOWS_SPEC = os.environ.get("LOCO_FULL_COLLECT_WINDOWS", LOCO_FULL_WINDOWS_SPEC).strip()
 LOCO_FULL_APPLY_INTERVAL = int(os.environ.get("LOCO_FULL_APPLY_INTERVAL", "1"))
 LOCO_FULL_PRECOND_DTYPE = os.environ.get("LOCO_FULL_PRECOND_DTYPE", "fp32").lower()
 if LOCO_FULL_PRECOND_DTYPE not in {"fp32", "bf16"}:
@@ -136,12 +137,15 @@ if LOCO_FULL_SHRINK_CLIP < 1:
     raise ValueError("LOCO_FULL_SHRINK_CLIP must be >= 1")
 LOCO_FULL_PRECOND_BF16 = LOCO_FULL_PRECOND_DTYPE == "bf16"
 LOCO_FULL_BLOCK = LOCO_FULL_BLOCK_SIZE > 0
-LOCO_FULL_RESET_EACH_WINDOW = os.environ.get("LOCO_FULL_RESET_EACH_WINDOW", "1" if LOCO_FULL_WINDOWS_SPEC else "0") == "1"
+LOCO_FULL_RESET_EACH_WINDOW = os.environ.get(
+    "LOCO_FULL_RESET_EACH_WINDOW",
+    "1" if (LOCO_FULL_WINDOWS_SPEC or LOCO_FULL_COLLECT_WINDOWS_SPEC) else "0",
+) == "1"
 LOCO_FULL_BLEND_RESTART_EACH_WINDOW = os.environ.get("LOCO_FULL_BLEND_RESTART_EACH_WINDOW", "1" if LOCO_FULL_WINDOWS_SPEC else "0") == "1"
 LOCO_FEATURE_ACTIVE = LOCO_DIAG_ACTIVE or LOCO_FULL_ACTIVE
 
-def _parse_loco_step_windows(name: str) -> tuple[tuple[int, int], ...]:
-    spec = os.environ.get(name, "").strip().lower()
+def _parse_loco_step_windows(name: str, spec: str | None = None) -> tuple[tuple[int, int], ...]:
+    spec = (os.environ.get(name, "") if spec is None else spec).strip().lower()
     if spec in {"", "all", "*"}:
         return ()
     windows = []
@@ -160,6 +164,7 @@ def _parse_loco_step_windows(name: str) -> tuple[tuple[int, int], ...]:
     return tuple(windows)
 
 LOCO_FULL_WINDOWS = _parse_loco_step_windows("LOCO_FULL_WINDOWS")
+LOCO_FULL_COLLECT_WINDOWS = _parse_loco_step_windows("LOCO_FULL_COLLECT_WINDOWS", LOCO_FULL_COLLECT_WINDOWS_SPEC)
 
 def _parse_loco_diag_layers(name: str, count: int, *, disallow: frozenset[int] = frozenset()) -> frozenset[int] | None:
     spec = os.environ.get(name, "all").strip().lower()
@@ -201,6 +206,16 @@ def _loco_full_active_at_step(step: int) -> bool:
 def _loco_full_window_start(step: int) -> bool:
     return bool(LOCO_FULL_WINDOWS) and any(step == lo for lo, _ in LOCO_FULL_WINDOWS)
 
+def _loco_full_collect_active_at_step(step: int) -> bool:
+    if not LOCO_FULL_ACTIVE:
+        return False
+    if LOCO_FULL_COLLECT_WINDOWS:
+        return any(lo <= step <= hi for lo, hi in LOCO_FULL_COLLECT_WINDOWS)
+    return _loco_full_active_at_step(step)
+
+def _loco_full_collect_window_start(step: int) -> bool:
+    return bool(LOCO_FULL_COLLECT_WINDOWS) and any(step == lo for lo, _ in LOCO_FULL_COLLECT_WINDOWS)
+
 def _loco_full_blend_step(step: int) -> int:
     if not (LOCO_FULL_WINDOWS and LOCO_FULL_BLEND_RESTART_EACH_WINDOW):
         return step
@@ -210,9 +225,9 @@ def _loco_full_blend_step(step: int) -> int:
 def _loco_full_should_refresh(step: int) -> bool:
     if not LOCO_FULL_ACTIVE or LOCO_FULL_REFRESH_INTERVAL <= 0:
         return False
-    if not _loco_full_active_at_step(step):
+    if not _loco_full_collect_active_at_step(step):
         return False
-    return _loco_full_window_start(step) or step % LOCO_FULL_REFRESH_INTERVAL == 0
+    return _loco_full_collect_window_start(step) or step % LOCO_FULL_REFRESH_INTERVAL == 0
 
 def _loco_full_attn_in_layer_allowed(attn_idx: int) -> bool:
     model_layer = attn_idx + (attn_idx >= 6)
@@ -2960,6 +2975,7 @@ class TrainingManager():
                 f"block_size={LOCO_FULL_BLOCK_SIZE} static_norm={int(LOCO_FULL_STATIC_NORM)} "
                 f"power_alpha={LOCO_FULL_POWER_ALPHA} power_clip={LOCO_FULL_POWER_CLIP} shrink_only={int(LOCO_FULL_SHRINK_ONLY)} "
                 f"polar_iters={LOCO_FULL_POLAR_ITERS} windows={LOCO_FULL_WINDOWS or 'end'} "
+                f"collect_windows={LOCO_FULL_COLLECT_WINDOWS or 'same'} "
                 f"local_stats={int(LOCO_FULL_LOCAL_STATS)} "
                 f"apply_interval={LOCO_FULL_APPLY_INTERVAL}",
                 console=True,
@@ -3084,7 +3100,7 @@ class TrainingManager():
         loco_model = getattr(self.model, "_orig_mod", self.model)
         refreshed = _loco_full_should_refresh(step)
         if refreshed:
-            if LOCO_FULL_RESET_EACH_WINDOW and _loco_full_window_start(step):
+            if LOCO_FULL_RESET_EACH_WINDOW and _loco_full_collect_window_start(step):
                 self._reset_loco_full_preconditioner_state(loco_model)
             if world_size > 1 and not LOCO_FULL_LOCAL_STATS:
                 if LOCO_FULL_ATTN_IN:
