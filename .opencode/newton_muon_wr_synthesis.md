@@ -1570,3 +1570,28 @@ estimate, not as a mechanism.
 Next: run a c_fc inverse strength ladder at 0.025/0.05/0.075/0.10 before
 touching broader surfaces.
 ```
+
+The strength ladder demoted the c_fc line:
+
+```text
+mbg_baseline:                      3.8797
+mbg_noop_before_r02:               3.8848
+mbg_inverse_before_r02_blend0025:  3.8810
+mbg_inverse_before_r02_blend005:   3.8924
+mbg_inverse_before_r02_blend0075:  3.8856
+mbg_inverse_before_r02_blend010:   3.8847
+```
+
+Read:
+
+```text
+The c_fc inverse signal exists but is not a controlled WR lever yet. The same
+configuration that previously landed at 3.8815 landed at 3.8924 inside the
+strength ladder, and the best active strength still lost to the same-suite
+baseline. This is too brittle to scale.
+
+Move the next GPU block back toward the Newton-Muon paper mismatch: attention
+input factors, before momentum, ridge 0.2, refresh 16, EMA 0.8, and QK+V/all
+coverage. That tests the paper-like packed attention-input preconditioner
+rather than the brittle c_fc slice.
+```

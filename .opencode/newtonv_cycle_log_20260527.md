@@ -2112,3 +2112,70 @@ Promote MLP-fc layers 0-1, window 48-112, ridge 0.2, blend 0.05 to a strength
 ladder. The next suite should compare the same baseline/no-op against inverse
 blends 0.025, 0.05, 0.075, and 0.10 before changing surfaces.
 ```
+
+## Cycle 23 H100 Result: MLP-fc Blend Ladder Window112
+
+Modal app:
+
+```text
+ap-305gRrxveV61ipJ0eS2DF8
+```
+
+Parsed 200-step results:
+
+```text
+mbg_baseline:                         3.8797, 680.05ms/step
+mbg_noop_before_r02:                  3.8848, 565.24ms/step
+mbg_inverse_before_r02_blend0025:     3.8810, 564.27ms/step
+mbg_inverse_before_r02_blend005:      3.8924, 574.35ms/step
+mbg_inverse_before_r02_blend0075:     3.8856, 565.23ms/step
+mbg_inverse_before_r02_blend010:      3.8847, 557.77ms/step
+```
+
+Intermediate anchors:
+
+```text
+step 100:
+  baseline       4.6791
+  no-op          4.6711
+  blend 0.025    4.6897
+  blend 0.05     4.6937
+  blend 0.075    4.6816
+  blend 0.10     4.6720
+
+step 150:
+  baseline       4.1146
+  no-op          4.1190
+  blend 0.025    4.1176
+  blend 0.05     4.1271
+  blend 0.075    4.1142
+  blend 0.10     4.1269
+
+step 200:
+  baseline       3.8797
+  no-op          3.8848
+  blend 0.025    3.8810
+  blend 0.05     3.8924
+  blend 0.075    3.8856
+  blend 0.10     3.8847
+```
+
+Decision:
+
+```text
+This demotes MLP-fc c_fc inverse as a WR candidate. The two previous blend
+0.05 hits were real runs, but the strength ladder does not show a stable
+monotone or local optimum. In this same-suite test the baseline is very strong,
+the best active arm is only blend 0.025 at 3.8810, and all active arms lose to
+baseline.
+
+The right-preconditioner idea remains plausible, but c_fc layers 0-1 with this
+literal inverse/window/normalization is too variance-sensitive. Stop spending
+the next GPU block on MLP-fc repeats unless a new mechanism changes the update
+shape.
+
+Next action: move back to a paper-faithful attention-input test: before-momentum
+right preconditioning with ridge 0.2, refresh 16, EMA 0.8, and QK+V/all-layer
+coverage. The goal is to test the paper's packed-attention-input direction
+rather than this brittle c_fc slice.
+```
