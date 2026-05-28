@@ -1843,3 +1843,62 @@ baseline by 0.0026 and no-op by 0.0070. The correct next run is the
 before-momentum control suite for the same window so that schedule-only and
 no-op-before are matched to the active placement.
 ```
+
+## Cycle 19 H100 Result: MLP-fc Before-Control Window112
+
+Modal app:
+
+```text
+ap-hvZBwcWOB15c67UB6T6swd
+```
+
+Parsed 200-step results:
+
+```text
+mbc_baseline:                         3.8846, 714.03ms/step
+mbc_schedule_only_before:             3.8915, 641.10ms/step
+mbc_noop_before_r020_blend010:        3.8849, 637.34ms/step
+mbc_inverse_before_r020_blend010:     3.8852, 639.34ms/step
+```
+
+Intermediate anchors:
+
+```text
+step 50:
+  baseline             5.5813
+  schedule-only        5.6156
+  no-op before         5.5823
+  inverse before       5.6022
+
+step 100:
+  baseline             4.6697
+  schedule-only        4.6884
+  no-op before         4.6903
+  inverse before       4.6801
+
+step 150:
+  baseline             4.1150
+  schedule-only        4.1190
+  no-op before         4.1203
+  inverse before       4.1227
+
+step 200:
+  baseline             3.8846
+  schedule-only        3.8915
+  no-op before         3.8849
+  inverse before       3.8852
+```
+
+Decision:
+
+```text
+The MLP-fc inverse-before window112 hit from Cycle 18 does not survive the
+matched before-placement controls. Schedule-only is bad, no-op-before is near
+baseline, and active inverse is slightly worse than both baseline and no-op at
+200.
+
+Deprioritize literal C^-1 MLP-fc repeats. The next principled MLP-fc test is
+not lower-blend inverse; it is a bounded spectral transfer on the same c_fc
+surface: clipped power C^-0.5 and finite-time inverse, with the same matched
+no-op-before control.
+```

@@ -1,0 +1,945 @@
+Note that running a local entrypoint in detached mode only keeps the last triggered Modal function alive after the parent process has been killed or disconnected.
+✓ Initialized. View run at 
+https://modal.com/apps/nipsdwip/main/ap-hvZBwcWOB15c67UB6T6swd
+✓ Created objects.
+├── 🔨 Created mount 
+│   /Users/progyan/speedrun/wr-fresh-20260526/tools/modal_nanogpt_runner.py
+├── 🔨 Created mount /Users/progyan/speedrun/wr-fresh-20260526
+├── 🔨 Created function prepare_data.
+└── 🔨 Created function run_screen.
+
+==========
+== CUDA ==
+==========
+
+CUDA Version 12.8.0
+
+Container image Copyright (c) 2016-2023, NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+
+This container image and its contents are governed by the NVIDIA Deep Learning Container License.
+By pulling and using the container, you accept the terms and conditions of this license:
+https://developer.nvidia.com/ngc/nvidia-deep-learning-container-license
+
+A copy of this license is made available in this container at /NGC-DL-CONTAINER-LICENSE for your convenience.
+
+===== NEWTONV_CASE_START mbc_baseline 2026-05-28T00:49:34Z =====
+wrote train_gpt_screen.py from train_gpt.py with steps=200 val_every=50
+[Gloo] Rank 0 is connected to 0 peer ranks. Expected number of connected peer ranks is : 0
+
+Fetching 4 files:   0%|          | 0/4 [00:00<?, ?it/s]
+Fetching 4 files: 100%|██████████| 4/4 [00:00<00:00, 7178.95it/s]
+logs/4e38b222-773a-4235-8996-ffc98f937b55.txt
+Compiling model and warming up kernels (~7 minutes on first execution)
+Sampling steps [0, 1, 8, 18, 19, 20, 21, 24, 38, 39, 40, 41, 48, 58, 59, 60] for warmup
+Resetting Model
+step:0/200 val_loss:10.8288 train_time:0ms step_avg:0.04ms
+step:1/200 train_time:346ms step_avg:346.38ms step_ms:346.38 refresh:0
+step:2/200 train_time:579ms step_avg:289.29ms step_ms:232.19 refresh:0
+step:3/200 train_time:812ms step_avg:270.81ms step_ms:233.86 refresh:0
+step:4/200 train_time:1045ms step_avg:261.36ms step_ms:233.01 refresh:0
+step:5/200 train_time:1287ms step_avg:257.40ms step_ms:241.54 refresh:0
+step:6/200 train_time:1519ms step_avg:253.25ms step_ms:232.51 refresh:0
+step:7/200 train_time:1753ms step_avg:250.50ms step_ms:233.99 refresh:0
+step:8/200 train_time:1988ms step_avg:248.50ms step_ms:234.50 refresh:0
+step:9/200 train_time:2225ms step_avg:247.22ms step_ms:236.96 refresh:0
+step:10/200 train_time:2463ms step_avg:246.27ms step_ms:237.77 refresh:0
+step:11/200 train_time:2697ms step_avg:245.18ms step_ms:234.25 refresh:0
+step:12/200 train_time:2932ms step_avg:244.30ms step_ms:234.60 refresh:0
+step:13/200 train_time:3168ms step_avg:243.71ms step_ms:236.73 refresh:0
+step:14/200 train_time:3405ms step_avg:243.23ms step_ms:236.89 refresh:0
+step:15/200 train_time:3641ms step_avg:242.73ms step_ms:235.75 refresh:0
+step:16/200 train_time:3876ms step_avg:242.24ms step_ms:234.94 refresh:0
+step:17/200 train_time:4112ms step_avg:241.88ms step_ms:236.09 refresh:0
+step:18/200 train_time:4349ms step_avg:241.62ms step_ms:237.25 refresh:0
+step:19/200 train_time:4583ms step_avg:241.24ms step_ms:234.27 refresh:0
+step:20/200 train_time:4819ms step_avg:240.93ms step_ms:235.05 refresh:0
+step:21/200 train_time:5054ms step_avg:240.67ms step_ms:235.53 refresh:0
+step:22/200 train_time:5290ms step_avg:240.47ms step_ms:236.31 refresh:0
+step:23/200 train_time:5526ms step_avg:240.27ms step_ms:235.86 refresh:0
+step:24/200 train_time:5762ms step_avg:240.08ms step_ms:235.76 refresh:0
+step:25/200 train_time:5998ms step_avg:239.94ms step_ms:236.44 refresh:0
+step:26/200 train_time:6233ms step_avg:239.73ms step_ms:234.63 refresh:0
+step:27/200 train_time:6470ms step_avg:239.62ms step_ms:236.58 refresh:0
+step:28/200 train_time:6704ms step_avg:239.44ms step_ms:234.73 refresh:0
+step:29/200 train_time:6940ms step_avg:239.33ms step_ms:236.11 refresh:0
+step:30/200 train_time:7176ms step_avg:239.20ms step_ms:235.53 refresh:0
+step:31/200 train_time:7412ms step_avg:239.08ms step_ms:235.60 refresh:0
+step:32/200 train_time:7647ms step_avg:238.98ms step_ms:235.83 refresh:0
+step:33/200 train_time:7883ms step_avg:238.89ms step_ms:235.94 refresh:0
+step:34/200 train_time:8119ms step_avg:238.81ms step_ms:236.10 refresh:0
+step:35/200 train_time:8355ms step_avg:238.72ms step_ms:235.79 refresh:0
+step:36/200 train_time:8590ms step_avg:238.62ms step_ms:235.06 refresh:0
+step:37/200 train_time:8826ms step_avg:238.54ms step_ms:235.68 refresh:0
+step:38/200 train_time:9062ms step_avg:238.47ms step_ms:235.82 refresh:0
+step:39/200 train_time:9299ms step_avg:238.42ms step_ms:236.69 refresh:0
+step:40/200 train_time:9534ms step_avg:238.34ms step_ms:235.18 refresh:0
+step:41/200 train_time:9772ms step_avg:238.34ms step_ms:238.21 refresh:0
+step:42/200 train_time:10005ms step_avg:238.23ms step_ms:233.57 refresh:0
+step:43/200 train_time:10242ms step_avg:238.18ms step_ms:236.39 refresh:0
+step:44/200 train_time:10478ms step_avg:238.14ms step_ms:236.20 refresh:0
+step:45/200 train_time:10714ms step_avg:238.09ms step_ms:236.20 refresh:0
+step:46/200 train_time:10949ms step_avg:238.03ms step_ms:235.13 refresh:0
+step:47/200 train_time:11186ms step_avg:238.01ms step_ms:236.94 refresh:0
+step:48/200 train_time:11422ms step_avg:237.96ms step_ms:235.84 refresh:0
+step:49/200 train_time:11658ms step_avg:237.92ms step_ms:236.02 refresh:0
+step:50/200 train_time:11894ms step_avg:237.89ms step_ms:236.18 refresh:0
+step:50/200 val_loss:5.5813 train_time:11932ms step_avg:238.64ms
+step:51/200 train_time:12132ms step_avg:237.88ms step_ms:237.31 refresh:0
+step:52/200 train_time:12368ms step_avg:237.85ms step_ms:236.41 refresh:0
+step:53/200 train_time:12604ms step_avg:237.80ms step_ms:235.56 refresh:0
+step:54/200 train_time:12838ms step_avg:237.75ms step_ms:234.68 refresh:0
+step:55/200 train_time:13074ms step_avg:237.71ms step_ms:235.99 refresh:0
+step:56/200 train_time:13310ms step_avg:237.67ms step_ms:235.48 refresh:0
+step:57/200 train_time:13545ms step_avg:237.63ms step_ms:234.90 refresh:0
+step:58/200 train_time:13779ms step_avg:237.57ms step_ms:234.61 refresh:0
+step:59/200 train_time:14015ms step_avg:237.54ms step_ms:235.63 refresh:0
+step:60/200 train_time:14250ms step_avg:237.50ms step_ms:235.06 refresh:0
+step:61/200 train_time:14485ms step_avg:237.47ms step_ms:235.38 refresh:0
+step:62/200 train_time:14720ms step_avg:237.42ms step_ms:234.81 refresh:0
+step:63/200 train_time:14956ms step_avg:237.39ms step_ms:235.60 refresh:0
+step:64/200 train_time:15191ms step_avg:237.37ms step_ms:235.64 refresh:0
+step:65/200 train_time:15427ms step_avg:237.34ms step_ms:235.91 refresh:0
+step:66/200 train_time:15662ms step_avg:237.31ms step_ms:235.07 refresh:0
+step:67/200 train_time:15898ms step_avg:237.28ms step_ms:235.29 refresh:0
+step:68/200 train_time:43489ms step_avg:639.55ms step_ms:27591.56 refresh:0
+step:69/200 train_time:43919ms step_avg:636.51ms step_ms:429.80 refresh:0
+step:70/200 train_time:44362ms step_avg:633.75ms step_ms:443.36 refresh:0
+step:71/200 train_time:44798ms step_avg:630.96ms step_ms:435.48 refresh:0
+step:72/200 train_time:45233ms step_avg:628.23ms step_ms:434.71 refresh:0
+step:73/200 train_time:45667ms step_avg:625.58ms step_ms:434.77 refresh:0
+step:74/200 train_time:46100ms step_avg:622.98ms step_ms:432.79 refresh:0
+step:75/200 train_time:46540ms step_avg:620.54ms step_ms:440.02 refresh:0
+step:76/200 train_time:46975ms step_avg:618.09ms step_ms:434.38 refresh:0
+step:77/200 train_time:47412ms step_avg:615.75ms step_ms:437.91 refresh:0
+step:78/200 train_time:47848ms step_avg:613.44ms step_ms:435.79 refresh:0
+step:79/200 train_time:48284ms step_avg:611.19ms step_ms:435.79 refresh:0
+step:80/200 train_time:48722ms step_avg:609.02ms step_ms:437.57 refresh:0
+step:81/200 train_time:49158ms step_avg:606.89ms step_ms:436.62 refresh:0
+step:82/200 train_time:49597ms step_avg:604.84ms step_ms:438.71 refresh:0
+step:83/200 train_time:50034ms step_avg:602.82ms step_ms:436.97 refresh:0
+step:84/200 train_time:50471ms step_avg:600.85ms step_ms:437.27 refresh:0
+step:85/200 train_time:50909ms step_avg:598.93ms step_ms:437.77 refresh:0
+step:86/200 train_time:51345ms step_avg:597.04ms step_ms:436.19 refresh:0
+step:87/200 train_time:51782ms step_avg:595.19ms step_ms:436.54 refresh:0
+step:88/200 train_time:52221ms step_avg:593.42ms step_ms:438.95 refresh:0
+step:89/200 train_time:52659ms step_avg:591.67ms step_ms:437.90 refresh:0
+step:90/200 train_time:53097ms step_avg:589.96ms step_ms:438.19 refresh:0
+step:91/200 train_time:53535ms step_avg:588.30ms step_ms:438.52 refresh:0
+step:92/200 train_time:53972ms step_avg:586.65ms step_ms:436.87 refresh:0
+step:93/200 train_time:54409ms step_avg:585.04ms step_ms:437.06 refresh:0
+step:94/200 train_time:54847ms step_avg:583.48ms step_ms:437.59 refresh:0
+step:95/200 train_time:55285ms step_avg:581.95ms step_ms:438.36 refresh:0
+step:96/200 train_time:55720ms step_avg:580.42ms step_ms:435.10 refresh:0
+step:97/200 train_time:56159ms step_avg:578.95ms step_ms:438.30 refresh:0
+step:98/200 train_time:56597ms step_avg:577.52ms step_ms:438.02 refresh:0
+step:99/200 train_time:57034ms step_avg:576.10ms step_ms:437.37 refresh:0
+step:100/200 train_time:57470ms step_avg:574.70ms step_ms:436.50 refresh:0
+step:100/200 val_loss:4.6697 train_time:57533ms step_avg:575.33ms
+step:101/200 train_time:57905ms step_avg:573.32ms step_ms:435.00 refresh:0
+step:102/200 train_time:58343ms step_avg:571.99ms step_ms:437.33 refresh:0
+step:103/200 train_time:58781ms step_avg:570.69ms step_ms:438.28 refresh:0
+step:104/200 train_time:59217ms step_avg:569.40ms step_ms:436.24 refresh:0
+step:105/200 train_time:59656ms step_avg:568.16ms step_ms:439.08 refresh:0
+step:106/200 train_time:60091ms step_avg:566.90ms step_ms:434.70 refresh:0
+step:107/200 train_time:60532ms step_avg:565.72ms step_ms:440.87 refresh:0
+step:108/200 train_time:60969ms step_avg:564.53ms step_ms:437.48 refresh:0
+step:109/200 train_time:61409ms step_avg:563.38ms step_ms:439.19 refresh:0
+step:110/200 train_time:61847ms step_avg:562.25ms step_ms:438.68 refresh:0
+step:111/200 train_time:62286ms step_avg:561.14ms step_ms:438.78 refresh:0
+step:112/200 train_time:62726ms step_avg:560.06ms step_ms:440.47 refresh:0
+step:113/200 train_time:63164ms step_avg:558.97ms step_ms:437.53 refresh:0
+step:114/200 train_time:63602ms step_avg:557.92ms step_ms:438.41 refresh:0
+step:115/200 train_time:64038ms step_avg:556.85ms step_ms:435.52 refresh:0
+step:116/200 train_time:64477ms step_avg:555.83ms step_ms:438.72 refresh:0
+step:117/200 train_time:64915ms step_avg:554.83ms step_ms:438.18 refresh:0
+step:118/200 train_time:65352ms step_avg:553.83ms step_ms:437.04 refresh:0
+step:119/200 train_time:65790ms step_avg:552.85ms step_ms:437.74 refresh:0
+step:120/200 train_time:66228ms step_avg:551.90ms step_ms:438.28 refresh:0
+step:121/200 train_time:66667ms step_avg:550.96ms step_ms:438.72 refresh:0
+step:122/200 train_time:67104ms step_avg:550.03ms step_ms:437.40 refresh:0
+step:123/200 train_time:67542ms step_avg:549.12ms step_ms:438.23 refresh:0
+step:124/200 train_time:67981ms step_avg:548.23ms step_ms:438.84 refresh:0
+step:125/200 train_time:68419ms step_avg:547.35ms step_ms:438.20 refresh:0
+step:126/200 train_time:68855ms step_avg:546.47ms step_ms:435.92 refresh:0
+step:127/200 train_time:69293ms step_avg:545.61ms step_ms:437.76 refresh:0
+step:128/200 train_time:69731ms step_avg:544.78ms step_ms:438.48 refresh:0
+step:129/200 train_time:70170ms step_avg:543.95ms step_ms:438.46 refresh:0
+step:130/200 train_time:70607ms step_avg:543.13ms step_ms:436.59 refresh:0
+step:131/200 train_time:71046ms step_avg:542.33ms step_ms:439.21 refresh:0
+step:132/200 train_time:71483ms step_avg:541.54ms step_ms:437.29 refresh:0
+step:133/200 train_time:71922ms step_avg:540.77ms step_ms:438.88 refresh:0
+step:134/200 train_time:100059ms step_avg:746.71ms step_ms:28137.04 refresh:0
+step:135/200 train_time:100708ms step_avg:745.98ms step_ms:648.63 refresh:0
+step:136/200 train_time:101468ms step_avg:746.09ms step_ms:760.58 refresh:0
+step:137/200 train_time:102071ms step_avg:745.05ms step_ms:603.17 refresh:0
+step:138/200 train_time:102726ms step_avg:744.39ms step_ms:654.55 refresh:0
+step:139/200 train_time:103364ms step_avg:743.63ms step_ms:638.51 refresh:0
+step:140/200 train_time:104010ms step_avg:742.93ms step_ms:645.48 refresh:0
+step:141/200 train_time:104652ms step_avg:742.21ms step_ms:642.43 refresh:0
+step:142/200 train_time:105289ms step_avg:741.47ms step_ms:637.10 refresh:0
+step:143/200 train_time:105935ms step_avg:740.80ms step_ms:645.16 refresh:0
+step:144/200 train_time:106575ms step_avg:740.10ms step_ms:640.44 refresh:0
+step:145/200 train_time:107219ms step_avg:739.44ms step_ms:644.33 refresh:0
+step:146/200 train_time:107865ms step_avg:738.80ms step_ms:645.78 refresh:0
+step:147/200 train_time:108508ms step_avg:738.15ms step_ms:642.99 refresh:0
+step:148/200 train_time:109152ms step_avg:737.51ms step_ms:644.01 refresh:0
+step:149/200 train_time:109794ms step_avg:736.87ms step_ms:642.00 refresh:0
+step:150/200 train_time:110433ms step_avg:736.22ms step_ms:638.43 refresh:0
+step:150/200 val_loss:4.1150 train_time:110521ms step_avg:736.81ms
+step:151/200 train_time:111106ms step_avg:735.80ms step_ms:673.34 refresh:0
+step:152/200 train_time:111754ms step_avg:735.22ms step_ms:647.98 refresh:0
+step:153/200 train_time:112395ms step_avg:734.61ms step_ms:640.85 refresh:0
+step:154/200 train_time:113042ms step_avg:734.04ms step_ms:647.49 refresh:0
+step:155/200 train_time:113688ms step_avg:733.47ms step_ms:645.37 refresh:0
+step:156/200 train_time:114330ms step_avg:732.88ms step_ms:642.10 refresh:0
+step:157/200 train_time:114973ms step_avg:732.31ms step_ms:643.42 refresh:0
+step:158/200 train_time:115615ms step_avg:731.74ms step_ms:641.67 refresh:0
+step:159/200 train_time:116264ms step_avg:731.22ms step_ms:648.91 refresh:0
+step:160/200 train_time:116910ms step_avg:730.69ms step_ms:646.18 refresh:0
+step:161/200 train_time:117554ms step_avg:730.15ms step_ms:643.78 refresh:0
+step:162/200 train_time:118195ms step_avg:729.60ms step_ms:641.22 refresh:0
+step:163/200 train_time:118842ms step_avg:729.09ms step_ms:647.37 refresh:0
+step:164/200 train_time:119488ms step_avg:728.59ms step_ms:645.73 refresh:0
+step:165/200 train_time:120133ms step_avg:728.08ms step_ms:644.72 refresh:0
+step:166/200 train_time:120775ms step_avg:727.56ms step_ms:642.67 refresh:0
+step:167/200 train_time:121421ms step_avg:727.07ms step_ms:645.19 refresh:0
+step:168/200 train_time:122068ms step_avg:726.59ms step_ms:647.27 refresh:0
+step:169/200 train_time:122712ms step_avg:726.11ms step_ms:644.40 refresh:0
+step:170/200 train_time:123354ms step_avg:725.61ms step_ms:642.00 refresh:0
+step:171/200 train_time:124000ms step_avg:725.15ms step_ms:646.06 refresh:0
+step:172/200 train_time:124648ms step_avg:724.70ms step_ms:647.55 refresh:0
+step:173/200 train_time:125294ms step_avg:724.24ms step_ms:645.70 refresh:0
+step:174/200 train_time:125937ms step_avg:723.77ms step_ms:643.17 refresh:0
+step:175/200 train_time:126584ms step_avg:723.34ms step_ms:647.76 refresh:0
+step:176/200 train_time:127232ms step_avg:722.91ms step_ms:647.39 refresh:0
+step:177/200 train_time:127872ms step_avg:722.44ms step_ms:640.33 refresh:0
+step:178/200 train_time:128516ms step_avg:722.00ms step_ms:643.85 refresh:0
+step:179/200 train_time:129162ms step_avg:721.58ms step_ms:646.45 refresh:0
+step:180/200 train_time:129809ms step_avg:721.16ms step_ms:646.87 refresh:0
+step:181/200 train_time:130453ms step_avg:720.74ms step_ms:643.98 refresh:0
+step:182/200 train_time:131096ms step_avg:720.31ms step_ms:643.15 refresh:0
+step:183/200 train_time:131748ms step_avg:719.94ms step_ms:652.00 refresh:0
+step:184/200 train_time:132389ms step_avg:719.51ms step_ms:640.71 refresh:0
+step:185/200 train_time:133030ms step_avg:719.08ms step_ms:640.54 refresh:0
+step:186/200 train_time:133675ms step_avg:718.68ms step_ms:645.23 refresh:0
+step:187/200 train_time:134323ms step_avg:718.31ms step_ms:648.28 refresh:0
+step:188/200 train_time:134970ms step_avg:717.92ms step_ms:646.64 refresh:0
+step:189/200 train_time:135614ms step_avg:717.54ms step_ms:644.54 refresh:0
+step:190/200 train_time:136258ms step_avg:717.15ms step_ms:644.05 refresh:0
+step:191/200 train_time:136906ms step_avg:716.78ms step_ms:647.12 refresh:0
+step:192/200 train_time:137551ms step_avg:716.41ms step_ms:644.94 refresh:0
+step:193/200 train_time:138192ms step_avg:716.02ms step_ms:641.52 refresh:0
+step:194/200 train_time:138836ms step_avg:715.65ms step_ms:644.23 refresh:0
+step:195/200 train_time:139487ms step_avg:715.32ms step_ms:650.38 refresh:0
+step:196/200 train_time:140129ms step_avg:714.95ms step_ms:642.76 refresh:0
+step:197/200 train_time:140774ms step_avg:714.59ms step_ms:644.76 refresh:0
+step:198/200 train_time:141415ms step_avg:714.22ms step_ms:640.50 refresh:0
+step:199/200 train_time:142064ms step_avg:713.89ms step_ms:648.95 refresh:0
+step:200/200 train_time:142710ms step_avg:713.55ms step_ms:646.12 refresh:0
+step:200/200 val_loss:3.8846 train_time:142806ms step_avg:714.03ms
+peak memory allocated: 37327 MiB reserved: 45776 MiB
+===== NEWTONV_CASE_END mbc_baseline 2026-05-28T00:53:53Z =====
+===== NEWTONV_CASE_START mbc_schedule_only_before 2026-05-28T00:53:53Z =====
+wrote train_gpt_screen.py from train_gpt.py with steps=200 val_every=50
+[Gloo] Rank 0 is connected to 0 peer ranks. Expected number of connected peer ranks is : 0
+
+Fetching 4 files:   0%|          | 0/4 [00:00<?, ?it/s]
+Fetching 4 files: 100%|██████████| 4/4 [00:00<00:00, 4860.14it/s]
+logs/8e42f532-7fdd-4f33-9706-970c1867e738.txt
+loco_full owned_layers rank=0: attn_in=[] qk_layers=[] v_layers=[] o_layers=[] mlp_fc_layers=[0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10] filter=inverse shrink_rank=64 precond_dtype=fp32 norm_restore=1 block_size=0 static_norm=0 power_alpha=0.75 power_clip=2.0 shrink_only=0 schedule_only=1 metric_polar=0 polar_iters=5 windows=((48, 112),) collect_windows=((48, 112),) skip_varred=0 local_stats=1 apply_interval=1
+Compiling model and warming up kernels (~7 minutes on first execution)
+Sampling steps [0, 1, 8, 18, 19, 20, 21, 24, 38, 39, 40, 41, 48, 58, 59, 60] for warmup
+Resetting Model
+step:0/200 val_loss:10.8290 train_time:0ms step_avg:0.07ms
+step:1/200 train_time:294ms step_avg:293.86ms step_ms:293.86 refresh:0
+step:2/200 train_time:527ms step_avg:263.25ms step_ms:232.64 refresh:0
+step:3/200 train_time:760ms step_avg:253.24ms step_ms:233.21 refresh:0
+step:4/200 train_time:993ms step_avg:248.37ms step_ms:233.76 refresh:0
+step:5/200 train_time:1233ms step_avg:246.50ms step_ms:239.03 refresh:0
+step:6/200 train_time:1469ms step_avg:244.91ms step_ms:236.97 refresh:0
+step:7/200 train_time:1703ms step_avg:243.23ms step_ms:233.16 refresh:0
+step:8/200 train_time:1936ms step_avg:242.05ms step_ms:233.76 refresh:0
+step:9/200 train_time:2175ms step_avg:241.66ms step_ms:238.51 refresh:0
+step:10/200 train_time:2412ms step_avg:241.17ms step_ms:236.80 refresh:0
+step:11/200 train_time:2647ms step_avg:240.68ms step_ms:235.78 refresh:0
+step:12/200 train_time:2882ms step_avg:240.16ms step_ms:234.40 refresh:0
+step:13/200 train_time:3119ms step_avg:239.89ms step_ms:236.64 refresh:0
+step:14/200 train_time:3356ms step_avg:239.72ms step_ms:237.58 refresh:0
+step:15/200 train_time:3593ms step_avg:239.52ms step_ms:236.76 refresh:0
+step:16/200 train_time:3828ms step_avg:239.22ms step_ms:234.72 refresh:0
+step:17/200 train_time:4064ms step_avg:239.06ms step_ms:236.46 refresh:0
+step:18/200 train_time:4301ms step_avg:238.92ms step_ms:236.49 refresh:0
+step:19/200 train_time:4537ms step_avg:238.80ms step_ms:236.75 refresh:0
+step:20/200 train_time:4773ms step_avg:238.65ms step_ms:235.63 refresh:0
+step:21/200 train_time:5008ms step_avg:238.46ms step_ms:234.79 refresh:0
+step:22/200 train_time:5244ms step_avg:238.36ms step_ms:236.18 refresh:0
+step:23/200 train_time:5481ms step_avg:238.30ms step_ms:236.97 refresh:0
+step:24/200 train_time:5717ms step_avg:238.20ms step_ms:236.02 refresh:0
+step:25/200 train_time:5952ms step_avg:238.09ms step_ms:235.39 refresh:0
+step:26/200 train_time:6188ms step_avg:238.01ms step_ms:236.00 refresh:0
+step:27/200 train_time:6424ms step_avg:237.94ms step_ms:236.07 refresh:0
+step:28/200 train_time:6660ms step_avg:237.85ms step_ms:235.47 refresh:0
+step:29/200 train_time:6896ms step_avg:237.78ms step_ms:235.93 refresh:0
+step:30/200 train_time:7131ms step_avg:237.72ms step_ms:235.70 refresh:0
+step:31/200 train_time:7368ms step_avg:237.68ms step_ms:236.69 refresh:0
+step:32/200 train_time:7604ms step_avg:237.63ms step_ms:235.98 refresh:0
+step:33/200 train_time:7840ms step_avg:237.58ms step_ms:235.91 refresh:0
+step:34/200 train_time:8076ms step_avg:237.54ms step_ms:236.37 refresh:0
+step:35/200 train_time:8313ms step_avg:237.50ms step_ms:236.21 refresh:0
+step:36/200 train_time:8549ms step_avg:237.48ms step_ms:236.51 refresh:0
+step:37/200 train_time:8785ms step_avg:237.44ms step_ms:235.98 refresh:0
+step:38/200 train_time:9021ms step_avg:237.40ms step_ms:236.04 refresh:0
+step:39/200 train_time:9257ms step_avg:237.35ms step_ms:235.54 refresh:0
+step:40/200 train_time:9492ms step_avg:237.31ms step_ms:235.54 refresh:0
+step:41/200 train_time:9729ms step_avg:237.28ms step_ms:236.36 refresh:0
+step:42/200 train_time:9966ms step_avg:237.28ms step_ms:237.34 refresh:0
+step:43/200 train_time:10202ms step_avg:237.26ms step_ms:236.36 refresh:0
+step:44/200 train_time:10438ms step_avg:237.23ms step_ms:235.92 refresh:0
+step:45/200 train_time:10673ms step_avg:237.19ms step_ms:235.22 refresh:0
+step:46/200 train_time:10910ms step_avg:237.18ms step_ms:236.65 refresh:0
+step:47/200 train_time:11147ms step_avg:237.17ms step_ms:236.69 refresh:0
+step:48/200 train_time:11382ms step_avg:237.13ms step_ms:235.57 refresh:0
+step:49/200 train_time:11618ms step_avg:237.09ms step_ms:235.30 refresh:0
+step:50/200 train_time:11855ms step_avg:237.09ms step_ms:237.05 refresh:0
+step:50/200 val_loss:5.6156 train_time:11892ms step_avg:237.84ms
+loco_full_step_timing through_step:49 refresh_avg:0.00ms refresh_n:0 nonrefresh_avg:237.09ms nonrefresh_n:50
+step:51/200 train_time:12091ms step_avg:237.08ms step_ms:236.47 refresh:0
+step:52/200 train_time:12327ms step_avg:237.05ms step_ms:235.33 refresh:0
+step:53/200 train_time:12561ms step_avg:237.01ms step_ms:234.81 refresh:0
+step:54/200 train_time:12797ms step_avg:236.99ms step_ms:236.17 refresh:0
+step:55/200 train_time:13034ms step_avg:236.98ms step_ms:236.31 refresh:0
+step:56/200 train_time:13270ms step_avg:236.96ms step_ms:236.20 refresh:0
+step:57/200 train_time:13506ms step_avg:236.94ms step_ms:235.71 refresh:0
+step:58/200 train_time:13742ms step_avg:236.93ms step_ms:236.00 refresh:0
+step:59/200 train_time:13979ms step_avg:236.93ms step_ms:236.88 refresh:0
+step:60/200 train_time:14214ms step_avg:236.90ms step_ms:235.51 refresh:0
+step:61/200 train_time:14450ms step_avg:236.88ms step_ms:235.60 refresh:0
+step:62/200 train_time:14685ms step_avg:236.85ms step_ms:235.31 refresh:0
+step:63/200 train_time:14922ms step_avg:236.86ms step_ms:236.90 refresh:0
+step:64/200 train_time:15158ms step_avg:236.84ms step_ms:235.63 refresh:0
+step:65/200 train_time:15393ms step_avg:236.82ms step_ms:235.61 refresh:0
+step:66/200 train_time:15629ms step_avg:236.81ms step_ms:236.23 refresh:0
+step:67/200 train_time:15865ms step_avg:236.79ms step_ms:235.64 refresh:0
+step:68/200 train_time:36030ms step_avg:529.85ms step_ms:20164.75 refresh:0
+step:69/200 train_time:36460ms step_avg:528.41ms step_ms:430.26 refresh:0
+step:70/200 train_time:36908ms step_avg:527.26ms step_ms:447.89 refresh:0
+step:71/200 train_time:37339ms step_avg:525.90ms step_ms:431.24 refresh:0
+step:72/200 train_time:37779ms step_avg:524.71ms step_ms:440.21 refresh:0
+step:73/200 train_time:38214ms step_avg:523.48ms step_ms:434.67 refresh:0
+step:74/200 train_time:38651ms step_avg:522.31ms step_ms:437.00 refresh:0
+step:75/200 train_time:39090ms step_avg:521.20ms step_ms:438.62 refresh:0
+step:76/200 train_time:39528ms step_avg:520.10ms step_ms:438.03 refresh:0
+step:77/200 train_time:39964ms step_avg:519.01ms step_ms:436.03 refresh:0
+step:78/200 train_time:40399ms step_avg:517.94ms step_ms:435.57 refresh:0
+step:79/200 train_time:40838ms step_avg:516.94ms step_ms:439.17 refresh:0
+step:80/200 train_time:41274ms step_avg:515.93ms step_ms:435.75 refresh:0
+step:81/200 train_time:41713ms step_avg:514.97ms step_ms:438.43 refresh:0
+step:82/200 train_time:42151ms step_avg:514.03ms step_ms:438.05 refresh:0
+step:83/200 train_time:42588ms step_avg:513.11ms step_ms:437.78 refresh:0
+step:84/200 train_time:43025ms step_avg:512.21ms step_ms:436.83 refresh:0
+step:85/200 train_time:43464ms step_avg:511.34ms step_ms:438.25 refresh:0
+step:86/200 train_time:43902ms step_avg:510.49ms step_ms:438.56 refresh:0
+step:87/200 train_time:44336ms step_avg:509.61ms step_ms:433.80 refresh:0
+step:88/200 train_time:44772ms step_avg:508.78ms step_ms:436.41 refresh:0
+step:89/200 train_time:45209ms step_avg:507.97ms step_ms:436.90 refresh:0
+step:90/200 train_time:45646ms step_avg:507.17ms step_ms:436.40 refresh:0
+step:91/200 train_time:46084ms step_avg:506.42ms step_ms:438.17 refresh:0
+step:92/200 train_time:46519ms step_avg:505.64ms step_ms:435.42 refresh:0
+step:93/200 train_time:46956ms step_avg:504.90ms step_ms:436.41 refresh:0
+step:94/200 train_time:47394ms step_avg:504.19ms step_ms:438.36 refresh:0
+step:95/200 train_time:47830ms step_avg:503.48ms step_ms:436.51 refresh:0
+step:96/200 train_time:48268ms step_avg:502.79ms step_ms:437.60 refresh:0
+step:97/200 train_time:48706ms step_avg:502.12ms step_ms:437.89 refresh:0
+step:98/200 train_time:49144ms step_avg:501.47ms step_ms:438.39 refresh:0
+step:99/200 train_time:49581ms step_avg:500.82ms step_ms:436.54 refresh:0
+step:100/200 train_time:50019ms step_avg:500.19ms step_ms:437.83 refresh:0
+step:100/200 val_loss:4.6884 train_time:50081ms step_avg:500.81ms
+loco_full_step_timing through_step:99 refresh_avg:0.00ms refresh_n:0 nonrefresh_avg:500.19ms nonrefresh_n:100
+step:101/200 train_time:50455ms step_avg:499.55ms step_ms:436.19 refresh:0
+step:102/200 train_time:50891ms step_avg:498.93ms step_ms:436.02 refresh:0
+step:103/200 train_time:51330ms step_avg:498.35ms step_ms:438.61 refresh:0
+step:104/200 train_time:51767ms step_avg:497.76ms step_ms:437.40 refresh:0
+step:105/200 train_time:52205ms step_avg:497.19ms step_ms:438.09 refresh:0
+step:106/200 train_time:52642ms step_avg:496.62ms step_ms:436.58 refresh:0
+step:107/200 train_time:53080ms step_avg:496.08ms step_ms:438.49 refresh:0
+step:108/200 train_time:53517ms step_avg:495.52ms step_ms:436.55 refresh:0
+step:109/200 train_time:53951ms step_avg:494.97ms step_ms:434.70 refresh:0
+step:110/200 train_time:54388ms step_avg:494.43ms step_ms:436.48 refresh:0
+step:111/200 train_time:54826ms step_avg:493.92ms step_ms:437.71 refresh:0
+step:112/200 train_time:55262ms step_avg:493.41ms step_ms:436.23 refresh:0
+step:113/200 train_time:55699ms step_avg:492.91ms step_ms:437.44 refresh:0
+step:114/200 train_time:56136ms step_avg:492.42ms step_ms:436.45 refresh:0
+step:115/200 train_time:56572ms step_avg:491.93ms step_ms:436.44 refresh:0
+step:116/200 train_time:57009ms step_avg:491.45ms step_ms:436.61 refresh:0
+step:117/200 train_time:57445ms step_avg:490.98ms step_ms:436.38 refresh:0
+step:118/200 train_time:57881ms step_avg:490.51ms step_ms:435.48 refresh:0
+step:119/200 train_time:58317ms step_avg:490.06ms step_ms:436.55 refresh:0
+step:120/200 train_time:58753ms step_avg:489.61ms step_ms:436.28 refresh:0
+step:121/200 train_time:59190ms step_avg:489.17ms step_ms:436.45 refresh:0
+step:122/200 train_time:59626ms step_avg:488.74ms step_ms:435.90 refresh:0
+step:123/200 train_time:60062ms step_avg:488.31ms step_ms:436.38 refresh:0
+step:124/200 train_time:60500ms step_avg:487.90ms step_ms:437.48 refresh:0
+step:125/200 train_time:60935ms step_avg:487.48ms step_ms:435.52 refresh:0
+step:126/200 train_time:61372ms step_avg:487.08ms step_ms:436.52 refresh:0
+step:127/200 train_time:61807ms step_avg:486.67ms step_ms:435.53 refresh:0
+step:128/200 train_time:62244ms step_avg:486.28ms step_ms:436.57 refresh:0
+step:129/200 train_time:62680ms step_avg:485.89ms step_ms:436.35 refresh:0
+step:130/200 train_time:63117ms step_avg:485.52ms step_ms:437.15 refresh:0
+step:131/200 train_time:63554ms step_avg:485.14ms step_ms:436.28 refresh:0
+step:132/200 train_time:63990ms step_avg:484.77ms step_ms:436.32 refresh:0
+step:133/200 train_time:64427ms step_avg:484.41ms step_ms:436.90 refresh:0
+step:134/200 train_time:85482ms step_avg:637.93ms step_ms:21055.54 refresh:0
+step:135/200 train_time:86135ms step_avg:638.04ms step_ms:652.99 refresh:0
+step:136/200 train_time:86879ms step_avg:638.81ms step_ms:743.49 refresh:0
+step:137/200 train_time:87467ms step_avg:638.44ms step_ms:587.81 refresh:0
+step:138/200 train_time:88116ms step_avg:638.52ms step_ms:649.61 refresh:0
+step:139/200 train_time:88755ms step_avg:638.53ms step_ms:639.02 refresh:0
+step:140/200 train_time:89400ms step_avg:638.57ms step_ms:645.17 refresh:0
+step:141/200 train_time:90052ms step_avg:638.67ms step_ms:651.42 refresh:0
+step:142/200 train_time:90685ms step_avg:638.63ms step_ms:633.45 refresh:0
+step:143/200 train_time:91330ms step_avg:638.67ms step_ms:645.06 refresh:0
+step:144/200 train_time:91972ms step_avg:638.69ms step_ms:641.29 refresh:0
+step:145/200 train_time:92619ms step_avg:638.75ms step_ms:647.64 refresh:0
+step:146/200 train_time:93264ms step_avg:638.80ms step_ms:645.24 refresh:0
+step:147/200 train_time:93909ms step_avg:638.84ms step_ms:644.72 refresh:0
+step:148/200 train_time:94551ms step_avg:638.86ms step_ms:641.81 refresh:0
+step:149/200 train_time:95196ms step_avg:638.90ms step_ms:645.29 refresh:0
+step:150/200 train_time:95840ms step_avg:638.93ms step_ms:643.43 refresh:0
+step:150/200 val_loss:4.1190 train_time:95928ms step_avg:639.52ms
+loco_full_step_timing through_step:149 refresh_avg:0.00ms refresh_n:0 nonrefresh_avg:638.93ms nonrefresh_n:150
+step:151/200 train_time:96547ms step_avg:639.39ms step_ms:707.72 refresh:0
+step:152/200 train_time:97201ms step_avg:639.48ms step_ms:653.82 refresh:0
+step:153/200 train_time:97841ms step_avg:639.48ms step_ms:639.85 refresh:0
+step:154/200 train_time:98489ms step_avg:639.54ms step_ms:647.84 refresh:0
+step:155/200 train_time:99137ms step_avg:639.59ms step_ms:647.80 refresh:0
+step:156/200 train_time:99778ms step_avg:639.60ms step_ms:640.79 refresh:0
+step:157/200 train_time:100429ms step_avg:639.68ms step_ms:651.69 refresh:0
+step:158/200 train_time:101079ms step_avg:639.74ms step_ms:649.85 refresh:0
+step:159/200 train_time:101729ms step_avg:639.80ms step_ms:649.66 refresh:0
+step:160/200 train_time:102360ms step_avg:639.75ms step_ms:631.39 refresh:0
+step:161/200 train_time:103001ms step_avg:639.76ms step_ms:641.25 refresh:0
+step:162/200 train_time:103641ms step_avg:639.76ms step_ms:639.98 refresh:0
+step:163/200 train_time:104288ms step_avg:639.80ms step_ms:646.54 refresh:0
+step:164/200 train_time:104934ms step_avg:639.84ms step_ms:646.01 refresh:0
+step:165/200 train_time:105579ms step_avg:639.87ms step_ms:644.99 refresh:0
+step:166/200 train_time:106222ms step_avg:639.89ms step_ms:642.86 refresh:0
+step:167/200 train_time:106863ms step_avg:639.90ms step_ms:641.51 refresh:0
+step:168/200 train_time:107510ms step_avg:639.94ms step_ms:647.08 refresh:0
+step:169/200 train_time:108154ms step_avg:639.97ms step_ms:644.10 refresh:0
+step:170/200 train_time:108797ms step_avg:639.98ms step_ms:642.09 refresh:0
+step:171/200 train_time:109439ms step_avg:639.99ms step_ms:642.20 refresh:0
+step:172/200 train_time:110082ms step_avg:640.01ms step_ms:643.38 refresh:0
+step:173/200 train_time:110730ms step_avg:640.06ms step_ms:647.76 refresh:0
+step:174/200 train_time:111375ms step_avg:640.09ms step_ms:645.26 refresh:0
+step:175/200 train_time:112017ms step_avg:640.10ms step_ms:641.57 refresh:0
+step:176/200 train_time:112661ms step_avg:640.12ms step_ms:644.58 refresh:0
+step:177/200 train_time:113302ms step_avg:640.12ms step_ms:640.31 refresh:0
+step:178/200 train_time:113943ms step_avg:640.13ms step_ms:641.24 refresh:0
+step:179/200 train_time:114596ms step_avg:640.20ms step_ms:653.07 refresh:0
+step:180/200 train_time:115236ms step_avg:640.20ms step_ms:639.93 refresh:0
+step:181/200 train_time:115885ms step_avg:640.25ms step_ms:649.22 refresh:0
+step:182/200 train_time:116520ms step_avg:640.22ms step_ms:634.67 refresh:0
+step:183/200 train_time:117167ms step_avg:640.25ms step_ms:646.90 refresh:0
+step:184/200 train_time:117813ms step_avg:640.29ms step_ms:646.22 refresh:0
+step:185/200 train_time:118455ms step_avg:640.30ms step_ms:642.03 refresh:0
+step:186/200 train_time:119099ms step_avg:640.32ms step_ms:644.42 refresh:0
+step:187/200 train_time:119741ms step_avg:640.33ms step_ms:641.54 refresh:0
+step:188/200 train_time:120384ms step_avg:640.34ms step_ms:642.88 refresh:0
+step:189/200 train_time:121030ms step_avg:640.37ms step_ms:646.22 refresh:0
+step:190/200 train_time:121675ms step_avg:640.39ms step_ms:644.86 refresh:0
+step:191/200 train_time:122320ms step_avg:640.42ms step_ms:644.73 refresh:0
+step:192/200 train_time:122964ms step_avg:640.44ms step_ms:644.34 refresh:0
+step:193/200 train_time:123610ms step_avg:640.47ms step_ms:646.23 refresh:0
+step:194/200 train_time:124256ms step_avg:640.49ms step_ms:645.80 refresh:0
+step:195/200 train_time:124901ms step_avg:640.52ms step_ms:644.73 refresh:0
+step:196/200 train_time:125543ms step_avg:640.53ms step_ms:642.58 refresh:0
+step:197/200 train_time:126190ms step_avg:640.56ms step_ms:646.52 refresh:0
+step:198/200 train_time:126834ms step_avg:640.58ms step_ms:644.43 refresh:0
+step:199/200 train_time:127482ms step_avg:640.61ms step_ms:647.80 refresh:0
+step:200/200 train_time:128125ms step_avg:640.63ms step_ms:643.30 refresh:0
+step:200/200 val_loss:3.8915 train_time:128220ms step_avg:641.10ms
+loco_full_step_timing through_step:199 refresh_avg:0.00ms refresh_n:0 nonrefresh_avg:640.63ms nonrefresh_n:200
+peak memory allocated: 37327 MiB reserved: 45776 MiB
+===== NEWTONV_CASE_END mbc_schedule_only_before 2026-05-28T00:57:39Z =====
+===== NEWTONV_CASE_START mbc_noop_before_r020_blend010 2026-05-28T00:57:39Z =====
+wrote train_gpt_screen.py from train_gpt.py with steps=200 val_every=50
+[Gloo] Rank 0 is connected to 0 peer ranks. Expected number of connected peer ranks is : 0
+
+Fetching 4 files:   0%|          | 0/4 [00:00<?, ?it/s]
+Fetching 4 files: 100%|██████████| 4/4 [00:00<00:00, 7486.49it/s]
+logs/72c7bf7d-6f9f-4332-b270-535ea3a0deea.txt
+loco_full owned_layers rank=0: attn_in=[] qk_layers=[] v_layers=[] o_layers=[] mlp_fc_layers=[0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10] filter=inverse shrink_rank=64 precond_dtype=fp32 norm_restore=1 block_size=0 static_norm=0 power_alpha=0.75 power_clip=2.0 shrink_only=0 schedule_only=0 metric_polar=0 polar_iters=5 windows=((48, 112),) collect_windows=((0, 64),) skip_varred=0 local_stats=1 apply_interval=1
+Compiling model and warming up kernels (~7 minutes on first execution)
+Sampling steps [0, 1, 8, 18, 19, 20, 21, 24, 38, 39, 40, 41, 48, 58, 59, 60] for warmup
+loco_full step=0 mlp_fc_gram_ema refreshed=1 owned_layers=[0, 1] mean_diag=1.6384e+04 min=1.2283e+04 p01=1.3167e+04 p50=1.6233e+04 p99=2.1895e+04 max=2.4917e+04
+loco_full step=1 mlp_fc_gram_ema refreshed=0 owned_layers=[0, 1] mean_diag=1.6384e+04 min=1.2283e+04 p01=1.3167e+04 p50=1.6233e+04 p99=2.1895e+04 max=2.4917e+04
+Resetting Model
+step:0/200 val_loss:10.8280 train_time:0ms step_avg:0.42ms
+loco_full step=0 mlp_fc_gram_ema refreshed=1 owned_layers=[0, 1] mean_diag=1.6384e+04 min=1.2283e+04 p01=1.3167e+04 p50=1.6233e+04 p99=2.1895e+04 max=2.4917e+04
+step:1/200 train_time:356ms step_avg:356.12ms step_ms:356.12 refresh:1
+loco_full step=1 mlp_fc_gram_ema refreshed=0 owned_layers=[0, 1] mean_diag=1.6384e+04 min=1.2283e+04 p01=1.3167e+04 p50=1.6233e+04 p99=2.1895e+04 max=2.4917e+04
+step:2/200 train_time:593ms step_avg:296.56ms step_ms:237.00 refresh:0
+loco_full step=2 mlp_fc_gram_ema refreshed=0 owned_layers=[0, 1] mean_diag=1.6384e+04 min=1.2283e+04 p01=1.3167e+04 p50=1.6233e+04 p99=2.1895e+04 max=2.4917e+04
+step:3/200 train_time:827ms step_avg:275.52ms step_ms:233.45 refresh:0
+step:4/200 train_time:1026ms step_avg:256.38ms step_ms:198.97 refresh:0
+step:5/200 train_time:1264ms step_avg:252.84ms step_ms:238.66 refresh:0
+step:6/200 train_time:1498ms step_avg:249.66ms step_ms:233.74 refresh:0
+step:7/200 train_time:1731ms step_avg:247.36ms step_ms:233.55 refresh:0
+step:8/200 train_time:1964ms step_avg:245.49ms step_ms:232.44 refresh:0
+step:9/200 train_time:2201ms step_avg:244.55ms step_ms:237.06 refresh:0
+step:10/200 train_time:2438ms step_avg:243.79ms step_ms:236.94 refresh:0
+loco_full step=10 mlp_fc_gram_ema refreshed=0 owned_layers=[0, 1] mean_diag=1.6384e+04 min=1.2283e+04 p01=1.3167e+04 p50=1.6233e+04 p99=2.1895e+04 max=2.4917e+04
+step:11/200 train_time:2709ms step_avg:246.26ms step_ms:270.88 refresh:0
+step:12/200 train_time:2908ms step_avg:242.32ms step_ms:198.99 refresh:0
+step:13/200 train_time:3144ms step_avg:241.85ms step_ms:236.22 refresh:0
+step:14/200 train_time:3381ms step_avg:241.53ms step_ms:237.37 refresh:0
+step:15/200 train_time:3618ms step_avg:241.18ms step_ms:236.35 refresh:0
+step:16/200 train_time:3852ms step_avg:240.76ms step_ms:234.37 refresh:0
+step:17/200 train_time:4132ms step_avg:243.05ms step_ms:279.67 refresh:1
+step:18/200 train_time:4333ms step_avg:240.74ms step_ms:201.59 refresh:0
+step:19/200 train_time:4570ms step_avg:240.50ms step_ms:236.14 refresh:0
+step:20/200 train_time:4803ms step_avg:240.17ms step_ms:233.91 refresh:0
+step:21/200 train_time:5040ms step_avg:239.98ms step_ms:236.11 refresh:0
+step:22/200 train_time:5275ms step_avg:239.76ms step_ms:235.20 refresh:0
+step:23/200 train_time:5510ms step_avg:239.57ms step_ms:235.38 refresh:0
+step:24/200 train_time:5745ms step_avg:239.37ms step_ms:234.77 refresh:0
+step:25/200 train_time:5980ms step_avg:239.22ms step_ms:235.62 refresh:0
+step:26/200 train_time:6216ms step_avg:239.06ms step_ms:235.11 refresh:0
+step:27/200 train_time:6451ms step_avg:238.94ms step_ms:235.86 refresh:0
+step:28/200 train_time:6687ms step_avg:238.81ms step_ms:235.24 refresh:0
+step:29/200 train_time:6921ms step_avg:238.64ms step_ms:233.92 refresh:0
+step:30/200 train_time:7156ms step_avg:238.54ms step_ms:235.69 refresh:0
+step:31/200 train_time:7392ms step_avg:238.45ms step_ms:235.63 refresh:0
+step:32/200 train_time:7627ms step_avg:238.33ms step_ms:234.68 refresh:0
+step:33/200 train_time:7905ms step_avg:239.54ms step_ms:278.19 refresh:1
+step:34/200 train_time:8105ms step_avg:238.37ms step_ms:199.85 refresh:0
+step:35/200 train_time:8340ms step_avg:238.29ms step_ms:235.48 refresh:0
+step:36/200 train_time:8575ms step_avg:238.19ms step_ms:234.74 refresh:0
+step:37/200 train_time:8811ms step_avg:238.12ms step_ms:235.76 refresh:0
+step:38/200 train_time:9046ms step_avg:238.04ms step_ms:234.94 refresh:0
+step:39/200 train_time:9280ms step_avg:237.96ms step_ms:234.68 refresh:0
+step:40/200 train_time:9515ms step_avg:237.88ms step_ms:234.91 refresh:0
+step:41/200 train_time:9751ms step_avg:237.82ms step_ms:235.45 refresh:0
+step:42/200 train_time:9986ms step_avg:237.77ms step_ms:235.52 refresh:0
+step:43/200 train_time:10220ms step_avg:237.69ms step_ms:234.32 refresh:0
+step:44/200 train_time:10456ms step_avg:237.63ms step_ms:235.10 refresh:0
+step:45/200 train_time:10690ms step_avg:237.57ms step_ms:234.90 refresh:0
+step:46/200 train_time:10925ms step_avg:237.50ms step_ms:234.67 refresh:0
+step:47/200 train_time:11161ms step_avg:237.46ms step_ms:235.44 refresh:0
+step:48/200 train_time:11396ms step_avg:237.41ms step_ms:235.06 refresh:0
+step:49/200 train_time:11675ms step_avg:238.27ms step_ms:279.48 refresh:1
+step:50/200 train_time:11876ms step_avg:237.53ms step_ms:201.23 refresh:0
+step:50/200 val_loss:5.5823 train_time:11914ms step_avg:238.28ms
+loco_full_step_timing through_step:49 refresh_avg:298.37ms refresh_n:4 nonrefresh_avg:232.24ms nonrefresh_n:46
+loco_full step=50 mlp_fc_gram_ema refreshed=0 owned_layers=[0, 1] mean_diag=1.6384e+04 min=1.0673e+04 p01=1.1606e+04 p50=1.5721e+04 p99=2.5851e+04 max=3.1316e+04
+loco_diag_grad_ratio step=50 full_mlp_fc:n=2 mean=1.0000e+00 min=1.0000e+00 max=1.0000e+00
+step:51/200 train_time:12166ms step_avg:238.55ms step_ms:289.70 refresh:0
+step:52/200 train_time:12365ms step_avg:237.78ms step_ms:198.72 refresh:0
+step:53/200 train_time:12600ms step_avg:237.73ms step_ms:234.78 refresh:0
+step:54/200 train_time:12833ms step_avg:237.66ms step_ms:233.88 refresh:0
+step:55/200 train_time:13068ms step_avg:237.60ms step_ms:234.79 refresh:0
+step:56/200 train_time:13304ms step_avg:237.57ms step_ms:235.92 refresh:0
+step:57/200 train_time:13538ms step_avg:237.51ms step_ms:233.68 refresh:0
+step:58/200 train_time:13772ms step_avg:237.45ms step_ms:234.47 refresh:0
+step:59/200 train_time:14007ms step_avg:237.41ms step_ms:235.12 refresh:0
+step:60/200 train_time:14243ms step_avg:237.38ms step_ms:235.12 refresh:0
+step:61/200 train_time:14477ms step_avg:237.33ms step_ms:234.71 refresh:0
+step:62/200 train_time:14711ms step_avg:237.27ms step_ms:233.81 refresh:0
+step:63/200 train_time:14946ms step_avg:237.24ms step_ms:234.94 refresh:0
+step:64/200 train_time:15181ms step_avg:237.21ms step_ms:235.22 refresh:0
+step:65/200 train_time:15461ms step_avg:237.85ms step_ms:279.36 refresh:1
+step:66/200 train_time:15661ms step_avg:237.28ms step_ms:200.11 refresh:0
+step:67/200 train_time:15895ms step_avg:237.24ms step_ms:234.50 refresh:0
+step:68/200 train_time:35805ms step_avg:526.54ms step_ms:19909.46 refresh:0
+step:69/200 train_time:36236ms step_avg:525.16ms step_ms:431.32 refresh:0
+step:70/200 train_time:36679ms step_avg:523.98ms step_ms:442.68 refresh:0
+step:71/200 train_time:37109ms step_avg:522.67ms step_ms:430.77 refresh:0
+step:72/200 train_time:37549ms step_avg:521.51ms step_ms:439.67 refresh:0
+step:73/200 train_time:37983ms step_avg:520.32ms step_ms:434.42 refresh:0
+step:74/200 train_time:38418ms step_avg:519.16ms step_ms:434.08 refresh:0
+step:75/200 train_time:38857ms step_avg:518.10ms step_ms:439.58 refresh:0
+step:76/200 train_time:39290ms step_avg:516.97ms step_ms:432.64 refresh:0
+step:77/200 train_time:39729ms step_avg:515.96ms step_ms:438.85 refresh:0
+step:78/200 train_time:40162ms step_avg:514.90ms step_ms:433.86 refresh:0
+step:79/200 train_time:40601ms step_avg:513.93ms step_ms:438.04 refresh:0
+step:80/200 train_time:41036ms step_avg:512.95ms step_ms:435.48 refresh:0
+step:81/200 train_time:41473ms step_avg:512.02ms step_ms:437.42 refresh:0
+step:82/200 train_time:41911ms step_avg:511.11ms step_ms:437.91 refresh:0
+step:83/200 train_time:42346ms step_avg:510.19ms step_ms:434.78 refresh:0
+step:84/200 train_time:42782ms step_avg:509.31ms step_ms:435.81 refresh:0
+step:85/200 train_time:43220ms step_avg:508.47ms step_ms:437.91 refresh:0
+step:86/200 train_time:43656ms step_avg:507.62ms step_ms:435.73 refresh:0
+step:87/200 train_time:44093ms step_avg:506.82ms step_ms:437.82 refresh:0
+step:88/200 train_time:44531ms step_avg:506.03ms step_ms:437.67 refresh:0
+step:89/200 train_time:44970ms step_avg:505.28ms step_ms:438.75 refresh:0
+step:90/200 train_time:45406ms step_avg:504.51ms step_ms:436.05 refresh:0
+step:91/200 train_time:45844ms step_avg:503.78ms step_ms:437.88 refresh:0
+step:92/200 train_time:46281ms step_avg:503.05ms step_ms:436.77 refresh:0
+step:93/200 train_time:46718ms step_avg:502.35ms step_ms:437.95 refresh:0
+step:94/200 train_time:47154ms step_avg:501.64ms step_ms:435.87 refresh:0
+step:95/200 train_time:47593ms step_avg:500.98ms step_ms:438.52 refresh:0
+step:96/200 train_time:48028ms step_avg:500.29ms step_ms:435.27 refresh:0
+step:97/200 train_time:48466ms step_avg:499.65ms step_ms:437.54 refresh:0
+step:98/200 train_time:48904ms step_avg:499.02ms step_ms:438.16 refresh:0
+step:99/200 train_time:49340ms step_avg:498.38ms step_ms:435.74 refresh:0
+step:100/200 train_time:49782ms step_avg:497.82ms step_ms:442.46 refresh:0
+step:100/200 val_loss:4.6903 train_time:49840ms step_avg:498.40ms
+loco_full_step_timing through_step:99 refresh_avg:294.56ms refresh_n:5 nonrefresh_avg:508.52ms nonrefresh_n:95
+loco_full step=100 mlp_fc_gram_ema refreshed=0 owned_layers=[0, 1] mean_diag=1.6384e+04 min=9.9706e+03 p01=1.1070e+04 p50=1.5514e+04 p99=2.8635e+04 max=3.7764e+04
+loco_diag_grad_ratio step=100 full_mlp_fc:n=2 mean=1.0000e+00 min=1.0000e+00 max=1.0000e+00
+step:101/200 train_time:50277ms step_avg:497.79ms step_ms:494.83 refresh:0
+step:102/200 train_time:50655ms step_avg:496.62ms step_ms:378.22 refresh:0
+step:103/200 train_time:51090ms step_avg:496.02ms step_ms:434.96 refresh:0
+step:104/200 train_time:51524ms step_avg:495.42ms step_ms:433.94 refresh:0
+step:105/200 train_time:51959ms step_avg:494.85ms step_ms:434.79 refresh:0
+step:106/200 train_time:52394ms step_avg:494.28ms step_ms:434.80 refresh:0
+step:107/200 train_time:52830ms step_avg:493.74ms step_ms:436.77 refresh:0
+step:108/200 train_time:53264ms step_avg:493.19ms step_ms:434.11 refresh:0
+step:109/200 train_time:53701ms step_avg:492.67ms step_ms:436.48 refresh:0
+step:110/200 train_time:54135ms step_avg:492.13ms step_ms:433.77 refresh:0
+step:111/200 train_time:54571ms step_avg:491.63ms step_ms:436.28 refresh:0
+step:112/200 train_time:55006ms step_avg:491.13ms step_ms:435.06 refresh:0
+step:113/200 train_time:55442ms step_avg:490.64ms step_ms:435.87 refresh:0
+step:114/200 train_time:55878ms step_avg:490.16ms step_ms:436.33 refresh:0
+step:115/200 train_time:56312ms step_avg:489.67ms step_ms:434.20 refresh:0
+step:116/200 train_time:56750ms step_avg:489.22ms step_ms:437.06 refresh:0
+step:117/200 train_time:57186ms step_avg:488.77ms step_ms:436.52 refresh:0
+step:118/200 train_time:57621ms step_avg:488.31ms step_ms:434.77 refresh:0
+step:119/200 train_time:58055ms step_avg:487.86ms step_ms:434.69 refresh:0
+step:120/200 train_time:58493ms step_avg:487.44ms step_ms:437.57 refresh:0
+step:121/200 train_time:58927ms step_avg:487.00ms step_ms:434.21 refresh:0
+step:122/200 train_time:59363ms step_avg:486.58ms step_ms:435.60 refresh:0
+step:123/200 train_time:59799ms step_avg:486.17ms step_ms:436.02 refresh:0
+step:124/200 train_time:60235ms step_avg:485.76ms step_ms:435.78 refresh:0
+step:125/200 train_time:60671ms step_avg:485.37ms step_ms:436.67 refresh:0
+step:126/200 train_time:61107ms step_avg:484.98ms step_ms:435.80 refresh:0
+step:127/200 train_time:61543ms step_avg:484.59ms step_ms:436.06 refresh:0
+step:128/200 train_time:61980ms step_avg:484.22ms step_ms:436.63 refresh:0
+step:129/200 train_time:62416ms step_avg:483.84ms step_ms:436.00 refresh:0
+step:130/200 train_time:62851ms step_avg:483.47ms step_ms:435.06 refresh:0
+step:131/200 train_time:63287ms step_avg:483.10ms step_ms:435.80 refresh:0
+step:132/200 train_time:63721ms step_avg:482.74ms step_ms:434.78 refresh:0
+step:133/200 train_time:64158ms step_avg:482.39ms step_ms:436.15 refresh:0
+step:134/200 train_time:84839ms step_avg:633.13ms step_ms:20681.17 refresh:0
+step:135/200 train_time:85491ms step_avg:633.26ms step_ms:651.85 refresh:0
+step:136/200 train_time:86242ms step_avg:634.13ms step_ms:751.00 refresh:0
+step:137/200 train_time:86848ms step_avg:633.93ms step_ms:606.24 refresh:0
+step:138/200 train_time:87508ms step_avg:634.12ms step_ms:660.56 refresh:0
+step:139/200 train_time:88134ms step_avg:634.06ms step_ms:625.23 refresh:0
+step:140/200 train_time:88778ms step_avg:634.13ms step_ms:643.93 refresh:0
+step:141/200 train_time:89431ms step_avg:634.26ms step_ms:653.30 refresh:0
+step:142/200 train_time:90057ms step_avg:634.20ms step_ms:625.85 refresh:0
+step:143/200 train_time:90703ms step_avg:634.29ms step_ms:646.27 refresh:0
+step:144/200 train_time:91353ms step_avg:634.40ms step_ms:650.38 refresh:0
+step:145/200 train_time:92000ms step_avg:634.48ms step_ms:646.90 refresh:0
+step:146/200 train_time:92635ms step_avg:634.48ms step_ms:634.32 refresh:0
+step:147/200 train_time:93279ms step_avg:634.55ms step_ms:644.02 refresh:0
+step:148/200 train_time:93922ms step_avg:634.61ms step_ms:643.61 refresh:0
+step:149/200 train_time:94564ms step_avg:634.66ms step_ms:641.62 refresh:0
+step:150/200 train_time:95202ms step_avg:634.68ms step_ms:638.13 refresh:0
+step:150/200 val_loss:4.1203 train_time:95292ms step_avg:635.28ms
+loco_full_step_timing through_step:149 refresh_avg:294.56ms refresh_n:5 nonrefresh_avg:646.41ms nonrefresh_n:145
+step:151/200 train_time:95895ms step_avg:635.07ms step_ms:692.84 refresh:0
+step:152/200 train_time:96542ms step_avg:635.14ms step_ms:646.66 refresh:0
+step:153/200 train_time:97182ms step_avg:635.17ms step_ms:640.18 refresh:0
+step:154/200 train_time:97822ms step_avg:635.21ms step_ms:640.78 refresh:0
+step:155/200 train_time:98473ms step_avg:635.31ms step_ms:650.17 refresh:0
+step:156/200 train_time:99114ms step_avg:635.34ms step_ms:641.08 refresh:0
+step:157/200 train_time:99757ms step_avg:635.39ms step_ms:643.23 refresh:0
+step:158/200 train_time:100399ms step_avg:635.44ms step_ms:642.41 refresh:0
+step:159/200 train_time:101041ms step_avg:635.48ms step_ms:641.26 refresh:0
+step:160/200 train_time:101680ms step_avg:635.50ms step_ms:639.48 refresh:0
+step:161/200 train_time:102322ms step_avg:635.54ms step_ms:641.64 refresh:0
+step:162/200 train_time:102963ms step_avg:635.58ms step_ms:641.63 refresh:0
+step:163/200 train_time:103610ms step_avg:635.65ms step_ms:646.79 refresh:0
+step:164/200 train_time:104256ms step_avg:635.71ms step_ms:645.99 refresh:0
+step:165/200 train_time:104902ms step_avg:635.77ms step_ms:645.70 refresh:0
+step:166/200 train_time:105544ms step_avg:635.80ms step_ms:641.69 refresh:0
+step:167/200 train_time:106189ms step_avg:635.86ms step_ms:645.76 refresh:0
+step:168/200 train_time:106833ms step_avg:635.91ms step_ms:644.06 refresh:0
+step:169/200 train_time:107477ms step_avg:635.96ms step_ms:643.79 refresh:0
+step:170/200 train_time:108129ms step_avg:636.05ms step_ms:651.38 refresh:0
+step:171/200 train_time:108763ms step_avg:636.04ms step_ms:633.99 refresh:0
+step:172/200 train_time:109406ms step_avg:636.08ms step_ms:643.83 refresh:0
+step:173/200 train_time:110051ms step_avg:636.14ms step_ms:645.04 refresh:0
+step:174/200 train_time:110696ms step_avg:636.18ms step_ms:644.75 refresh:0
+step:175/200 train_time:111363ms step_avg:636.36ms step_ms:667.03 refresh:0
+step:176/200 train_time:111983ms step_avg:636.27ms step_ms:619.47 refresh:0
+step:177/200 train_time:112629ms step_avg:636.32ms step_ms:646.08 refresh:0
+step:178/200 train_time:113264ms step_avg:636.32ms step_ms:635.72 refresh:0
+step:179/200 train_time:113913ms step_avg:636.38ms step_ms:648.18 refresh:0
+step:180/200 train_time:114556ms step_avg:636.42ms step_ms:642.93 refresh:0
+step:181/200 train_time:115196ms step_avg:636.44ms step_ms:640.35 refresh:0
+step:182/200 train_time:115838ms step_avg:636.47ms step_ms:642.17 refresh:0
+step:183/200 train_time:116477ms step_avg:636.49ms step_ms:638.88 refresh:0
+step:184/200 train_time:117118ms step_avg:636.51ms step_ms:640.76 refresh:0
+step:185/200 train_time:117757ms step_avg:636.52ms step_ms:639.02 refresh:0
+step:186/200 train_time:118398ms step_avg:636.55ms step_ms:641.20 refresh:0
+step:187/200 train_time:119039ms step_avg:636.57ms step_ms:640.95 refresh:0
+step:188/200 train_time:119680ms step_avg:636.60ms step_ms:641.24 refresh:0
+step:189/200 train_time:120320ms step_avg:636.62ms step_ms:640.11 refresh:0
+step:190/200 train_time:120962ms step_avg:636.64ms step_ms:641.71 refresh:0
+step:191/200 train_time:121602ms step_avg:636.66ms step_ms:639.81 refresh:0
+step:192/200 train_time:122241ms step_avg:636.67ms step_ms:639.49 refresh:0
+step:193/200 train_time:122880ms step_avg:636.68ms step_ms:638.94 refresh:0
+step:194/200 train_time:123520ms step_avg:636.70ms step_ms:639.88 refresh:0
+step:195/200 train_time:124162ms step_avg:636.73ms step_ms:641.48 refresh:0
+step:196/200 train_time:124803ms step_avg:636.75ms step_ms:641.56 refresh:0
+step:197/200 train_time:125442ms step_avg:636.76ms step_ms:638.54 refresh:0
+step:198/200 train_time:126083ms step_avg:636.78ms step_ms:640.98 refresh:0
+step:199/200 train_time:126728ms step_avg:636.82ms step_ms:644.92 refresh:0
+step:200/200 train_time:127374ms step_avg:636.87ms step_ms:646.15 refresh:0
+step:200/200 val_loss:3.8849 train_time:127468ms step_avg:637.34ms
+loco_full_step_timing through_step:199 refresh_avg:294.56ms refresh_n:5 nonrefresh_avg:645.65ms nonrefresh_n:195
+peak memory allocated: 37440 MiB reserved: 45416 MiB
+===== NEWTONV_CASE_END mbc_noop_before_r020_blend010 2026-05-28T01:01:52Z =====
+===== NEWTONV_CASE_START mbc_inverse_before_r020_blend010 2026-05-28T01:01:52Z =====
+wrote train_gpt_screen.py from train_gpt.py with steps=200 val_every=50
+[Gloo] Rank 0 is connected to 0 peer ranks. Expected number of connected peer ranks is : 0
+
+Fetching 4 files:   0%|          | 0/4 [00:00<?, ?it/s]
+Fetching 4 files: 100%|██████████| 4/4 [00:00<00:00, 6759.56it/s]
+logs/256c52a6-3586-466f-8375-9f912ed65c70.txt
+loco_full owned_layers rank=0: attn_in=[] qk_layers=[] v_layers=[] o_layers=[] mlp_fc_layers=[0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10] filter=inverse shrink_rank=64 precond_dtype=fp32 norm_restore=1 block_size=0 static_norm=0 power_alpha=0.75 power_clip=2.0 shrink_only=0 schedule_only=0 metric_polar=0 polar_iters=5 windows=((48, 112),) collect_windows=((0, 64),) skip_varred=0 local_stats=1 apply_interval=1
+Compiling model and warming up kernels (~7 minutes on first execution)
+Sampling steps [0, 1, 8, 18, 19, 20, 21, 24, 38, 39, 40, 41, 48, 58, 59, 60] for warmup
+loco_full step=0 mlp_fc_gram_ema refreshed=1 owned_layers=[0, 1] mean_diag=1.6384e+04 min=1.2522e+04 p01=1.3181e+04 p50=1.6141e+04 p99=2.1556e+04 max=2.3399e+04
+loco_full step=1 mlp_fc_gram_ema refreshed=0 owned_layers=[0, 1] mean_diag=1.6384e+04 min=1.2522e+04 p01=1.3181e+04 p50=1.6141e+04 p99=2.1556e+04 max=2.3399e+04
+Resetting Model
+step:0/200 val_loss:10.8301 train_time:0ms step_avg:0.19ms
+loco_full step=0 mlp_fc_gram_ema refreshed=1 owned_layers=[0, 1] mean_diag=1.6384e+04 min=1.2522e+04 p01=1.3181e+04 p50=1.6141e+04 p99=2.1556e+04 max=2.3399e+04
+step:1/200 train_time:316ms step_avg:316.48ms step_ms:316.48 refresh:1
+loco_full step=1 mlp_fc_gram_ema refreshed=0 owned_layers=[0, 1] mean_diag=1.6384e+04 min=1.2522e+04 p01=1.3181e+04 p50=1.6141e+04 p99=2.1556e+04 max=2.3399e+04
+step:2/200 train_time:554ms step_avg:277.01ms step_ms:237.55 refresh:0
+loco_full step=2 mlp_fc_gram_ema refreshed=0 owned_layers=[0, 1] mean_diag=1.6384e+04 min=1.2522e+04 p01=1.3181e+04 p50=1.6141e+04 p99=2.1556e+04 max=2.3399e+04
+step:3/200 train_time:789ms step_avg:262.98ms step_ms:234.92 refresh:0
+step:4/200 train_time:989ms step_avg:247.21ms step_ms:199.88 refresh:0
+step:5/200 train_time:1227ms step_avg:245.43ms step_ms:238.32 refresh:0
+step:6/200 train_time:1464ms step_avg:243.99ms step_ms:236.81 refresh:0
+step:7/200 train_time:1699ms step_avg:242.66ms step_ms:234.64 refresh:0
+step:8/200 train_time:1932ms step_avg:241.55ms step_ms:233.78 refresh:0
+step:9/200 train_time:2169ms step_avg:240.98ms step_ms:236.42 refresh:0
+step:10/200 train_time:2410ms step_avg:240.95ms step_ms:240.75 refresh:0
+loco_full step=10 mlp_fc_gram_ema refreshed=0 owned_layers=[0, 1] mean_diag=1.6384e+04 min=1.2522e+04 p01=1.3181e+04 p50=1.6141e+04 p99=2.1556e+04 max=2.3399e+04
+step:11/200 train_time:2678ms step_avg:243.48ms step_ms:268.69 refresh:0
+step:12/200 train_time:2878ms step_avg:239.79ms step_ms:199.28 refresh:0
+step:13/200 train_time:3116ms step_avg:239.66ms step_ms:238.05 refresh:0
+step:14/200 train_time:3351ms step_avg:239.37ms step_ms:235.56 refresh:0
+step:15/200 train_time:3588ms step_avg:239.21ms step_ms:236.99 refresh:0
+step:16/200 train_time:3824ms step_avg:238.98ms step_ms:235.57 refresh:0
+step:17/200 train_time:4105ms step_avg:241.45ms step_ms:280.91 refresh:1
+step:18/200 train_time:4306ms step_avg:239.23ms step_ms:201.62 refresh:0
+step:19/200 train_time:4545ms step_avg:239.22ms step_ms:238.93 refresh:0
+step:20/200 train_time:4778ms step_avg:238.92ms step_ms:233.28 refresh:0
+step:21/200 train_time:5015ms step_avg:238.80ms step_ms:236.33 refresh:0
+step:22/200 train_time:5251ms step_avg:238.67ms step_ms:236.10 refresh:0
+step:23/200 train_time:5487ms step_avg:238.57ms step_ms:236.26 refresh:0
+step:24/200 train_time:5723ms step_avg:238.47ms step_ms:236.15 refresh:0
+step:25/200 train_time:5959ms step_avg:238.36ms step_ms:235.63 refresh:0
+step:26/200 train_time:6195ms step_avg:238.27ms step_ms:236.10 refresh:0
+step:27/200 train_time:6431ms step_avg:238.20ms step_ms:236.48 refresh:0
+step:28/200 train_time:6668ms step_avg:238.15ms step_ms:236.82 refresh:0
+step:29/200 train_time:6904ms step_avg:238.06ms step_ms:235.40 refresh:0
+step:30/200 train_time:7138ms step_avg:237.95ms step_ms:234.81 refresh:0
+step:31/200 train_time:7375ms step_avg:237.89ms step_ms:236.02 refresh:0
+step:32/200 train_time:7609ms step_avg:237.79ms step_ms:234.84 refresh:0
+step:33/200 train_time:7889ms step_avg:239.06ms step_ms:279.70 refresh:1
+step:34/200 train_time:8090ms step_avg:237.94ms step_ms:200.87 refresh:0
+step:35/200 train_time:8326ms step_avg:237.88ms step_ms:235.73 refresh:0
+step:36/200 train_time:8562ms step_avg:237.83ms step_ms:236.15 refresh:0
+step:37/200 train_time:8798ms step_avg:237.78ms step_ms:236.18 refresh:0
+step:38/200 train_time:9034ms step_avg:237.74ms step_ms:235.96 refresh:0
+step:39/200 train_time:9270ms step_avg:237.68ms step_ms:235.59 refresh:0
+step:40/200 train_time:9505ms step_avg:237.61ms step_ms:235.07 refresh:0
+step:41/200 train_time:9741ms step_avg:237.59ms step_ms:236.75 refresh:0
+step:42/200 train_time:9976ms step_avg:237.52ms step_ms:234.53 refresh:0
+step:43/200 train_time:10211ms step_avg:237.46ms step_ms:235.05 refresh:0
+step:44/200 train_time:10445ms step_avg:237.39ms step_ms:234.23 refresh:0
+step:45/200 train_time:10681ms step_avg:237.36ms step_ms:236.05 refresh:0
+step:46/200 train_time:10917ms step_avg:237.33ms step_ms:236.18 refresh:0
+step:47/200 train_time:11154ms step_avg:237.31ms step_ms:236.29 refresh:0
+step:48/200 train_time:11390ms step_avg:237.28ms step_ms:235.87 refresh:0
+step:49/200 train_time:11670ms step_avg:238.16ms step_ms:280.22 refresh:1
+step:50/200 train_time:11871ms step_avg:237.43ms step_ms:201.59 refresh:0
+step:50/200 val_loss:5.6022 train_time:11909ms step_avg:238.17ms
+loco_full_step_timing through_step:49 refresh_avg:289.33ms refresh_n:4 nonrefresh_avg:232.91ms nonrefresh_n:46
+loco_full step=50 mlp_fc_gram_ema refreshed=0 owned_layers=[0, 1] mean_diag=1.6384e+04 min=1.0151e+04 p01=1.1630e+04 p50=1.5815e+04 p99=2.5610e+04 max=3.1659e+04
+loco_diag_grad_ratio step=50 full_mlp_fc:n=2 mean=9.9633e-01 min=9.9625e-01 max=9.9641e-01
+step:51/200 train_time:12163ms step_avg:238.49ms step_ms:291.74 refresh:0
+step:52/200 train_time:12363ms step_avg:237.74ms step_ms:199.48 refresh:0
+step:53/200 train_time:12595ms step_avg:237.65ms step_ms:232.70 refresh:0
+step:54/200 train_time:12830ms step_avg:237.59ms step_ms:234.68 refresh:0
+step:55/200 train_time:13067ms step_avg:237.59ms step_ms:237.44 refresh:0
+step:56/200 train_time:13305ms step_avg:237.59ms step_ms:237.39 refresh:0
+step:57/200 train_time:13538ms step_avg:237.52ms step_ms:233.71 refresh:0
+step:58/200 train_time:13773ms step_avg:237.47ms step_ms:234.64 refresh:0
+step:59/200 train_time:14008ms step_avg:237.43ms step_ms:235.36 refresh:0
+step:60/200 train_time:14246ms step_avg:237.43ms step_ms:237.08 refresh:0
+step:61/200 train_time:14480ms step_avg:237.38ms step_ms:234.42 refresh:0
+step:62/200 train_time:14716ms step_avg:237.35ms step_ms:235.53 refresh:0
+step:63/200 train_time:14953ms step_avg:237.35ms step_ms:237.33 refresh:0
+step:64/200 train_time:15187ms step_avg:237.30ms step_ms:234.22 refresh:0
+step:65/200 train_time:15467ms step_avg:237.95ms step_ms:279.50 refresh:1
+step:66/200 train_time:15667ms step_avg:237.39ms step_ms:200.89 refresh:0
+step:67/200 train_time:15905ms step_avg:237.39ms step_ms:237.91 refresh:0
+step:68/200 train_time:35876ms step_avg:527.59ms step_ms:19970.89 refresh:0
+step:69/200 train_time:36306ms step_avg:526.17ms step_ms:429.54 refresh:0
+step:70/200 train_time:36753ms step_avg:525.04ms step_ms:447.01 refresh:0
+step:71/200 train_time:37186ms step_avg:523.74ms step_ms:432.90 refresh:0
+step:72/200 train_time:37627ms step_avg:522.60ms step_ms:441.27 refresh:0
+step:73/200 train_time:38062ms step_avg:521.40ms step_ms:435.40 refresh:0
+step:74/200 train_time:38498ms step_avg:520.24ms step_ms:435.35 refresh:0
+step:75/200 train_time:38936ms step_avg:519.15ms step_ms:438.14 refresh:0
+step:76/200 train_time:39368ms step_avg:518.00ms step_ms:432.23 refresh:0
+step:77/200 train_time:39810ms step_avg:517.01ms step_ms:441.75 refresh:0
+step:78/200 train_time:40244ms step_avg:515.96ms step_ms:434.64 refresh:0
+step:79/200 train_time:40684ms step_avg:514.99ms step_ms:439.70 refresh:0
+step:80/200 train_time:41122ms step_avg:514.02ms step_ms:437.33 refresh:0
+step:81/200 train_time:41560ms step_avg:513.08ms step_ms:438.04 refresh:0
+step:82/200 train_time:41998ms step_avg:512.17ms step_ms:438.26 refresh:0
+step:83/200 train_time:42434ms step_avg:511.25ms step_ms:436.27 refresh:0
+step:84/200 train_time:42873ms step_avg:510.40ms step_ms:439.14 refresh:0
+step:85/200 train_time:43309ms step_avg:509.52ms step_ms:436.19 refresh:0
+step:86/200 train_time:43746ms step_avg:508.67ms step_ms:436.42 refresh:0
+step:87/200 train_time:44184ms step_avg:507.86ms step_ms:438.37 refresh:0
+step:88/200 train_time:44622ms step_avg:507.06ms step_ms:437.32 refresh:0
+step:89/200 train_time:45060ms step_avg:506.29ms step_ms:438.48 refresh:0
+step:90/200 train_time:45494ms step_avg:505.49ms step_ms:433.79 refresh:0
+step:91/200 train_time:45933ms step_avg:504.76ms step_ms:439.63 refresh:0
+step:92/200 train_time:46369ms step_avg:504.02ms step_ms:436.06 refresh:0
+step:93/200 train_time:46809ms step_avg:503.32ms step_ms:439.62 refresh:0
+step:94/200 train_time:47246ms step_avg:502.62ms step_ms:437.07 refresh:0
+step:95/200 train_time:47685ms step_avg:501.95ms step_ms:438.62 refresh:0
+step:96/200 train_time:48121ms step_avg:501.26ms step_ms:435.77 refresh:0
+step:97/200 train_time:48558ms step_avg:500.59ms step_ms:437.08 refresh:0
+step:98/200 train_time:48996ms step_avg:499.96ms step_ms:438.84 refresh:0
+step:99/200 train_time:49434ms step_avg:499.33ms step_ms:437.49 refresh:0
+step:100/200 train_time:49870ms step_avg:498.70ms step_ms:436.43 refresh:0
+step:100/200 val_loss:4.6801 train_time:49934ms step_avg:499.34ms
+loco_full_step_timing through_step:99 refresh_avg:287.36ms refresh_n:5 nonrefresh_avg:509.83ms nonrefresh_n:95
+loco_full step=100 mlp_fc_gram_ema refreshed=0 owned_layers=[0, 1] mean_diag=1.6384e+04 min=9.9170e+03 p01=1.1079e+04 p50=1.5493e+04 p99=2.8647e+04 max=3.6371e+04
+loco_diag_grad_ratio step=100 full_mlp_fc:n=2 mean=9.4869e-01 min=9.4692e-01 max=9.5047e-01
+step:101/200 train_time:50374ms step_avg:498.75ms step_ms:503.31 refresh:0
+step:102/200 train_time:50753ms step_avg:497.58ms step_ms:379.19 refresh:0
+step:103/200 train_time:51191ms step_avg:497.00ms step_ms:437.83 refresh:0
+step:104/200 train_time:51629ms step_avg:496.43ms step_ms:437.91 refresh:0
+step:105/200 train_time:52067ms step_avg:495.88ms step_ms:438.41 refresh:0
+step:106/200 train_time:52504ms step_avg:495.32ms step_ms:437.34 refresh:0
+step:107/200 train_time:52944ms step_avg:494.80ms step_ms:439.70 refresh:0
+step:108/200 train_time:53382ms step_avg:494.28ms step_ms:437.62 refresh:0
+step:109/200 train_time:53821ms step_avg:493.77ms step_ms:439.36 refresh:0
+step:110/200 train_time:54260ms step_avg:493.28ms step_ms:439.22 refresh:0
+step:111/200 train_time:54702ms step_avg:492.81ms step_ms:441.37 refresh:0
+step:112/200 train_time:55139ms step_avg:492.32ms step_ms:437.75 refresh:0
+step:113/200 train_time:55578ms step_avg:491.85ms step_ms:439.09 refresh:0
+step:114/200 train_time:56016ms step_avg:491.37ms step_ms:437.43 refresh:0
+step:115/200 train_time:56453ms step_avg:490.89ms step_ms:436.92 refresh:0
+step:116/200 train_time:56891ms step_avg:490.44ms step_ms:437.93 refresh:0
+step:117/200 train_time:57328ms step_avg:489.98ms step_ms:437.15 refresh:0
+step:118/200 train_time:57764ms step_avg:489.52ms step_ms:435.81 refresh:0
+step:119/200 train_time:58201ms step_avg:489.08ms step_ms:436.91 refresh:0
+step:120/200 train_time:58639ms step_avg:488.66ms step_ms:438.55 refresh:0
+step:121/200 train_time:59078ms step_avg:488.25ms step_ms:439.23 refresh:0
+step:122/200 train_time:59515ms step_avg:487.83ms step_ms:437.06 refresh:0
+step:123/200 train_time:59953ms step_avg:487.42ms step_ms:437.10 refresh:0
+step:124/200 train_time:60389ms step_avg:487.01ms step_ms:436.59 refresh:0
+step:125/200 train_time:60827ms step_avg:486.61ms step_ms:437.36 refresh:0
+step:126/200 train_time:61264ms step_avg:486.22ms step_ms:437.24 refresh:0
+step:127/200 train_time:61701ms step_avg:485.84ms step_ms:437.45 refresh:0
+step:128/200 train_time:62139ms step_avg:485.46ms step_ms:437.98 refresh:0
+step:129/200 train_time:62577ms step_avg:485.09ms step_ms:437.59 refresh:0
+step:130/200 train_time:63015ms step_avg:484.73ms step_ms:438.58 refresh:0
+step:131/200 train_time:63453ms step_avg:484.38ms step_ms:437.81 refresh:0
+step:132/200 train_time:63891ms step_avg:484.02ms step_ms:437.62 refresh:0
+step:133/200 train_time:64329ms step_avg:483.68ms step_ms:438.17 refresh:0
+step:134/200 train_time:85069ms step_avg:634.84ms step_ms:20739.82 refresh:0
+step:135/200 train_time:85719ms step_avg:634.96ms step_ms:650.47 refresh:0
+step:136/200 train_time:86465ms step_avg:635.77ms step_ms:745.56 refresh:0
+step:137/200 train_time:87073ms step_avg:635.57ms step_ms:608.01 refresh:0
+step:138/200 train_time:87726ms step_avg:635.70ms step_ms:653.45 refresh:0
+step:139/200 train_time:88362ms step_avg:635.70ms step_ms:636.07 refresh:0
+step:140/200 train_time:89011ms step_avg:635.79ms step_ms:648.71 refresh:0
+step:141/200 train_time:89658ms step_avg:635.87ms step_ms:646.63 refresh:0
+step:142/200 train_time:90297ms step_avg:635.89ms step_ms:639.34 refresh:0
+step:143/200 train_time:90943ms step_avg:635.96ms step_ms:645.83 refresh:0
+step:144/200 train_time:91586ms step_avg:636.01ms step_ms:642.69 refresh:0
+step:145/200 train_time:92232ms step_avg:636.08ms step_ms:646.36 refresh:0
+step:146/200 train_time:92877ms step_avg:636.15ms step_ms:645.45 refresh:0
+step:147/200 train_time:93522ms step_avg:636.20ms step_ms:644.58 refresh:0
+step:148/200 train_time:94166ms step_avg:636.26ms step_ms:643.92 refresh:0
+step:149/200 train_time:94808ms step_avg:636.30ms step_ms:642.47 refresh:0
+step:150/200 train_time:95453ms step_avg:636.35ms step_ms:644.61 refresh:0
+step:150/200 val_loss:4.1227 train_time:95543ms step_avg:636.95ms
+loco_full_step_timing through_step:149 refresh_avg:287.36ms refresh_n:5 nonrefresh_avg:648.39ms nonrefresh_n:145
+step:151/200 train_time:96168ms step_avg:636.87ms step_ms:714.65 refresh:0
+step:152/200 train_time:96819ms step_avg:636.97ms step_ms:651.71 refresh:0
+step:153/200 train_time:97457ms step_avg:636.98ms step_ms:638.05 refresh:0
+step:154/200 train_time:98106ms step_avg:637.05ms step_ms:648.95 refresh:0
+step:155/200 train_time:98772ms step_avg:637.24ms step_ms:665.61 refresh:0
+step:156/200 train_time:99392ms step_avg:637.13ms step_ms:620.46 refresh:0
+step:157/200 train_time:100042ms step_avg:637.21ms step_ms:649.15 refresh:0
+step:158/200 train_time:100714ms step_avg:637.43ms step_ms:672.17 refresh:0
+step:159/200 train_time:101332ms step_avg:637.31ms step_ms:618.52 refresh:0
+step:160/200 train_time:101976ms step_avg:637.35ms step_ms:644.11 refresh:0
+step:161/200 train_time:102620ms step_avg:637.39ms step_ms:643.67 refresh:0
+step:162/200 train_time:103264ms step_avg:637.43ms step_ms:643.72 refresh:0
+step:163/200 train_time:103911ms step_avg:637.49ms step_ms:647.03 refresh:0
+step:164/200 train_time:104555ms step_avg:637.53ms step_ms:643.83 refresh:0
+step:165/200 train_time:105202ms step_avg:637.59ms step_ms:647.40 refresh:0
+step:166/200 train_time:105846ms step_avg:637.63ms step_ms:644.28 refresh:0
+step:167/200 train_time:106490ms step_avg:637.67ms step_ms:643.85 refresh:0
+step:168/200 train_time:107134ms step_avg:637.70ms step_ms:643.78 refresh:0
+step:169/200 train_time:107781ms step_avg:637.76ms step_ms:647.02 refresh:0
+step:170/200 train_time:108438ms step_avg:637.87ms step_ms:656.90 refresh:0
+step:171/200 train_time:109073ms step_avg:637.85ms step_ms:635.05 refresh:0
+step:172/200 train_time:109714ms step_avg:637.87ms step_ms:641.33 refresh:0
+step:173/200 train_time:110363ms step_avg:637.94ms step_ms:649.00 refresh:0
+step:174/200 train_time:111009ms step_avg:637.98ms step_ms:646.07 refresh:0
+step:175/200 train_time:111651ms step_avg:638.01ms step_ms:642.23 refresh:0
+step:176/200 train_time:112295ms step_avg:638.04ms step_ms:643.23 refresh:0
+step:177/200 train_time:112942ms step_avg:638.09ms step_ms:647.41 refresh:0
+step:178/200 train_time:113587ms step_avg:638.13ms step_ms:645.32 refresh:0
+step:179/200 train_time:114230ms step_avg:638.16ms step_ms:642.59 refresh:0
+step:180/200 train_time:114877ms step_avg:638.20ms step_ms:646.86 refresh:0
+step:181/200 train_time:115520ms step_avg:638.23ms step_ms:642.91 refresh:0
+step:182/200 train_time:116167ms step_avg:638.28ms step_ms:647.03 refresh:0
+step:183/200 train_time:116811ms step_avg:638.31ms step_ms:644.63 refresh:0
+step:184/200 train_time:117454ms step_avg:638.34ms step_ms:642.30 refresh:0
+step:185/200 train_time:118101ms step_avg:638.38ms step_ms:646.82 refresh:0
+step:186/200 train_time:118748ms step_avg:638.43ms step_ms:647.40 refresh:0
+step:187/200 train_time:119389ms step_avg:638.44ms step_ms:640.89 refresh:0
+step:188/200 train_time:120035ms step_avg:638.48ms step_ms:646.09 refresh:0
+step:189/200 train_time:120681ms step_avg:638.52ms step_ms:645.83 refresh:0
+step:190/200 train_time:121327ms step_avg:638.57ms step_ms:646.63 refresh:0
+step:191/200 train_time:121973ms step_avg:638.60ms step_ms:645.44 refresh:0
+step:192/200 train_time:122616ms step_avg:638.62ms step_ms:642.74 refresh:0
+step:193/200 train_time:123261ms step_avg:638.66ms step_ms:645.91 refresh:0
+step:194/200 train_time:123907ms step_avg:638.70ms step_ms:645.57 refresh:0
+step:195/200 train_time:124553ms step_avg:638.73ms step_ms:646.10 refresh:0
+step:196/200 train_time:125194ms step_avg:638.75ms step_ms:641.17 refresh:0
+step:197/200 train_time:125840ms step_avg:638.78ms step_ms:645.82 refresh:0
+step:198/200 train_time:126487ms step_avg:638.82ms step_ms:647.08 refresh:0
+step:199/200 train_time:127131ms step_avg:638.85ms step_ms:643.33 refresh:0
+step:200/200 train_time:127774ms step_avg:638.87ms step_ms:643.85 refresh:0
+step:200/200 val_loss:3.8852 train_time:127869ms step_avg:639.34ms
+loco_full_step_timing through_step:199 refresh_avg:287.36ms refresh_n:5 nonrefresh_avg:647.89ms nonrefresh_n:195
+peak memory allocated: 37440 MiB reserved: 45416 MiB
+===== NEWTONV_CASE_END mbc_inverse_before_r020_blend010 2026-05-28T01:06:00Z =====
+{
+  "cache_volume": "nanogpt-speedrun-cache",
+  "data_volume": "nanogpt-speedrun-fineweb10b",
+  "gpu": "H100",
+  "returncode": 0,
+  "runner": "tools/run_newtonv_experiment_suite.sh",
+  "tail": "p_avg:636.97ms step_ms:651.71 refresh:0\nstep:153/200 train_time:97457ms step_avg:636.98ms step_ms:638.05 refresh:0\nstep:154/200 train_time:98106ms step_avg:637.05ms step_ms:648.95 refresh:0\nstep:155/200 train_time:98772ms step_avg:637.24ms step_ms:665.61 refresh:0\nstep:156/200 train_time:99392ms step_avg:637.13ms step_ms:620.46 refresh:0\nstep:157/200 train_time:100042ms step_avg:637.21ms step_ms:649.15 refresh:0\nstep:158/200 train_time:100714ms step_avg:637.43ms step_ms:672.17 refresh:0\nstep:159/200 train_time:101332ms step_avg:637.31ms step_ms:618.52 refresh:0\nstep:160/200 train_time:101976ms step_avg:637.35ms step_ms:644.11 refresh:0\nstep:161/200 train_time:102620ms step_avg:637.39ms step_ms:643.67 refresh:0\nstep:162/200 train_time:103264ms step_avg:637.43ms step_ms:643.72 refresh:0\nstep:163/200 train_time:103911ms step_avg:637.49ms step_ms:647.03 refresh:0\nstep:164/200 train_time:104555ms step_avg:637.53ms step_ms:643.83 refresh:0\nstep:165/200 train_time:105202ms step_avg:637.59ms step_ms:647.40 refresh:0\nstep:166/200 train_time:105846ms step_avg:637.63ms step_ms:644.28 refresh:0\nstep:167/200 train_time:106490ms step_avg:637.67ms step_ms:643.85 refresh:0\nstep:168/200 train_time:107134ms step_avg:637.70ms step_ms:643.78 refresh:0\nstep:169/200 train_time:107781ms step_avg:637.76ms step_ms:647.02 refresh:0\nstep:170/200 train_time:108438ms step_avg:637.87ms step_ms:656.90 refresh:0\nstep:171/200 train_time:109073ms step_avg:637.85ms step_ms:635.05 refresh:0\nstep:172/200 train_time:109714ms step_avg:637.87ms step_ms:641.33 refresh:0\nstep:173/200 train_time:110363ms step_avg:637.94ms step_ms:649.00 refresh:0\nstep:174/200 train_time:111009ms step_avg:637.98ms step_ms:646.07 refresh:0\nstep:175/200 train_time:111651ms step_avg:638.01ms step_ms:642.23 refresh:0\nstep:176/200 train_time:112295ms step_avg:638.04ms step_ms:643.23 refresh:0\nstep:177/200 train_time:112942ms step_avg:638.09ms step_ms:647.41 refresh:0\nstep:178/200 train_time:113587ms step_avg:638.13ms step_ms:645.32 refresh:0\nstep:179/200 train_time:114230ms step_avg:638.16ms step_ms:642.59 refresh:0\nstep:180/200 train_time:114877ms step_avg:638.20ms step_ms:646.86 refresh:0\nstep:181/200 train_time:115520ms step_avg:638.23ms step_ms:642.91 refresh:0\nstep:182/200 train_time:116167ms step_avg:638.28ms step_ms:647.03 refresh:0\nstep:183/200 train_time:116811ms step_avg:638.31ms step_ms:644.63 refresh:0\nstep:184/200 train_time:117454ms step_avg:638.34ms step_ms:642.30 refresh:0\nstep:185/200 train_time:118101ms step_avg:638.38ms step_ms:646.82 refresh:0\nstep:186/200 train_time:118748ms step_avg:638.43ms step_ms:647.40 refresh:0\nstep:187/200 train_time:119389ms step_avg:638.44ms step_ms:640.89 refresh:0\nstep:188/200 train_time:120035ms step_avg:638.48ms step_ms:646.09 refresh:0\nstep:189/200 train_time:120681ms step_avg:638.52ms step_ms:645.83 refresh:0\nstep:190/200 train_time:121327ms step_avg:638.57ms step_ms:646.63 refresh:0\nstep:191/200 train_time:121973ms step_avg:638.60ms step_ms:645.44 refresh:0\nstep:192/200 train_time:122616ms step_avg:638.62ms step_ms:642.74 refresh:0\nstep:193/200 train_time:123261ms step_avg:638.66ms step_ms:645.91 refresh:0\nstep:194/200 train_time:123907ms step_avg:638.70ms step_ms:645.57 refresh:0\nstep:195/200 train_time:124553ms step_avg:638.73ms step_ms:646.10 refresh:0\nstep:196/200 train_time:125194ms step_avg:638.75ms step_ms:641.17 refresh:0\nstep:197/200 train_time:125840ms step_avg:638.78ms step_ms:645.82 refresh:0\nstep:198/200 train_time:126487ms step_avg:638.82ms step_ms:647.08 refresh:0\nstep:199/200 train_time:127131ms step_avg:638.85ms step_ms:643.33 refresh:0\nstep:200/200 train_time:127774ms step_avg:638.87ms step_ms:643.85 refresh:0\nstep:200/200 val_loss:3.8852 train_time:127869ms step_avg:639.34ms\nloco_full_step_timing through_step:199 refresh_avg:287.36ms refresh_n:5 nonrefresh_avg:647.89ms nonrefresh_n:195\npeak memory allocated: 37440 MiB reserved: 45416 MiB\n===== NEWTONV_CASE_END mbc_inverse_before_r020_blend010 2026-05-28T01:06:00Z =====\n",
+  "training_summary": {
+    "step": 200,
+    "step_avg_ms": 639.34,
+    "total_steps": 200,
+    "train_time_s": 127.869,
+    "val_loss": 3.8852
+  },
+  "wall_time_s": 985.705
+}
+✓ App completed. View run at 
+https://modal.com/apps/nipsdwip/main/ap-hvZBwcWOB15c67UB6T6swd

@@ -1450,3 +1450,39 @@ control placement is different, the next high-information experiment is the
 matched before-momentum control ladder: baseline, schedule-only-before,
 noop-before, inverse-before on the same layers/window.
 ```
+
+MLP-fc before-control window112:
+
+```text
+200-step result:
+  baseline:        3.8846
+  schedule-only:   3.8915
+  no-op before:    3.8849
+  inverse before:  3.8852
+
+100-step result:
+  baseline:        4.6697
+  schedule-only:   4.6884
+  no-op before:    4.6903
+  inverse before:  4.6801
+
+150-step result:
+  baseline:        4.1150
+  schedule-only:   4.1190
+  no-op before:    4.1203
+  inverse before:  4.1227
+```
+
+Read:
+
+```text
+The Cycle 18 MLP-fc inverse-before hit was not control-stable. With matched
+before-momentum controls, literal C^-1 loses to baseline and no-op at 200.
+This should stop inverse-repeat spending for MLP-fc.
+
+The remaining MLP-fc question is whether the input eigensystem helps when the
+spectral transfer is bounded. The next suite should test power C^-0.5 and a
+finite-time inverse on c_fc with the same before-momentum placement and
+matched no-op. This follows the "C^-1 is a reference point, not the final
+filter" lesson.
+```
