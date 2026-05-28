@@ -1694,3 +1694,30 @@ block, the highest-value test is a control-adjusted replication of the only
 surviving positive line: all-layer attention-input dense inverse, QK+V, before
 momentum, ridge 0.2, refresh 16, EMA 0.8, active in the 48-112 window.
 ```
+
+The matched QK+V dense-inverse control demoted that attention line:
+
+```text
+qic_baseline:                 3.8845
+qic_qkv_noop_before_r020:     3.8814
+qic_vall_inverse_before_r020: 3.8806
+qic_qk_inverse_before_r020:   3.8885
+qic_qkv_inverse_before_r020:  3.8841
+```
+
+Read:
+
+```text
+Attention-input inverse is not dead, but it is not the current WR lever. The
+only active winner was all-V, and it beat the matched no-op by just 0.0008.
+That is below the no-op/control spread. QK-only was clearly harmful, and QK+V
+lost to the matched no-op, so the packed-QKV version is not supported by this
+run.
+
+This shifts the near-term search back to MLP c_fc. It is still a
+768-dimensional right-preconditioner surface, but unlike QK it does not perturb
+softmax logits or Q/K pair geometry. The strongest controlled c_fc setting is
+the blend-0.05 before-momentum inverse: two 200-step repeats landed at 3.8815
+and beat matched no-op by about 0.004 to 0.005. It needs a 400-step persistence
+test before any WR claims.
+```

@@ -2411,3 +2411,43 @@ The surviving positive evidence remains the paper-style all-layer dense inverse
 attention-input result. The next H100 block should replicate that with a matched
 QK+V all-layer no-op/control, not introduce another spectral shape family.
 ```
+
+## Cycle 28 H100 Result: QK+V Dense Inverse Matched Control
+
+Modal app:
+
+```text
+ap-PSSSFseV9oqGFnaBRHt4o4
+```
+
+Parsed 200-step results:
+
+```text
+qic_baseline:                 3.8845, 675.38ms/step
+qic_qkv_noop_before_r020:     3.8814, 604.46ms/step
+qic_vall_inverse_before_r020: 3.8806, 603.64ms/step
+qic_qk_inverse_before_r020:   3.8885, 598.62ms/step
+qic_qkv_inverse_before_r020:  3.8841, 601.87ms/step
+```
+
+Decision:
+
+```text
+The earlier paper-style all-layer attention-input result does not survive a
+matched no-op/control strongly enough to promote.
+
+The all-V dense inverse arm is the only active arm that beats the no-op, but
+only by 0.0008 at 200 steps. That is below the decision threshold and much
+smaller than the same-suite no-op-vs-baseline spread of 0.0031.
+
+QK-only is clearly bad in this formulation, landing 0.0071 worse than the
+matched QK+V no-op. QK+V active also loses to the no-op by 0.0027. So adding QK
+does not help the current dense inverse implementation; it actively damages the
+surface mix.
+
+Do not spend the next GPU block on attention-input inverse variants. The best
+controlled positive line in the existing logs is now MLP c_fc full-C inverse at
+blend 0.05, where two previous 200-step repeats landed at 3.8815 and beat their
+matched no-ops by roughly 0.004 to 0.005. Launch a 400-step persistence test for
+that line.
+```
