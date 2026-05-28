@@ -1519,3 +1519,28 @@ to 0.05 on the same before-control ladder. If lower blend wins, tune strength.
 If it loses, the practical conclusion is that MLP-fc C^-1 has too much
 variance for WR use in this branch.
 ```
+
+Lower-blend MLP-fc before-control result:
+
+```text
+mbc_baseline:                          3.8878
+mbc_schedule_only_before_r02_blend005: 3.8800
+mbc_noop_before_r02_blend005:          3.8855
+mbc_inverse_before_r02_blend005:       3.8815
+```
+
+Read:
+
+```text
+Blend 0.05 made inverse-before look healthier than the prior matched-control
+miss, but it still did not beat the schedule-only-before arm. The current hot
+fork is therefore not "MLP-fc C^-1 works"; it is "the before-momentum full-path
+schedule/window may be a cheap optimizer change, and C^-1 may add some but not
+enough on this replicate."
+
+The immediate GPU priority is an exact replicate of the lower-blend
+before-control suite. If schedule-only repeats, promote a dedicated no-stats
+schedule isolation. If inverse overtakes schedule-only, continue tuning c_fc
+right-preconditioning strength. Do not widen surfaces until this fork is
+resolved.
+```

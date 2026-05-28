@@ -1968,3 +1968,75 @@ the signal is real but brittle. The next run should not widen surfaces; it
 should lower inverse blend to 0.05 on the same before-control ladder to test
 whether the late benefit becomes more stable.
 ```
+
+## Cycle 21 H100 Result: MLP-fc Before-Control Window112 Blend005
+
+Modal app:
+
+```text
+ap-h0UcTytvVsEGwaCSVQqiOj
+```
+
+Parsed 200-step results:
+
+```text
+mbc_baseline:                          3.8878, 666.07ms/step
+mbc_schedule_only_before_r02_blend005: 3.8800, 601.81ms/step
+mbc_noop_before_r02_blend005:          3.8855, 597.21ms/step
+mbc_inverse_before_r02_blend005:       3.8815, 599.43ms/step
+```
+
+Intermediate anchors:
+
+```text
+step 50:
+  baseline             5.6179
+  schedule-only        5.6104
+  no-op before         5.6052
+  inverse before       5.6049
+
+step 100:
+  baseline             4.6897
+  schedule-only        4.6571
+  no-op before         4.6843
+  inverse before       4.6659
+
+step 150:
+  baseline             4.1237
+  schedule-only        4.1059
+  no-op before         4.1154
+  inverse before       4.1108
+
+step 200:
+  baseline             3.8878
+  schedule-only        3.8800
+  no-op before         3.8855
+  inverse before       3.8815
+```
+
+Timing:
+
+```text
+schedule-only nonrefresh avg:       601.33ms
+no-op before refresh/nonrefresh:    287.58ms / 604.66ms
+inverse before refresh/nonrefresh:  289.80ms / 606.88ms
+```
+
+Decision:
+
+```text
+Lowering MLP-fc inverse-before blend from 0.10 to 0.05 improves stability
+relative to the prior matched-control miss: inverse beats baseline by 0.0063
+and no-op by 0.0040.
+
+However, the best arm is schedule-only-before, which beats inverse by 0.0015
+and baseline by 0.0078 without feature statistics or right preconditioning.
+This means the lower-blend run does not prove c_fc C^-1 alpha. It does prove
+that the before-momentum full-path/window schedule can itself move the 200-step
+endpoint substantially.
+
+Next action: replicate the exact lower-blend before-control suite. If
+schedule-only repeats, isolate it as a cheap optimizer-schedule candidate. If
+inverse beats the schedule-only arm on replicate, keep tuning lower-blend
+c_fc C^-1. Do not widen surfaces until this fork is resolved.
+```
