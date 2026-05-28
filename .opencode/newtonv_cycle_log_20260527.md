@@ -2642,3 +2642,38 @@ Do not promote V post-varred. If V remains in scope, the next V test should be
 explicitly early-only or should target subspace diagnostics/low-rank shrinkage,
 not direct C^{-1} or finite-time post-varred updates through 112.
 ```
+
+## Cycle 34 H100 Result: Post-varred V Pulse 48-64
+
+Modal app:
+
+```text
+ap-EPqvtU7BYSikGuhVjbSPDi
+```
+
+Parsed 200-step results:
+
+```text
+vpp_baseline:                              3.8860, 788.76ms/step
+vpp_schedule_only_postvarred_r020_blend002 3.8849, 610.12ms/step
+vpp_noop_postvarred_r020_blend002          3.8839, 606.31ms/step
+vpp_inverse_postvarred_r020_blend002       3.8863, 607.08ms/step
+vpp_finite_postvarred_r020_blend002        3.8814, 607.77ms/step
+```
+
+Decision:
+
+```text
+This is the first positive endpoint from the post-varred line.
+
+The only change versus Cycle 33 was shortening the active window from 48-112 to
+48-64. Literal inverse still failed, landing at 3.8863. The finite-time filter
+landed at 3.8814, beating the same-suite baseline by 0.0046, schedule-only by
+0.0035, and no-op by 0.0025.
+
+This matches the emerging theory: V right-metric signal is real but should be a
+short early pulse, not a long 48-112 intervention. The finite-time filter is
+also safer than literal inverse. Because this is a single positive suite and
+the same run showed high no-op/control variance, it needs immediate replication
+before promotion.
+```

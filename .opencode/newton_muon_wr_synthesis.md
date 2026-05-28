@@ -1856,3 +1856,32 @@ The current WR path is not "turn Newton-Muon on harder." It is to convert the
 early V signal into an early-only, low-cost, no-op-beating schedule and stop it
 before the baseline catches up.
 ```
+
+The first direct test of that early-only hypothesis was positive:
+
+```text
+vpp_baseline:                              3.8860
+vpp_schedule_only_postvarred_r020_blend002 3.8849
+vpp_noop_postvarred_r020_blend002          3.8839
+vpp_inverse_postvarred_r020_blend002       3.8863
+vpp_finite_postvarred_r020_blend002        3.8814
+```
+
+Read:
+
+```text
+Shortening the V post-varred window from 48-112 to 48-64 converted the finite
+filter into a control-adjusted endpoint win at 200: 0.0046 better than
+baseline, 0.0035 better than schedule-only, and 0.0025 better than no-op.
+Literal inverse still failed.
+
+This is the clearest current candidate: not full Newton-Muon through a broad
+window, but a finite-time V right-metric pulse. The active duration now matches
+the observed curve shape: benefit appears around 100 and long application
+causes fade/harm by 200.
+
+It is not proven enough for a WR attempt yet. The no-op/control spread remains
+large, and this is a single positive suite. Immediate replication is required;
+if it repeats, tune only the pulse/filter parameters around this point
+(window 48-56/48-64/48-80, finite_t, blend 0.01-0.03), not surfaces broadly.
+```
