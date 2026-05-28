@@ -2395,6 +2395,180 @@ run_v_postvarred_control_ladder() {
     bash tools/run_newtonv_raw_v01_gate.sh
 }
 
+run_v_postvarred_window_ladder() {
+  local vpf_steps="${VPF_STEPS:-200}"
+  local vpf_val_every="${VPF_VAL_EVERY:-50}"
+  local vpf_layers="${VPF_LAYERS:-0-1}"
+  local vpf_collect="${VPF_COLLECT_WINDOWS:-0-64}"
+  local vpf_window_a="${VPF_WINDOWS_A:-48-56}"
+  local vpf_window_b="${VPF_WINDOWS_B:-48-80}"
+  local vpf_refresh_interval="${VPF_REFRESH_INTERVAL:-16}"
+  local vpf_ema_beta="${VPF_EMA_BETA:-0.8}"
+  local vpf_ridge="${VPF_RIDGE_REL:-0.2}"
+  local vpf_ridge_label="${vpf_ridge/./}"
+  local vpf_blend="${VPF_BLEND_MAX:-0.02}"
+  local vpf_blend_label="${vpf_blend/./}"
+  local vpf_blend_steps="${VPF_BLEND_STEPS:-32}"
+  local vpf_finite_t="${VPF_FINITE_T:-1.0}"
+  local vpf_clip="${VPF_POWER_CLIP:-2.0}"
+  local window_a_label="${vpf_window_a//[-,]/_}"
+  local window_b_label="${vpf_window_b//[-,]/_}"
+
+  run_case vpf_baseline \
+    NEWTONV_VARIANT=baseline \
+    SCREEN_STEPS="${vpf_steps}" \
+    SCREEN_VAL_EVERY="${vpf_val_every}" \
+    bash tools/run_newtonv_timing_triplet_gate.sh
+
+  run_case "vpf_noop_win${window_a_label}_r${vpf_ridge_label}_blend${vpf_blend_label}" \
+    LOCO_FULL_NOOP=1 \
+    LOCO_FULL_SURFACES=v \
+    LOCO_DIAG_ATTN_LAYERS="${vpf_layers}" \
+    LOCO_FULL_COLLECT_WINDOWS="${vpf_collect}" \
+    LOCO_FULL_WINDOWS="${vpf_window_a}" \
+    LOCO_FULL_APPLY_POST_VARRED=1 \
+    LOCO_FULL_REFRESH_INTERVAL="${vpf_refresh_interval}" \
+    LOCO_FULL_EMA_BETA="${vpf_ema_beta}" \
+    LOCO_FULL_RIDGE_REL="${vpf_ridge}" \
+    LOCO_FULL_BLEND_MAX="${vpf_blend}" \
+    LOCO_FULL_BLEND_STEPS="${vpf_blend_steps}" \
+    LOCO_FULL_FILTER=finite \
+    LOCO_FULL_FINITE_T="${vpf_finite_t}" \
+    LOCO_FULL_POWER_CLIP="${vpf_clip}" \
+    LOCO_FULL_STATIC_NORM=1 \
+    LOCO_FULL_NORM_RESTORE=1 \
+    SCREEN_STEPS="${vpf_steps}" \
+    SCREEN_VAL_EVERY="${vpf_val_every}" \
+    bash tools/run_newtonv_raw_v01_gate.sh
+
+  run_case "vpf_finite_win${window_a_label}_r${vpf_ridge_label}_blend${vpf_blend_label}" \
+    LOCO_FULL_SURFACES=v \
+    LOCO_DIAG_ATTN_LAYERS="${vpf_layers}" \
+    LOCO_FULL_COLLECT_WINDOWS="${vpf_collect}" \
+    LOCO_FULL_WINDOWS="${vpf_window_a}" \
+    LOCO_FULL_APPLY_POST_VARRED=1 \
+    LOCO_FULL_REFRESH_INTERVAL="${vpf_refresh_interval}" \
+    LOCO_FULL_EMA_BETA="${vpf_ema_beta}" \
+    LOCO_FULL_RIDGE_REL="${vpf_ridge}" \
+    LOCO_FULL_BLEND_MAX="${vpf_blend}" \
+    LOCO_FULL_BLEND_STEPS="${vpf_blend_steps}" \
+    LOCO_FULL_FILTER=finite \
+    LOCO_FULL_FINITE_T="${vpf_finite_t}" \
+    LOCO_FULL_POWER_CLIP="${vpf_clip}" \
+    LOCO_FULL_STATIC_NORM=1 \
+    LOCO_FULL_NORM_RESTORE=1 \
+    SCREEN_STEPS="${vpf_steps}" \
+    SCREEN_VAL_EVERY="${vpf_val_every}" \
+    bash tools/run_newtonv_raw_v01_gate.sh
+
+  run_case "vpf_noop_win${window_b_label}_r${vpf_ridge_label}_blend${vpf_blend_label}" \
+    LOCO_FULL_NOOP=1 \
+    LOCO_FULL_SURFACES=v \
+    LOCO_DIAG_ATTN_LAYERS="${vpf_layers}" \
+    LOCO_FULL_COLLECT_WINDOWS="${vpf_collect}" \
+    LOCO_FULL_WINDOWS="${vpf_window_b}" \
+    LOCO_FULL_APPLY_POST_VARRED=1 \
+    LOCO_FULL_REFRESH_INTERVAL="${vpf_refresh_interval}" \
+    LOCO_FULL_EMA_BETA="${vpf_ema_beta}" \
+    LOCO_FULL_RIDGE_REL="${vpf_ridge}" \
+    LOCO_FULL_BLEND_MAX="${vpf_blend}" \
+    LOCO_FULL_BLEND_STEPS="${vpf_blend_steps}" \
+    LOCO_FULL_FILTER=finite \
+    LOCO_FULL_FINITE_T="${vpf_finite_t}" \
+    LOCO_FULL_POWER_CLIP="${vpf_clip}" \
+    LOCO_FULL_STATIC_NORM=1 \
+    LOCO_FULL_NORM_RESTORE=1 \
+    SCREEN_STEPS="${vpf_steps}" \
+    SCREEN_VAL_EVERY="${vpf_val_every}" \
+    bash tools/run_newtonv_raw_v01_gate.sh
+
+  run_case "vpf_finite_win${window_b_label}_r${vpf_ridge_label}_blend${vpf_blend_label}" \
+    LOCO_FULL_SURFACES=v \
+    LOCO_DIAG_ATTN_LAYERS="${vpf_layers}" \
+    LOCO_FULL_COLLECT_WINDOWS="${vpf_collect}" \
+    LOCO_FULL_WINDOWS="${vpf_window_b}" \
+    LOCO_FULL_APPLY_POST_VARRED=1 \
+    LOCO_FULL_REFRESH_INTERVAL="${vpf_refresh_interval}" \
+    LOCO_FULL_EMA_BETA="${vpf_ema_beta}" \
+    LOCO_FULL_RIDGE_REL="${vpf_ridge}" \
+    LOCO_FULL_BLEND_MAX="${vpf_blend}" \
+    LOCO_FULL_BLEND_STEPS="${vpf_blend_steps}" \
+    LOCO_FULL_FILTER=finite \
+    LOCO_FULL_FINITE_T="${vpf_finite_t}" \
+    LOCO_FULL_POWER_CLIP="${vpf_clip}" \
+    LOCO_FULL_STATIC_NORM=1 \
+    LOCO_FULL_NORM_RESTORE=1 \
+    SCREEN_STEPS="${vpf_steps}" \
+    SCREEN_VAL_EVERY="${vpf_val_every}" \
+    bash tools/run_newtonv_raw_v01_gate.sh
+}
+
+run_v_postvarred_finite_t_ladder() {
+  local vpt_steps="${VPT_STEPS:-200}"
+  local vpt_val_every="${VPT_VAL_EVERY:-50}"
+  local vpt_layers="${VPT_LAYERS:-0-1}"
+  local vpt_collect="${VPT_COLLECT_WINDOWS:-0-64}"
+  local vpt_windows="${VPT_WINDOWS:-48-64}"
+  local vpt_refresh_interval="${VPT_REFRESH_INTERVAL:-16}"
+  local vpt_ema_beta="${VPT_EMA_BETA:-0.8}"
+  local vpt_ridge="${VPT_RIDGE_REL:-0.2}"
+  local vpt_ridge_label="${vpt_ridge/./}"
+  local vpt_blend="${VPT_BLEND_MAX:-0.02}"
+  local vpt_blend_label="${vpt_blend/./}"
+  local vpt_blend_steps="${VPT_BLEND_STEPS:-32}"
+  local vpt_clip="${VPT_POWER_CLIP:-2.0}"
+
+  run_case vpt_baseline \
+    NEWTONV_VARIANT=baseline \
+    SCREEN_STEPS="${vpt_steps}" \
+    SCREEN_VAL_EVERY="${vpt_val_every}" \
+    bash tools/run_newtonv_timing_triplet_gate.sh
+
+  run_case "vpt_noop_postvarred_r${vpt_ridge_label}_blend${vpt_blend_label}" \
+    LOCO_FULL_NOOP=1 \
+    LOCO_FULL_SURFACES=v \
+    LOCO_DIAG_ATTN_LAYERS="${vpt_layers}" \
+    LOCO_FULL_COLLECT_WINDOWS="${vpt_collect}" \
+    LOCO_FULL_WINDOWS="${vpt_windows}" \
+    LOCO_FULL_APPLY_POST_VARRED=1 \
+    LOCO_FULL_REFRESH_INTERVAL="${vpt_refresh_interval}" \
+    LOCO_FULL_EMA_BETA="${vpt_ema_beta}" \
+    LOCO_FULL_RIDGE_REL="${vpt_ridge}" \
+    LOCO_FULL_BLEND_MAX="${vpt_blend}" \
+    LOCO_FULL_BLEND_STEPS="${vpt_blend_steps}" \
+    LOCO_FULL_FILTER=finite \
+    LOCO_FULL_FINITE_T=1.0 \
+    LOCO_FULL_POWER_CLIP="${vpt_clip}" \
+    LOCO_FULL_STATIC_NORM=1 \
+    LOCO_FULL_NORM_RESTORE=1 \
+    SCREEN_STEPS="${vpt_steps}" \
+    SCREEN_VAL_EVERY="${vpt_val_every}" \
+    bash tools/run_newtonv_raw_v01_gate.sh
+
+  for finite_t in 0.5 1.0 2.0; do
+    local finite_label="${finite_t/./}"
+    run_case "vpt_finite_t${finite_label}_postvarred_r${vpt_ridge_label}_blend${vpt_blend_label}" \
+      LOCO_FULL_SURFACES=v \
+      LOCO_DIAG_ATTN_LAYERS="${vpt_layers}" \
+      LOCO_FULL_COLLECT_WINDOWS="${vpt_collect}" \
+      LOCO_FULL_WINDOWS="${vpt_windows}" \
+      LOCO_FULL_APPLY_POST_VARRED=1 \
+      LOCO_FULL_REFRESH_INTERVAL="${vpt_refresh_interval}" \
+      LOCO_FULL_EMA_BETA="${vpt_ema_beta}" \
+      LOCO_FULL_RIDGE_REL="${vpt_ridge}" \
+      LOCO_FULL_BLEND_MAX="${vpt_blend}" \
+      LOCO_FULL_BLEND_STEPS="${vpt_blend_steps}" \
+      LOCO_FULL_FILTER=finite \
+      LOCO_FULL_FINITE_T="${finite_t}" \
+      LOCO_FULL_POWER_CLIP="${vpt_clip}" \
+      LOCO_FULL_STATIC_NORM=1 \
+      LOCO_FULL_NORM_RESTORE=1 \
+      SCREEN_STEPS="${vpt_steps}" \
+      SCREEN_VAL_EVERY="${vpt_val_every}" \
+      bash tools/run_newtonv_raw_v01_gate.sh
+  done
+}
+
 case "${suite}" in
   timing)
     run_timing_triplet
@@ -2539,6 +2713,12 @@ case "${suite}" in
   v_postvarred_control)
     run_v_postvarred_control_ladder
     ;;
+  v_postvarred_window)
+    run_v_postvarred_window_ladder
+    ;;
+  v_postvarred_finite_t)
+    run_v_postvarred_finite_t_ladder
+    ;;
   all)
     run_timing_triplet
     run_next_ladder
@@ -2550,7 +2730,7 @@ case "${suite}" in
       bash tools/run_newtonv_raw_v01_gate.sh
     ;;
   *)
-    echo "NEWTONV_SUITE must be timing, filters, quick, raw200, promote, polar4, permutations, next, tail, warmmetric, overprecond, overpromote, scheduleonly, preconddiag, schedule_diag, rightfilter, paperstyle, paperfilter, metricpolar, metricpromote, metricv_promote, metricv_window, v_spectral_shape, paper_v_promote, metricsurfaces, surface_control, qkvo_metric_promote, qkvo_schedule, qkvo_power_shape, qkv_power_shape, qkv_inverse_control, v_varred_interaction, v_short_pulse, v_schedule_pulse, mlpfc, mlpfc_promote, mlpfc_before_control, mlpfc_filter_control, mlpfc_blend, mlpfc_postvarred_control, v_postvarred_control, or all; got ${suite}" >&2
+    echo "NEWTONV_SUITE must be timing, filters, quick, raw200, promote, polar4, permutations, next, tail, warmmetric, overprecond, overpromote, scheduleonly, preconddiag, schedule_diag, rightfilter, paperstyle, paperfilter, metricpolar, metricpromote, metricv_promote, metricv_window, v_spectral_shape, paper_v_promote, metricsurfaces, surface_control, qkvo_metric_promote, qkvo_schedule, qkvo_power_shape, qkv_power_shape, qkv_inverse_control, v_varred_interaction, v_short_pulse, v_schedule_pulse, mlpfc, mlpfc_promote, mlpfc_before_control, mlpfc_filter_control, mlpfc_blend, mlpfc_postvarred_control, v_postvarred_control, v_postvarred_window, v_postvarred_finite_t, or all; got ${suite}" >&2
     exit 2
     ;;
 esac
