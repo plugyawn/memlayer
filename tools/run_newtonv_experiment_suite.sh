@@ -1813,6 +1813,13 @@ run_mlpfc_before_control_ladder() {
   local mbc_layers="${MBC_LAYERS:-0-1}"
   local mbc_collect="${MBC_COLLECT_WINDOWS:-0-64}"
   local mbc_windows="${MBC_WINDOWS:-48-112}"
+  local mbc_refresh_interval="${MBC_REFRESH_INTERVAL:-16}"
+  local mbc_ema_beta="${MBC_EMA_BETA:-0.8}"
+  local mbc_ridge="${MBC_RIDGE_REL:-0.2}"
+  local mbc_ridge_label="${mbc_ridge/./}"
+  local mbc_blend="${MBC_BLEND_MAX:-0.10}"
+  local mbc_blend_label="${mbc_blend/./}"
+  local mbc_blend_steps="${MBC_BLEND_STEPS:-32}"
 
   run_case mbc_baseline \
     NEWTONV_VARIANT=baseline \
@@ -1820,53 +1827,53 @@ run_mlpfc_before_control_ladder() {
     SCREEN_VAL_EVERY="${mbc_val_every}" \
     bash tools/run_newtonv_timing_triplet_gate.sh
 
-  run_case mbc_schedule_only_before \
+  run_case "mbc_schedule_only_before_r${mbc_ridge_label}_blend${mbc_blend_label}" \
     NEWTONV_VARIANT=active \
     LOCO_FULL_SURFACES=mlp_fc \
     LOCO_DIAG_MLP_LAYERS="${mbc_layers}" \
     LOCO_FULL_WINDOWS="${mbc_windows}" \
     LOCO_FULL_APPLY_BEFORE_MOMENTUM=1 \
     LOCO_FULL_SCHEDULE_ONLY=1 \
-    LOCO_FULL_REFRESH_INTERVAL=16 \
-    LOCO_FULL_EMA_BETA=0.8 \
-    LOCO_FULL_RIDGE_REL=0.2 \
-    LOCO_FULL_BLEND_MAX=0.10 \
-    LOCO_FULL_BLEND_STEPS=32 \
+    LOCO_FULL_REFRESH_INTERVAL="${mbc_refresh_interval}" \
+    LOCO_FULL_EMA_BETA="${mbc_ema_beta}" \
+    LOCO_FULL_RIDGE_REL="${mbc_ridge}" \
+    LOCO_FULL_BLEND_MAX="${mbc_blend}" \
+    LOCO_FULL_BLEND_STEPS="${mbc_blend_steps}" \
     LOCO_FULL_FILTER=inverse \
     LOCO_FULL_NORM_RESTORE=1 \
     SCREEN_STEPS="${mbc_steps}" \
     SCREEN_VAL_EVERY="${mbc_val_every}" \
     bash tools/run_newtonv_timing_triplet_gate.sh
 
-  run_case mbc_noop_before_r020_blend010 \
+  run_case "mbc_noop_before_r${mbc_ridge_label}_blend${mbc_blend_label}" \
     LOCO_FULL_NOOP=1 \
     LOCO_FULL_SURFACES=mlp_fc \
     LOCO_DIAG_MLP_LAYERS="${mbc_layers}" \
     LOCO_FULL_COLLECT_WINDOWS="${mbc_collect}" \
     LOCO_FULL_WINDOWS="${mbc_windows}" \
     LOCO_FULL_APPLY_BEFORE_MOMENTUM=1 \
-    LOCO_FULL_REFRESH_INTERVAL=16 \
-    LOCO_FULL_EMA_BETA=0.8 \
-    LOCO_FULL_RIDGE_REL=0.2 \
-    LOCO_FULL_BLEND_MAX=0.10 \
-    LOCO_FULL_BLEND_STEPS=32 \
+    LOCO_FULL_REFRESH_INTERVAL="${mbc_refresh_interval}" \
+    LOCO_FULL_EMA_BETA="${mbc_ema_beta}" \
+    LOCO_FULL_RIDGE_REL="${mbc_ridge}" \
+    LOCO_FULL_BLEND_MAX="${mbc_blend}" \
+    LOCO_FULL_BLEND_STEPS="${mbc_blend_steps}" \
     LOCO_FULL_FILTER=inverse \
     LOCO_FULL_NORM_RESTORE=1 \
     SCREEN_STEPS="${mbc_steps}" \
     SCREEN_VAL_EVERY="${mbc_val_every}" \
     bash tools/run_newtonv_raw_v01_gate.sh
 
-  run_case mbc_inverse_before_r020_blend010 \
+  run_case "mbc_inverse_before_r${mbc_ridge_label}_blend${mbc_blend_label}" \
     LOCO_FULL_SURFACES=mlp_fc \
     LOCO_DIAG_MLP_LAYERS="${mbc_layers}" \
     LOCO_FULL_COLLECT_WINDOWS="${mbc_collect}" \
     LOCO_FULL_WINDOWS="${mbc_windows}" \
     LOCO_FULL_APPLY_BEFORE_MOMENTUM=1 \
-    LOCO_FULL_REFRESH_INTERVAL=16 \
-    LOCO_FULL_EMA_BETA=0.8 \
-    LOCO_FULL_RIDGE_REL=0.2 \
-    LOCO_FULL_BLEND_MAX=0.10 \
-    LOCO_FULL_BLEND_STEPS=32 \
+    LOCO_FULL_REFRESH_INTERVAL="${mbc_refresh_interval}" \
+    LOCO_FULL_EMA_BETA="${mbc_ema_beta}" \
+    LOCO_FULL_RIDGE_REL="${mbc_ridge}" \
+    LOCO_FULL_BLEND_MAX="${mbc_blend}" \
+    LOCO_FULL_BLEND_STEPS="${mbc_blend_steps}" \
     LOCO_FULL_FILTER=inverse \
     LOCO_FULL_NORM_RESTORE=1 \
     SCREEN_STEPS="${mbc_steps}" \
