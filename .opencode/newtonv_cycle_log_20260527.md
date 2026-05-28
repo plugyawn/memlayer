@@ -2604,3 +2604,41 @@ right preconditioning in this window is not aligned with the tuned update
 direction, while the stats/no-op path itself continues to capture the best
 control endpoint.
 ```
+
+## Cycle 33 H100 Result: Post-varred V Control
+
+Modal app:
+
+```text
+ap-xaC7BbbpyRXPU6NQ0gsy3j
+```
+
+Parsed 200-step results:
+
+```text
+vpp_baseline:                              3.8798, 737.83ms/step
+vpp_schedule_only_postvarred_r020_blend002 3.8856, 599.52ms/step
+vpp_noop_postvarred_r020_blend002          3.8893, 593.09ms/step
+vpp_inverse_postvarred_r020_blend002       3.8891, 603.10ms/step
+vpp_finite_postvarred_r020_blend002        3.8869, 608.03ms/step
+```
+
+Decision:
+
+```text
+Post-varred V also does not persist to 200.
+
+At step 100, both active arms showed the expected early bump: inverse reached
+4.6739 and finite reached 4.6737, beating the no-op step-100 value of 4.6776
+and the baseline step-100 value of 4.6891. The logged full_v ratios showed the
+metric path was active but mild: about 0.9983 for inverse and 0.9996 for finite.
+
+By step 200 the advantage had completely faded. Baseline was best at 3.8798,
+while finite was 3.8869, inverse was 3.8891, and no-op was 3.8893. This repeats
+the broader pattern: V feature geometry can create a visible early acceleration,
+but this window/post-varred filter does not improve the endpoint.
+
+Do not promote V post-varred. If V remains in scope, the next V test should be
+explicitly early-only or should target subspace diagnostics/low-rank shrinkage,
+not direct C^{-1} or finite-time post-varred updates through 112.
+```

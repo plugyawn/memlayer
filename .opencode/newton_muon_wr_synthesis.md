@@ -1826,3 +1826,33 @@ whether the V eigensystem changes update subspaces in a measurable way, then
 try a low-rank/top-shrink or metric-polar variant only if the no-op control
 does not explain the endpoint.
 ```
+
+The V post-varred control test also failed to persist:
+
+```text
+vpp_baseline:                              3.8798
+vpp_schedule_only_postvarred_r020_blend002 3.8856
+vpp_noop_postvarred_r020_blend002          3.8893
+vpp_inverse_postvarred_r020_blend002       3.8891
+vpp_finite_postvarred_r020_blend002        3.8869
+```
+
+Read:
+
+```text
+V still has the early feature-metric signature: at step 100, inverse reached
+4.6739 and finite reached 4.6737, both ahead of no-op at 4.6776 and baseline at
+4.6891. But the endpoint again flipped: baseline was best at 3.8798, with all
+post-varred V arms behind by 0.0071 to 0.0095.
+
+This is now a recurring pattern rather than a one-off: right-preconditioned V
+can accelerate early loss, but using it through the 48-112 window hurts or
+fades by 200. That points away from stronger C^{-1} placement and toward
+duration/shape: either a very early pulse, a decay/end-step around the observed
+turning point, or a low-rank top-eigen shrinker that removes the high-variance
+directions without injecting the full inverse metric.
+
+The current WR path is not "turn Newton-Muon on harder." It is to convert the
+early V signal into an early-only, low-cost, no-op-beating schedule and stop it
+before the baseline catches up.
+```
