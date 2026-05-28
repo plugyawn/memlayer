@@ -1681,3 +1681,55 @@ stronger Cholesky metric-polar / half-whitened MLP-fc update on the same
 window to see whether preserving more of the input metric helps rather than
 gets washed out by the polar step.
 ```
+
+## Cycle 16 H100 Result: MLP-fc Metric-Polar Window160
+
+Modal app:
+
+```text
+ap-POQX1i6AQxnYoh9Z0N1srz
+```
+
+Parsed 200-step results:
+
+```text
+mfp_baseline:                              3.8820, 824.87ms/step
+mfp_noop_after_polar4:                    3.8862, 582.81ms/step
+mfp_inverse_before_r020_blend010:         3.8856, 585.30ms/step
+mfp_cholmetric_after_polar4_r020_blend005_norm: 3.8896, 587.00ms/step
+```
+
+Intermediate anchors:
+
+```text
+step 50:
+  baseline             5.5894
+  no-op after polar4   5.6026
+  inverse before       5.6202
+  cholmetric after     5.6069
+
+step 100:
+  baseline             4.7130
+  no-op after polar4   4.6839
+  inverse before       4.6764
+  cholmetric after     4.6713
+
+step 150:
+  baseline             4.1177
+  no-op after polar4   4.1170
+  inverse before       4.1270
+  cholmetric after     4.1150
+```
+
+Decision:
+
+```text
+Cholesky metric-polar did not produce an endpoint win on the 48-160 window.
+It was the best arm at steps 100 and 150, then became the worst endpoint arm.
+This is not a WR candidate as configured.
+
+The useful signal is temporal: half-whitened metric-polar is not inert, and it
+does not collapse immediately, but keeping it active to 160 appears harmful.
+Run the same MLP-fc metric-polar comparison with the shorter 48-112 window
+before abandoning the metric-polar family.
+```

@@ -1341,3 +1341,39 @@ Muonization." The next high-information test is the Cholesky metric-polar /
 half-whitened MLP-fc update, because that explicitly keeps a metric factor
 after the polar step instead of relying on C^{-1} to only rotate the operand.
 ```
+
+MLP-fc Cholesky metric-polar window160:
+
+```text
+200-step result:
+  baseline:             3.8820
+  no-op after polar4:   3.8862
+  inverse before:       3.8856
+  cholmetric after:     3.8896
+
+100-step result:
+  baseline:             4.7130
+  no-op after polar4:   4.6839
+  inverse before:       4.6764
+  cholmetric after:     4.6713
+
+150-step result:
+  baseline:             4.1177
+  no-op after polar4:   4.1170
+  inverse before:       4.1270
+  cholmetric after:     4.1150
+```
+
+Read:
+
+```text
+The exact Cholesky metric-polar update is mechanically active and is not just
+washed out by the matrix-sign step: it was the best arm at 100 and 150.
+However, with the 48-160 window it became the worst endpoint arm.
+
+This supports the "right metric, wrong schedule/strength" interpretation more
+than the "input metric is useless" interpretation. The next test is the same
+metric-polar MLP-fc comparison with a shorter 48-112 active window. If that
+still loses at 200, deprioritize MLP-fc metric-polar and move back to surface
+selection or a much smaller blend.
+```
