@@ -2451,3 +2451,38 @@ blend 0.05, where two previous 200-step repeats landed at 3.8815 and beat their
 matched no-ops by roughly 0.004 to 0.005. Launch a 400-step persistence test for
 that line.
 ```
+
+## Cycle 29 H100 Result: MLP c_fc 400-step Persistence
+
+Modal app:
+
+```text
+ap-9BBtDsI5094ushmvEQFLDl
+```
+
+Parsed 400-step results:
+
+```text
+mbc_baseline:                         3.6020, 548.05ms/step
+mbc_schedule_only_before_r020_blend005 3.5996, 523.14ms/step
+mbc_noop_before_r020_blend005          3.6050, 525.42ms/step
+mbc_inverse_before_r020_blend005       3.6014, 523.98ms/step
+```
+
+Decision:
+
+```text
+The MLP c_fc before-momentum inverse remains mechanically real but is not a
+promotion-ready WR lever at this setting.
+
+Active inverse beats the matched no-op by 0.0036 at 400 and is 0.0006 better
+than same-suite baseline, so the right preconditioner is not null. But it loses
+to the schedule-only arm by 0.0018. Since schedule-only does not apply the
+matrix preconditioner, this run does not justify scaling the c_fc inverse line
+as-is.
+
+The useful interpretation is narrower: c_fc input geometry can move loss, but
+literal inverse at blend 0.05 is not a clean enough endpoint. The filter-control
+H100 job is now running to test finite-time and power filters at the same
+surface/blend before dropping the c_fc line.
+```

@@ -1721,3 +1721,25 @@ the blend-0.05 before-momentum inverse: two 200-step repeats landed at 3.8815
 and beat matched no-op by about 0.004 to 0.005. It needs a 400-step persistence
 test before any WR claims.
 ```
+
+The 400-step c_fc persistence test did not promote it:
+
+```text
+mbc_baseline:                         3.6020
+mbc_schedule_only_before_r020_blend005 3.5996
+mbc_noop_before_r020_blend005          3.6050
+mbc_inverse_before_r020_blend005       3.6014
+```
+
+Read:
+
+```text
+The preconditioner is real but too small or mistuned. Active inverse beats the
+matched no-op by 0.0036 and baseline by 0.0006, so c_fc feature geometry is not
+being completely washed away. However, schedule-only still wins by 0.0018, so
+literal inverse at blend 0.05 is not a WR-ready endpoint.
+
+The right next question is not broader QK attention. It is whether the c_fc
+right metric should use a less sharp spectral response: finite-time inverse or
+power filter under the same matched controls.
+```
