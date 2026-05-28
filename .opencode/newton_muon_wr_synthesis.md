@@ -1885,3 +1885,35 @@ large, and this is a single positive suite. Immediate replication is required;
 if it repeats, tune only the pulse/filter parameters around this point
 (window 48-56/48-64/48-80, finite_t, blend 0.01-0.03), not surfaces broadly.
 ```
+
+The immediate replication was negative:
+
+```text
+vpp_baseline:                              3.8883
+vpp_schedule_only_postvarred_r020_blend002 3.8819
+vpp_noop_postvarred_r020_blend002          3.8855
+vpp_inverse_postvarred_r020_blend002       3.8883
+vpp_finite_postvarred_r020_blend002        3.8896
+```
+
+Read:
+
+```text
+The 48-64 finite V pulse is not stable enough to promote.
+
+This replicate is a clean strike against the specific Cycle 34 candidate. The
+active finite arm was already bad at step 100, then ended worse than baseline,
+no-op, and schedule-only. Literal inverse again failed. The best endpoint in
+the suite was schedule-only, which means the current visible gains are still
+dominated by optimizer-path/window/routing effects unless an active spectral
+shape can beat that control directly.
+
+The synthesis changes from "short finite V pulse is the current candidate" to
+"V feature geometry is real but the 48-64 finite t=1 payload did not survive
+replication." The next GPU should not chase more surfaces or longer windows. It
+should answer one final narrow question: whether the finite-time transfer
+function was too sharp or too mild. Test t={0.5,1.0,2.0} at the same 48-64
+post-varred V setup against a matched no-op. If none beat no-op, demote this
+post-varred V pulse family and return to either pure optimizer-path controls or
+a more principled low-rank/metric-polar diagnostic.
+```

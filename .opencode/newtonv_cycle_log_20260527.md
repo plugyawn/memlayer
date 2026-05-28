@@ -2677,3 +2677,48 @@ also safer than literal inverse. Because this is a single positive suite and
 the same run showed high no-op/control variance, it needs immediate replication
 before promotion.
 ```
+
+## Cycle 35 H100 Result: Post-varred V Pulse 48-64 Replication
+
+Modal app:
+
+```text
+ap-o5TWf9hEoWqS8Y93OYsdh9
+```
+
+Parsed 200-step results:
+
+```text
+vpp_baseline:                              3.8883, 1095.72ms/step
+vpp_schedule_only_postvarred_r020_blend002 3.8819, 668.67ms/step
+vpp_noop_postvarred_r020_blend002          3.8855, 660.36ms/step
+vpp_inverse_postvarred_r020_blend002       3.8883, 663.50ms/step
+vpp_finite_postvarred_r020_blend002        3.8896, 665.08ms/step
+```
+
+Decision:
+
+```text
+The finite 48-64 V pulse did not replicate.
+
+The control result flipped the interpretation of Cycle 34. In this replicate,
+schedule-only was the best endpoint at 3.8819, no-op was 3.8855, inverse tied
+baseline at 3.8883, and finite was worst at 3.8896. At step 100 finite was also
+already bad at 4.7013, while schedule-only was 4.6642, no-op was 4.6739, and
+inverse was 4.6702.
+
+The exact same finite pulse therefore has one positive endpoint and one clear
+negative replication. Do not promote the 48-64 finite pulse. The active metric
+effect is still mechanically real, but the usable endpoint gain is not stable
+under matched controls.
+
+The next and likely final V-pulse check should be spectral-shape only, not more
+window chasing: keep the same 48-64 post-varred setup and compare finite
+t={0.5,1.0,2.0} against the same no-op. If that does not beat no-op, demote the
+post-varred V pulse family.
+
+Timing note: this app had periodic runtime stalls around steps 68/134 and the
+baseline had an especially large stall, so wall-clock numbers from this run are
+not clean speedrun timing. The endpoint loss comparisons are still useful
+because all cases ran in the same app environment.
+```
