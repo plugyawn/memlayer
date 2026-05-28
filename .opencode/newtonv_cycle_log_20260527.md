@@ -1902,3 +1902,69 @@ not lower-blend inverse; it is a bounded spectral transfer on the same c_fc
 surface: clipped power C^-0.5 and finite-time inverse, with the same matched
 no-op-before control.
 ```
+
+## Cycle 20 H100 Result: MLP-fc Filter-Control Window112
+
+Modal app:
+
+```text
+ap-KwrjiAMoOENgRDmSYuJE9Q
+```
+
+Parsed 200-step results:
+
+```text
+mff_baseline:                         3.8870, 809.78ms/step
+mff_noop_before_r02_blend010:         3.8909, 608.22ms/step
+mff_inverse_before_r02_blend010:      3.8828, 597.16ms/step
+mff_power05_before_r02_blend010:      3.8858, 588.05ms/step
+mff_finite_t10_before_r02_blend010:   3.8856, 603.73ms/step
+```
+
+Intermediate anchors:
+
+```text
+step 50:
+  baseline             5.6027
+  no-op before         5.5978
+  inverse before       5.5948
+  power 0.5 before     5.6290
+  finite t1 before     5.6206
+
+step 100:
+  baseline             4.6772
+  no-op before         4.6959
+  inverse before       4.6934
+  power 0.5 before     4.7008
+  finite t1 before     4.6933
+
+step 150:
+  baseline             4.1212
+  no-op before         4.1235
+  inverse before       4.1129
+  power 0.5 before     4.1202
+  finite t1 before     4.1260
+
+step 200:
+  baseline             3.8870
+  no-op before         3.8909
+  inverse before       3.8828
+  power 0.5 before     3.8858
+  finite t1 before     3.8856
+```
+
+Decision:
+
+```text
+The bounded spectral transfers did not beat literal C^-1 on MLP-fc. Power
+C^-0.5 and finite-time inverse both beat the bad no-op and baseline at 200,
+but their margins are small and neither shows the strong 150/200 reversal of
+literal inverse.
+
+This is the cleanest positive MLP-fc inverse run since the window160 probe:
+inverse beats baseline by 0.0042 and no-op by 0.0081. Because the immediately
+previous matched-control run had inverse slightly worse than baseline/no-op,
+the signal is real but brittle. The next run should not widen surfaces; it
+should lower inverse blend to 0.05 on the same before-control ladder to test
+whether the late benefit becomes more stable.
+```

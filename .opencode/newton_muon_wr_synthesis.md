@@ -1486,3 +1486,36 @@ finite-time inverse on c_fc with the same before-momentum placement and
 matched no-op. This follows the "C^-1 is a reference point, not the final
 filter" lesson.
 ```
+
+MLP-fc filter-control window112:
+
+```text
+200-step result:
+  baseline:        3.8870
+  no-op before:    3.8909
+  inverse before:  3.8828
+  power C^-0.5:    3.8858
+  finite t=1:      3.8856
+
+150-step result:
+  baseline:        4.1212
+  no-op before:    4.1235
+  inverse before:  4.1129
+  power C^-0.5:    4.1202
+  finite t=1:      4.1260
+```
+
+Read:
+
+```text
+On c_fc, the bounded filters did not beat literal inverse. Power and finite
+are mildly positive at 200, but inverse has the only meaningful same-suite
+margin: 0.0042 over baseline and 0.0081 over no-op.
+
+The uncomfortable part is reproducibility. The previous matched-control run
+had inverse at 3.8852 versus baseline 3.8846 and no-op 3.8849. So the axis is
+not dead, but it is brittle and late-acting. The next test should lower blend
+to 0.05 on the same before-control ladder. If lower blend wins, tune strength.
+If it loses, the practical conclusion is that MLP-fc C^-1 has too much
+variance for WR use in this branch.
+```
