@@ -1767,3 +1767,27 @@ problem is still survival through the Muon/NorMuon path: small active effects
 appear at intermediate screens, but matched controls absorb or beat them by the
 endpoint.
 ```
+
+The all-layer c_fc coverage fork also failed to clear control:
+
+```text
+mbc_baseline:                         3.8854
+mbc_schedule_only_before_r020_blend005 3.8876
+mbc_noop_before_r020_blend005          3.8830
+mbc_inverse_before_r020_blend005       3.8832
+```
+
+Read:
+
+```text
+Widening c_fc from layers 0-1 to all layers did not turn the active
+preconditioner into a clean win. Active inverse beats baseline and
+schedule-only, but loses to matched no-op by 0.0002.
+
+This makes the next lever implementation-path, not more no-code c_fc sweeping.
+The repeated pattern is: active right-preconditioning is visible at intermediate
+screens, but the existing Muon/NorMuon path or matched routing controls absorb
+the endpoint advantage. The useful next code change would be a more explicit
+post-polar or post-varred metric insertion with strong damping, plus a matched
+no-op, rather than more C^-1 before-momentum surface sweeps.
+```

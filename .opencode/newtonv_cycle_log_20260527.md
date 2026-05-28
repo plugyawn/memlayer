@@ -2524,3 +2524,42 @@ If we spend another H100 block, it should test a different lever: layer/surface
 coverage, or an optimizer-path control that changes how much of the metric
 survives the Muon/NorMuon stack.
 ```
+
+## Cycle 31 H100 Result: All-layer MLP c_fc Control
+
+Modal app:
+
+```text
+ap-ZvikHDrpEEPHtoyLIsIsWG
+```
+
+Parsed 200-step results:
+
+```text
+mbc_baseline:                         3.8854, 652.65ms/step
+mbc_schedule_only_before_r020_blend005 3.8876, 604.03ms/step
+mbc_noop_before_r020_blend005          3.8830, 594.96ms/step
+mbc_inverse_before_r020_blend005       3.8832, 588.02ms/step
+```
+
+Note:
+
+```text
+The first baseline attempt was preempted at step 67. Modal restarted the app;
+the table uses the completed restarted baseline.
+```
+
+Decision:
+
+```text
+All-layer c_fc coverage does not rescue the active preconditioner.
+
+Active inverse beats baseline by 0.0022 and schedule-only by 0.0044, but loses
+to the all-layer matched no-op by 0.0002. The no-op/stat route is again enough
+to explain the endpoint. The active arm was best at step 100, then faded by
+150/200.
+
+This closes the no-code c_fc widening fork. Do not spend more H100 time on
+same-window c_fc inverse/power/finite variants unless the optimizer insertion
+point changes.
+```
