@@ -2179,3 +2179,68 @@ right preconditioning with ridge 0.2, refresh 16, EMA 0.8, and QK+V/all-layer
 coverage. The goal is to test the paper's packed-attention-input direction
 rather than this brittle c_fc slice.
 ```
+
+## Cycle 24 H100 Result: Paper-Style Attention Input Window112
+
+Modal app:
+
+```text
+ap-SeZliYTRAiELtDhTdRNZ73
+```
+
+Parsed 200-step results:
+
+```text
+ps_baseline:                    3.8849, 696.64ms/step
+ps_v01_before_polar5_ridge020:  3.8874, 592.57ms/step
+ps_v01_before_polar4_ridge020:  3.8854, 588.47ms/step
+ps_vall_before_polar5_ridge020: 3.8822, 584.15ms/step
+ps_qkv_before_polar5_ridge020:  3.8819, 586.79ms/step
+```
+
+Intermediate anchors:
+
+```text
+step 100:
+  baseline       4.6728
+  V 0-1 p5       4.6751
+  V 0-1 p4       4.6976
+  all V p5       4.6731
+  QK+V all p5    4.6790
+
+step 150:
+  baseline       4.1189
+  V 0-1 p5       4.1157
+  V 0-1 p4       4.1162
+  all V p5       4.1105
+  QK+V all p5    4.1161
+
+step 200:
+  baseline       3.8849
+  V 0-1 p5       3.8874
+  V 0-1 p4       3.8854
+  all V p5       3.8822
+  QK+V all p5    3.8819
+```
+
+Decision:
+
+```text
+The paper-like attention-input axis is alive but not WR-ready in this dense
+form. Layer 0-1 isolation does not work here; all-layer V and QK+V are the only
+positive arms, and QK+V is only 0.0003 better than all-V by 200.
+
+The useful result is qualitative: applying the right-preconditioner across the
+full attention-input stack gives a repeatable small 200-step gain, whereas
+single early-layer V is too narrow. The bad result is implementation shape:
+both all-layer arms incur the same large active-window timing pattern, including
+mid-run compile/stall spikes and steady non-refresh steps around 590ms in this
+1x setup.
+
+Next action: do not keep repeating dense C^-1. Run the Cholesky activation-
+metric polar screen, which tests the cleaner update
+polar(G L^-T) L^-1 and QK+V layer 0-1 under matched baseline/noop controls.
+If that cannot produce a larger early hit, the next engineering work should
+shift from dense inverse applications toward cheaper low-rank or block
+attention-input filters.
+```

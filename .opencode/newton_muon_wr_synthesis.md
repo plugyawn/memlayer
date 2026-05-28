@@ -1595,3 +1595,30 @@ input factors, before momentum, ridge 0.2, refresh 16, EMA 0.8, and QK+V/all
 coverage. That tests the paper-like packed attention-input preconditioner
 rather than the brittle c_fc slice.
 ```
+
+The paper-style attention-input sweep partially supports the thesis:
+
+```text
+ps_baseline:                    3.8849
+ps_v01_before_polar5_ridge020:  3.8874
+ps_v01_before_polar4_ridge020:  3.8854
+ps_vall_before_polar5_ridge020: 3.8822
+ps_qkv_before_polar5_ridge020:  3.8819
+```
+
+Read:
+
+```text
+The right-preconditioner effect is not captured by V layers 0-1 alone in this
+configuration. It appears only when attention-input coverage is broadened to
+all V or QK+V layers. QK+V being slightly better than all-V is directionally
+consistent with the paper-style packed attention-input story, but the margin is
+too small to promote by itself.
+
+The current dense C^-1 application is still not a WR mechanism. The positive
+arms are about 0.003 better at 200, while the active-window dense path remains
+heavy and shows large one-time stalls. The next principled question is whether
+activation-metric polar, polar(G L^-T) L^-1, gives a stronger or cleaner effect
+than Newton-Muon-style polar(G C^-1). That test is now queued as the metricpolar
+screen.
+```
