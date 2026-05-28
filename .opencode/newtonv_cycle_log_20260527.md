@@ -2244,3 +2244,63 @@ If that cannot produce a larger early hit, the next engineering work should
 shift from dense inverse applications toward cheaper low-rank or block
 attention-input filters.
 ```
+
+## Cycle 25 H100 Result: Cholesky Metric-Polar Screen
+
+Modal app:
+
+```text
+ap-rxpJ6Ke2Rt8uVrugJLcCN9
+```
+
+Parsed 120-step results:
+
+```text
+mp_baseline:                 4.1759, 682.51ms/step
+mp_schedule_noop_polar4:     4.1875, 554.72ms/step
+mp_cholmetric_v01_polar4:    4.1775, 564.19ms/step
+mp_cholmetric_v01_polar5:    4.1783, 551.40ms/step
+mp_cholmetric_qkv01_polar4:  4.1865, 549.47ms/step
+```
+
+Intermediate anchors:
+
+```text
+step 40:
+  baseline       5.8147
+  schedule/noop  5.8203
+  V 0-1 p4       5.8251
+  V 0-1 p5       5.8242
+  QK+V 0-1 p4    5.8361
+
+step 80:
+  baseline       4.6123
+  schedule/noop  4.6228
+  V 0-1 p4       4.6195
+  V 0-1 p5       4.6143
+  QK+V 0-1 p4    4.6145
+
+step 120:
+  baseline       4.1759
+  schedule/noop  4.1875
+  V 0-1 p4       4.1775
+  V 0-1 p5       4.1783
+  QK+V 0-1 p4    4.1865
+```
+
+Decision:
+
+```text
+The exact Cholesky activation-metric polar update is not the immediate rescue.
+V 0-1 metric-polar is close but still loses to baseline at 120, and QK+V 0-1 is
+as bad as the matched schedule/noop control.
+
+This is useful negative evidence against "the problem is just that Newton-Muon
+washes out post-metric scale." Keeping the L^-1 factor outside the polar map
+does not help in this narrow early-layer setup. It may require much heavier
+tuning, but it is not the next WR lever.
+
+Next action: follow the surviving positive signal instead. Run a broader QKVO
+all-layer bounded spectral-filter suite to see whether wider surface coverage
+plus less aggressive C^-alpha shaping beats dense C^-1 or the no-op control.
+```

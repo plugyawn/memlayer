@@ -1622,3 +1622,27 @@ activation-metric polar, polar(G L^-T) L^-1, gives a stronger or cleaner effect
 than Newton-Muon-style polar(G C^-1). That test is now queued as the metricpolar
 screen.
 ```
+
+The Cholesky activation-metric polar screen was negative:
+
+```text
+mp_baseline:                 4.1759
+mp_schedule_noop_polar4:     4.1875
+mp_cholmetric_v01_polar4:    4.1775
+mp_cholmetric_v01_polar5:    4.1783
+mp_cholmetric_qkv01_polar4:  4.1865
+```
+
+Read:
+
+```text
+polar(G L^-T) L^-1 is mathematically clean, but in the tested layer-0/1
+attention setup it does not improve the curve. This weakens the theory that the
+missing piece is simply retaining C^-1/2 scale after polar. It may still be
+tunable, but it is not a hot WR path under the current window/blend/ridge.
+
+The stronger surviving clue remains surface coverage: all-layer attention-input
+C^-1 gave the small 200-step gain, while V0-1 and metric-polar 0-1 did not.
+The next test should therefore combine broader QKVO surface coverage with
+bounded spectral filters, not a stronger post-polar metric update.
+```
