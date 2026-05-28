@@ -2486,3 +2486,41 @@ literal inverse at blend 0.05 is not a clean enough endpoint. The filter-control
 H100 job is now running to test finite-time and power filters at the same
 surface/blend before dropping the c_fc line.
 ```
+
+## Cycle 30 H100 Result: MLP c_fc Filter Control
+
+Modal app:
+
+```text
+ap-ZtUuGXDUbA1e3yoIzoHJey
+```
+
+Parsed 200-step results:
+
+```text
+mff_baseline:                         3.8882, 840.71ms/step
+mff_noop_before_r020_blend005:        3.8820, 652.47ms/step
+mff_inverse_before_r020_blend005:     3.8863, 650.09ms/step
+mff_power05_before_r020_blend005:     3.8838, 650.18ms/step
+mff_finite_t10_before_r020_blend005:  3.8826, 650.32ms/step
+```
+
+Decision:
+
+```text
+Do not promote the current MLP c_fc full-matrix family.
+
+The no-op/stat path is the best endpoint in this suite. Finite-time inverse is
+closest, only 0.0006 worse than no-op, but it still does not beat the control.
+Power-0.5 and literal inverse also lose to no-op.
+
+This confirms the 400-step persistence read: the c_fc feature metric is visible
+but not being converted into a reliable loss advantage. The right-preconditioner
+is not mathematically absent; the current insertion point/shape is too weak or
+too entangled with the optimizer path.
+
+Next runs should not be more c_fc inverse/power at the same surface/window.
+If we spend another H100 block, it should test a different lever: layer/surface
+coverage, or an optimizer-path control that changes how much of the metric
+survives the Muon/NorMuon stack.
+```

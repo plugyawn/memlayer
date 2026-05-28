@@ -1743,3 +1743,27 @@ The right next question is not broader QK attention. It is whether the c_fc
 right metric should use a less sharp spectral response: finite-time inverse or
 power filter under the same matched controls.
 ```
+
+The c_fc filter-control run answered that negatively:
+
+```text
+mff_baseline:                         3.8882
+mff_noop_before_r020_blend005:        3.8820
+mff_inverse_before_r020_blend005:     3.8863
+mff_power05_before_r020_blend005:     3.8838
+mff_finite_t10_before_r020_blend005:  3.8826
+```
+
+Read:
+
+```text
+The active filters do not beat the matched no-op. Finite-time inverse is the
+least bad active filter, but it is still behind by 0.0006 at 200. Literal
+inverse is worse, and power-0.5 is also worse.
+
+This demotes the current MLP c_fc line. The evidence says feature geometry is
+detectable, not that this insertion point/filter is a WR lever. The persistent
+problem is still survival through the Muon/NorMuon path: small active effects
+appear at intermediate screens, but matched controls absorb or beat them by the
+endpoint.
+```
