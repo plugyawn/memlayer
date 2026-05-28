@@ -1667,3 +1667,30 @@ The next bounded-filter test should be QK+V only, all layers. That keeps the
 paper-style packed attention-input hypothesis while avoiding O's heavier-tailed
 and costlier output-feature metric.
 ```
+
+The QK+V all-layer bounded power filter was negative:
+
+```text
+qvp_baseline:                    4.0004
+qvp_qkv_noop_polar4:             4.0016
+qvp_qkv_power05_r020_blend010:   4.0061
+qvp_qkv_power075_r020_blend010:  4.0074
+```
+
+Read:
+
+```text
+Removing O avoids the worst cost pathology, but bounded power filters on all
+QK+V do not reproduce the earlier paper-style dense inverse gain. Diagnostics
+show a real target-space change, especially for QK: at step 112 the power-0.75
+target filter has target_cos around 0.85 for QK, but the actual blended update
+still has cos around 0.9986 against the unpreconditioned operand. The effect is
+being mostly damped or washed through the existing blend/polar/variance-reduction
+stack.
+
+This does not justify cranking the filter stronger. The stronger power-0.75 arm
+was worse than power-0.5, and both lost to the matched no-op. For the next GPU
+block, the highest-value test is a control-adjusted replication of the only
+surviving positive line: all-layer attention-input dense inverse, QK+V, before
+momentum, ridge 0.2, refresh 16, EMA 0.8, active in the 48-112 window.
+```

@@ -2352,3 +2352,62 @@ This does not kill Q/K/V input preconditioning. It specifically says "do not
 include O in the broad all-layer bounded-filter screen yet." The next suite is
 QK+V only, all layers, same bounded spectral filters.
 ```
+
+## Cycle 27 H100 Result: QK+V All-Layer Power Shape
+
+Modal app:
+
+```text
+ap-VdPWOlrC894c90kWMZIkRC
+```
+
+Parsed 160-step results:
+
+```text
+qvp_baseline:                    4.0004, 541.94ms/step
+qvp_qkv_noop_polar4:             4.0016, 720.95ms/step
+qvp_qkv_power05_r020_blend010:   4.0061, 656.50ms/step
+qvp_qkv_power075_r020_blend010:  4.0074, 663.67ms/step
+```
+
+Selected diagnostics:
+
+```text
+power-0.5 at step 112:
+  full_qk target_delta_mean: 0.4761
+  full_qk actual_delta_mean: 0.0476
+  full_qk target_cos_mean:   0.8865
+  full_qk actual_cos_mean:   0.9989
+  full_v target_delta_mean:  0.3934
+  full_v actual_delta_mean:  0.0393
+  full_v target_cos_mean:    0.9217
+  full_v actual_cos_mean:    0.9992
+
+power-0.75 at step 112:
+  full_qk target_delta_mean: 0.5463
+  full_qk actual_delta_mean: 0.0546
+  full_qk target_cos_mean:   0.8505
+  full_qk actual_cos_mean:   0.9986
+  full_v target_delta_mean:  0.4497
+  full_v actual_delta_mean:  0.0450
+  full_v target_cos_mean:    0.8978
+  full_v actual_cos_mean:    0.9990
+```
+
+Decision:
+
+```text
+Do not continue the bounded power-filter line as the next priority. Removing O
+fixed the broad-surface cost pathology, but the active QK+V power arms lost to
+both baseline and matched no-op.
+
+The diagnostics clarify the washout story: the target spectral filter would
+substantially rotate or reshape QK+V, but the actual blended update remains very
+close to baseline after the existing optimizer machinery. However, simply
+increasing the spectral effect is not automatically good: power-0.75 is stronger
+than power-0.5 and worse in loss.
+
+The surviving positive evidence remains the paper-style all-layer dense inverse
+attention-input result. The next H100 block should replicate that with a matched
+QK+V all-layer no-op/control, not introduce another spectral shape family.
+```
