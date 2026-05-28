@@ -1544,3 +1544,29 @@ schedule isolation. If inverse overtakes schedule-only, continue tuning c_fc
 right-preconditioning strength. Do not widen surfaces until this fork is
 resolved.
 ```
+
+The exact lower-blend replicate resolved this fork in favor of c_fc inverse:
+
+```text
+                 run A    run B    mean
+baseline         3.8878   3.8881   3.8880
+schedule-only    3.8800   3.8860   3.8830
+no-op before     3.8855   3.8864   3.8860
+inverse before   3.8815   3.8815   3.8815
+```
+
+Read:
+
+```text
+MLP-fc layers 0-1, window 48-112, ridge 0.2, blend 0.05 is now the cleanest
+surviving right-preconditioner line. It is stable across two runs and clears
+the matched no-op by about 0.0045 on average.
+
+The schedule-only run-A spike should not be promoted. In before-momentum mode
+with schedule-only enabled, the code skips the preconditioner and falls through
+the ordinary fused polar_express update. Its variability is useful as a noise
+estimate, not as a mechanism.
+
+Next: run a c_fc inverse strength ladder at 0.025/0.05/0.075/0.10 before
+touching broader surfaces.
+```

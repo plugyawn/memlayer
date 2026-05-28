@@ -2040,3 +2040,75 @@ schedule-only repeats, isolate it as a cheap optimizer-schedule candidate. If
 inverse beats the schedule-only arm on replicate, keep tuning lower-blend
 c_fc C^-1. Do not widen surfaces until this fork is resolved.
 ```
+
+## Cycle 22 H100 Result: MLP-fc Before-Control Window112 Blend005 Replicate
+
+Modal app:
+
+```text
+ap-1IkmcrT6fCCVCyXy4Us7Pz
+```
+
+Parsed 200-step results:
+
+```text
+mbc_baseline:                          3.8881, 763.17ms/step
+mbc_schedule_only_before_r02_blend005: 3.8860, 600.60ms/step
+mbc_noop_before_r02_blend005:          3.8864, 601.79ms/step
+mbc_inverse_before_r02_blend005:       3.8815, 605.46ms/step
+```
+
+Intermediate anchors:
+
+```text
+step 50:
+  baseline             5.6148
+  schedule-only        5.6078
+  no-op before         5.6186
+  inverse before       5.6075
+
+step 100:
+  baseline             4.6934
+  schedule-only        4.6968
+  no-op before         4.6808
+  inverse before       4.6698
+
+step 150:
+  baseline             4.1259
+  schedule-only        4.1286
+  no-op before         4.1161
+  inverse before       4.1160
+
+step 200:
+  baseline             3.8881
+  schedule-only        3.8860
+  no-op before         3.8864
+  inverse before       3.8815
+```
+
+Two-run lower-blend endpoint table:
+
+```text
+                 run A    run B    mean
+baseline         3.8878   3.8881   3.8880
+schedule-only    3.8800   3.8860   3.8830
+no-op before     3.8855   3.8864   3.8860
+inverse before   3.8815   3.8815   3.8815
+```
+
+Decision:
+
+```text
+The lower-blend c_fc inverse-before result reproduced unusually cleanly:
+inverse is exactly 3.8815 in both 200-step runs, with mean gains of 0.0065
+against baseline and 0.0045 against the matched no-op.
+
+The schedule-only arm did not reproduce its run-A spike. It is also a weak
+control mechanically: with apply-before-momentum and schedule-only enabled,
+the preconditioner is skipped and the update falls through the ordinary fused
+polar_express path. Treat it as noise/control, not a candidate.
+
+Promote MLP-fc layers 0-1, window 48-112, ridge 0.2, blend 0.05 to a strength
+ladder. The next suite should compare the same baseline/no-op against inverse
+blends 0.025, 0.05, 0.075, and 0.10 before changing surfaces.
+```
