@@ -126,6 +126,7 @@ LOCO_FULL_LOG_SPECTRUM = os.environ.get("LOCO_FULL_LOG_SPECTRUM", "0") == "1"
 LOCO_FULL_LOG_EIGEN_ENERGY = os.environ.get("LOCO_FULL_LOG_EIGEN_ENERGY", "0") == "1"
 LOCO_FULL_LOG_POSTPOLAR = os.environ.get("LOCO_FULL_LOG_POSTPOLAR", "0") == "1"
 LOCO_FULL_APPLY_BEFORE_MOMENTUM = os.environ.get("LOCO_FULL_APPLY_BEFORE_MOMENTUM", "0") == "1"
+LOCO_FULL_APPLY_POST_VARRED = os.environ.get("LOCO_FULL_APPLY_POST_VARRED", "0") == "1"
 if LOCO_FULL_APPLY_INTERVAL <= 0:
     raise ValueError("LOCO_FULL_APPLY_INTERVAL must be positive")
 if LOCO_FULL_BLOCK_SIZE < 0:
@@ -148,6 +149,10 @@ if LOCO_FULL_SHRINK_CLIP < 1:
     raise ValueError("LOCO_FULL_SHRINK_CLIP must be >= 1")
 if LOCO_FULL_METRIC_POLAR and LOCO_FULL_APPLY_BEFORE_MOMENTUM:
     raise ValueError("LOCO_FULL_METRIC_POLAR is only supported after momentum")
+if LOCO_FULL_APPLY_POST_VARRED and LOCO_FULL_APPLY_BEFORE_MOMENTUM:
+    raise ValueError("LOCO_FULL_APPLY_POST_VARRED is mutually exclusive with LOCO_FULL_APPLY_BEFORE_MOMENTUM")
+if LOCO_FULL_APPLY_POST_VARRED and LOCO_FULL_METRIC_POLAR:
+    raise ValueError("LOCO_FULL_APPLY_POST_VARRED is not supported with LOCO_FULL_METRIC_POLAR")
 if LOCO_FULL_METRIC_POLAR and (LOCO_FULL_BLOCK or LOCO_FULL_TOPSHRINK or LOCO_FULL_POWER or LOCO_FULL_FINITE):
     raise ValueError("LOCO_FULL_METRIC_POLAR currently requires dense inverse/norminverse filter state")
 if LOCO_FULL_MLP_FC and (LOCO_FULL_BLOCK or LOCO_FULL_TOPSHRINK):
@@ -1618,8 +1623,11 @@ class NorMuonAndAdam:
         use_loco_full_vo = self._loco_full_optimizer_active and p_cfg.label == "vo_bank" and (LOCO_FULL_V or LOCO_FULL_O)
         use_loco_full_mlp_fc = self._loco_full_optimizer_active and p_cfg.label == "mlp_bank" and LOCO_FULL_MLP_FC
         use_loco_full_bank = use_loco_full_qk or use_loco_full_vo or use_loco_full_mlp_fc
-        use_loco_full_before_momentum = use_loco_full_bank and LOCO_FULL_APPLY_BEFORE_MOMENTUM
-        use_loco_full_after_momentum = use_loco_full_bank and not LOCO_FULL_APPLY_BEFORE_MOMENTUM
+        use_loco_full_post_varred = use_loco_full_bank and LOCO_FULL_APPLY_POST_VARRED
+        use_loco_full_before_momentum = use_loco_full_bank and LOCO_FULL_APPLY_BEFORE_MOMENTUM and not use_loco_full_post_varred
+        use_loco_full_after_momentum = (
+            use_loco_full_bank and not LOCO_FULL_APPLY_BEFORE_MOMENTUM and not use_loco_full_post_varred
+        )
 
         p_state = self.param_states[param]
         grad_chunk = grad_chunk.float()  # FP32 for momentum
@@ -1676,6 +1684,13 @@ class NorMuonAndAdam:
             v_chunk = NorMuonAndAdam._apply_normuon_variance_reduction(
                 v_chunk, p_state["second_momentum_buffer"], p_cfg.beta2, red_dim
             )
+        if use_loco_full_post_varred and not LOCO_FULL_SCHEDULE_ONLY:
+            if use_loco_full_qk:
+                self._loco_full_precondition_qk_operand_inplace(v_chunk, p_cfg, rank)
+            elif use_loco_full_mlp_fc:
+                self._loco_full_precondition_mlp_fc_operand_inplace(v_chunk, p_cfg, rank)
+            else:
+                self._loco_full_precondition_vo_operand_inplace(v_chunk, p_cfg, rank)
 
         # Update parameter, in place, with cautious weight decay
         param_view = param.data.view(p_cfg.reshape)
@@ -3534,6 +3549,7 @@ class TrainingManager():
                 f"polar_iters={LOCO_FULL_POLAR_ITERS} windows={LOCO_FULL_WINDOWS or 'end'} "
                 f"collect_windows={LOCO_FULL_COLLECT_WINDOWS or 'same'} "
                 f"skip_varred={int(LOCO_FULL_SKIP_VARRED)} "
+                f"post_varred={int(LOCO_FULL_APPLY_POST_VARRED)} "
                 f"local_stats={int(LOCO_FULL_LOCAL_STATS)} "
                 f"apply_interval={LOCO_FULL_APPLY_INTERVAL}",
                 console=True,
