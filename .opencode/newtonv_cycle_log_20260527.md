@@ -2563,3 +2563,44 @@ This closes the no-code c_fc widening fork. Do not spend more H100 time on
 same-window c_fc inverse/power/finite variants unless the optimizer insertion
 point changes.
 ```
+
+## Cycle 32 H100 Result: Post-varred MLP c_fc Control
+
+Modal app:
+
+```text
+ap-datnq5j0ZSHEeBLqkirI3Q
+```
+
+Parsed 200-step results:
+
+```text
+mpv_baseline:                              3.8850, 920.67ms/step
+mpv_schedule_only_postvarred_r020_blend002 3.8846, 666.00ms/step
+mpv_noop_postvarred_r020_blend002          3.8800, 661.20ms/step
+mpv_inverse_postvarred_r020_blend002       3.8863, 657.06ms/step
+mpv_finite_postvarred_r020_blend002        3.8824, 658.33ms/step
+```
+
+Decision:
+
+```text
+Post-varred c_fc preconditioning does not rescue the right-metric line.
+
+This run moved the full-C filter after NorMuon variance reduction, with
+blend=0.02, ridge=0.20, collection 0-64, active window 48-112, and layers 0-1.
+The active inverse lost badly to matched no-op by 0.0063. The finite-time filter
+was less bad but still lost to no-op by 0.0024.
+
+The diagnostic ratio confirms the metric path was active but mild: around step
+100, inverse post-varred reported full_mlp_fc norm ratio near 0.9986 and finite
+near 0.9997. Because post-varred placement applies after polar/variance
+reduction and before the parameter update, this is a more direct metric
+insertion than the before-momentum experiments. It still hurts.
+
+This weakens the hypothesis that the useful metric signal is merely being
+washed away by NorMuon variance reduction. The cleaner read is that c_fc full-C
+right preconditioning in this window is not aligned with the tuned update
+direction, while the stats/no-op path itself continues to capture the best
+control endpoint.
+```

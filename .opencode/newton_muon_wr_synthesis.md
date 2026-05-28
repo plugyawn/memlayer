@@ -1791,3 +1791,38 @@ the endpoint advantage. The useful next code change would be a more explicit
 post-polar or post-varred metric insertion with strong damping, plus a matched
 no-op, rather than more C^-1 before-momentum surface sweeps.
 ```
+
+The post-varred insertion test answered that specific implementation-path
+question negatively:
+
+```text
+mpv_baseline:                              3.8850
+mpv_schedule_only_postvarred_r020_blend002 3.8846
+mpv_noop_postvarred_r020_blend002          3.8800
+mpv_inverse_postvarred_r020_blend002       3.8863
+mpv_finite_postvarred_r020_blend002        3.8824
+```
+
+Read:
+
+```text
+Moving the c_fc full-C filter after variance reduction did not recover the
+lost active signal. The inverse post-varred arm lost to no-op by 0.0063, and
+finite-time lost by 0.0024. The metric path was active but damped: logged
+full_mlp_fc norm ratios were about 0.9986 for inverse and 0.9997 for finite at
+step 100.
+
+This makes "NorMuon variance reduction is washing the metric away" too simple
+as an explanation. Post-varred placement makes the metric more direct, and it
+still does not help. The better synthesis is that the c_fc metric direction in
+this window is not a productive correction to the current tuned update, while
+the no-op/stat/routing controls themselves sit on favorable variance.
+
+Do not spend the next H100 block on c_fc post-varred strength tuning unless a
+new diagnostic shows target/update misalignment that a different placement can
+fix. The search should return to the surfaces with actual early algorithmic
+signal, especially V, but with a cheaper and better-controlled test: isolate
+whether the V eigensystem changes update subspaces in a measurable way, then
+try a low-rank/top-shrink or metric-polar variant only if the no-op control
+does not explain the endpoint.
+```
