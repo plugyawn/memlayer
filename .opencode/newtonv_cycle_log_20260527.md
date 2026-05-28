@@ -1784,3 +1784,62 @@ Next test should lower metric-polar blend, not keep changing only the end
 window. Add a runner knob for MFP_METRIC_BLEND_MAX and run the same window112
 suite with blend 0.02.
 ```
+
+## Cycle 18 H100 Result: MLP-fc Metric-Polar Window112 Blend002
+
+Modal app:
+
+```text
+ap-bfPMj2WCNkHVdIcsegYKSR
+```
+
+Parsed 200-step results:
+
+```text
+mfp_baseline:                              3.8842, 689.92ms/step
+mfp_noop_after_polar4:                    3.8886, 595.87ms/step
+mfp_inverse_before_r020_blend010:         3.8816, 602.98ms/step
+mfp_cholmetric_after_polar4_r020_blend002_norm: 3.8871, 596.83ms/step
+```
+
+Intermediate anchors:
+
+```text
+step 50:
+  baseline             5.5955
+  no-op after polar4   5.6138
+  inverse before       5.6074
+  cholmetric after     5.6102
+
+step 100:
+  baseline             4.6788
+  no-op after polar4   4.6928
+  inverse before       4.6648
+  cholmetric after     4.6744
+
+step 150:
+  baseline             4.1229
+  no-op after polar4   4.1177
+  inverse before       4.1160
+  cholmetric after     4.1199
+
+step 200:
+  baseline             3.8842
+  no-op after polar4   3.8886
+  inverse before       3.8816
+  cholmetric after     3.8871
+```
+
+Decision:
+
+```text
+Lowering Cholesky metric-polar blend from 0.05 to 0.02 did not rescue the
+endpoint. The metric-polar arm still moved the curve at step 100, but it lost
+to baseline by 0.0029 at step 200 and lost to inverse-before by 0.0055.
+
+Deprioritize MLP-fc metric-polar for immediate WR work. The active hit in this
+suite is again inverse-before on MLP-fc layers 0-1, window 48-112: it beats
+baseline by 0.0026 and no-op by 0.0070. The correct next run is the
+before-momentum control suite for the same window so that schedule-only and
+no-op-before are matched to the active placement.
+```

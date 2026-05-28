@@ -1412,3 +1412,41 @@ not washed out, but blend 0.05 appears too strong or too persistent. Add a
 runner knob and run MFP_METRIC_BLEND_MAX=0.02 on the 48-112 suite before
 deprioritizing the half-whitened MLP-fc branch.
 ```
+
+MLP-fc Cholesky metric-polar window112, blend 0.02:
+
+```text
+200-step result:
+  baseline:             3.8842
+  no-op after polar4:   3.8886
+  inverse before:       3.8816
+  cholmetric after:     3.8871
+
+100-step result:
+  baseline:             4.6788
+  no-op after polar4:   4.6928
+  inverse before:       4.6648
+  cholmetric after:     4.6744
+
+150-step result:
+  baseline:             4.1229
+  no-op after polar4:   4.1177
+  inverse before:       4.1160
+  cholmetric after:     4.1199
+```
+
+Read:
+
+```text
+Lower blend did not fix MLP-fc metric-polar. The half-whitened update is
+mechanically active, but its endpoint behavior remains worse than baseline and
+worse than inverse-before. Do not spend the next H100 block on more
+metric-polar MLP-fc strength tweaks unless there is a new implementation
+reason.
+
+The useful arm in this suite is MLP-fc inverse-before on layers 0-1, window
+48-112. It beat baseline by 0.0026 and no-op-after by 0.0070. Because the
+control placement is different, the next high-information experiment is the
+matched before-momentum control ladder: baseline, schedule-only-before,
+noop-before, inverse-before on the same layers/window.
+```
