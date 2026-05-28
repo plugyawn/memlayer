@@ -1749,6 +1749,11 @@ run_mlpfc_promote_ladder() {
   local mfp_layers="${MFP_LAYERS:-0-1}"
   local mfp_collect="${MFP_COLLECT_WINDOWS:-0-64}"
   local mfp_windows="${MFP_WINDOWS:-48-112}"
+  local mfp_metric_ridge="${MFP_METRIC_RIDGE_REL:-0.20}"
+  local mfp_metric_blend="${MFP_METRIC_BLEND_MAX:-0.05}"
+  local mfp_metric_blend_label="${mfp_metric_blend/./}"
+  local mfp_metric_blend_steps="${MFP_METRIC_BLEND_STEPS:-32}"
+  local mfp_metric_polar_iters="${MFP_METRIC_POLAR_ITERS:-4}"
 
   run_case mfp_baseline \
     NEWTONV_VARIANT=baseline \
@@ -1786,17 +1791,17 @@ run_mlpfc_promote_ladder() {
     SCREEN_VAL_EVERY="${mfp_val_every}" \
     bash tools/run_newtonv_raw_v01_gate.sh
 
-  run_case mfp_cholmetric_after_polar4_r020_blend005_norm \
+  run_case "mfp_cholmetric_after_polar${mfp_metric_polar_iters}_r020_blend${mfp_metric_blend_label}_norm" \
     LOCO_FULL_SURFACES=mlp_fc \
     LOCO_DIAG_MLP_LAYERS="${mfp_layers}" \
     LOCO_FULL_COLLECT_WINDOWS="${mfp_collect}" \
     LOCO_FULL_WINDOWS="${mfp_windows}" \
     LOCO_FULL_METRIC_POLAR=1 \
     LOCO_FULL_NORM_RESTORE=1 \
-    LOCO_FULL_RIDGE_REL=0.20 \
-    LOCO_FULL_BLEND_MAX=0.05 \
-    LOCO_FULL_BLEND_STEPS=32 \
-    LOCO_FULL_POLAR_ITERS=4 \
+    LOCO_FULL_RIDGE_REL="${mfp_metric_ridge}" \
+    LOCO_FULL_BLEND_MAX="${mfp_metric_blend}" \
+    LOCO_FULL_BLEND_STEPS="${mfp_metric_blend_steps}" \
+    LOCO_FULL_POLAR_ITERS="${mfp_metric_polar_iters}" \
     SCREEN_STEPS="${mfp_steps}" \
     SCREEN_VAL_EVERY="${mfp_val_every}" \
     bash tools/run_newtonv_raw_v01_gate.sh

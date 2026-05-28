@@ -1377,3 +1377,38 @@ metric-polar MLP-fc comparison with a shorter 48-112 active window. If that
 still loses at 200, deprioritize MLP-fc metric-polar and move back to surface
 selection or a much smaller blend.
 ```
+
+MLP-fc Cholesky metric-polar window112:
+
+```text
+200-step result:
+  baseline:             3.8829
+  no-op after polar4:   3.8873
+  inverse before:       3.8831
+  cholmetric after:     3.8846
+
+100-step result:
+  baseline:             4.6831
+  no-op after polar4:   4.6941
+  inverse before:       4.6790
+  cholmetric after:     4.6734
+
+150-step result:
+  baseline:             4.1234
+  no-op after polar4:   4.1258
+  inverse before:       4.1211
+  cholmetric after:     4.1188
+```
+
+Read:
+
+```text
+Shortening the active metric-polar window to 48-112 did not preserve the
+endpoint. Metric-polar was again best at 100 and 150, then lost at 200.
+This makes "window too long" an incomplete explanation.
+
+The remaining plausible MLP-fc metric-polar lever is strength. The update is
+not washed out, but blend 0.05 appears too strong or too persistent. Add a
+runner knob and run MFP_METRIC_BLEND_MAX=0.02 on the 48-112 suite before
+deprioritizing the half-whitened MLP-fc branch.
+```

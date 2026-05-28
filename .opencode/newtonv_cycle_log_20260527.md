@@ -1733,3 +1733,54 @@ does not collapse immediately, but keeping it active to 160 appears harmful.
 Run the same MLP-fc metric-polar comparison with the shorter 48-112 window
 before abandoning the metric-polar family.
 ```
+
+## Cycle 17 H100 Result: MLP-fc Metric-Polar Window112
+
+Modal app:
+
+```text
+ap-IB0WcZcV3FTIkLlM6SejDt
+```
+
+Parsed 200-step results:
+
+```text
+mfp_baseline:                              3.8829, 727.86ms/step
+mfp_noop_after_polar4:                    3.8873, 595.95ms/step
+mfp_inverse_before_r020_blend010:         3.8831, 602.88ms/step
+mfp_cholmetric_after_polar4_r020_blend005_norm: 3.8846, 592.36ms/step
+```
+
+Intermediate anchors:
+
+```text
+step 50:
+  baseline             5.6186
+  no-op after polar4   5.5985
+  inverse before       5.6140
+  cholmetric after     5.6083
+
+step 100:
+  baseline             4.6831
+  no-op after polar4   4.6941
+  inverse before       4.6790
+  cholmetric after     4.6734
+
+step 150:
+  baseline             4.1234
+  no-op after polar4   4.1258
+  inverse before       4.1211
+  cholmetric after     4.1188
+```
+
+Decision:
+
+```text
+Shortening metric-polar from 48-160 to 48-112 did not fix the endpoint. The
+metric-polar arm was again best at steps 100 and 150, then lost by step 200.
+The effect is real enough to measure but not usable with the current strength.
+
+Next test should lower metric-polar blend, not keep changing only the end
+window. Add a runner knob for MFP_METRIC_BLEND_MAX and run the same window112
+suite with blend 0.02.
+```
