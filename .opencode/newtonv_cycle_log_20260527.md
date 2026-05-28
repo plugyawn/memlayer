@@ -2304,3 +2304,51 @@ Next action: follow the surviving positive signal instead. Run a broader QKVO
 all-layer bounded spectral-filter suite to see whether wider surface coverage
 plus less aggressive C^-alpha shaping beats dense C^-1 or the no-op control.
 ```
+
+## Cycle 26 H100 Partial Result: QKVO All-Layer Power Shape
+
+Modal app:
+
+```text
+ap-PM28Cu4l4fR6nzeNFiqsuT
+```
+
+Parsed 160-step results before manual stop:
+
+```text
+qps_baseline:          4.0043, 576.11ms/step
+qps_qkvo_noop_polar4:  4.0148, 1037.84ms/step
+```
+
+Selected diagnostics:
+
+```text
+QKVO no-op:
+  refresh_avg:     8884.66ms
+  nonrefresh_avg:   569.51ms
+
+O headwise Gram at step 100:
+  mean_diag: 1.6416e+04
+  min:       1.3831e+02
+  p50:       4.4907e+03
+  p99:       1.1425e+05
+  max:       2.6124e+05
+
+O headwise power-0.5 spectrum at step 48:
+  eig_cond: roughly 1.8e2 to 5.7e2 across layers
+  gain_p50: often 1.7 to 2.0
+  gain_p99/max: clipped at 2.0 for all O layers
+```
+
+Decision:
+
+```text
+Stop QKVO-all power before running the active arms. O is dominating both cost
+and spectral shape: the matched no-op is already worse than baseline, refresh
+cost is unacceptable, and O's headwise covariance would push many directions
+to the gain clip even for bounded C^-0.5.
+
+This does not kill Q/K/V input preconditioning. It specifically says "do not
+include O in the broad all-layer bounded-filter screen yet." The next suite is
+QK+V only, all layers, same bounded spectral filters.
+```

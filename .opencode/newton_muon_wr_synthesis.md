@@ -1646,3 +1646,24 @@ C^-1 gave the small 200-step gain, while V0-1 and metric-polar 0-1 did not.
 The next test should therefore combine broader QKVO surface coverage with
 bounded spectral filters, not a stronger post-polar metric update.
 ```
+
+The first QKVO all-layer control says to drop O for now:
+
+```text
+qps_baseline:          4.0043
+qps_qkvo_noop_polar4:  4.0148
+```
+
+Read:
+
+```text
+O is currently a bad broad-surface addition. The no-op/stat path alone is
+slower and worse, and the O headwise statistics are much more extreme than the
+attention-input Gram. At step 100 the O headwise Gram has p50 around 4.49e3 but
+p99 around 1.14e5, and the power-0.5 spectrum already clips many O directions
+at gain 2.0.
+
+The next bounded-filter test should be QK+V only, all layers. That keeps the
+paper-style packed attention-input hypothesis while avoiding O's heavier-tailed
+and costlier output-feature metric.
+```
