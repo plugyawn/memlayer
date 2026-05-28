@@ -1542,6 +1542,86 @@ run_qkv_power_shape_ladder() {
     bash tools/run_newtonv_timing_triplet_gate.sh
 }
 
+run_qkv_inverse_control_ladder() {
+  local qic_steps="${QIC_STEPS:-200}"
+  local qic_val_every="${QIC_VAL_EVERY:-50}"
+  local qic_layers="${QIC_LAYERS:-all}"
+  local qic_collect="${QIC_COLLECT_WINDOWS:-0-64}"
+  local qic_windows="${QIC_WINDOWS:-48-112}"
+  local qic_ridge="${QIC_RIDGE_REL:-0.20}"
+  local qic_refresh="${QIC_REFRESH_INTERVAL:-16}"
+  local qic_ema="${QIC_EMA_BETA:-0.8}"
+
+  run_case qic_baseline \
+    NEWTONV_VARIANT=baseline \
+    SCREEN_STEPS="${qic_steps}" \
+    SCREEN_VAL_EVERY="${qic_val_every}" \
+    bash tools/run_newtonv_timing_triplet_gate.sh
+
+  run_case qic_qkv_noop_before_r020 \
+    LOCO_FULL_NOOP=1 \
+    LOCO_FULL_SURFACES=qk,v \
+    LOCO_DIAG_ATTN_LAYERS="${qic_layers}" \
+    LOCO_FULL_COLLECT_WINDOWS="${qic_collect}" \
+    LOCO_FULL_WINDOWS="${qic_windows}" \
+    LOCO_FULL_APPLY_BEFORE_MOMENTUM=1 \
+    LOCO_FULL_REFRESH_INTERVAL="${qic_refresh}" \
+    LOCO_FULL_EMA_BETA="${qic_ema}" \
+    LOCO_FULL_RIDGE_REL="${qic_ridge}" \
+    LOCO_FULL_FILTER=inverse \
+    LOCO_FULL_NORM_RESTORE=1 \
+    SCREEN_STEPS="${qic_steps}" \
+    SCREEN_VAL_EVERY="${qic_val_every}" \
+    bash tools/run_newtonv_raw_v01_gate.sh
+
+  run_case qic_vall_inverse_before_r020 \
+    LOCO_FULL_SURFACES=v \
+    LOCO_DIAG_ATTN_LAYERS="${qic_layers}" \
+    LOCO_FULL_COLLECT_WINDOWS="${qic_collect}" \
+    LOCO_FULL_WINDOWS="${qic_windows}" \
+    LOCO_FULL_APPLY_BEFORE_MOMENTUM=1 \
+    LOCO_FULL_REFRESH_INTERVAL="${qic_refresh}" \
+    LOCO_FULL_EMA_BETA="${qic_ema}" \
+    LOCO_FULL_RIDGE_REL="${qic_ridge}" \
+    LOCO_FULL_FILTER=inverse \
+    LOCO_FULL_NORM_RESTORE=1 \
+    SCREEN_STEPS="${qic_steps}" \
+    SCREEN_VAL_EVERY="${qic_val_every}" \
+    bash tools/run_newtonv_raw_v01_gate.sh
+
+  run_case qic_qk_inverse_before_r020 \
+    NEWTONV_VARIANT=active \
+    LOCO_FULL_SURFACES=qk \
+    LOCO_DIAG_ATTN_LAYERS="${qic_layers}" \
+    LOCO_FULL_COLLECT_WINDOWS="${qic_collect}" \
+    LOCO_FULL_WINDOWS="${qic_windows}" \
+    LOCO_FULL_APPLY_BEFORE_MOMENTUM=1 \
+    LOCO_FULL_REFRESH_INTERVAL="${qic_refresh}" \
+    LOCO_FULL_EMA_BETA="${qic_ema}" \
+    LOCO_FULL_RIDGE_REL="${qic_ridge}" \
+    LOCO_FULL_FILTER=inverse \
+    LOCO_FULL_NORM_RESTORE=1 \
+    SCREEN_STEPS="${qic_steps}" \
+    SCREEN_VAL_EVERY="${qic_val_every}" \
+    bash tools/run_newtonv_timing_triplet_gate.sh
+
+  run_case qic_qkv_inverse_before_r020 \
+    NEWTONV_VARIANT=active \
+    LOCO_FULL_SURFACES=qk,v \
+    LOCO_DIAG_ATTN_LAYERS="${qic_layers}" \
+    LOCO_FULL_COLLECT_WINDOWS="${qic_collect}" \
+    LOCO_FULL_WINDOWS="${qic_windows}" \
+    LOCO_FULL_APPLY_BEFORE_MOMENTUM=1 \
+    LOCO_FULL_REFRESH_INTERVAL="${qic_refresh}" \
+    LOCO_FULL_EMA_BETA="${qic_ema}" \
+    LOCO_FULL_RIDGE_REL="${qic_ridge}" \
+    LOCO_FULL_FILTER=inverse \
+    LOCO_FULL_NORM_RESTORE=1 \
+    SCREEN_STEPS="${qic_steps}" \
+    SCREEN_VAL_EVERY="${qic_val_every}" \
+    bash tools/run_newtonv_timing_triplet_gate.sh
+}
+
 run_v_varred_interaction_ladder() {
   local vvr_steps="${VVR_STEPS:-160}"
   local vvr_val_every="${VVR_VAL_EVERY:-25}"
@@ -2233,6 +2313,9 @@ case "${suite}" in
   qkv_power_shape)
     run_qkv_power_shape_ladder
     ;;
+  qkv_inverse_control)
+    run_qkv_inverse_control_ladder
+    ;;
   v_varred_interaction)
     run_v_varred_interaction_ladder
     ;;
@@ -2268,7 +2351,7 @@ case "${suite}" in
       bash tools/run_newtonv_raw_v01_gate.sh
     ;;
   *)
-    echo "NEWTONV_SUITE must be timing, filters, quick, raw200, promote, polar4, permutations, next, tail, warmmetric, overprecond, overpromote, scheduleonly, preconddiag, schedule_diag, rightfilter, paperstyle, paperfilter, metricpolar, metricpromote, metricv_promote, metricv_window, v_spectral_shape, paper_v_promote, metricsurfaces, surface_control, qkvo_metric_promote, qkvo_schedule, qkvo_power_shape, qkv_power_shape, v_varred_interaction, v_short_pulse, v_schedule_pulse, mlpfc, mlpfc_promote, mlpfc_before_control, mlpfc_filter_control, mlpfc_blend, or all; got ${suite}" >&2
+    echo "NEWTONV_SUITE must be timing, filters, quick, raw200, promote, polar4, permutations, next, tail, warmmetric, overprecond, overpromote, scheduleonly, preconddiag, schedule_diag, rightfilter, paperstyle, paperfilter, metricpolar, metricpromote, metricv_promote, metricv_window, v_spectral_shape, paper_v_promote, metricsurfaces, surface_control, qkvo_metric_promote, qkvo_schedule, qkvo_power_shape, qkv_power_shape, qkv_inverse_control, v_varred_interaction, v_short_pulse, v_schedule_pulse, mlpfc, mlpfc_promote, mlpfc_before_control, mlpfc_filter_control, mlpfc_blend, or all; got ${suite}" >&2
     exit 2
     ;;
 esac
