@@ -2722,3 +2722,48 @@ baseline had an especially large stall, so wall-clock numbers from this run are
 not clean speedrun timing. The endpoint loss comparisons are still useful
 because all cases ran in the same app environment.
 ```
+
+## Cycle 36 H100 Result: Post-varred V Finite-t Shape
+
+Modal app:
+
+```text
+ap-V8Y0hd73A1CbvY4oDCL3KF
+```
+
+Parsed 200-step results:
+
+```text
+vpt_baseline:                              3.8903, 672.92ms/step
+vpt_noop_postvarred_r020_blend002          3.8821, 662.82ms/step
+vpt_finite_t05_postvarred_r020_blend002    3.8857, 654.27ms/step
+vpt_finite_t10_postvarred_r020_blend002    3.8821, 660.70ms/step
+vpt_finite_t20_postvarred_r020_blend002    3.8846, 659.78ms/step
+```
+
+Decision:
+
+```text
+Finite-t spectral shape did not rescue the V pulse.
+
+The no-op control was the best endpoint or tied-best endpoint. t=0.5 was
+weaker and lost to no-op by 0.0036. t=1.0 tied no-op at the printed precision.
+t=2.0 had the strongest early active signal, with step-100 loss 4.6638 versus
+no-op 4.6810 and baseline 4.7029, but ended at 3.8846, losing to no-op by
+0.0025.
+
+This is important: the input-feature metric can still visibly move the early
+trajectory, especially with the stronger finite-time filter, but the endpoint
+continues to be absorbed or reversed by 200. The current post-varred V pulse is
+therefore not a WR candidate. Treat the active metric payload as a diagnostic
+signal, not an implementation to promote.
+
+The next hour should be analysis-first, not another H100 launch. The immediate
+questions are:
+
+1. Why the path/no-op control is repeatedly strong.
+2. Whether the post-window optimizer state is polluted by the metric payload.
+3. Whether the right metric should be expressed as a safer optimizer-path
+   change, e.g. schedule/no-op route, blend decay, or a low-rank diagnostic
+   that logs subspace movement without updating.
+```

@@ -1917,3 +1917,38 @@ post-varred V setup against a matched no-op. If none beat no-op, demote this
 post-varred V pulse family and return to either pure optimizer-path controls or
 a more principled low-rank/metric-polar diagnostic.
 ```
+
+The finite-t shape check answered that narrow question negatively:
+
+```text
+vpt_baseline:                           3.8903
+vpt_noop_postvarred_r020_blend002       3.8821
+vpt_finite_t05_postvarred_r020_blend002 3.8857
+vpt_finite_t10_postvarred_r020_blend002 3.8821
+vpt_finite_t20_postvarred_r020_blend002 3.8846
+```
+
+Read:
+
+```text
+Finite-time transfer strength changes the early curve but not the endpoint
+ordering. t=2.0 produced the strongest active early signal, beating no-op by
+0.0172 at step 100, but ended 0.0025 worse than no-op. t=0.5 was too weak or
+misaligned, and t=1.0 only tied no-op at printed precision.
+
+This demotes the post-varred V finite-pulse family. The right feature metric is
+not absent: its early effect is too large to ignore. But the payload is not
+surviving the existing optimizer dynamics to the 200-step endpoint. The
+dominant actionable signal is now the optimizer-path/no-op control, not the
+active right preconditioner.
+
+Next analysis target:
+
+1. Audit what schedule-only/no-op changes in the update path and why it can
+   beat baseline repeatedly.
+2. Inspect whether the active metric leaves a bad post-window second-momentum
+   or variance-reduction tail.
+3. If another H100 hour is spent, it should be on a path-control replication or
+   a diagnostic run that logs post-window state deltas, not on broader surface
+   sweeps.
+```
