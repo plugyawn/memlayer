@@ -170,6 +170,12 @@ LOCO_FULL_STATS_ACTIVE = LOCO_FULL_ACTIVE and not LOCO_FULL_SCHEDULE_ONLY
 LOCO_FEATURE_ACTIVE = LOCO_DIAG_ACTIVE or LOCO_FULL_ACTIVE
 TRAIN_RUN_SEED_SPEC = os.environ.get("TRAIN_RUN_SEED", "").strip()
 TRAIN_RUN_SEED = int(TRAIN_RUN_SEED_SPEC) if TRAIN_RUN_SEED_SPEC else None
+TRAIN_SYNC_BOS_INDEX = os.environ.get("TRAIN_SYNC_BOS_INDEX", "0") == "1"
+TRAIN_INIT_MODEL_PATH = os.environ.get("TRAIN_INIT_MODEL_PATH", "").strip()
+TRAIN_SAVE_INIT_MODEL_PATH = os.environ.get("TRAIN_SAVE_INIT_MODEL_PATH", "").strip()
+NEWTONV_PAIRED_CASES = tuple(
+    s.strip() for s in os.environ.get("NEWTONV_PAIRED_CASES", "").split(",") if s.strip()
+)
 
 def _parse_loco_step_windows(name: str, spec: str | None = None) -> tuple[tuple[int, int], ...]:
     spec = (os.environ.get(name, "") if spec is None else spec).strip().lower()
@@ -754,6 +760,7 @@ class NorMuonAndAdam:
         self.loco_diag_normuon_normquarter = self.loco_diag_normuon and LOCO_DIAG_NORMUON_PRECOND == "normquarter"
         self.loco_full_active = LOCO_FULL_ACTIVE and loco_diag_model is not None
         self._loco_full_optimizer_active = False
+        self._loco_full_runtime_noop = False
         self._loco_step = 0
         self._loco_log_step = False
         self._loco_full_log_step = False
@@ -821,7 +828,7 @@ class NorMuonAndAdam:
         else:
             blend = min(LOCO_DIAG_BLEND_MAX, max(0.0, step / LOCO_DIAG_BLEND_STEPS) * LOCO_DIAG_BLEND_MAX)
         full_active_now = _loco_full_active_at_step(step)
-        if LOCO_FULL_NOOP or not full_active_now:
+        if LOCO_FULL_NOOP or self._loco_full_runtime_noop or not full_active_now:
             full_blend = 0.0
         elif LOCO_FULL_BLEND_STEPS <= 0:
             full_blend = LOCO_FULL_BLEND_MAX
@@ -832,7 +839,12 @@ class NorMuonAndAdam:
         self._loco_blend_t.fill_(blend)
         self._loco_full_blend_t.fill_(full_blend)
         apply_full_now = (step % LOCO_FULL_APPLY_INTERVAL) == 0
-        self._loco_full_optimizer_active = self.loco_full_active and apply_full_now and full_active_now and (LOCO_FULL_NOOP or full_blend != 0.0)
+        self._loco_full_optimizer_active = (
+            self.loco_full_active
+            and apply_full_now
+            and full_active_now
+            and (LOCO_FULL_NOOP or self._loco_full_runtime_noop or full_blend != 0.0)
+        )
         self._loco_log_step = globals().get("master_process", False) and step in LOCO_DIAG_LOG_STEP_SET
         self._loco_full_log_step = self._loco_log_step and LOCO_FULL_LOG_PRECOND
         self._loco_grad_ratio_stats.clear()
@@ -3167,13 +3179,22 @@ class Shard:
         self.world_size = world_size
         self.i = 0
 
-        # Partial index now, full index async
-        self.bos_idx = (tokens[:6_000_000] == BOS_ID).nonzero(as_tuple=True)[0].to(torch.int64).cpu().numpy()
-        self._full_idx = None
-        self._loader_thread = None
-        self._ready = threading.Event()
-        self._loader_thread = threading.Thread(target=self._scan)
-        self._loader_thread.start()
+        if TRAIN_SYNC_BOS_INDEX:
+            # Opt-in deterministic experiment mode: avoid timing-dependent
+            # partial->full BOS index switches across separate processes.
+            self.bos_idx = (tokens == BOS_ID).nonzero(as_tuple=True)[0].to(torch.int64).cpu().numpy()
+            self._full_idx = self.bos_idx
+            self._loader_thread = None
+            self._ready = threading.Event()
+            self._ready.set()
+        else:
+            # Partial index now, full index async.
+            self.bos_idx = (tokens[:6_000_000] == BOS_ID).nonzero(as_tuple=True)[0].to(torch.int64).cpu().numpy()
+            self._full_idx = None
+            self._loader_thread = None
+            self._ready = threading.Event()
+            self._loader_thread = threading.Thread(target=self._scan)
+            self._loader_thread.start()
 
     def _scan(self):
         self._full_idx = (self.tokens == BOS_ID).nonzero(as_tuple=True)[0].to(torch.int64).cpu().numpy()
@@ -3181,6 +3202,8 @@ class Shard:
 
     def _maybe_switch(self):
         # Switch to full index as soon as async scan completes
+        if self._loader_thread is None:
+            return
         if self.bos_idx is not self._full_idx and self._ready.is_set():
             self._loader_thread.join()
             self.bos_idx = self._full_idx
@@ -4174,12 +4197,34 @@ print0(f"Running PyTorch {torch.version.__version__} compiled for CUDA {torch.ve
 print0(f"Running Triton version {triton.__version__}")
 if TRAIN_RUN_SEED is not None:
     print0(f"Using TRAIN_RUN_SEED={TRAIN_RUN_SEED}", console=True)
+if TRAIN_SYNC_BOS_INDEX:
+    print0("Using TRAIN_SYNC_BOS_INDEX=1", console=True)
+if TRAIN_INIT_MODEL_PATH:
+    print0(f"Using TRAIN_INIT_MODEL_PATH={TRAIN_INIT_MODEL_PATH}", console=True)
+if TRAIN_SAVE_INIT_MODEL_PATH:
+    print0(f"Using TRAIN_SAVE_INIT_MODEL_PATH={TRAIN_SAVE_INIT_MODEL_PATH}", console=True)
+if NEWTONV_PAIRED_CASES:
+    print0(f"Using NEWTONV_PAIRED_CASES={','.join(NEWTONV_PAIRED_CASES)}", console=True)
 
 def nvidia_smi():
     import subprocess  # avoid top level import
     return subprocess.run(["nvidia-smi"], stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True).stdout
 print0(nvidia_smi())
 print0("="*100)
+
+def capture_rng_state():
+    return {
+        "python": random.getstate(),
+        "numpy": np.random.get_state(),
+        "torch_cpu": torch.get_rng_state(),
+        "torch_cuda": torch.cuda.get_rng_state_all(),
+    }
+
+def restore_rng_state(state):
+    random.setstate(state["python"])
+    np.random.set_state(state["numpy"])
+    torch.set_rng_state(state["torch_cpu"])
+    torch.cuda.set_rng_state_all(state["torch_cuda"])
 
 model: nn.Module = GPT(
     vocab_size=50257,
@@ -4203,6 +4248,22 @@ model.mudd_b2.data = model.mudd_b2.data.bfloat16()
 for param in model.parameters():
     dist.broadcast(param.detach(), 0)
 
+if TRAIN_INIT_MODEL_PATH:
+    init_model = torch.load(TRAIN_INIT_MODEL_PATH, map_location=device)
+    if isinstance(init_model, dict) and "model" in init_model:
+        init_model = init_model["model"]
+    model.load_state_dict(init_model)
+    for param in model.parameters():
+        dist.broadcast(param.detach(), 0)
+    dist.barrier()
+
+if TRAIN_SAVE_INIT_MODEL_PATH:
+    if master_process:
+        init_path = Path(TRAIN_SAVE_INIT_MODEL_PATH)
+        init_path.parent.mkdir(parents=True, exist_ok=True)
+        torch.save({k: v.detach().cpu() for k, v in model.state_dict().items()}, init_path)
+    dist.barrier()
+
 model: nn.Module = torch.compile(model, dynamic=False, fullgraph=True)
 training_manager = TrainingManager(model)
 
@@ -4213,7 +4274,8 @@ training_manager = TrainingManager(model)
 print0("Compiling model and warming up kernels (~7 minutes on first execution)", console=True)
 # Warmup the training kernels, then re-initialize the state so we aren't cheating
 initial_state = dict(model=copy.deepcopy(model.state_dict()),
-                     optimizer=training_manager.get_state()) # save the initial state
+                     optimizer=training_manager.get_state(),
+                     rng=capture_rng_state()) # save the initial state
 train_loader = distributed_data_generator(args.train_files, TRAINING_STAGES[0].batch_size, TRAINING_STAGES[0].train_max_seq_len, grad_accum_steps=grad_accum_steps)
 val_loader = distributed_data_generator(args.val_files, args.val_batch_size, -1, grad_accum_steps=grad_accum_steps, align_to_bos=False)
 
@@ -4238,103 +4300,136 @@ for step in warmup_steps:
         del loss
     training_manager.step_optimizers(step)
 print0("Resetting Model", console=True)
-model.zero_grad(set_to_none=True)
-model.load_state_dict(initial_state["model"])
-training_manager.reset(initial_state["optimizer"])
-del val_loader, train_loader, initial_state
-model.train()
+del val_loader, train_loader
+
+def restore_training_anchor(state):
+    model.zero_grad(set_to_none=True)
+    model.load_state_dict(state["model"])
+    training_manager.reset(state["optimizer"])
+    restore_rng_state(state["rng"])
+    model.train()
 
 ########################################
 #        Training and validation       #
 ########################################
-train_loader = distributed_data_generator(args.train_files, TRAINING_STAGES[0].batch_size, TRAINING_STAGES[0].train_max_seq_len, grad_accum_steps=grad_accum_steps)
+def _paired_case_is_noop(case_name: str) -> bool:
+    if case_name.startswith("noop"):
+        return True
+    if case_name.startswith("active"):
+        return False
+    raise ValueError(f"unsupported NEWTONV_PAIRED_CASES entry {case_name!r}; expected noop* or active*")
 
-gc.collect()
+def _utc_now() -> str:
+    return time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime())
 
-training_time_ms = 0
-loco_full_refresh_time_ms = 0.0
-loco_full_refresh_count = 0
-loco_full_nonrefresh_time_ms = 0.0
-loco_full_nonrefresh_count = 0
-last_train_step_time_ms = 0.0
-# start the clock
-torch.cuda.synchronize()
-t0 = time.perf_counter()
-# begin training
-train_steps = training_schedule.total_steps
-for step in range(train_steps + 1):
-    last_step = (step == train_steps)
-    training_manager.advance_schedule(step)
-    # --------------- VALIDATION SECTION -----------------
-    if last_step or (args.val_loss_every > 0 and step % args.val_loss_every == 0):
-        if last_step:
-            training_manager.apply_final_ws_ext()
-        # stop the clock
-        torch.cuda.synchronize()
-        training_time_ms += 1000 * (time.perf_counter() - t0)
-        model.eval()
-        assert args.val_tokens % args.val_batch_size == 0
-        val_steps = grad_accum_steps * args.val_tokens // args.val_batch_size
-        val_loader = distributed_data_generator(args.val_files, args.val_batch_size, -1, grad_accum_steps=grad_accum_steps, align_to_bos=False)
-        val_loss = 0
-        with torch.no_grad():
-            for _ in range(val_steps):
-                inputs, targets, cum_seqlens, bigram_inputs, _ = next(val_loader)
-                val_loss += model(inputs, targets, cum_seqlens, bigram_inputs, training_manager.get_forward_args()).mean()
-        val_loss /= val_steps
-        del val_loader
-        dist.reduce(val_loss, 0, op=dist.ReduceOp.AVG)
-        print0(f"step:{step}/{train_steps} val_loss:{val_loss:.4f} train_time:{training_time_ms:.0f}ms step_avg:{training_time_ms/max(step, 1):.2f}ms", console=True)
-        if LOCO_FULL_ACTIVE and (loco_full_refresh_count or loco_full_nonrefresh_count):
-            refresh_avg = loco_full_refresh_time_ms / max(loco_full_refresh_count, 1)
-            nonrefresh_avg = loco_full_nonrefresh_time_ms / max(loco_full_nonrefresh_count, 1)
-            print0(
-                f"loco_full_step_timing through_step:{step - 1} "
-                f"refresh_avg:{refresh_avg:.2f}ms refresh_n:{loco_full_refresh_count} "
-                f"nonrefresh_avg:{nonrefresh_avg:.2f}ms nonrefresh_n:{loco_full_nonrefresh_count}",
-                console=True,
-            )
-        model.train()
-        # start the clock again
-        torch.cuda.synchronize()
-        t0 = time.perf_counter()
-
-    if last_step:
-        if master_process and args.save_checkpoint:
-            log = dict(step=step, code=code, model=model.state_dict(), optimizer=training_manager.get_state())
-            os.makedirs(f"logs/{run_id}", exist_ok=True)
-            torch.save(log, f"logs/{run_id}/state_step{step:06d}.pt")
-        # the last step only has the validation loop, so break to avoid training
-        break
-
-    # --------------- TRAINING SECTION -----------------
-    for idx in range(grad_accum_steps):
-        inputs, targets, cum_seqlens, bigram_inputs, bigram_cpu = train_loader.send(training_manager.train_loader_send_args)
-        training_manager.sparse_index_update(step, bigram_cpu)
-        loss = model(inputs, targets, cum_seqlens, bigram_inputs, training_manager.get_forward_args()).sum() * grad_scale
-        training_manager.sparse_index_share(step)
-        loss.backward()
-        del loss
-    training_manager.step_optimizers(step)
-
-    # logging
-    approx_training_time_ms = training_time_ms + 1000 * (time.perf_counter() - t0)
-    step_time_ms = approx_training_time_ms - last_train_step_time_ms
-    last_train_step_time_ms = approx_training_time_ms
-    loco_full_refresh = LOCO_FULL_ACTIVE and _loco_full_should_refresh(step)
-    if LOCO_FULL_ACTIVE:
-        if loco_full_refresh:
-            loco_full_refresh_time_ms += step_time_ms
-            loco_full_refresh_count += 1
-        else:
-            loco_full_nonrefresh_time_ms += step_time_ms
-            loco_full_nonrefresh_count += 1
-    print0(
-        f"step:{step+1}/{train_steps} train_time:{approx_training_time_ms:.0f}ms "
-        f"step_avg:{approx_training_time_ms/(step + 1):.2f}ms "
-        f"step_ms:{step_time_ms:.2f} refresh:{int(loco_full_refresh)}",
-        console=True,
+def run_training_case(case_name: str | None = None, runtime_loco_full_noop: bool = False):
+    if case_name is not None:
+        print0(f"===== NEWTONV_CASE_START paired_{case_name} {_utc_now()} =====", console=True)
+    restore_training_anchor(initial_state)
+    training_manager._loco_full_runtime_noop = runtime_loco_full_noop
+    train_loader = distributed_data_generator(
+        args.train_files,
+        TRAINING_STAGES[0].batch_size,
+        TRAINING_STAGES[0].train_max_seq_len,
+        grad_accum_steps=grad_accum_steps,
     )
+
+    gc.collect()
+
+    training_time_ms = 0
+    loco_full_refresh_time_ms = 0.0
+    loco_full_refresh_count = 0
+    loco_full_nonrefresh_time_ms = 0.0
+    loco_full_nonrefresh_count = 0
+    last_train_step_time_ms = 0.0
+    torch.cuda.synchronize()
+    t0 = time.perf_counter()
+    train_steps = training_schedule.total_steps
+    for step in range(train_steps + 1):
+        last_step = (step == train_steps)
+        training_manager.advance_schedule(step)
+        # --------------- VALIDATION SECTION -----------------
+        if last_step or (args.val_loss_every > 0 and step % args.val_loss_every == 0):
+            if last_step:
+                training_manager.apply_final_ws_ext()
+            # stop the clock
+            torch.cuda.synchronize()
+            training_time_ms += 1000 * (time.perf_counter() - t0)
+            model.eval()
+            assert args.val_tokens % args.val_batch_size == 0
+            val_steps = grad_accum_steps * args.val_tokens // args.val_batch_size
+            val_loader = distributed_data_generator(args.val_files, args.val_batch_size, -1, grad_accum_steps=grad_accum_steps, align_to_bos=False)
+            val_loss = 0
+            with torch.no_grad():
+                for _ in range(val_steps):
+                    inputs, targets, cum_seqlens, bigram_inputs, _ = next(val_loader)
+                    val_loss += model(inputs, targets, cum_seqlens, bigram_inputs, training_manager.get_forward_args()).mean()
+            val_loss /= val_steps
+            del val_loader
+            dist.reduce(val_loss, 0, op=dist.ReduceOp.AVG)
+            print0(f"step:{step}/{train_steps} val_loss:{val_loss:.4f} train_time:{training_time_ms:.0f}ms step_avg:{training_time_ms/max(step, 1):.2f}ms", console=True)
+            if LOCO_FULL_ACTIVE and (loco_full_refresh_count or loco_full_nonrefresh_count):
+                refresh_avg = loco_full_refresh_time_ms / max(loco_full_refresh_count, 1)
+                nonrefresh_avg = loco_full_nonrefresh_time_ms / max(loco_full_nonrefresh_count, 1)
+                print0(
+                    f"loco_full_step_timing through_step:{step - 1} "
+                    f"refresh_avg:{refresh_avg:.2f}ms refresh_n:{loco_full_refresh_count} "
+                    f"nonrefresh_avg:{nonrefresh_avg:.2f}ms nonrefresh_n:{loco_full_nonrefresh_count}",
+                    console=True,
+                )
+            model.train()
+            # start the clock again
+            torch.cuda.synchronize()
+            t0 = time.perf_counter()
+
+        if last_step:
+            if master_process and args.save_checkpoint:
+                log = dict(step=step, code=code, model=model.state_dict(), optimizer=training_manager.get_state())
+                ckpt_dir = f"logs/{run_id}" if case_name is None else f"logs/{run_id}/{case_name}"
+                os.makedirs(ckpt_dir, exist_ok=True)
+                torch.save(log, f"{ckpt_dir}/state_step{step:06d}.pt")
+            # the last step only has the validation loop, so break to avoid training
+            break
+
+        # --------------- TRAINING SECTION -----------------
+        for idx in range(grad_accum_steps):
+            inputs, targets, cum_seqlens, bigram_inputs, bigram_cpu = train_loader.send(training_manager.train_loader_send_args)
+            training_manager.sparse_index_update(step, bigram_cpu)
+            loss = model(inputs, targets, cum_seqlens, bigram_inputs, training_manager.get_forward_args()).sum() * grad_scale
+            training_manager.sparse_index_share(step)
+            loss.backward()
+            del loss
+        training_manager.step_optimizers(step)
+
+        # logging
+        approx_training_time_ms = training_time_ms + 1000 * (time.perf_counter() - t0)
+        step_time_ms = approx_training_time_ms - last_train_step_time_ms
+        last_train_step_time_ms = approx_training_time_ms
+        loco_full_refresh = LOCO_FULL_ACTIVE and _loco_full_should_refresh(step)
+        if LOCO_FULL_ACTIVE:
+            if loco_full_refresh:
+                loco_full_refresh_time_ms += step_time_ms
+                loco_full_refresh_count += 1
+            else:
+                loco_full_nonrefresh_time_ms += step_time_ms
+                loco_full_nonrefresh_count += 1
+        print0(
+            f"step:{step+1}/{train_steps} train_time:{approx_training_time_ms:.0f}ms "
+            f"step_avg:{approx_training_time_ms/(step + 1):.2f}ms "
+            f"step_ms:{step_time_ms:.2f} refresh:{int(loco_full_refresh)}",
+            console=True,
+        )
+    del train_loader
+    training_manager._loco_full_runtime_noop = False
+    if case_name is not None:
+        print0(f"===== NEWTONV_CASE_END paired_{case_name} {_utc_now()} =====", console=True)
+
+if NEWTONV_PAIRED_CASES:
+    for paired_case in NEWTONV_PAIRED_CASES:
+        run_training_case(paired_case, runtime_loco_full_noop=_paired_case_is_noop(paired_case))
+else:
+    run_training_case()
+del initial_state
 
 if args.run_evals:
     model.eval()

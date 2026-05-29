@@ -61,6 +61,10 @@ run_case() {
     -u LOCO_FULL_LOG_SPECTRUM \
     -u LOCO_FULL_LOG_EIGEN_ENERGY \
     -u LOCO_FULL_LOG_POSTPOLAR \
+    -u TRAIN_SYNC_BOS_INDEX \
+    -u TRAIN_INIT_MODEL_PATH \
+    -u TRAIN_SAVE_INIT_MODEL_PATH \
+    -u NEWTONV_PAIRED_CASES \
     TRAIN_RUN_SEED="${run_seed}" \
     LOG_PATH="${log_path}" \
     "$@"
@@ -2663,6 +2667,46 @@ run_v_seed_sanity_ladder() {
     bash tools/run_newtonv_raw_v01_gate.sh
 }
 
+run_v_paired_state_sanity_ladder() {
+  local vps_steps="${VPS_STEPS:-120}"
+  local vps_val_every="${VPS_VAL_EVERY:-40}"
+  local vps_layers="${VPS_LAYERS:-0-1}"
+  local vps_collect="${VPS_COLLECT_WINDOWS:-0-64}"
+  local vps_windows="${VPS_WINDOWS:-48-64}"
+  local vps_refresh_interval="${VPS_REFRESH_INTERVAL:-16}"
+  local vps_ema_beta="${VPS_EMA_BETA:-0.8}"
+  local vps_ridge="${VPS_RIDGE_REL:-0.2}"
+  local vps_ridge_label="${vps_ridge/./}"
+  local vps_blend="${VPS_BLEND_MAX:-0.02}"
+  local vps_blend_label="${vps_blend/./}"
+  local vps_blend_steps="${VPS_BLEND_STEPS:-32}"
+  local vps_finite_t="${VPS_FINITE_T:-2.0}"
+  local vps_finite_label="${vps_finite_t/./}"
+  local vps_clip="${VPS_POWER_CLIP:-2.0}"
+
+  run_case "vps_paired_finite_t${vps_finite_label}_postvarred_r${vps_ridge_label}_blend${vps_blend_label}" \
+    TRAIN_SYNC_BOS_INDEX=1 \
+    NEWTONV_PAIRED_CASES="${VPS_PAIRED_CASES:-noop,active,noop2}" \
+    LOCO_FULL_SURFACES=v \
+    LOCO_DIAG_ATTN_LAYERS="${vps_layers}" \
+    LOCO_FULL_COLLECT_WINDOWS="${vps_collect}" \
+    LOCO_FULL_WINDOWS="${vps_windows}" \
+    LOCO_FULL_APPLY_POST_VARRED=1 \
+    LOCO_FULL_REFRESH_INTERVAL="${vps_refresh_interval}" \
+    LOCO_FULL_EMA_BETA="${vps_ema_beta}" \
+    LOCO_FULL_RIDGE_REL="${vps_ridge}" \
+    LOCO_FULL_BLEND_MAX="${vps_blend}" \
+    LOCO_FULL_BLEND_STEPS="${vps_blend_steps}" \
+    LOCO_FULL_FILTER=finite \
+    LOCO_FULL_FINITE_T="${vps_finite_t}" \
+    LOCO_FULL_POWER_CLIP="${vps_clip}" \
+    LOCO_FULL_STATIC_NORM=1 \
+    LOCO_FULL_NORM_RESTORE=1 \
+    SCREEN_STEPS="${vps_steps}" \
+    SCREEN_VAL_EVERY="${vps_val_every}" \
+    bash tools/run_newtonv_raw_v01_gate.sh
+}
+
 case "${suite}" in
   timing)
     run_timing_triplet
@@ -2816,6 +2860,9 @@ case "${suite}" in
   v_seed_sanity)
     run_v_seed_sanity_ladder
     ;;
+  v_paired_state_sanity)
+    run_v_paired_state_sanity_ladder
+    ;;
   all)
     run_timing_triplet
     run_next_ladder
@@ -2827,7 +2874,7 @@ case "${suite}" in
       bash tools/run_newtonv_raw_v01_gate.sh
     ;;
   *)
-    echo "NEWTONV_SUITE must be timing, filters, quick, raw200, promote, polar4, permutations, next, tail, warmmetric, overprecond, overpromote, scheduleonly, preconddiag, schedule_diag, rightfilter, paperstyle, paperfilter, metricpolar, metricpromote, metricv_promote, metricv_window, v_spectral_shape, paper_v_promote, metricsurfaces, surface_control, qkvo_metric_promote, qkvo_schedule, qkvo_power_shape, qkv_power_shape, qkv_inverse_control, v_varred_interaction, v_short_pulse, v_schedule_pulse, mlpfc, mlpfc_promote, mlpfc_before_control, mlpfc_filter_control, mlpfc_blend, mlpfc_postvarred_control, v_postvarred_control, v_postvarred_window, v_postvarred_finite_t, v_seed_sanity, or all; got ${suite}" >&2
+    echo "NEWTONV_SUITE must be timing, filters, quick, raw200, promote, polar4, permutations, next, tail, warmmetric, overprecond, overpromote, scheduleonly, preconddiag, schedule_diag, rightfilter, paperstyle, paperfilter, metricpolar, metricpromote, metricv_promote, metricv_window, v_spectral_shape, paper_v_promote, metricsurfaces, surface_control, qkvo_metric_promote, qkvo_schedule, qkvo_power_shape, qkv_power_shape, qkv_inverse_control, v_varred_interaction, v_short_pulse, v_schedule_pulse, mlpfc, mlpfc_promote, mlpfc_before_control, mlpfc_filter_control, mlpfc_blend, mlpfc_postvarred_control, v_postvarred_control, v_postvarred_window, v_postvarred_finite_t, v_seed_sanity, v_paired_state_sanity, or all; got ${suite}" >&2
     exit 2
     ;;
 esac
