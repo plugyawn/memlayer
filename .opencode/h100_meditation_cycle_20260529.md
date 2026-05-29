@@ -56,3 +56,24 @@ Patch prepared:
 Next H100 hour should start with a small seeded control sanity check before any
 new algorithmic sweep.
 ```
+
+Prepared next H100-hour suite:
+
+```text
+NEWTONV_SUITE=v_seed_sanity
+default seed: NEWTONV_RUN_SEED=1337
+cases:
+  vss_baseline_a
+  vss_baseline_b
+  vss_schedule_only_postvarred_r020_blend002
+  vss_noop_postvarred_r020_blend002
+  vss_finite_t20_postvarred_r020_blend002
+
+Expected control result:
+  baseline_a == baseline_b == schedule_only at printed validation precision.
+  no-op should also match if blend=0 is truly update-identical.
+
+If this fails:
+  stop interpreting the old active/no-op deltas and fix determinism/control
+  semantics first.
+```
