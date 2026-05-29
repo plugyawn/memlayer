@@ -35,3 +35,24 @@ Analysis focus for this block:
 2. Explain why active V metric produces early movement but loses by 200.
 3. Decide whether the next allowed H100 hour should test path controls, post-window state, or be skipped.
 ```
+
+Findings:
+
+```text
+2026-05-29 21:02 IST
+
+schedule_only is effectively a pure baseline control in the post-varred V
+suite: stats are disabled, preconditioner application is skipped, and the update
+falls through the same fused polar/variance-reduction path as baseline.
+
+The apparent schedule_only wins are therefore not meaningful optimizer alpha.
+The suite was missing a fixed run seed, so each case likely used a different
+random initialization. That contaminates baseline/no-op/active comparisons.
+
+Patch prepared:
+  - TRAIN_RUN_SEED support in train_gpt.py.
+  - run_newtonv_experiment_suite.sh now sets TRAIN_RUN_SEED=1337 for all cases.
+
+Next H100 hour should start with a small seeded control sanity check before any
+new algorithmic sweep.
+```

@@ -11,6 +11,7 @@ with open(os.path.join(os.path.dirname(sys.argv[0]), 'triton_kernels.py'), 'r') 
 import copy
 import glob
 import math
+import random
 import threading
 import time
 import uuid
@@ -167,6 +168,8 @@ LOCO_FULL_RESET_EACH_WINDOW = os.environ.get(
 LOCO_FULL_BLEND_RESTART_EACH_WINDOW = os.environ.get("LOCO_FULL_BLEND_RESTART_EACH_WINDOW", "1" if LOCO_FULL_WINDOWS_SPEC else "0") == "1"
 LOCO_FULL_STATS_ACTIVE = LOCO_FULL_ACTIVE and not LOCO_FULL_SCHEDULE_ONLY
 LOCO_FEATURE_ACTIVE = LOCO_DIAG_ACTIVE or LOCO_FULL_ACTIVE
+TRAIN_RUN_SEED_SPEC = os.environ.get("TRAIN_RUN_SEED", "").strip()
+TRAIN_RUN_SEED = int(TRAIN_RUN_SEED_SPEC) if TRAIN_RUN_SEED_SPEC else None
 
 def _parse_loco_step_windows(name: str, spec: str | None = None) -> tuple[tuple[int, int], ...]:
     spec = (os.environ.get(name, "") if spec is None else spec).strip().lower()
@@ -313,6 +316,11 @@ torch.cuda.set_device(device)
 dist.init_process_group(backend="cuda:nccl,cpu:gloo", device_id=device)
 dist.barrier()
 master_process = (rank == 0) # this process will do logging, checkpointing etc.
+if TRAIN_RUN_SEED is not None:
+    random.seed(TRAIN_RUN_SEED)
+    np.random.seed(TRAIN_RUN_SEED % (2**32 - 1))
+    torch.manual_seed(TRAIN_RUN_SEED)
+    torch.cuda.manual_seed_all(TRAIN_RUN_SEED)
 
 # -----------------------------------------------------------------------------
 # Custom operators: FP8 matmul by @YouJiacheng
@@ -4164,6 +4172,8 @@ print0("="*100)
 print0(f"Running Python {sys.version}")
 print0(f"Running PyTorch {torch.version.__version__} compiled for CUDA {torch.version.cuda}")
 print0(f"Running Triton version {triton.__version__}")
+if TRAIN_RUN_SEED is not None:
+    print0(f"Using TRAIN_RUN_SEED={TRAIN_RUN_SEED}", console=True)
 
 def nvidia_smi():
     import subprocess  # avoid top level import

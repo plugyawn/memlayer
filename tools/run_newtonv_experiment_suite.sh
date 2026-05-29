@@ -3,6 +3,7 @@ set -euo pipefail
 
 suite="${NEWTONV_SUITE:-quick}"
 label="${NEWTONV_SUITE_LABEL:-${suite}}"
+run_seed="${NEWTONV_RUN_SEED:-1337}"
 timing_steps="${TIMING_STEPS:-80}"
 timing_val_every="${TIMING_VAL_EVERY:-20}"
 filter_steps="${FILTER_STEPS:-80}"
@@ -60,6 +61,7 @@ run_case() {
     -u LOCO_FULL_LOG_SPECTRUM \
     -u LOCO_FULL_LOG_EIGEN_ENERGY \
     -u LOCO_FULL_LOG_POSTPOLAR \
+    TRAIN_RUN_SEED="${run_seed}" \
     LOG_PATH="${log_path}" \
     "$@"
   echo "===== NEWTONV_CASE_END ${name} $(date -u +%Y-%m-%dT%H:%M:%SZ) ====="

@@ -1952,3 +1952,26 @@ Next analysis target:
    a diagnostic run that logs post-window state deltas, not on broader surface
    sweeps.
 ```
+
+Analysis correction:
+
+```text
+The old same-suite controls were not as matched as assumed.
+
+`schedule_only` in the post-varred V suite does not collect stats, does not
+apply a preconditioner, and falls through the same fused `polar_express` and
+NorMuon variance-reduction path as baseline. Therefore its repeated swings
+against baseline are not optimizer-path alpha. They are mostly evidence that
+each suite case was launched as a separate Python process without a fixed
+training seed.
+
+This also weakens every baseline-vs-active statement from the unseeded Modal
+suites. The best available comparisons are active vs no-op inside the same
+suite, but even those were not perfectly initialization-matched because no-op
+and active also used different random initializations.
+
+Patch applied: `TRAIN_RUN_SEED` now seeds Python, NumPy, Torch, and CUDA when
+set, and `tools/run_newtonv_experiment_suite.sh` sets `TRAIN_RUN_SEED=1337` by
+default for all cases in a suite. Future H100 ablations must be rerun under
+seed-matched conditions before promotion.
+```
