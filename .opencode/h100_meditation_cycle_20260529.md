@@ -77,3 +77,34 @@ If this fails:
   stop interpreting the old active/no-op deltas and fix determinism/control
   semantics first.
 ```
+
+Seed sanity H100 completed:
+
+```text
+App: ap-mGqPxnv2ZneOpnHCr7oQOu
+Label: v_seed_sanity_h100_20260530
+Seed: TRAIN_RUN_SEED=1337
+```
+
+Results:
+
+```text
+vss_baseline_a:                            4.1864, 570.55ms/step
+vss_baseline_b:                            4.1816, 564.52ms/step
+vss_schedule_only_postvarred_r020_blend002 4.1818, 563.02ms/step
+vss_noop_postvarred_r020_blend002          4.1856, 572.34ms/step
+vss_finite_t20_postvarred_r020_blend002    4.1839, 568.87ms/step
+```
+
+Conclusion:
+
+```text
+The sanity check failed its intended strict criterion. baseline_a and
+baseline_b did not match at printed precision despite the same seed, and the
+spread is too large for the small endpoint deltas we were trying to interpret.
+
+Do not launch more surface sweeps until the harness can compare active and
+control paths from an identical saved state or enough paired reps are budgeted.
+The next implementation task should be an exact-state paired harness, not a new
+Newton-V variant.
+```

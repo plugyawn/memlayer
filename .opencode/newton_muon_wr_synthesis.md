@@ -1975,3 +1975,34 @@ set, and `tools/run_newtonv_experiment_suite.sh` sets `TRAIN_RUN_SEED=1337` by
 default for all cases in a suite. Future H100 ablations must be rerun under
 seed-matched conditions before promotion.
 ```
+
+Seeded sanity result:
+
+```text
+vss_baseline_a:                            4.1864
+vss_baseline_b:                            4.1816
+vss_schedule_only_postvarred_r020_blend002 4.1818
+vss_noop_postvarred_r020_blend002          4.1856
+vss_finite_t20_postvarred_r020_blend002    4.1839
+```
+
+Read:
+
+```text
+Seeding alone is insufficient for a tight control floor.
+
+Both baseline cases logged the same seed, but they still differed by 0.0048 at
+120 steps. That is already comparable to or larger than the candidate endpoint
+effects from the V finite-t pulse family. schedule_only landed with the better
+baseline, noop lost, and finite_t20 landed between schedule_only and noop.
+
+Therefore the current H100 evidence cannot support claims about 0.002-0.005
+endpoint gains. The right-feature metric can visibly move early trajectories,
+but promotion now requires a stricter harness: shared exact initialization and
+optimizer state across cases, paired active/no-op branches from the same saved
+state, or enough replications to estimate the control variance.
+
+The post-varred V finite-t family should remain demoted until it beats a true
+paired no-op/control. Broader QKVO/MLP surface sweeps would waste GPU time
+under the current measurement noise.
+```

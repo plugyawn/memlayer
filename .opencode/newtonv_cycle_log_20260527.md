@@ -2767,3 +2767,58 @@ questions are:
    change, e.g. schedule/no-op route, blend decay, or a low-rank diagnostic
    that logs subspace movement without updating.
 ```
+
+## Cycle 37 H100 Result: Seeded V Control Sanity
+
+Modal app:
+
+```text
+ap-mGqPxnv2ZneOpnHCr7oQOu
+```
+
+Parsed 120-step results:
+
+```text
+vss_baseline_a:                            4.1864, 570.55ms/step
+vss_baseline_b:                            4.1816, 564.52ms/step
+vss_schedule_only_postvarred_r020_blend002 4.1818, 563.02ms/step
+vss_noop_postvarred_r020_blend002          4.1856, 572.34ms/step
+vss_finite_t20_postvarred_r020_blend002    4.1839, 568.87ms/step
+```
+
+Step anchors:
+
+```text
+baseline_a:    s40=5.8147 s80=4.6292 s120=4.1864
+baseline_b:    s40=5.8161 s80=4.6170 s120=4.1816
+schedule_only: s40=5.8068 s80=4.6099 s120=4.1818
+noop:          s40=5.8243 s80=4.6228 s120=4.1856
+finite_t20:    s40=5.8259 s80=4.6230 s120=4.1839
+```
+
+Decision:
+
+```text
+The seed-matched sanity suite did not establish a deterministic control floor.
+
+TRAIN_RUN_SEED was applied and every case logged `Using TRAIN_RUN_SEED=1337`,
+but baseline_a and baseline_b still differed by 0.0048 at step 120. That is
+larger than the deltas we were previously trying to interpret for V pulses.
+
+schedule_only matched the better baseline at the endpoint, but that is not
+optimizer alpha: schedule_only does not collect full stats or apply a
+preconditioner. noop and finite_t20 both lost to schedule_only, and finite_t20
+did not beat noop by enough to matter under this control spread.
+
+This demotes the current post-varred V finite-t line. The correct next move is
+not another surface sweep. First fix the experimental harness so active/no-op
+comparisons share an identical initial model and optimizer state, or run enough
+paired repetitions that a 0.002-0.005 endpoint delta is statistically legible.
+
+Timing note:
+  - schedule_only had no refreshes yet still showed the same phase-dependent
+    step-time jumps as active/noop cases.
+  - noop/finite refresh steps were only about 394ms average, while late
+    non-refresh averages were about 576-579ms.
+  - The dominant timing shape in this 120-step screen is not full-Gram refresh.
+```
