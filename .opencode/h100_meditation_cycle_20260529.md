@@ -254,3 +254,39 @@ Next meditation focus:
   3. Keep V additive demoted until a different scale/window/filter clears a
      paired persistence run.
 ```
+
+## Cycle E
+
+```text
+Start: 2026-05-30 16:50 IST
+GPU apps:
+  ap-KVxwzxzDJLLJZaMrvrMiRh completed additive MLP c_fc 120-step paired probe.
+Modal active NanoGPT apps after block: none.
+```
+
+H100 result:
+
+```text
+MLP c_fc layers 0-1 additive finite_t=2 norm-to-base, collect 0-64, apply 48-64:
+  paired_noop:   s80=4.6216  s120=4.1816  step_avg=450.25ms
+  paired_active: s80=4.6302  s120=4.1871  step_avg=450.59ms
+  paired_noop2:  s80=4.6215  s120=4.1865  step_avg=449.88ms
+```
+
+Conclusion:
+
+```text
+c_fc additive also failed the 120-step persistence check.
+
+This is a cleaner negative than V: active is worse at step 80 by a visible
+margin and does not recover by step 120. The run is timing-matched, so this is
+not a wall-clock or compile artifact.
+
+Next meditation focus:
+  1. Do not spend the next H100 slot on more surfaces with this same finite_t=2
+     norm-to-base pulse.
+  2. Enable additive correction/base diagnostics in the paired suite.
+  3. Use a short logging run to decide whether raw additive alpha should be
+     much smaller, whether the window should be earlier/shorter, or whether
+     finite_t=2 is simply too strong.
+```

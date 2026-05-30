@@ -3027,3 +3027,57 @@ Next action:
   - only after a surface survives 120 should raw-vs-norm-to-base alpha tuning
     get H100 time.
 ```
+
+## Cycle 41 H100 Result: Additive MLP c_fc 120-Step Persistence Check
+
+Run:
+
+```text
+App: ap-KVxwzxzDJLLJZaMrvrMiRh
+Log: .opencode/modal_newtonv_lpa_mlpfc_finite_normbase120_h100_20260530.launch.log
+Parsed: .opencode/modal_newtonv_lpa_mlpfc_finite_normbase120_h100_20260530.parsed.md
+
+Surface: MLP c_fc layers 0-1
+Collect window: 0-64
+Apply window: 48-64
+Filter: finite_t=2.0, clip=2.0, ridge_rel=0.20
+Additive alpha/blend max: 0.05 over 16 steps
+Scaling: additive_norm_to_base=1
+Cases: noop, active, noop2
+```
+
+Parsed result:
+
+```text
+paired_noop:   s40=5.8201  s80=4.6216  s120=4.1816  step_avg=450.25ms
+paired_active: s40=5.8133  s80=4.6302  s120=4.1871  step_avg=450.59ms
+paired_noop2:  s40=5.8151  s80=4.6215  s120=4.1865  step_avg=449.88ms
+```
+
+Decision:
+
+```text
+This demotes additive MLP c_fc under the current scale/window.
+
+The 80-step c_fc additive screen had active beating both controls. At 120,
+the exact-state replay reverses:
+  - active is worse than both no-ops at step 80 by about 0.0086.
+  - active is worse than first noop at step 120 by 0.0055.
+  - active is only 0.0006 worse than noop2 at step 120, but the better no-op
+    is the relevant promotion guard.
+
+The timing is matched across active/noop/noop2, so this is not an overhead
+artifact. It is an algorithmic negative for this additive norm-to-base setting.
+
+Diagnostic gap:
+  - the additive runs did not include LOCO_FULL_LOG_PRECOND=1, so there are no
+    correction/base norm rows to choose a raw additive alpha from.
+  - before more surface sweeps, add or enable additive diagnostics and run a
+    short paired logging probe.
+
+Current read:
+  - both V and c_fc looked mildly positive at 80 but failed 120 persistence.
+  - the additive/state-decoupled hypothesis remains conceptually cleaner than
+    inserting the metric into Muon state, but the present norm-to-base finite
+    pulse is not a WR candidate.
+```

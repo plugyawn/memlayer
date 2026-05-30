@@ -2771,6 +2771,9 @@ run_locoprop_additive_paired_ladder() {
   local lpa_finite_label="${lpa_finite_t/./}"
   local lpa_clip="${LPA_POWER_CLIP:-2.0}"
   local lpa_norm_to_base="${LPA_NORM_TO_BASE:-1}"
+  local lpa_log_precond="${LPA_LOG_PRECOND:-0}"
+  local lpa_log_precond_detail="${LPA_LOG_PRECOND_DETAIL:-0}"
+  local lpa_log_steps="${LPA_LOG_STEPS:-48,50,56,64,80,100,120}"
   local lpa_norm_label="raw"
   if [[ "${lpa_norm_to_base}" == "1" ]]; then
     lpa_norm_label="normbase"
@@ -2795,6 +2798,9 @@ run_locoprop_additive_paired_ladder() {
         LOCO_FULL_FILTER="${lpa_filter}" \
         LOCO_FULL_FINITE_T="${lpa_finite_t}" \
         LOCO_FULL_POWER_CLIP="${lpa_clip}" \
+        LOCO_FULL_LOG_PRECOND="${lpa_log_precond}" \
+        LOCO_FULL_LOG_PRECOND_DETAIL="${lpa_log_precond_detail}" \
+        LOCO_DIAG_LOG_STEPS="${lpa_log_steps}" \
         LOCO_FULL_STATIC_NORM=1 \
         LOCO_FULL_NORM_RESTORE=0 \
         SCREEN_STEPS="${lpa_steps}" \
@@ -2819,6 +2825,9 @@ run_locoprop_additive_paired_ladder() {
         LOCO_FULL_FILTER="${lpa_filter}" \
         LOCO_FULL_FINITE_T="${lpa_finite_t}" \
         LOCO_FULL_POWER_CLIP="${lpa_clip}" \
+        LOCO_FULL_LOG_PRECOND="${lpa_log_precond}" \
+        LOCO_FULL_LOG_PRECOND_DETAIL="${lpa_log_precond_detail}" \
+        LOCO_DIAG_LOG_STEPS="${lpa_log_steps}" \
         LOCO_FULL_STATIC_NORM=1 \
         LOCO_FULL_NORM_RESTORE=0 \
         SCREEN_STEPS="${lpa_steps}" \

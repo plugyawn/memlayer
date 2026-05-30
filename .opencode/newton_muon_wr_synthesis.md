@@ -2139,3 +2139,32 @@ MLP c_fc should get the same 120-step persistence check before broader surface
 sweeps. If c_fc also fades, the additive family needs alpha/scale redesign
 from the correction/base norm logs before more GPU time goes to surfaces.
 ```
+
+Additive MLP c_fc 120-step persistence update:
+
+```text
+Run:
+  ap-KVxwzxzDJLLJZaMrvrMiRh
+  .opencode/modal_newtonv_lpa_mlpfc_finite_normbase120_h100_20260530.parsed.md
+
+MLP c_fc layers 0-1, collect 0-64, apply 48-64:
+  paired_noop:   s80=4.6216  s120=4.1816
+  paired_active: s80=4.6302  s120=4.1871
+  paired_noop2:  s80=4.6215  s120=4.1865
+```
+
+Updated read:
+
+```text
+The additive norm-to-base finite pulse now has the same pattern on both
+surfaces: small 80-step promise, then no 120-step promotion.
+
+For c_fc, active is materially worse at step 80 and worse than the better no-op
+at step 120. Timing is matched, so this is not an implementation overhead
+explanation.
+
+This means the next lever should not be "try more surfaces with the same
+scale." The current finite_t=2, ridge=0.20, alpha=0.05 norm-to-base correction
+is too blunt. We need the correction/base norm and cosine diagnostics enabled
+for additive runs, then a scale/window/filter ladder chosen from those numbers.
+```
