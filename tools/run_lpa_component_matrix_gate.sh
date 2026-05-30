@@ -12,6 +12,9 @@ set -euo pipefail
 #   orthogonal:0.05
 #
 # An entry without a blend uses LPA_BLEND_MAX.
+# LPA_NORM_CAP=0 leaves the correction uncapped after optional norm-to-base.
+# Set LPA_NORM_TO_BASE=0 and LPA_NORM_CAP=1 for natural magnitude capped at
+# the base NorMuon update norm.
 
 steps="${LPA_STEPS:-${SCREEN_STEPS:-80}}"
 val_every="${LPA_VAL_EVERY:-${SCREEN_VAL_EVERY:-40}}"
@@ -27,6 +30,7 @@ blend_steps="${LPA_BLEND_STEPS:-16}"
 finite_t="${LPA_FINITE_T:-2.0}"
 clip="${LPA_POWER_CLIP:-2.0}"
 norm_to_base="${LPA_NORM_TO_BASE:-1}"
+norm_cap="${LPA_NORM_CAP:-0.0}"
 paired_cases="${LPA_PAIRED_CASES:-noop,active,noop2}"
 components_csv="${LPA_COMPONENT_MATRIX:-parallel:0.05,orthogonal:0.02,orthogonal:0.05}"
 label_prefix="${LPA_SUITE_LABEL_PREFIX:-lpa_component_matrix}"
@@ -68,6 +72,7 @@ for entry in "${components[@]}"; do
   LPA_FINITE_T="${finite_t}" \
   LPA_POWER_CLIP="${clip}" \
   LPA_NORM_TO_BASE="${norm_to_base}" \
+  LPA_NORM_CAP="${norm_cap}" \
   LPA_COMPONENT="${component}" \
   LPA_PAIRED_CASES="${paired_cases}" \
   LPA_LOG_PRECOND="${LPA_LOG_PRECOND:-1}" \

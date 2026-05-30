@@ -124,6 +124,7 @@ LOCO_FULL_METRIC_SOFT_EPS = float(os.environ.get("LOCO_FULL_METRIC_SOFT_EPS", "0
 LOCO_FULL_NORM_RESTORE = os.environ.get("LOCO_FULL_NORM_RESTORE", "0" if (LOCO_FULL_NORMINVERSE or LOCO_FULL_METRIC_POLAR) else "1") == "1"
 LOCO_FULL_ADDITIVE = os.environ.get("LOCO_FULL_ADDITIVE", "0") == "1"
 LOCO_FULL_ADDITIVE_NORM_TO_BASE = os.environ.get("LOCO_FULL_ADDITIVE_NORM_TO_BASE", "0") == "1"
+LOCO_FULL_ADDITIVE_NORM_CAP = float(os.environ.get("LOCO_FULL_ADDITIVE_NORM_CAP", "0.0"))
 LOCO_FULL_ADDITIVE_COMPONENT = os.environ.get("LOCO_FULL_ADDITIVE_COMPONENT", "full").lower()
 if LOCO_FULL_ADDITIVE_COMPONENT not in {"full", "parallel", "orthogonal"}:
     raise ValueError("LOCO_FULL_ADDITIVE_COMPONENT must be 'full', 'parallel', or 'orthogonal'")
@@ -898,6 +899,7 @@ class NorMuonAndAdam:
         self._loco_scale_clip_t = torch.tensor(LOCO_DIAG_SCALE_CLIP, dtype=torch.float32, device="cpu")
         self._loco_full_blend_t = torch.tensor(0.0, dtype=torch.float32, device="cpu")
         self._loco_full_add_lr_t = torch.tensor(0.0, dtype=torch.float32, device="cpu")
+        self._loco_full_additive_norm_cap_t = torch.tensor(LOCO_FULL_ADDITIVE_NORM_CAP, dtype=torch.float32, device="cpu")
         self._loco_full_metric_soft_alpha_t = torch.tensor(LOCO_FULL_METRIC_SOFT_ALPHA, dtype=torch.float32, device="cpu")
         self._loco_full_metric_soft_eps_t = torch.tensor(LOCO_FULL_METRIC_SOFT_EPS, dtype=torch.float32, device="cpu")
         self._soft_polar_blend_t = torch.tensor(0.0, dtype=torch.float32, device="cpu")
@@ -2439,6 +2441,11 @@ class NorMuonAndAdam:
                 NorMuonAndAdam._loco_full_match_norm_to_ref_inplace(
                     correction_chunk[mat_idx], baseline_update[mat_idx]
                 )
+            if LOCO_FULL_ADDITIVE_NORM_CAP > 0:
+                self._loco_full_additive_norm_cap_t.fill_(LOCO_FULL_ADDITIVE_NORM_CAP)
+                NorMuonAndAdam._loco_full_cap_norm_to_ref_inplace(
+                    correction_chunk[mat_idx], baseline_update[mat_idx], self._loco_full_additive_norm_cap_t
+                )
             if before_update is not None:
                 if rawscale_update is not None:
                     self._record_loco_full_precond_stats(
@@ -2497,6 +2504,11 @@ class NorMuonAndAdam:
             if LOCO_FULL_ADDITIVE_NORM_TO_BASE:
                 NorMuonAndAdam._loco_full_match_norm_to_ref_inplace(
                     correction_chunk[mat_idx], baseline_update[mat_idx]
+                )
+            if LOCO_FULL_ADDITIVE_NORM_CAP > 0:
+                self._loco_full_additive_norm_cap_t.fill_(LOCO_FULL_ADDITIVE_NORM_CAP)
+                NorMuonAndAdam._loco_full_cap_norm_to_ref_inplace(
+                    correction_chunk[mat_idx], baseline_update[mat_idx], self._loco_full_additive_norm_cap_t
                 )
             if before_update is not None:
                 if rawscale_update is not None:
@@ -2564,6 +2576,11 @@ class NorMuonAndAdam:
             if LOCO_FULL_ADDITIVE_NORM_TO_BASE:
                 NorMuonAndAdam._loco_full_match_norm_to_ref_inplace(
                     correction_chunk[mat_idx], baseline_update[mat_idx]
+                )
+            if LOCO_FULL_ADDITIVE_NORM_CAP > 0:
+                self._loco_full_additive_norm_cap_t.fill_(LOCO_FULL_ADDITIVE_NORM_CAP)
+                NorMuonAndAdam._loco_full_cap_norm_to_ref_inplace(
+                    correction_chunk[mat_idx], baseline_update[mat_idx], self._loco_full_additive_norm_cap_t
                 )
             if before_update is not None:
                 if rawscale_update is not None:
@@ -2970,6 +2987,15 @@ class NorMuonAndAdam:
         ref_norm = ref.float().norm().clamp_min(1e-12)
         grad_norm = grad.float().norm().clamp_min(1e-12)
         grad.copy_(grad.float().mul(ref_norm.div(grad_norm)))
+
+    @staticmethod
+    @torch.compile(dynamic=False, fullgraph=True)
+    def _loco_full_cap_norm_to_ref_inplace(grad, ref, cap_tensor):
+        ref_norm = ref.float().norm().clamp_min(1e-12)
+        grad_norm = grad.float().norm().clamp_min(1e-12)
+        max_norm = ref_norm.mul(cap_tensor.to(torch.float32)).clamp_min(1e-12)
+        scale = torch.minimum(torch.ones_like(max_norm), max_norm.div(grad_norm))
+        grad.copy_(grad.float().mul(scale))
 
     @staticmethod
     @torch.compile(dynamic=False, fullgraph=True)
@@ -4154,6 +4180,7 @@ class TrainingManager():
                 f"metric_polar={int(LOCO_FULL_METRIC_POLAR)} "
                 f"metric_soft_alpha={LOCO_FULL_METRIC_SOFT_ALPHA} metric_soft_eps={LOCO_FULL_METRIC_SOFT_EPS} "
                 f"additive={int(LOCO_FULL_ADDITIVE)} additive_norm_to_base={int(LOCO_FULL_ADDITIVE_NORM_TO_BASE)} "
+                f"additive_norm_cap={LOCO_FULL_ADDITIVE_NORM_CAP} "
                 f"additive_component={LOCO_FULL_ADDITIVE_COMPONENT} "
                 f"polar_iters={LOCO_FULL_POLAR_ITERS} windows={LOCO_FULL_WINDOWS or 'end'} "
                 f"collect_windows={LOCO_FULL_COLLECT_WINDOWS or 'same'} "

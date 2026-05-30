@@ -47,6 +47,7 @@ run_case() {
     -u LOCO_FULL_NORM_RESTORE \
     -u LOCO_FULL_ADDITIVE \
     -u LOCO_FULL_ADDITIVE_NORM_TO_BASE \
+    -u LOCO_FULL_ADDITIVE_NORM_CAP \
     -u LOCO_FULL_ADDITIVE_COMPONENT \
     -u LOCO_FULL_LOCAL_STATS \
     -u LOCO_FULL_APPLY_INTERVAL \
@@ -2784,6 +2785,7 @@ run_locoprop_additive_paired_ladder() {
   local lpa_finite_label="${lpa_finite_t/./}"
   local lpa_clip="${LPA_POWER_CLIP:-2.0}"
   local lpa_norm_to_base="${LPA_NORM_TO_BASE:-1}"
+  local lpa_norm_cap="${LPA_NORM_CAP:-0.0}"
   local lpa_component="${LPA_COMPONENT:-full}"
   local lpa_log_precond="${LPA_LOG_PRECOND:-0}"
   local lpa_log_precond_detail="${LPA_LOG_PRECOND_DETAIL:-0}"
@@ -2799,6 +2801,7 @@ run_locoprop_additive_paired_ladder() {
     NEWTONV_PAIRED_CASES="${LPA_PAIRED_CASES:-noop,active,noop2}" \
     LOCO_FULL_ADDITIVE=1 \
     LOCO_FULL_ADDITIVE_NORM_TO_BASE="${lpa_norm_to_base}" \
+    LOCO_FULL_ADDITIVE_NORM_CAP="${lpa_norm_cap}" \
     LOCO_FULL_ADDITIVE_COMPONENT="${lpa_component}" \
     LOCO_FULL_SURFACES="${lpa_surface}" \
     LOCO_DIAG_ATTN_LAYERS="${lpa_layers}" \

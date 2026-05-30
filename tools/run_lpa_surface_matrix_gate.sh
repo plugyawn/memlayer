@@ -19,6 +19,7 @@ blend_steps="${LPA_BLEND_STEPS:-16}"
 finite_t="${LPA_FINITE_T:-2.0}"
 clip="${LPA_POWER_CLIP:-2.0}"
 norm_to_base="${LPA_NORM_TO_BASE:-1}"
+norm_cap="${LPA_NORM_CAP:-0.0}"
 component="${LPA_COMPONENT:-full}"
 paired_cases="${LPA_PAIRED_CASES:-noop,active,noop2}"
 surfaces_csv="${LPA_SURFACE_MATRIX:-v,qk,o,mlp_fc}"
@@ -48,6 +49,7 @@ for surface in "${surfaces[@]}"; do
   LPA_FINITE_T="${finite_t}" \
   LPA_POWER_CLIP="${clip}" \
   LPA_NORM_TO_BASE="${norm_to_base}" \
+  LPA_NORM_CAP="${norm_cap}" \
   LPA_COMPONENT="${component}" \
   LPA_PAIRED_CASES="${paired_cases}" \
   LPA_LOG_PRECOND="${LPA_LOG_PRECOND:-1}" \
