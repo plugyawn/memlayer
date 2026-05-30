@@ -217,3 +217,40 @@ Immediate next work:
      control rather than reading the normal late-screen 650ms segment as
      additive-specific overhead.
 ```
+
+## Cycle D
+
+```text
+Start: 2026-05-30 16:39 IST
+GPU apps:
+  ap-yzeLUb0oYbyBN9kTQvg5Wv completed additive V 120-step paired probe.
+Modal active NanoGPT apps after block: none.
+```
+
+H100 result:
+
+```text
+V layers 0-1 additive finite_t=2 norm-to-base, collect 0-64, apply 48-64:
+  paired_noop:   s80=4.6204  s120=4.1849  step_avg=450.34ms
+  paired_active: s80=4.6230  s120=4.1840  step_avg=449.87ms
+  paired_noop2:  s80=4.6201  s120=4.1821  step_avg=448.44ms
+```
+
+Conclusion:
+
+```text
+The V additive 80-step hit did not persist cleanly at 120.
+
+Active is not slower than the controls, and the first-noop compile stall was
+fixed by the expanded warmup list. But active is worse than both no-ops at
+step 80 and loses to noop2 at step 120. This is within the paired control
+floor, not a promotion result.
+
+Next meditation focus:
+  1. Check whether c_fc additive survives 120; it was the other positive
+     80-step surface and is theoretically cleaner.
+  2. If c_fc fades too, stop broad surfaces and tune additive scale from the
+     logged correction/base ratios.
+  3. Keep V additive demoted until a different scale/window/filter clears a
+     paired persistence run.
+```

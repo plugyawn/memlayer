@@ -2971,3 +2971,59 @@ Next:
      control; the ~650ms late segment also appears in older no-op logs.
   4. Add correction/base norm logging so alpha can be selected from evidence.
 ```
+
+## Cycle 40 H100 Result: Additive V 120-Step Persistence Check
+
+Run:
+
+```text
+App: ap-yzeLUb0oYbyBN9kTQvg5Wv
+Log: .opencode/modal_newtonv_lpa_v_finite_normbase120_h100_20260530.launch.log
+Parsed: .opencode/modal_newtonv_lpa_v_finite_normbase120_h100_20260530.parsed.md
+
+Surface: V layers 0-1
+Collect window: 0-64
+Apply window: 48-64
+Filter: finite_t=2.0, clip=2.0, ridge_rel=0.20
+Additive alpha/blend max: 0.05 over 16 steps
+Scaling: additive_norm_to_base=1
+Cases: noop, active, noop2
+```
+
+Parsed result:
+
+```text
+paired_noop:   s40=5.8157  s80=4.6204  s120=4.1849  step_avg=450.34ms
+paired_active: s40=5.8307  s80=4.6230  s120=4.1840  step_avg=449.87ms
+paired_noop2:  s40=5.8121  s80=4.6201  s120=4.1821  step_avg=448.44ms
+```
+
+Decision:
+
+```text
+This does not promote additive V.
+
+The 80-step additive V result looked positive, but the 120-step paired replay
+does not clear the exact-state control floor:
+  - active is worse than both no-ops at step 80.
+  - active beats first noop by 0.0009 at step 120.
+  - active loses to noop2 by 0.0019 at step 120.
+  - active is 0.0005 worse than the no-op mean at step 120.
+
+So the additive V pulse may still perturb the trajectory, but this specific
+surface/window/scale is not robust endpoint alpha.
+
+Timing read:
+  - the warmup patch that includes steps 64 and 78-81 removed the first-noop
+    step-65 compile spike.
+  - all three cases ran at about 448-450ms/step.
+  - the late ~650ms segment is normal 120-step schedule shape, not additive
+    leakage after the apply window.
+
+Next action:
+  - do not promote V additive norm-to-base from this setting.
+  - run the MLP c_fc 120-step persistence check, because the c_fc 80-step
+    paired signal was cleaner theoretically and still untested past 80.
+  - only after a surface survives 120 should raw-vs-norm-to-base alpha tuning
+    get H100 time.
+```

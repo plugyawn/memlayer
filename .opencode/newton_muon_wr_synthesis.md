@@ -2108,3 +2108,34 @@ rather than additive staying active after the window. The timing question is
 now narrower: measure incremental additive overhead against a matched
 schedule-only paired control, not against early-step timings.
 ```
+
+Additive V 120-step persistence update:
+
+```text
+Run:
+  ap-yzeLUb0oYbyBN9kTQvg5Wv
+  .opencode/modal_newtonv_lpa_v_finite_normbase120_h100_20260530.parsed.md
+
+V layers 0-1, collect 0-64, apply 48-64:
+  paired_noop:   s80=4.6204  s120=4.1849
+  paired_active: s80=4.6230  s120=4.1840
+  paired_noop2:  s80=4.6201  s120=4.1821
+```
+
+Updated read:
+
+```text
+The additive/state-decoupled translation remains the most coherent way to test
+the LocoProp lesson, but V with this finite_t=2, ridge=0.20, norm-to-base
+scale does not survive the 120-step paired persistence check.
+
+The result is not a catastrophic failure. Active ends near the controls, and
+the timed overhead is basically matched. But it is not endpoint-positive:
+active is worse than both no-ops at step 80 and loses to the better no-op at
+step 120.
+
+This weakens the claim "V additive is hot" and sharpens the next decision:
+MLP c_fc should get the same 120-step persistence check before broader surface
+sweeps. If c_fc also fades, the additive family needs alpha/scale redesign
+from the correction/base norm logs before more GPU time goes to surfaces.
+```
