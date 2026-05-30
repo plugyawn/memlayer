@@ -2006,3 +2006,40 @@ The post-varred V finite-t family should remain demoted until it beats a true
 paired no-op/control. Broader QKVO/MLP surface sweeps would waste GPU time
 under the current measurement noise.
 ```
+
+Paired replay update:
+
+```text
+Harness commits:
+  811cf32 Add paired NewtonV replay harness
+  5acb4f4 Clone optimizer anchor for paired replay
+
+Repaired paired 80-step result:
+  paired_noop:   s40=5.5987  s80=4.5217
+  paired_active: s40=5.6120  s80=4.5279
+  paired_noop2:  s40=5.6035  s80=4.5300
+```
+
+Read:
+
+```text
+The next useful experimental unit is now in-process paired replay, not
+seed-matched separate processes. The first paired launch exposed an optimizer
+anchor mutation bug; after fixing tensor cloning/copying, noop and active can
+be replayed from the same compiled-process snapshot.
+
+That stronger harness does not rescue the current finite-t V post-varred
+candidate. Active is between the two no-op endpoints at 80 and worse than both
+no-ops at step 40. Given the no-op/noop2 spread, this is not a positive result.
+
+The synthesis remains:
+  - right-feature information is real enough to perturb trajectories;
+  - the current post-varred V finite pulse is not robust alpha;
+  - future GPU time should be spent on paired tests of qualitatively different
+    placements, not more unpaired V-pulse sweeps.
+
+The two next meaningful paired probes are:
+  1. V finite pulse with a post-window optimizer-state tail ablation.
+  2. Clean 768-dim MLP c_fc right-metric placement, including activation-metric
+     polar versus Newton-Muon style preconditioning.
+```

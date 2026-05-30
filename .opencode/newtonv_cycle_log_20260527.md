@@ -2822,3 +2822,80 @@ Timing note:
     non-refresh averages were about 576-579ms.
   - The dominant timing shape in this 120-step screen is not full-Gram refresh.
 ```
+
+## Cycle 38 H100 Result: In-process Paired Replay Harness
+
+Implementation:
+
+```text
+Commits:
+  811cf32 Add paired NewtonV replay harness
+  5acb4f4 Clone optimizer anchor for paired replay
+
+Harness:
+  NEWTONV_PAIRED_CASES=noop,active,noop2
+  TRAIN_SYNC_BOS_INDEX=1
+  same compiled process
+  same warmup snapshot
+  model, optimizer, and RNG restored before each paired replay
+```
+
+First launch:
+
+```text
+App: ap-sIPAlW5pW8d8jh8WmQauyL
+Result: stopped early after exposing a harness bug.
+```
+
+The first paired launch showed active and noop2 much worse than the first no-op
+before the active window. The cause was optimizer anchor mutation:
+`load_state_dict` assigned saved tensors into live optimizer state, so later
+training could mutate the saved anchor itself when `.to(...)` returned the same
+tensor. Patch `5acb4f4` changed loading to `copy_` into existing state tensors
+and explicitly clones saved model/optimizer state.
+
+Repaired 80-step paired sanity:
+
+```text
+App: ap-ErqIbqU8hOiOizylwu7Gcn
+Suite: v_paired_state_sanity
+Cases: noop, active, noop2
+Window: V layers 0-1, collect 0-64, apply 48-64
+Filter: finite_t=2.0, ridge=0.20, blend=0.02
+```
+
+Parsed result:
+
+```text
+paired_noop:   s40=5.5987  s80=4.5217
+paired_active: s40=5.6120  s80=4.5279
+paired_noop2:  s40=5.6035  s80=4.5300
+```
+
+Decision:
+
+```text
+The paired harness is now usable enough to expose the candidate, but the
+candidate did not win this screen.
+
+The catastrophic restore bug is fixed: active/noop2 no longer start from a
+poisoned optimizer anchor. However, the two no-op replays still differ by
+0.0048 at step 40 and 0.0083 at step 80. That residual spread is likely from
+GPU/kernel nondeterminism and schedule/compile timing effects, not separate
+process initialization.
+
+Within that noisy paired floor, finite-t V post-varred is not positive:
+  - active is worse than first no-op by 0.0062 at step 80.
+  - active is slightly better than noop2 by 0.0021 at step 80.
+  - active is worse than both no-ops at step 40, before it should have a useful
+    post-window endpoint signal.
+
+Do not promote this V finite-t pulse. The value of this cycle is the harness
+fix, not the algorithm result.
+
+Timing note:
+  - paired_noop had a one-off refresh spike around step 65, so its wall-clock
+    number is invalid.
+  - active and noop2 ran at about 446ms/step under the 80-step screen.
+  - Timing from this run should not be used for WR economics.
+```

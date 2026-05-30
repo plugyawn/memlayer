@@ -60,6 +60,10 @@ def parse_log(path: Path) -> list[dict]:
         nonrefresh_values = []
 
     for line in path.read_text(errors="replace").splitlines():
+        # Modal result JSON contains a quoted "tail" field with escaped copies
+        # of recent training lines. Those are summaries, not live case output.
+        if line.lstrip().startswith('"tail":'):
+            continue
         if m := CASE_START_RE.match(line):
             if saw_markers:
                 flush()

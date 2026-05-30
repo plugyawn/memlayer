@@ -108,3 +108,41 @@ control paths from an identical saved state or enough paired reps are budgeted.
 The next implementation task should be an exact-state paired harness, not a new
 Newton-V variant.
 ```
+
+## Cycle B
+
+```text
+Start: 2026-05-30 03:25 IST
+GPU apps:
+  ap-sIPAlW5pW8d8jh8WmQauyL stopped early after harness bug discovery.
+  ap-ErqIbqU8hOiOizylwu7Gcn completed repaired paired sanity.
+Modal active NanoGPT apps after block: none.
+```
+
+Implementation work:
+
+```text
+811cf32 Add paired NewtonV replay harness
+5acb4f4 Clone optimizer anchor for paired replay
+```
+
+H100 result:
+
+```text
+paired_noop:   s40=5.5987  s80=4.5217
+paired_active: s40=5.6120  s80=4.5279
+paired_noop2:  s40=5.6035  s80=4.5300
+```
+
+Conclusion:
+
+```text
+The exact-state paired harness is now the right default for small optimizer
+deltas. The current V finite-t post-varred pulse did not beat paired controls.
+
+Next meditation focus:
+  1. Whether the remaining no-op/noop2 spread is acceptable or needs repeated
+     paired no-op calibration.
+  2. How to implement the V post-window optimizer-state tail ablation.
+  3. Whether MLP c_fc activation-metric polar is the next cleaner theory probe.
+```
