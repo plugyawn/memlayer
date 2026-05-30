@@ -2487,3 +2487,36 @@ So the first metric-soft run mostly established that the path is wired and safe
 at low blend. It did not test the real effect size. The immediate next variant,
 if spending another screen, is the same run with blend_max=0.10.
 ```
+
+Metric-soft stronger blend:
+
+```text
+V layers 0-1, alpha=0.5, eps=6e-5, ridge=0.20,
+blend_max=0.10, norm_restore=0:
+  paired_noop:   step80=4.5287
+  paired_active: step80=4.5254
+  paired_noop2:  step80=4.5188
+```
+
+Updated read:
+
+```text
+Still no promotion. Active improves over the first noop but loses to noop2.
+
+The applied update remains nearly baseline-collinear:
+  step64 applied_delta=0.0868
+  step64 applied_cos=0.9999
+  step64 target_delta=0.8677
+
+This is now a clear pattern. The right-metric target direction can be different,
+but our blend-to-baseline mechanism damps it into a small same-direction
+perturbation. More V-only linear-blend tuning is unlikely to be the WR path.
+
+The next worthwhile design change is not another V blend value. It is either:
+  1. use the metric target as a separate trust-region update rather than
+     interpolating against baseline; or
+  2. use coupled surfaces where the metric target can change the function more
+     coherently, especially V+O or QK+V; or
+  3. measure the true target update scale/cosine against actual parameter
+     displacement and choose a non-linear gate/pulse.
+```

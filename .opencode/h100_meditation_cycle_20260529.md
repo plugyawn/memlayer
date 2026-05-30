@@ -582,3 +582,28 @@ The metric-soft target changes the direction, but blend=0.02 almost completely
 turns it back into baseline. A follow-up, if run, should use a larger blend
 such as 0.10 while keeping the same object.
 ```
+
+Metric-soft stronger blend result:
+
+```text
+App: ap-uRi6CcXKDDbFmhEaYH8685
+
+MS_BLEND_MAX=0.10, otherwise same setup:
+  paired_noop:   s40=5.6157  s80=4.5287
+  paired_active: s40=5.6090  s80=4.5254
+  paired_noop2:  s40=5.5854  s80=4.5188
+```
+
+Conclusion:
+
+```text
+No promotion. Active is again between controls.
+
+At step64:
+  target_delta=0.8677
+  applied_delta=0.0868
+  applied cos ~= 0.9999
+
+The target is different, but the linear blend still makes the applied update
+almost baseline-collinear. Do not keep increasing V-only blend blindly.
+```

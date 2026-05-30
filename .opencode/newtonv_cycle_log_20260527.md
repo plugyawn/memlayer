@@ -3495,3 +3495,47 @@ Therefore this screen does not disprove metric-soft. It says the first cautious
 blend is too weak to answer much beyond "not catastrophic." If this path is
 continued, the next test should raise blend, not change the object.
 ```
+
+## Cycle 50 H100 Result: Metric-Soft V Stronger Blend
+
+Run:
+
+```text
+App: ap-uRi6CcXKDDbFmhEaYH8685
+Log: .opencode/modal_metricsoft_v_a05_eps6e5_blend010_fixednoop_h100_20260530.launch.log
+Parsed: .opencode/modal_metricsoft_v_a05_eps6e5_blend010_fixednoop_h100_20260530.parsed.md
+Diagnostics: .opencode/modal_metricsoft_v_a05_eps6e5_blend010_fixednoop_h100_20260530.diagnostics.md
+
+Same as Cycle 49 except:
+  blend_max=0.10
+```
+
+Parsed result:
+
+```text
+paired_noop:   s40=5.6157  s80=4.5287  step_avg=451.30ms
+paired_active: s40=5.6090  s80=4.5254  step_avg=452.04ms
+paired_noop2:  s40=5.5854  s80=4.5188  step_avg=452.82ms
+```
+
+Decision:
+
+```text
+Do not promote.
+
+Active again beats the first noop but loses to noop2. The no-op spread is large
+enough that this is not actionable alpha.
+```
+
+Diagnostic interpretation:
+
+```text
+The stronger blend still barely moves the applied update:
+  step64 applied_delta=0.0868, target_delta=0.8677, cos=0.9999
+
+This means metric-soft with simple linear blend is being expressed as a small
+baseline-near perturbation even at 0.10. The target direction is different, but
+the applied update is still almost collinear with baseline. Further V-only
+blend increases are not a high-value use of GPU without changing the trust
+rule or surface.
+```
