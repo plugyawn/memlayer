@@ -3385,3 +3385,62 @@ noop and 0.0194 against noop2 at step 80. The non-metric soft-polar probe says
 this schedule. A same-family alpha sweep is lower priority than returning to a
 true right-feature metric or a state-decoupled local correction.
 ```
+
+## Cycle 48 H100 Result: Fixed-Control Additive Recheck
+
+Run:
+
+```text
+App: ap-W7ej1upyZmocEhNlgwg0iy
+Log: .opencode/modal_newtonv_lpa_v_mlpfc_finite_normbase80_fixednoop_h100_20260530.launch.log
+Parsed: .opencode/modal_newtonv_lpa_v_mlpfc_finite_normbase80_fixednoop_h100_20260530.parsed.md
+Diagnostics: .opencode/modal_newtonv_lpa_v_mlpfc_finite_normbase80_fixednoop_h100_20260530.diagnostics.md
+
+Surface: V + MLP c_fc layers 0-1
+Collect window: 0-64
+Apply window: 48-64
+Filter: finite_t=2.0, clip=2.0, ridge_rel=0.20
+Additive alpha/blend max: 0.05 over 16 steps
+Scaling: additive_norm_to_base=1
+Cases: noop, active, noop2
+```
+
+Parsed result:
+
+```text
+paired_noop:   s40=5.6010  s80=4.5289  step_avg=442.44ms
+paired_active: s40=5.6023  s80=4.5329  step_avg=442.37ms
+paired_noop2:  s40=5.5944  s80=4.5296  step_avg=442.78ms
+```
+
+Decision:
+
+```text
+Do not promote.
+
+With true runtime no-op propagation, the previously interesting combined
+additive candidate does not beat either control:
+  active - noop  = +0.0040 loss
+  active - noop2 = +0.0033 loss
+
+This means the earlier apparent step-80 combined-additive hit was not reliable.
+It was likely confounded by the broken runtime no-op path and/or within-active
+variance. The state-decoupled local correction is still conceptually clean, but
+this exact V+c_fc finite_t/norm-to-base pulse is not a WR lever.
+```
+
+Diagnostic interpretation:
+
+```text
+The correction is directionally close to the existing update after norm-to-base:
+  step64 full_mlp_fc_add cos=0.9452, delta=0.9796
+  step64 full_v_add      cos=0.9718, delta=0.9558
+
+The raw-scale local solve is huge:
+  mlp_fc raw ref_norm ~= 19.7 at step64
+  v raw ref_norm      ~= 12.7 at step64
+
+So norm-to-base is converting a very large opposite local-solve signal into a
+small displacement almost collinear with the baseline. That explains why it can
+move loss slightly but is unlikely to be the right expression of the metric.
+```

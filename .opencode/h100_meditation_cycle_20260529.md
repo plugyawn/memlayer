@@ -493,3 +493,46 @@ But it hurt final step-80 loss by:
 This rules out the simple non-metric "hard polar is too aggressive for MLP c_fc
 0-1" probe. Same-family alpha sweeps are not the highest-value next GPU use.
 ```
+
+## Cycle I Fixed-Control Additive Recheck
+
+Reason:
+
+```text
+The runtime no-op propagation bug makes prior NEWTONV_PAIRED_CASES controls
+suspect. Re-ran the strongest prior additive candidate after the fix.
+```
+
+Run:
+
+```text
+App: ap-W7ej1upyZmocEhNlgwg0iy
+Surface: V + MLP c_fc layers 0-1
+Collect 0-64, apply 48-64
+finite_t=2.0, ridge_rel=0.20, blend_max=0.05
+norm_to_base=1
+steps=80
+```
+
+Result:
+
+```text
+paired_noop:   s40=5.6010  s80=4.5289  step_avg=442.44ms
+paired_active: s40=5.6023  s80=4.5329  step_avg=442.37ms
+paired_noop2:  s40=5.5944  s80=4.5296  step_avg=442.78ms
+```
+
+Conclusion:
+
+```text
+No promotion. The prior additive combined-surface hit does not survive true
+controls.
+
+The diagnostic pattern is useful:
+  norm-to-base update remains very close to baseline direction
+  raw local-solve scale is 12x-20x baseline at step64
+
+So this exact normalized additive expression is too weak/geometrically aligned,
+while the raw expression is too large without much smaller alpha or a better
+spectral trust rule.
+```

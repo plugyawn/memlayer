@@ -2392,3 +2392,42 @@ This pushes the next useful hypothesis back toward either:
   4. much smaller/shorter pulse only if motivated by diagnostics, not as a
      blind same-family sweep.
 ```
+
+Fixed-control additive recheck:
+
+```text
+App: ap-W7ej1upyZmocEhNlgwg0iy
+
+V + MLP c_fc layers 0-1, finite_t=2.0, ridge=0.20,
+norm-to-base additive, blend_max=0.05, window 48-64:
+  paired_noop:   step80=4.5289  step_avg=442.44ms
+  paired_active: step80=4.5329  step_avg=442.37ms
+  paired_noop2:  step80=4.5296  step_avg=442.78ms
+
+Active loses to both true noops.
+```
+
+Updated synthesis:
+
+```text
+The biggest prior additive "hit" was not robust once runtime noops were fixed.
+Therefore, the current reliable evidence is:
+
+  - full V inverse had a real standalone early signal, but the active-control
+    story is muddier than previously believed.
+  - non-metric soft-polar on MLP c_fc is actively bad.
+  - norm-to-base state-decoupled additive V+c_fc is also bad against true
+    controls.
+
+The right-feature axis is not disproven. The problem is that the variants we
+can currently make cheap either:
+  1. get normalized into a direction almost collinear with baseline, or
+  2. become a huge raw local solve that needs a different trust rule.
+
+The next principled implementation target should be a metric-aware trust
+region, not another norm-to-base scalar tweak:
+  - activation-metric soft family T_alpha(G C^-1/2) C^-1/2, with alpha between
+    raw LocoProp and hard metric-polar;
+  - or a low-rank/top-eigen shrink/half-whitened variant that changes subspace
+    without raw small-eigen amplification.
+```
