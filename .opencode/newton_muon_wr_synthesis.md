@@ -2431,3 +2431,34 @@ region, not another norm-to-base scalar tweak:
   - or a low-rank/top-eigen shrink/half-whitened variant that changes subspace
     without raw small-eigen amplification.
 ```
+
+Metric-soft implementation checkpoint:
+
+```text
+Added LOCO_FULL_METRIC_SOFT_ALPHA and LOCO_FULL_METRIC_SOFT_EPS.
+
+When LOCO_FULL_METRIC_POLAR=1:
+  alpha=1, eps=0 keeps the existing hard Cholesky metric-polar path:
+    polar(G L^-T) L^-1
+
+  otherwise the path uses:
+    T_alpha(G L^-T) L^-1
+
+where T_alpha,eps(X)=X(X.T X + eps I)^(-alpha/2), implemented by exact eig on
+the small Gram for the first science screen.
+
+Prepared suite:
+  NEWTONV_SUITE=metricsoft_paired
+
+Default first candidate:
+  surface=v
+  layers=0-1
+  collect=0-64
+  apply=48-64
+  alpha=0.5
+  eps=6e-5
+  ridge_rel=0.20
+  blend_max=0.02
+  norm_restore=0
+  paired noop,active,noop2
+```

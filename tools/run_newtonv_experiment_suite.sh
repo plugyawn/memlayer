@@ -42,6 +42,8 @@ run_case() {
     -u LOCO_FULL_BLEND_STEPS \
     -u LOCO_FULL_FILTER \
     -u LOCO_FULL_METRIC_POLAR \
+    -u LOCO_FULL_METRIC_SOFT_ALPHA \
+    -u LOCO_FULL_METRIC_SOFT_EPS \
     -u LOCO_FULL_NORM_RESTORE \
     -u LOCO_FULL_ADDITIVE \
     -u LOCO_FULL_ADDITIVE_NORM_TO_BASE \
@@ -2855,6 +2857,58 @@ run_softpolar_paired_ladder() {
     bash tools/run_softpolar_mlpfc_gate.sh
 }
 
+run_metricsoft_paired_ladder() {
+  local ms_steps="${MS_STEPS:-80}"
+  local ms_val_every="${MS_VAL_EVERY:-40}"
+  local ms_surface="${MS_SURFACE:-v}"
+  local ms_layers="${MS_LAYERS:-0-1}"
+  local ms_collect="${MS_COLLECT_WINDOWS:-0-64}"
+  local ms_windows="${MS_WINDOWS:-48-64}"
+  local ms_refresh_interval="${MS_REFRESH_INTERVAL:-16}"
+  local ms_ema_beta="${MS_EMA_BETA:-0.8}"
+  local ms_ridge="${MS_RIDGE_REL:-0.2}"
+  local ms_ridge_label="${ms_ridge/./}"
+  local ms_blend="${MS_BLEND_MAX:-0.02}"
+  local ms_blend_label="${ms_blend/./}"
+  local ms_blend_steps="${MS_BLEND_STEPS:-16}"
+  local ms_alpha="${MS_ALPHA:-0.5}"
+  local ms_alpha_label="${ms_alpha/./}"
+  local ms_eps="${MS_EPS:-6e-5}"
+  local ms_eps_label="${ms_eps//[^0-9A-Za-z]/_}"
+  local ms_norm_restore="${MS_NORM_RESTORE:-0}"
+  local ms_polar_iters="${MS_POLAR_ITERS:-5}"
+  local ms_log_precond="${MS_LOG_PRECOND:-1}"
+  local ms_log_precond_detail="${MS_LOG_PRECOND_DETAIL:-1}"
+  local ms_log_steps="${MS_LOG_STEPS:-48,50,56,64,80,100,120}"
+  local ms_surface_label="${ms_surface//,/_}"
+
+  run_case "metricsoft_paired_${ms_surface_label}_a${ms_alpha_label}_eps${ms_eps_label}_r${ms_ridge_label}_blend${ms_blend_label}" \
+    TRAIN_SYNC_BOS_INDEX=1 \
+    NEWTONV_PAIRED_CASES="${MS_PAIRED_CASES:-noop,active,noop2}" \
+    LOCO_FULL_SURFACES="${ms_surface}" \
+    LOCO_DIAG_ATTN_LAYERS="${ms_layers}" \
+    LOCO_DIAG_MLP_LAYERS="${ms_layers}" \
+    LOCO_FULL_COLLECT_WINDOWS="${ms_collect}" \
+    LOCO_FULL_WINDOWS="${ms_windows}" \
+    LOCO_FULL_REFRESH_INTERVAL="${ms_refresh_interval}" \
+    LOCO_FULL_EMA_BETA="${ms_ema_beta}" \
+    LOCO_FULL_RIDGE_REL="${ms_ridge}" \
+    LOCO_FULL_BLEND_MAX="${ms_blend}" \
+    LOCO_FULL_BLEND_STEPS="${ms_blend_steps}" \
+    LOCO_FULL_FILTER=inverse \
+    LOCO_FULL_METRIC_POLAR=1 \
+    LOCO_FULL_METRIC_SOFT_ALPHA="${ms_alpha}" \
+    LOCO_FULL_METRIC_SOFT_EPS="${ms_eps}" \
+    LOCO_FULL_NORM_RESTORE="${ms_norm_restore}" \
+    LOCO_FULL_POLAR_ITERS="${ms_polar_iters}" \
+    LOCO_FULL_LOG_PRECOND="${ms_log_precond}" \
+    LOCO_FULL_LOG_PRECOND_DETAIL="${ms_log_precond_detail}" \
+    LOCO_DIAG_LOG_STEPS="${ms_log_steps}" \
+    SCREEN_STEPS="${ms_steps}" \
+    SCREEN_VAL_EVERY="${ms_val_every}" \
+    bash tools/run_newtonv_raw_v01_gate.sh
+}
+
 case "${suite}" in
   timing)
     run_timing_triplet
@@ -3020,6 +3074,9 @@ case "${suite}" in
   softpolar_paired)
     run_softpolar_paired_ladder
     ;;
+  metricsoft_paired)
+    run_metricsoft_paired_ladder
+    ;;
   all)
     run_timing_triplet
     run_next_ladder
@@ -3031,7 +3088,7 @@ case "${suite}" in
       bash tools/run_newtonv_raw_v01_gate.sh
     ;;
   *)
-    echo "NEWTONV_SUITE must be timing, filters, quick, raw200, promote, polar4, permutations, next, tail, warmmetric, overprecond, overpromote, scheduleonly, preconddiag, schedule_diag, rightfilter, paperstyle, paperfilter, metricpolar, metricpromote, metricv_promote, metricv_window, v_spectral_shape, paper_v_promote, metricsurfaces, surface_control, qkvo_metric_promote, qkvo_schedule, qkvo_power_shape, qkv_power_shape, qkv_inverse_control, v_varred_interaction, v_short_pulse, v_schedule_pulse, mlpfc, mlpfc_promote, mlpfc_before_control, mlpfc_filter_control, mlpfc_blend, mlpfc_postvarred_control, v_postvarred_control, v_postvarred_window, v_postvarred_finite_t, v_seed_sanity, v_paired_state_sanity, mlpfc_paired_metric, locoprop_additive_paired, softpolar_paired, or all; got ${suite}" >&2
+    echo "NEWTONV_SUITE must be timing, filters, quick, raw200, promote, polar4, permutations, next, tail, warmmetric, overprecond, overpromote, scheduleonly, preconddiag, schedule_diag, rightfilter, paperstyle, paperfilter, metricpolar, metricpromote, metricv_promote, metricv_window, v_spectral_shape, paper_v_promote, metricsurfaces, surface_control, qkvo_metric_promote, qkvo_schedule, qkvo_power_shape, qkv_power_shape, qkv_inverse_control, v_varred_interaction, v_short_pulse, v_schedule_pulse, mlpfc, mlpfc_promote, mlpfc_before_control, mlpfc_filter_control, mlpfc_blend, mlpfc_postvarred_control, v_postvarred_control, v_postvarred_window, v_postvarred_finite_t, v_seed_sanity, v_paired_state_sanity, mlpfc_paired_metric, locoprop_additive_paired, softpolar_paired, metricsoft_paired, or all; got ${suite}" >&2
     exit 2
     ;;
 esac

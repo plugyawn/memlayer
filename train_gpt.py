@@ -119,6 +119,8 @@ LOCO_FULL_BLOCK = LOCO_FULL_BLOCK_SIZE > 0
 LOCO_FULL_STATIC_NORM = os.environ.get("LOCO_FULL_STATIC_NORM", "1" if LOCO_FULL_POWER or LOCO_FULL_FINITE else "0") == "1"
 LOCO_FULL_POLAR_ITERS = int(os.environ.get("LOCO_FULL_POLAR_ITERS", "5"))
 LOCO_FULL_METRIC_POLAR = os.environ.get("LOCO_FULL_METRIC_POLAR", "0") == "1"
+LOCO_FULL_METRIC_SOFT_ALPHA = float(os.environ.get("LOCO_FULL_METRIC_SOFT_ALPHA", "1.0"))
+LOCO_FULL_METRIC_SOFT_EPS = float(os.environ.get("LOCO_FULL_METRIC_SOFT_EPS", "0.0"))
 LOCO_FULL_NORM_RESTORE = os.environ.get("LOCO_FULL_NORM_RESTORE", "0" if (LOCO_FULL_NORMINVERSE or LOCO_FULL_METRIC_POLAR) else "1") == "1"
 LOCO_FULL_ADDITIVE = os.environ.get("LOCO_FULL_ADDITIVE", "0") == "1"
 LOCO_FULL_ADDITIVE_NORM_TO_BASE = os.environ.get("LOCO_FULL_ADDITIVE_NORM_TO_BASE", "0") == "1"
@@ -177,6 +179,10 @@ if LOCO_FULL_APPLY_POST_VARRED and LOCO_FULL_METRIC_POLAR:
     raise ValueError("LOCO_FULL_APPLY_POST_VARRED is not supported with LOCO_FULL_METRIC_POLAR")
 if LOCO_FULL_METRIC_POLAR and (LOCO_FULL_BLOCK or LOCO_FULL_TOPSHRINK or LOCO_FULL_POWER or LOCO_FULL_FINITE):
     raise ValueError("LOCO_FULL_METRIC_POLAR currently requires dense inverse/norminverse filter state")
+if not (0.0 <= LOCO_FULL_METRIC_SOFT_ALPHA <= 1.0):
+    raise ValueError("LOCO_FULL_METRIC_SOFT_ALPHA must be in [0, 1]")
+if LOCO_FULL_METRIC_SOFT_EPS < 0:
+    raise ValueError("LOCO_FULL_METRIC_SOFT_EPS must be non-negative")
 if LOCO_FULL_ADDITIVE and (LOCO_FULL_APPLY_BEFORE_MOMENTUM or LOCO_FULL_APPLY_POST_VARRED or LOCO_FULL_METRIC_POLAR):
     raise ValueError("LOCO_FULL_ADDITIVE is a separate parameter correction; do not combine it with full-C Muon operand placement")
 if LOCO_FULL_ADDITIVE and LOCO_FULL_SKIP_VARRED:
@@ -889,6 +895,8 @@ class NorMuonAndAdam:
         self._loco_scale_clip_t = torch.tensor(LOCO_DIAG_SCALE_CLIP, dtype=torch.float32, device="cpu")
         self._loco_full_blend_t = torch.tensor(0.0, dtype=torch.float32, device="cpu")
         self._loco_full_add_lr_t = torch.tensor(0.0, dtype=torch.float32, device="cpu")
+        self._loco_full_metric_soft_alpha_t = torch.tensor(LOCO_FULL_METRIC_SOFT_ALPHA, dtype=torch.float32, device="cpu")
+        self._loco_full_metric_soft_eps_t = torch.tensor(LOCO_FULL_METRIC_SOFT_EPS, dtype=torch.float32, device="cpu")
         self._soft_polar_blend_t = torch.tensor(0.0, dtype=torch.float32, device="cpu")
         self._soft_polar_alpha_t = torch.tensor(LOCO_SOFT_POLAR_ALPHA, dtype=torch.float32, device="cpu")
         self._soft_polar_eps_t = torch.tensor(LOCO_SOFT_POLAR_EPS, dtype=torch.float32, device="cpu")
@@ -1617,7 +1625,14 @@ class NorMuonAndAdam:
             original.T.contiguous(),
             upper=False,
         ).T.contiguous()
-        metric_update = polar_express_from_operand(whitened, split_baddbmm=split_baddbmm).float()
+        if LOCO_FULL_METRIC_SOFT_ALPHA == 1.0 and LOCO_FULL_METRIC_SOFT_EPS == 0.0:
+            metric_update = polar_express_from_operand(whitened, split_baddbmm=split_baddbmm).float()
+        else:
+            metric_update = soft_polar_from_operand(
+                whitened,
+                self._loco_full_metric_soft_alpha_t,
+                self._loco_full_metric_soft_eps_t,
+            ).float()
         metric_update = torch.linalg.solve_triangular(
             chol.T.contiguous(),
             metric_update.T.contiguous(),
@@ -1647,7 +1662,14 @@ class NorMuonAndAdam:
             original_blocks.permute(1, 2, 0).contiguous(),
             upper=False,
         ).permute(2, 0, 1).contiguous().view_as(original)
-        metric_update = polar_express_from_operand(whitened, split_baddbmm=split_baddbmm).float()
+        if LOCO_FULL_METRIC_SOFT_ALPHA == 1.0 and LOCO_FULL_METRIC_SOFT_EPS == 0.0:
+            metric_update = polar_express_from_operand(whitened, split_baddbmm=split_baddbmm).float()
+        else:
+            metric_update = soft_polar_from_operand(
+                whitened,
+                self._loco_full_metric_soft_alpha_t,
+                self._loco_full_metric_soft_eps_t,
+            ).float()
         metric_blocks = metric_update.view(metric_update.shape[0], num_heads, head_dim)
         metric_update = torch.linalg.solve_triangular(
             chol.transpose(-1, -2).contiguous(),
@@ -4091,6 +4113,7 @@ class TrainingManager():
                 f"power_alpha={LOCO_FULL_POWER_ALPHA} power_clip={LOCO_FULL_POWER_CLIP} shrink_only={int(LOCO_FULL_SHRINK_ONLY)} "
                 f"schedule_only={int(LOCO_FULL_SCHEDULE_ONLY)} "
                 f"metric_polar={int(LOCO_FULL_METRIC_POLAR)} "
+                f"metric_soft_alpha={LOCO_FULL_METRIC_SOFT_ALPHA} metric_soft_eps={LOCO_FULL_METRIC_SOFT_EPS} "
                 f"additive={int(LOCO_FULL_ADDITIVE)} additive_norm_to_base={int(LOCO_FULL_ADDITIVE_NORM_TO_BASE)} "
                 f"polar_iters={LOCO_FULL_POLAR_ITERS} windows={LOCO_FULL_WINDOWS or 'end'} "
                 f"collect_windows={LOCO_FULL_COLLECT_WINDOWS or 'same'} "

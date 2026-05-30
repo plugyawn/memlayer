@@ -536,3 +536,25 @@ So this exact normalized additive expression is too weak/geometrically aligned,
 while the raw expression is too large without much smaller alpha or a better
 spectral trust rule.
 ```
+
+Next implementation:
+
+```text
+Metric-soft Cholesky path is prepared for the next screen:
+  Q = T_alpha(G L^-T) L^-1
+
+This is the activation-metric update family between raw metric direction and
+hard metric-polar. It reuses the existing full-C Cholesky state.
+
+First queued candidate if GPU is used:
+  NEWTONV_SUITE=metricsoft_paired
+  MS_SURFACE=v
+  MS_LAYERS=0-1
+  MS_COLLECT_WINDOWS=0-64
+  MS_WINDOWS=48-64
+  MS_ALPHA=0.5
+  MS_EPS=6e-5
+  MS_RIDGE_REL=0.20
+  MS_BLEND_MAX=0.02
+  MS_NORM_RESTORE=0
+```
