@@ -164,11 +164,13 @@ Fallback if V component ladder fails:
 ```text
 The paper-focused sidecar recommends switching contract, not continuing V local
 correction tuning: run MLP c_fc soft-polar spectral transfer at alpha=0.5,
-eps=1e-6, window 48-64, norm-restore on, paired noop/active/noop2. Rationale:
-if the V orthogonal local correction fails, the next distinct mathematical
-lever is partial singular-value flattening on the Muon path, not another
-separate additive correction. MLP c_fc is the clean 768-dimensional affine
-surface already implemented for soft-polar.
+eps=1e-6, window 48-64, norm-restore on, paired noop/active/noop2. Caveat:
+alpha=0.5, eps=6e-5 already lost badly against both noops, so this is a
+lower-priority fallback, not a fresh high-confidence path. Rationale: if the V
+orthogonal local correction fails, the next distinct mathematical lever is
+partial singular-value flattening on the Muon path, not another separate
+additive correction. MLP c_fc is the clean 768-dimensional affine surface
+already implemented for soft-polar.
 ```
 
 Fallback command shape:
