@@ -327,15 +327,37 @@ Reason:
      early 48-64 window should be stopped rather than tuned.
 ```
 
+Plan correction:
+
+```text
+The initial natural-cap command used LPA_NORM_CAP=1 and LPA_BLEND_MAX=0.05.
+That is not a distinct test from norm-to-base when rawscale ref_norm is already
+well above 1x. The prior fixed-surface full-V run had active rawscale
+ref_norm around 7.7x-13.9x, O around 10x-16x, and MLP c_fc around 15x-36x.
+
+Therefore cap=1 would clip nearly every active correction to exactly the base
+update norm, then apply the same 5% additive blend as the failed norm-to-base
+screen. It would mostly retest the old contract.
+
+The corrected natural-magnitude screen uses:
+  LPA_NORM_TO_BASE=0
+  LPA_NORM_CAP=20
+  LPA_BLEND_MAX=0.005
+
+This keeps the maximum additive correction to 10% of the base update norm, but
+preserves raw magnitude differences below the 20x cap. It is a real test of
+whether local right-metric magnitude contains useful signal.
+```
+
 Prepared command for the 04:58 IST gate:
 
 ```bash
 NANOGPT_MODAL_GPU='H100!' MODAL_GPU='H100!' MODAL_DETACH=1 \
-MODAL_RUN_NAME='lpa-natcap-surface80-20260531' \
+MODAL_RUN_NAME='lpa-natcap20-surface80-20260531' \
 MODAL_RUNNER='tools/run_lpa_surface_matrix_gate.sh' \
 SCREEN_STEPS=80 SCREEN_VAL_EVERY=40 \
-MODAL_EXTRA_ENV_JSON='{"LPA_SUITE_LABEL_PREFIX":"lpa_natcap_surface80_20260531","LPA_SURFACE_MATRIX":"v,o,mlp_fc","LPA_COMPONENT":"full","LPA_NORM_TO_BASE":"0","LPA_NORM_CAP":"1","LPA_STEPS":"80","LPA_VAL_EVERY":"40","LPA_LAYERS":"0-1","LPA_COLLECT_WINDOWS":"0-64","LPA_WINDOWS":"48-64","LPA_REFRESH_INTERVAL":"16","LPA_EMA_BETA":"0.8","LPA_RIDGE_REL":"0.2","LPA_BLEND_MAX":"0.05","LPA_BLEND_STEPS":"16","LPA_FINITE_T":"2.0","LPA_POWER_CLIP":"2.0","LPA_PAIRED_CASES":"noop,active,noop2","LPA_LOG_PRECOND":"1","LPA_LOG_PRECOND_DETAIL":"1"}' \
-tools/run_modal_newtonv_raw_gate.sh 2>&1 | tee .opencode/modal_lpa_natcap_surface80_h100_20260531.launch.log
+MODAL_EXTRA_ENV_JSON='{"LPA_SUITE_LABEL_PREFIX":"lpa_natcap20_surface80_20260531","LPA_SURFACE_MATRIX":"v,o,mlp_fc","LPA_COMPONENT":"full","LPA_NORM_TO_BASE":"0","LPA_NORM_CAP":"20","LPA_STEPS":"80","LPA_VAL_EVERY":"40","LPA_LAYERS":"0-1","LPA_COLLECT_WINDOWS":"0-64","LPA_WINDOWS":"48-64","LPA_REFRESH_INTERVAL":"16","LPA_EMA_BETA":"0.8","LPA_RIDGE_REL":"0.2","LPA_BLEND_MAX":"0.005","LPA_BLEND_STEPS":"16","LPA_FINITE_T":"2.0","LPA_POWER_CLIP":"2.0","LPA_PAIRED_CASES":"noop,active,noop2","LPA_LOG_PRECOND":"1","LPA_LOG_PRECOND_DETAIL":"1"}' \
+tools/run_modal_newtonv_raw_gate.sh 2>&1 | tee .opencode/modal_lpa_natcap20_surface80_h100_20260531.launch.log
 ```
 
 Launch guard incident:
@@ -357,7 +379,8 @@ Post-plan sidecar synthesis:
 Dewey:
   If natural-cap is negative, it falsifies only this contract:
     surfaces v,o,mlp_fc; layers 0-1; collect 0-64; apply 48-64;
-    finite_t=2.0; ridge=0.2; blend=0.05; cap=1x base update; 80-step screen.
+    finite_t=2.0; ridge=0.2; blend=0.005; cap=20x base update before blend;
+    80-step screen.
 
   It does not falsify right-preconditioning generally, all-layer/later-window
   variants, QK, true Newton-Muon path insertion, metric-soft,

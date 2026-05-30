@@ -2615,11 +2615,17 @@ step-80 win versus noop mean. But it failed the strict step-80 gate because it
 missed the best noop by 0.0012. The result is below promotion quality.
 
 The next distinct question is whether forced norm-to-base is the wrong trust
-rule. A capped natural-magnitude additive LPA test should preserve local
-curvature magnitude up to a base-update norm cap:
+rule. A first-pass cap of 1x base norm would not actually test this, because
+observed rawscale ref_norm is already far above 1x on the target surfaces. It
+would clip nearly every active correction to the same norm as norm-to-base and
+then apply the same 5% additive blend.
+
+A distinct capped natural-magnitude additive LPA test should preserve local
+curvature magnitude below a larger cap while keeping the blended update bounded:
 
   LPA_NORM_TO_BASE=0
-  LPA_NORM_CAP=1
+  LPA_NORM_CAP=20
+  LPA_BLEND_MAX=0.005
   LPA_COMPONENT=full
   surfaces=v,o,mlp_fc
 
