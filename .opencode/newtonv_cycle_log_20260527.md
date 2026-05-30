@@ -3444,3 +3444,54 @@ So norm-to-base is converting a very large opposite local-solve signal into a
 small displacement almost collinear with the baseline. That explains why it can
 move loss slightly but is unlikely to be the right expression of the metric.
 ```
+
+## Cycle 49 H100 Result: Metric-Soft V Probe
+
+Run:
+
+```text
+App: ap-JevPvdAPqSRcioMbnMAsmf
+Log: .opencode/modal_metricsoft_v_a05_eps6e5_blend002_fixednoop_h100_20260530.launch.log
+Parsed: .opencode/modal_metricsoft_v_a05_eps6e5_blend002_fixednoop_h100_20260530.parsed.md
+Diagnostics: .opencode/modal_metricsoft_v_a05_eps6e5_blend002_fixednoop_h100_20260530.diagnostics.md
+
+Surface: V layers 0-1
+Object: T_alpha(G L^-T) L^-1
+alpha=0.5
+eps=6e-5
+ridge_rel=0.20
+collect 0-64, apply 48-64
+blend_max=0.02
+norm_restore=0
+```
+
+Parsed result:
+
+```text
+paired_noop:   s40=5.6158  s80=4.5364  step_avg=447.15ms
+paired_active: s40=5.6162  s80=4.5324  step_avg=448.45ms
+paired_noop2:  s40=5.5952  s80=4.5205  step_avg=448.48ms
+```
+
+Decision:
+
+```text
+Do not promote.
+
+Active beats the first noop by 0.0040 but loses to noop2 by 0.0119. This is not
+a clean signal. The implementation looks safe rather than explosive.
+```
+
+Diagnostic interpretation:
+
+```text
+The unblended metric-soft target is real:
+  step64 target_delta=0.8595, target_cos=0.7389
+
+But blend=0.02 makes the applied update tiny:
+  step64 applied_delta=0.0172, cos ~= 1.0
+
+Therefore this screen does not disprove metric-soft. It says the first cautious
+blend is too weak to answer much beyond "not catastrophic." If this path is
+continued, the next test should raise blend, not change the object.
+```

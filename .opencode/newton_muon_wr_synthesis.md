@@ -2462,3 +2462,28 @@ Default first candidate:
   norm_restore=0
   paired noop,active,noop2
 ```
+
+Metric-soft first result:
+
+```text
+V layers 0-1, alpha=0.5, eps=6e-5, ridge=0.20,
+blend_max=0.02, norm_restore=0:
+  paired_noop:   step80=4.5364
+  paired_active: step80=4.5324
+  paired_noop2:  step80=4.5205
+```
+
+Updated read:
+
+```text
+No promotion. The result is between controls.
+
+Unlike the failed soft-polar MLP probe, this metric-soft V probe was not
+obviously harmful. But it was also intentionally tiny:
+  step64 target_delta=0.8595
+  step64 applied_delta=0.0172
+
+So the first metric-soft run mostly established that the path is wired and safe
+at low blend. It did not test the real effect size. The immediate next variant,
+if spending another screen, is the same run with blend_max=0.10.
+```

@@ -558,3 +558,27 @@ First queued candidate if GPU is used:
   MS_BLEND_MAX=0.02
   MS_NORM_RESTORE=0
 ```
+
+Metric-soft result:
+
+```text
+App: ap-JevPvdAPqSRcioMbnMAsmf
+
+paired_noop:   s40=5.6158  s80=4.5364
+paired_active: s40=5.6162  s80=4.5324
+paired_noop2:  s40=5.5952  s80=4.5205
+```
+
+Interpretation:
+
+```text
+No promotion. Active is between controls.
+
+The important diagnostic is scale:
+  target_delta at step64 ~= 0.86
+  applied_delta at step64 ~= 0.017
+
+The metric-soft target changes the direction, but blend=0.02 almost completely
+turns it back into baseline. A follow-up, if run, should use a larger blend
+such as 0.10 while keeping the same object.
+```
