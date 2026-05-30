@@ -100,6 +100,7 @@ Committed during meditation:
 5c85288 Prefer local Modal client for billing check
 5577c8f Add paired case summary parser
 0c4b06f Add additive correction norm cap
+1f6e60a Report early loss in paired summaries
 ```
 
 Sidecar review conclusions:
@@ -154,4 +155,31 @@ Diagnostic sanity:
   orthogonal full_v_add ref_cos_mean should be near 0
   parallel full_v_add ref_cos_mean should be near +1 or -1
   full_v_add_rawscale should be parsed separately to estimate natural magnitude
+```
+
+Fallback if V component ladder fails:
+
+```text
+The paper-focused sidecar recommends switching contract, not continuing V local
+correction tuning: run MLP c_fc soft-polar spectral transfer at alpha=0.5,
+eps=1e-6, window 48-64, norm-restore on, paired noop/active/noop2. Rationale:
+if the V orthogonal local correction fails, the next distinct mathematical
+lever is partial singular-value flattening on the Muon path, not another
+separate additive correction. MLP c_fc is the clean 768-dimensional affine
+surface already implemented for soft-polar.
+```
+
+Fallback command shape:
+
+```bash
+NEWTONV_SUITE=softpolar_paired \
+NEWTONV_SUITE_LABEL=sp_mlpfc_a05_win48_64 \
+SP_STEPS=80 SP_VAL_EVERY=40 \
+SP_LAYERS=0-1 SP_WINDOWS=48-64 \
+SP_ALPHA=0.5 SP_EPS=1e-6 \
+SP_BLEND_MAX=1.0 SP_BLEND_STEPS=16 \
+SP_NORM_RESTORE=1 \
+SP_PAIRED_CASES=noop,active,noop2 \
+SP_LOG_PRECOND=1 SP_LOG_PRECOND_DETAIL=1 \
+bash tools/run_newtonv_experiment_suite.sh
 ```
