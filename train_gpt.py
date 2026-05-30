@@ -120,6 +120,8 @@ LOCO_FULL_STATIC_NORM = os.environ.get("LOCO_FULL_STATIC_NORM", "1" if LOCO_FULL
 LOCO_FULL_POLAR_ITERS = int(os.environ.get("LOCO_FULL_POLAR_ITERS", "5"))
 LOCO_FULL_METRIC_POLAR = os.environ.get("LOCO_FULL_METRIC_POLAR", "0") == "1"
 LOCO_FULL_NORM_RESTORE = os.environ.get("LOCO_FULL_NORM_RESTORE", "0" if (LOCO_FULL_NORMINVERSE or LOCO_FULL_METRIC_POLAR) else "1") == "1"
+LOCO_FULL_ADDITIVE = os.environ.get("LOCO_FULL_ADDITIVE", "0") == "1"
+LOCO_FULL_ADDITIVE_NORM_TO_BASE = os.environ.get("LOCO_FULL_ADDITIVE_NORM_TO_BASE", "0") == "1"
 LOCO_FULL_SKIP_VARRED = os.environ.get("LOCO_FULL_SKIP_VARRED", "0") == "1"
 LOCO_FULL_LOG_PRECOND = os.environ.get("LOCO_FULL_LOG_PRECOND", "0") == "1"
 LOCO_FULL_LOG_PRECOND_DETAIL = os.environ.get("LOCO_FULL_LOG_PRECOND_DETAIL", "0") == "1"
@@ -156,6 +158,10 @@ if LOCO_FULL_APPLY_POST_VARRED and LOCO_FULL_METRIC_POLAR:
     raise ValueError("LOCO_FULL_APPLY_POST_VARRED is not supported with LOCO_FULL_METRIC_POLAR")
 if LOCO_FULL_METRIC_POLAR and (LOCO_FULL_BLOCK or LOCO_FULL_TOPSHRINK or LOCO_FULL_POWER or LOCO_FULL_FINITE):
     raise ValueError("LOCO_FULL_METRIC_POLAR currently requires dense inverse/norminverse filter state")
+if LOCO_FULL_ADDITIVE and (LOCO_FULL_APPLY_BEFORE_MOMENTUM or LOCO_FULL_APPLY_POST_VARRED or LOCO_FULL_METRIC_POLAR):
+    raise ValueError("LOCO_FULL_ADDITIVE is a separate parameter correction; do not combine it with full-C Muon operand placement")
+if LOCO_FULL_ADDITIVE and LOCO_FULL_SKIP_VARRED:
+    raise ValueError("LOCO_FULL_SKIP_VARRED only applies to full-C Muon operand placement")
 if LOCO_FULL_MLP_FC and (LOCO_FULL_BLOCK or LOCO_FULL_TOPSHRINK):
     raise ValueError("LOCO_FULL_SURFACES=mlp_fc currently supports dense inverse, power, finite, or metric-polar only")
 if LOCO_FULL_MLP_FC and LOCO_FULL_SKIP_VARRED:
@@ -761,6 +767,7 @@ class NorMuonAndAdam:
         self.loco_full_active = LOCO_FULL_ACTIVE and loco_diag_model is not None
         self._loco_full_optimizer_active = False
         self._loco_full_runtime_noop = False
+        self._loco_full_additive_active = False
         self._loco_step = 0
         self._loco_log_step = False
         self._loco_full_log_step = False
@@ -807,6 +814,8 @@ class NorMuonAndAdam:
         self._loco_blend_t = torch.tensor(1.0, dtype=torch.float32, device="cpu")
         self._loco_scale_clip_t = torch.tensor(LOCO_DIAG_SCALE_CLIP, dtype=torch.float32, device="cpu")
         self._loco_full_blend_t = torch.tensor(0.0, dtype=torch.float32, device="cpu")
+        self._loco_full_add_lr_t = torch.tensor(0.0, dtype=torch.float32, device="cpu")
+        self._zero_t = torch.tensor(0.0, dtype=torch.float32, device="cpu")
 
         # Track async operations
         self._reduce_futures: dict[nn.Parameter, tuple] = {}
@@ -845,6 +854,7 @@ class NorMuonAndAdam:
             and full_active_now
             and (LOCO_FULL_NOOP or self._loco_full_runtime_noop or full_blend != 0.0)
         )
+        self._loco_full_additive_active = self._loco_full_optimizer_active and LOCO_FULL_ADDITIVE
         self._loco_log_step = globals().get("master_process", False) and step in LOCO_DIAG_LOG_STEP_SET
         self._loco_full_log_step = self._loco_log_step and LOCO_FULL_LOG_PRECOND
         self._loco_grad_ratio_stats.clear()
@@ -1639,9 +1649,18 @@ class NorMuonAndAdam:
             return self._loco_diag_mlp_update(param, grad_chunk, p_cfg, rank)
 
         chunk_shape = grad_chunk.shape
-        use_loco_full_qk = self._loco_full_optimizer_active and p_cfg.label == "qk_bank" and LOCO_FULL_QK
-        use_loco_full_vo = self._loco_full_optimizer_active and p_cfg.label == "vo_bank" and (LOCO_FULL_V or LOCO_FULL_O)
-        use_loco_full_mlp_fc = self._loco_full_optimizer_active and p_cfg.label == "mlp_bank" and LOCO_FULL_MLP_FC
+        use_loco_full_qk_candidate = self._loco_full_optimizer_active and p_cfg.label == "qk_bank" and LOCO_FULL_QK
+        use_loco_full_vo_candidate = self._loco_full_optimizer_active and p_cfg.label == "vo_bank" and (LOCO_FULL_V or LOCO_FULL_O)
+        use_loco_full_mlp_fc_candidate = self._loco_full_optimizer_active and p_cfg.label == "mlp_bank" and LOCO_FULL_MLP_FC
+        use_loco_full_additive_qk = self._loco_full_additive_active and use_loco_full_qk_candidate
+        use_loco_full_additive_vo = self._loco_full_additive_active and use_loco_full_vo_candidate
+        use_loco_full_additive_mlp_fc = self._loco_full_additive_active and use_loco_full_mlp_fc_candidate
+        use_loco_full_additive_bank = (
+            use_loco_full_additive_qk or use_loco_full_additive_vo or use_loco_full_additive_mlp_fc
+        )
+        use_loco_full_qk = use_loco_full_qk_candidate and not LOCO_FULL_ADDITIVE
+        use_loco_full_vo = use_loco_full_vo_candidate and not LOCO_FULL_ADDITIVE
+        use_loco_full_mlp_fc = use_loco_full_mlp_fc_candidate and not LOCO_FULL_ADDITIVE
         use_loco_full_bank = use_loco_full_qk or use_loco_full_vo or use_loco_full_mlp_fc
         use_loco_full_post_varred = use_loco_full_bank and LOCO_FULL_APPLY_POST_VARRED
         use_loco_full_before_momentum = use_loco_full_bank and LOCO_FULL_APPLY_BEFORE_MOMENTUM and not use_loco_full_post_varred
@@ -1651,6 +1670,9 @@ class NorMuonAndAdam:
 
         p_state = self.param_states[param]
         grad_chunk = grad_chunk.float()  # FP32 for momentum
+        loco_full_additive_correction = (
+            grad_chunk.clone() if use_loco_full_additive_bank and not LOCO_FULL_SCHEDULE_ONLY else None
+        )
         if self.loco_diag_normuon and not use_loco_full_bank:
             if p_cfg.label == "qk_bank" and LOCO_DIAG_QK:
                 self._loco_diag_precondition_qk_grad_inplace(grad_chunk, p_cfg, rank)
@@ -1712,6 +1734,20 @@ class NorMuonAndAdam:
             else:
                 self._loco_full_precondition_vo_operand_inplace(v_chunk, p_cfg, rank)
 
+        if loco_full_additive_correction is not None:
+            if use_loco_full_additive_qk:
+                self._loco_full_additive_qk_correction_inplace(
+                    loco_full_additive_correction, v_chunk, p_cfg, rank
+                )
+            elif use_loco_full_additive_mlp_fc:
+                self._loco_full_additive_mlp_fc_correction_inplace(
+                    loco_full_additive_correction, v_chunk, p_cfg, rank
+                )
+            else:
+                self._loco_full_additive_vo_correction_inplace(
+                    loco_full_additive_correction, v_chunk, p_cfg, rank
+                )
+
         # Update parameter, in place, with cautious weight decay
         param_view = param.data.view(p_cfg.reshape)
         p_slice = param_view[rank * p_cfg.chunk_size:(rank + 1) * p_cfg.chunk_size]
@@ -1725,11 +1761,31 @@ class NorMuonAndAdam:
                     p_slice[mat_idx].view(torch.uint16), p_state["mantissa"][mat_idx], v_chunk[mat_idx],
                     self._eff_wd_t, self._eff_lr_t
                 )
+                if loco_full_additive_correction is not None and float(self._loco_full_blend_t.item()) != 0.0:
+                    self._loco_full_add_lr_t.fill_(
+                        p_cfg.lr_mul * p_cfg.per_matrix_lr_mul[mat_idx] * p_cfg.lr * float(self._loco_full_blend_t.item())
+                    )
+                    NorMuonAndAdam._cautious_wd_and_update_inplace(
+                        p_slice[mat_idx].view(torch.uint16),
+                        p_state["mantissa"][mat_idx],
+                        loco_full_additive_correction[mat_idx],
+                        self._zero_t,
+                        self._loco_full_add_lr_t,
+                    )
         else:
             NorMuonAndAdam._cautious_wd_and_update_inplace(
                 p_slice.view(torch.uint16), p_state["mantissa"], v_chunk,
                 self._eff_wd_t, self._eff_lr_t
             )
+            if loco_full_additive_correction is not None and float(self._loco_full_blend_t.item()) != 0.0:
+                self._loco_full_add_lr_t.fill_(p_cfg.lr_mul * p_cfg.lr * float(self._loco_full_blend_t.item()))
+                NorMuonAndAdam._cautious_wd_and_update_inplace(
+                    p_slice.view(torch.uint16),
+                    p_state["mantissa"],
+                    loco_full_additive_correction,
+                    self._zero_t,
+                    self._loco_full_add_lr_t,
+                )
 
         return p_slice
 
@@ -2116,6 +2172,170 @@ class NorMuonAndAdam:
                     float(self._loco_full_blend_t.item()),
                 )
 
+    def _loco_full_apply_attn_input_filter_inplace(self, update: Tensor, layer_idx: int):
+        if LOCO_FULL_BLOCK:
+            if LOCO_FULL_PRECOND_BF16:
+                NorMuonAndAdam._loco_full_block_right_filter_bf16_cols_inplace(
+                    update, self.loco_diag_model.loco_full_v_block_inv_bf16[layer_idx]
+                )
+            else:
+                NorMuonAndAdam._loco_full_block_right_filter_cols_inplace(
+                    update, self.loco_diag_model.loco_full_v_block_inv[layer_idx]
+                )
+        elif LOCO_FULL_TOPSHRINK:
+            NorMuonAndAdam._loco_full_topshrink_filter_cols_inplace(
+                update,
+                self.loco_diag_model.loco_full_v_shrink_u[layer_idx],
+                self.loco_diag_model.loco_full_v_shrink_delta[layer_idx],
+            )
+        elif LOCO_FULL_PRECOND_BF16:
+            NorMuonAndAdam._loco_full_right_filter_bf16_cols_inplace(
+                update, self.loco_diag_model.loco_full_v_inv_bf16[layer_idx]
+            )
+        else:
+            NorMuonAndAdam._loco_full_right_filter_cols_inplace(
+                update, self.loco_diag_model.loco_full_v_inv[layer_idx]
+            )
+
+    def _loco_full_additive_vo_correction_inplace(
+        self,
+        correction_chunk: Tensor,
+        baseline_update: Tensor,
+        p_cfg: ParamConfig,
+        rank: int,
+    ):
+        """Turn raw V/O gradients into a separate local right-metric parameter correction."""
+        start_idx = rank * p_cfg.chunk_size
+        num_vo_real = self.loco_diag_model._num_attn_layers * 2
+        for mat_idx in range(p_cfg.chunk_size):
+            global_idx = start_idx + mat_idx
+            if global_idx >= num_vo_real:
+                correction_chunk[mat_idx].zero_()
+                continue
+            is_o = global_idx % 2 == 1
+            if is_o:
+                if not LOCO_FULL_O:
+                    correction_chunk[mat_idx].zero_()
+                    continue
+            elif not LOCO_FULL_V:
+                correction_chunk[mat_idx].zero_()
+                continue
+            layer_idx = global_idx // 2
+            model_layer = layer_idx + (layer_idx >= 6)
+            if not _loco_diag_layer_active(model_layer, LOCO_DIAG_ATTN_LAYER_SET):
+                correction_chunk[mat_idx].zero_()
+                continue
+            before_update = correction_chunk[mat_idx].float().clone() if self._loco_full_log_step else None
+            if is_o:
+                if LOCO_FULL_PRECOND_BF16:
+                    NorMuonAndAdam._loco_full_headwise_right_filter_bf16_cols_inplace(
+                        correction_chunk[mat_idx],
+                        self.loco_diag_model.loco_full_o_inv_bf16[layer_idx],
+                    )
+                else:
+                    NorMuonAndAdam._loco_full_headwise_right_filter_cols_inplace(
+                        correction_chunk[mat_idx],
+                        self.loco_diag_model.loco_full_o_inv[layer_idx],
+                    )
+            else:
+                self._loco_full_apply_attn_input_filter_inplace(correction_chunk[mat_idx], layer_idx)
+            if LOCO_FULL_ADDITIVE_NORM_TO_BASE:
+                NorMuonAndAdam._loco_full_match_norm_to_ref_inplace(
+                    correction_chunk[mat_idx], baseline_update[mat_idx]
+                )
+            if before_update is not None:
+                self._record_loco_full_precond_stats(
+                    "full_o_add" if is_o else "full_v_add",
+                    layer_idx,
+                    global_idx,
+                    before_update,
+                    correction_chunk[mat_idx],
+                    float(self._loco_full_blend_t.item()),
+                    record_postpolar_ref=False,
+                )
+
+    def _loco_full_additive_qk_correction_inplace(
+        self,
+        correction_chunk: Tensor,
+        baseline_update: Tensor,
+        p_cfg: ParamConfig,
+        rank: int,
+    ):
+        """Turn raw Q/K gradients into a separate local right-metric parameter correction."""
+        start_idx = rank * p_cfg.chunk_size
+        qk_groups_per_layer = 2 * (self.loco_diag_model.num_heads // 2)
+        for mat_idx in range(p_cfg.chunk_size):
+            global_idx = start_idx + mat_idx
+            if global_idx >= self.loco_diag_model._num_qk_groups:
+                correction_chunk[mat_idx].zero_()
+                continue
+            layer_idx = global_idx // qk_groups_per_layer
+            model_layer = layer_idx + (layer_idx >= 6)
+            if not _loco_diag_layer_active(model_layer, LOCO_DIAG_ATTN_LAYER_SET):
+                correction_chunk[mat_idx].zero_()
+                continue
+            before_update = correction_chunk[mat_idx].float().clone() if self._loco_full_log_step else None
+            self._loco_full_apply_attn_input_filter_inplace(correction_chunk[mat_idx], layer_idx)
+            if LOCO_FULL_ADDITIVE_NORM_TO_BASE:
+                NorMuonAndAdam._loco_full_match_norm_to_ref_inplace(
+                    correction_chunk[mat_idx], baseline_update[mat_idx]
+                )
+            if before_update is not None:
+                self._record_loco_full_precond_stats(
+                    "full_qk_add",
+                    layer_idx,
+                    global_idx,
+                    before_update,
+                    correction_chunk[mat_idx],
+                    float(self._loco_full_blend_t.item()),
+                    record_postpolar_ref=False,
+                )
+
+    def _loco_full_additive_mlp_fc_correction_inplace(
+        self,
+        correction_chunk: Tensor,
+        baseline_update: Tensor,
+        p_cfg: ParamConfig,
+        rank: int,
+    ):
+        """Turn raw MLP c_fc gradients into a separate local right-metric parameter correction."""
+        start_idx = rank * p_cfg.chunk_size
+        num_mlp_real = 22
+        for mat_idx in range(p_cfg.chunk_size):
+            global_idx = start_idx + mat_idx
+            if global_idx >= num_mlp_real or global_idx % 2 == 1:
+                correction_chunk[mat_idx].zero_()
+                continue
+            layer_idx = global_idx // 2
+            if not _loco_diag_layer_active(layer_idx, LOCO_DIAG_MLP_LAYER_SET):
+                correction_chunk[mat_idx].zero_()
+                continue
+            before_update = correction_chunk[mat_idx].float().clone() if self._loco_full_log_step else None
+            if LOCO_FULL_PRECOND_BF16:
+                NorMuonAndAdam._loco_full_right_filter_bf16_cols_inplace(
+                    correction_chunk[mat_idx],
+                    self.loco_diag_model.loco_full_mlp_fc_inv_bf16[layer_idx],
+                )
+            else:
+                NorMuonAndAdam._loco_full_right_filter_cols_inplace(
+                    correction_chunk[mat_idx],
+                    self.loco_diag_model.loco_full_mlp_fc_inv[layer_idx],
+                )
+            if LOCO_FULL_ADDITIVE_NORM_TO_BASE:
+                NorMuonAndAdam._loco_full_match_norm_to_ref_inplace(
+                    correction_chunk[mat_idx], baseline_update[mat_idx]
+                )
+            if before_update is not None:
+                self._record_loco_full_precond_stats(
+                    "full_mlp_fc_add",
+                    layer_idx,
+                    global_idx,
+                    before_update,
+                    correction_chunk[mat_idx],
+                    float(self._loco_full_blend_t.item()),
+                    record_postpolar_ref=False,
+                )
+
     def _loco_full_metric_polar_mlp_fc_update_inplace(
         self,
         operand_chunk: Tensor,
@@ -2426,6 +2646,76 @@ class NorMuonAndAdam:
         ).float()
         solved = solved.reshape_as(original)
         grad.copy_(original + blend_tensor.to(torch.float32) * (solved - original))
+
+    @staticmethod
+    @torch.compile(dynamic=False, fullgraph=True)
+    def _loco_full_right_filter_cols_inplace(grad, c_filter):
+        grad.copy_(grad.float() @ c_filter)
+
+    @staticmethod
+    @torch.compile(dynamic=False, fullgraph=True)
+    def _loco_full_right_filter_bf16_cols_inplace(grad, c_filter):
+        grad.copy_((grad.float().bfloat16() @ c_filter).float())
+
+    @staticmethod
+    @torch.compile(dynamic=False, fullgraph=True)
+    def _loco_full_block_right_filter_cols_inplace(grad, c_filter):
+        original = grad.float()
+        block_count = c_filter.shape[0]
+        block_dim = c_filter.shape[-1]
+        grad.copy_(torch.einsum(
+            "obd,bde->obe",
+            original.reshape(original.shape[0], block_count, block_dim),
+            c_filter,
+        ).reshape_as(original))
+
+    @staticmethod
+    @torch.compile(dynamic=False, fullgraph=True)
+    def _loco_full_block_right_filter_bf16_cols_inplace(grad, c_filter):
+        original = grad.float()
+        block_count = c_filter.shape[0]
+        block_dim = c_filter.shape[-1]
+        grad.copy_(torch.einsum(
+            "obd,bde->obe",
+            original.to(torch.bfloat16).reshape(original.shape[0], block_count, block_dim),
+            c_filter,
+        ).float().reshape_as(original))
+
+    @staticmethod
+    @torch.compile(dynamic=False, fullgraph=True)
+    def _loco_full_headwise_right_filter_cols_inplace(grad, c_filter):
+        original = grad.float()
+        num_heads = c_filter.shape[0]
+        head_dim = c_filter.shape[-1]
+        solved = torch.einsum("ohd,hde->ohe", original.view(original.shape[0], num_heads, head_dim), c_filter)
+        grad.copy_(solved.reshape_as(original))
+
+    @staticmethod
+    @torch.compile(dynamic=False, fullgraph=True)
+    def _loco_full_headwise_right_filter_bf16_cols_inplace(grad, c_filter):
+        original = grad.float()
+        num_heads = c_filter.shape[0]
+        head_dim = c_filter.shape[-1]
+        solved = torch.einsum(
+            "ohd,hde->ohe",
+            original.to(torch.bfloat16).view(original.shape[0], num_heads, head_dim),
+            c_filter,
+        ).float()
+        grad.copy_(solved.reshape_as(original))
+
+    @staticmethod
+    @torch.compile(dynamic=False, fullgraph=True)
+    def _loco_full_topshrink_filter_cols_inplace(grad, basis, delta):
+        original = grad.float()
+        correction = (original @ basis).mul(delta.view(1, -1)) @ basis.T
+        grad.copy_(original + correction)
+
+    @staticmethod
+    @torch.compile(dynamic=False, fullgraph=True)
+    def _loco_full_match_norm_to_ref_inplace(grad, ref):
+        ref_norm = ref.float().norm().clamp_min(1e-12)
+        grad_norm = grad.float().norm().clamp_min(1e-12)
+        grad.copy_(grad.float().mul(ref_norm.div(grad_norm)))
 
     @staticmethod
     @torch.compile(dynamic=False, fullgraph=True)
@@ -3588,6 +3878,7 @@ class TrainingManager():
                 f"power_alpha={LOCO_FULL_POWER_ALPHA} power_clip={LOCO_FULL_POWER_CLIP} shrink_only={int(LOCO_FULL_SHRINK_ONLY)} "
                 f"schedule_only={int(LOCO_FULL_SCHEDULE_ONLY)} "
                 f"metric_polar={int(LOCO_FULL_METRIC_POLAR)} "
+                f"additive={int(LOCO_FULL_ADDITIVE)} additive_norm_to_base={int(LOCO_FULL_ADDITIVE_NORM_TO_BASE)} "
                 f"polar_iters={LOCO_FULL_POLAR_ITERS} windows={LOCO_FULL_WINDOWS or 'end'} "
                 f"collect_windows={LOCO_FULL_COLLECT_WINDOWS or 'same'} "
                 f"skip_varred={int(LOCO_FULL_SKIP_VARRED)} "

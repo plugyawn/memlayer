@@ -43,6 +43,8 @@ run_case() {
     -u LOCO_FULL_FILTER \
     -u LOCO_FULL_METRIC_POLAR \
     -u LOCO_FULL_NORM_RESTORE \
+    -u LOCO_FULL_ADDITIVE \
+    -u LOCO_FULL_ADDITIVE_NORM_TO_BASE \
     -u LOCO_FULL_LOCAL_STATS \
     -u LOCO_FULL_APPLY_INTERVAL \
     -u LOCO_FULL_PRECOND_DTYPE \
@@ -2750,6 +2752,86 @@ run_mlpfc_paired_metric_ladder() {
     bash tools/run_newtonv_raw_v01_gate.sh
 }
 
+run_locoprop_additive_paired_ladder() {
+  local lpa_steps="${LPA_STEPS:-80}"
+  local lpa_val_every="${LPA_VAL_EVERY:-40}"
+  local lpa_surface="${LPA_SURFACE:-v}"
+  local lpa_layers="${LPA_LAYERS:-0-1}"
+  local lpa_collect="${LPA_COLLECT_WINDOWS:-0-64}"
+  local lpa_windows="${LPA_WINDOWS:-48-64}"
+  local lpa_refresh_interval="${LPA_REFRESH_INTERVAL:-16}"
+  local lpa_ema_beta="${LPA_EMA_BETA:-0.8}"
+  local lpa_ridge="${LPA_RIDGE_REL:-0.2}"
+  local lpa_ridge_label="${lpa_ridge/./}"
+  local lpa_blend="${LPA_BLEND_MAX:-0.05}"
+  local lpa_blend_label="${lpa_blend/./}"
+  local lpa_blend_steps="${LPA_BLEND_STEPS:-16}"
+  local lpa_filter="${LPA_FILTER:-finite}"
+  local lpa_finite_t="${LPA_FINITE_T:-2.0}"
+  local lpa_finite_label="${lpa_finite_t/./}"
+  local lpa_clip="${LPA_POWER_CLIP:-2.0}"
+  local lpa_norm_to_base="${LPA_NORM_TO_BASE:-1}"
+  local lpa_norm_label="raw"
+  if [[ "${lpa_norm_to_base}" == "1" ]]; then
+    lpa_norm_label="normbase"
+  fi
+
+  case "${lpa_surface}" in
+    v|qk|o|qk,v|v,o|qk,v,o)
+      run_case "lpa_paired_${lpa_surface//,/_}_${lpa_filter}_t${lpa_finite_label}_${lpa_norm_label}_r${lpa_ridge_label}_blend${lpa_blend_label}" \
+        TRAIN_SYNC_BOS_INDEX=1 \
+        NEWTONV_PAIRED_CASES="${LPA_PAIRED_CASES:-noop,active,noop2}" \
+        LOCO_FULL_ADDITIVE=1 \
+        LOCO_FULL_ADDITIVE_NORM_TO_BASE="${lpa_norm_to_base}" \
+        LOCO_FULL_SURFACES="${lpa_surface}" \
+        LOCO_DIAG_ATTN_LAYERS="${lpa_layers}" \
+        LOCO_FULL_COLLECT_WINDOWS="${lpa_collect}" \
+        LOCO_FULL_WINDOWS="${lpa_windows}" \
+        LOCO_FULL_REFRESH_INTERVAL="${lpa_refresh_interval}" \
+        LOCO_FULL_EMA_BETA="${lpa_ema_beta}" \
+        LOCO_FULL_RIDGE_REL="${lpa_ridge}" \
+        LOCO_FULL_BLEND_MAX="${lpa_blend}" \
+        LOCO_FULL_BLEND_STEPS="${lpa_blend_steps}" \
+        LOCO_FULL_FILTER="${lpa_filter}" \
+        LOCO_FULL_FINITE_T="${lpa_finite_t}" \
+        LOCO_FULL_POWER_CLIP="${lpa_clip}" \
+        LOCO_FULL_STATIC_NORM=1 \
+        LOCO_FULL_NORM_RESTORE=0 \
+        SCREEN_STEPS="${lpa_steps}" \
+        SCREEN_VAL_EVERY="${lpa_val_every}" \
+        bash tools/run_newtonv_raw_v01_gate.sh
+      ;;
+    mlp_fc)
+      run_case "lpa_paired_mlp_fc_${lpa_filter}_t${lpa_finite_label}_${lpa_norm_label}_r${lpa_ridge_label}_blend${lpa_blend_label}" \
+        TRAIN_SYNC_BOS_INDEX=1 \
+        NEWTONV_PAIRED_CASES="${LPA_PAIRED_CASES:-noop,active,noop2}" \
+        LOCO_FULL_ADDITIVE=1 \
+        LOCO_FULL_ADDITIVE_NORM_TO_BASE="${lpa_norm_to_base}" \
+        LOCO_FULL_SURFACES=mlp_fc \
+        LOCO_DIAG_MLP_LAYERS="${lpa_layers}" \
+        LOCO_FULL_COLLECT_WINDOWS="${lpa_collect}" \
+        LOCO_FULL_WINDOWS="${lpa_windows}" \
+        LOCO_FULL_REFRESH_INTERVAL="${lpa_refresh_interval}" \
+        LOCO_FULL_EMA_BETA="${lpa_ema_beta}" \
+        LOCO_FULL_RIDGE_REL="${lpa_ridge}" \
+        LOCO_FULL_BLEND_MAX="${lpa_blend}" \
+        LOCO_FULL_BLEND_STEPS="${lpa_blend_steps}" \
+        LOCO_FULL_FILTER="${lpa_filter}" \
+        LOCO_FULL_FINITE_T="${lpa_finite_t}" \
+        LOCO_FULL_POWER_CLIP="${lpa_clip}" \
+        LOCO_FULL_STATIC_NORM=1 \
+        LOCO_FULL_NORM_RESTORE=0 \
+        SCREEN_STEPS="${lpa_steps}" \
+        SCREEN_VAL_EVERY="${lpa_val_every}" \
+        bash tools/run_newtonv_raw_v01_gate.sh
+      ;;
+    *)
+      echo "LPA_SURFACE must be v, qk, o, qk,v, v,o, qk,v,o, or mlp_fc; got ${lpa_surface}" >&2
+      exit 1
+      ;;
+  esac
+}
+
 case "${suite}" in
   timing)
     run_timing_triplet
@@ -2909,6 +2991,9 @@ case "${suite}" in
   mlpfc_paired_metric)
     run_mlpfc_paired_metric_ladder
     ;;
+  locoprop_additive_paired)
+    run_locoprop_additive_paired_ladder
+    ;;
   all)
     run_timing_triplet
     run_next_ladder
@@ -2920,7 +3005,7 @@ case "${suite}" in
       bash tools/run_newtonv_raw_v01_gate.sh
     ;;
   *)
-    echo "NEWTONV_SUITE must be timing, filters, quick, raw200, promote, polar4, permutations, next, tail, warmmetric, overprecond, overpromote, scheduleonly, preconddiag, schedule_diag, rightfilter, paperstyle, paperfilter, metricpolar, metricpromote, metricv_promote, metricv_window, v_spectral_shape, paper_v_promote, metricsurfaces, surface_control, qkvo_metric_promote, qkvo_schedule, qkvo_power_shape, qkv_power_shape, qkv_inverse_control, v_varred_interaction, v_short_pulse, v_schedule_pulse, mlpfc, mlpfc_promote, mlpfc_before_control, mlpfc_filter_control, mlpfc_blend, mlpfc_postvarred_control, v_postvarred_control, v_postvarred_window, v_postvarred_finite_t, v_seed_sanity, v_paired_state_sanity, mlpfc_paired_metric, or all; got ${suite}" >&2
+    echo "NEWTONV_SUITE must be timing, filters, quick, raw200, promote, polar4, permutations, next, tail, warmmetric, overprecond, overpromote, scheduleonly, preconddiag, schedule_diag, rightfilter, paperstyle, paperfilter, metricpolar, metricpromote, metricv_promote, metricv_window, v_spectral_shape, paper_v_promote, metricsurfaces, surface_control, qkvo_metric_promote, qkvo_schedule, qkvo_power_shape, qkv_power_shape, qkv_inverse_control, v_varred_interaction, v_short_pulse, v_schedule_pulse, mlpfc, mlpfc_promote, mlpfc_before_control, mlpfc_filter_control, mlpfc_blend, mlpfc_postvarred_control, v_postvarred_control, v_postvarred_window, v_postvarred_finite_t, v_seed_sanity, v_paired_state_sanity, mlpfc_paired_metric, locoprop_additive_paired, or all; got ${suite}" >&2
     exit 2
     ;;
 esac
