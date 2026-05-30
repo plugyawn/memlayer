@@ -877,6 +877,7 @@ class NorMuonAndAdam:
         after: Tensor,
         blend: float,
         record_postpolar_ref: bool = True,
+        reference: Tensor | None = None,
     ):
         if not self._loco_full_log_step:
             return
@@ -898,7 +899,16 @@ class NorMuonAndAdam:
             "target_norm_ratio": None,
             "target_delta_ratio": None,
             "target_cos": None,
+            "ref_norm_ratio": None,
+            "ref_delta_ratio": None,
+            "ref_cos": None,
         }
+        if reference is not None:
+            ref = reference.float()
+            ref_norm = ref.norm().clamp_min(1e-12)
+            stat["ref_norm_ratio"] = after_norm.div(ref_norm).item()
+            stat["ref_delta_ratio"] = (after - ref).norm().div(ref_norm).item()
+            stat["ref_cos"] = ref.flatten().dot(after.flatten()).div(ref_norm * after_norm).clamp(-1.0, 1.0).item()
         if blend > 1e-12:
             target = before + delta.div(blend)
             target_norm = target.norm().clamp_min(1e-12)
@@ -1056,6 +1066,9 @@ class NorMuonAndAdam:
             cos_values = [stat["cos"] for stat in stats]
             target_delta_ratios = [stat["target_delta_ratio"] for stat in stats if stat["target_delta_ratio"] is not None]
             target_cos_values = [stat["target_cos"] for stat in stats if stat["target_cos"] is not None]
+            ref_norm_ratios = [stat["ref_norm_ratio"] for stat in stats if stat["ref_norm_ratio"] is not None]
+            ref_delta_ratios = [stat["ref_delta_ratio"] for stat in stats if stat["ref_delta_ratio"] is not None]
+            ref_cos_values = [stat["ref_cos"] for stat in stats if stat["ref_cos"] is not None]
             segment = (
                 f"{name}:n={len(stats)} layers={layers} "
                 f"blend={mean([stat['blend'] for stat in stats]):.4e} "
@@ -1067,6 +1080,12 @@ class NorMuonAndAdam:
                 segment += (
                     f" target_delta={mean(target_delta_ratios):.4e}/{min(target_delta_ratios):.4e}/{max(target_delta_ratios):.4e} "
                     f"target_cos={mean(target_cos_values):.6f}/{min(target_cos_values):.6f}/{max(target_cos_values):.6f}"
+                )
+            if ref_norm_ratios:
+                segment += (
+                    f" ref_norm={mean(ref_norm_ratios):.4e}/{min(ref_norm_ratios):.4e}/{max(ref_norm_ratios):.4e} "
+                    f"ref_delta={mean(ref_delta_ratios):.4e}/{min(ref_delta_ratios):.4e}/{max(ref_delta_ratios):.4e} "
+                    f"ref_cos={mean(ref_cos_values):.6f}/{min(ref_cos_values):.6f}/{max(ref_cos_values):.6f}"
                 )
             parts.append(segment)
             if LOCO_FULL_LOG_PRECOND_DETAIL:
@@ -2239,11 +2258,27 @@ class NorMuonAndAdam:
                     )
             else:
                 self._loco_full_apply_attn_input_filter_inplace(correction_chunk[mat_idx], layer_idx)
+            rawscale_update = (
+                correction_chunk[mat_idx].float().clone()
+                if before_update is not None and LOCO_FULL_ADDITIVE_NORM_TO_BASE
+                else None
+            )
             if LOCO_FULL_ADDITIVE_NORM_TO_BASE:
                 NorMuonAndAdam._loco_full_match_norm_to_ref_inplace(
                     correction_chunk[mat_idx], baseline_update[mat_idx]
                 )
             if before_update is not None:
+                if rawscale_update is not None:
+                    self._record_loco_full_precond_stats(
+                        "full_o_add_rawscale" if is_o else "full_v_add_rawscale",
+                        layer_idx,
+                        global_idx,
+                        before_update,
+                        rawscale_update,
+                        float(self._loco_full_blend_t.item()),
+                        record_postpolar_ref=False,
+                        reference=baseline_update[mat_idx],
+                    )
                 self._record_loco_full_precond_stats(
                     "full_o_add" if is_o else "full_v_add",
                     layer_idx,
@@ -2252,6 +2287,7 @@ class NorMuonAndAdam:
                     correction_chunk[mat_idx],
                     float(self._loco_full_blend_t.item()),
                     record_postpolar_ref=False,
+                    reference=baseline_update[mat_idx],
                 )
 
     def _loco_full_additive_qk_correction_inplace(
@@ -2276,11 +2312,27 @@ class NorMuonAndAdam:
                 continue
             before_update = correction_chunk[mat_idx].float().clone() if self._loco_full_log_step else None
             self._loco_full_apply_attn_input_filter_inplace(correction_chunk[mat_idx], layer_idx)
+            rawscale_update = (
+                correction_chunk[mat_idx].float().clone()
+                if before_update is not None and LOCO_FULL_ADDITIVE_NORM_TO_BASE
+                else None
+            )
             if LOCO_FULL_ADDITIVE_NORM_TO_BASE:
                 NorMuonAndAdam._loco_full_match_norm_to_ref_inplace(
                     correction_chunk[mat_idx], baseline_update[mat_idx]
                 )
             if before_update is not None:
+                if rawscale_update is not None:
+                    self._record_loco_full_precond_stats(
+                        "full_qk_add_rawscale",
+                        layer_idx,
+                        global_idx,
+                        before_update,
+                        rawscale_update,
+                        float(self._loco_full_blend_t.item()),
+                        record_postpolar_ref=False,
+                        reference=baseline_update[mat_idx],
+                    )
                 self._record_loco_full_precond_stats(
                     "full_qk_add",
                     layer_idx,
@@ -2289,6 +2341,7 @@ class NorMuonAndAdam:
                     correction_chunk[mat_idx],
                     float(self._loco_full_blend_t.item()),
                     record_postpolar_ref=False,
+                    reference=baseline_update[mat_idx],
                 )
 
     def _loco_full_additive_mlp_fc_correction_inplace(
@@ -2321,11 +2374,27 @@ class NorMuonAndAdam:
                     correction_chunk[mat_idx],
                     self.loco_diag_model.loco_full_mlp_fc_inv[layer_idx],
                 )
+            rawscale_update = (
+                correction_chunk[mat_idx].float().clone()
+                if before_update is not None and LOCO_FULL_ADDITIVE_NORM_TO_BASE
+                else None
+            )
             if LOCO_FULL_ADDITIVE_NORM_TO_BASE:
                 NorMuonAndAdam._loco_full_match_norm_to_ref_inplace(
                     correction_chunk[mat_idx], baseline_update[mat_idx]
                 )
             if before_update is not None:
+                if rawscale_update is not None:
+                    self._record_loco_full_precond_stats(
+                        "full_mlp_fc_add_rawscale",
+                        layer_idx,
+                        global_idx,
+                        before_update,
+                        rawscale_update,
+                        float(self._loco_full_blend_t.item()),
+                        record_postpolar_ref=False,
+                        reference=baseline_update[mat_idx],
+                    )
                 self._record_loco_full_precond_stats(
                     "full_mlp_fc_add",
                     layer_idx,
@@ -2334,6 +2403,7 @@ class NorMuonAndAdam:
                     correction_chunk[mat_idx],
                     float(self._loco_full_blend_t.item()),
                     record_postpolar_ref=False,
+                    reference=baseline_update[mat_idx],
                 )
 
     def _loco_full_metric_polar_mlp_fc_update_inplace(

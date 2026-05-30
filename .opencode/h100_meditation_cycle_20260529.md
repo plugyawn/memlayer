@@ -167,3 +167,52 @@ where right-side feature geometry should map most directly to KFAC/LocoProp /
 Newton-Muon reasoning. The paired harness should be used before any broad
 QKVO sweep.
 ```
+
+## Cycle C
+
+```text
+Start: 2026-05-30 11:16 IST
+GPU apps:
+  ap-xqRQZMenCXKMs6lphHEQbT completed additive V paired probe.
+  ap-FyYEObCFk1Z3R8eX5SxFOA completed additive MLP c_fc paired probe.
+Modal active NanoGPT apps after block: none.
+```
+
+Implementation work:
+
+```text
+17bdaf9 Add additive LocoProp correction path
+```
+
+H100 results:
+
+```text
+V layers 0-1 additive finite_t=2 norm-to-base:
+  paired_noop:   s80=4.5281
+  paired_active: s80=4.5242
+  paired_noop2:  s80=4.5316
+
+MLP c_fc layers 0-1 additive finite_t=2 norm-to-base:
+  paired_noop:   s80=4.5330
+  paired_active: s80=4.5259
+  paired_noop2:  s80=4.5282
+```
+
+Conclusion:
+
+```text
+The additive/state-decoupled LocoProp translation is now the hot path. It is
+not conclusive, but it is the first paired pattern where active beats both
+controls on two different 768-dimensional surfaces.
+
+This says the right feature axis probably should not be inserted into Muon
+momentum/polar state. Treat it as a local correction on top of an otherwise
+unchanged NorMuon update.
+
+Immediate next work:
+  1. Add correction/base norm logging.
+  2. Rerun V and c_fc with raw additive scaling versus norm-to-base.
+  3. Extend the best additive variant to 120/200 if it still clears controls.
+  4. Investigate why the late segment remains around 650ms/step even after the
+     nominal active window.
+```

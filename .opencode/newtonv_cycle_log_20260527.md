@@ -2899,3 +2899,74 @@ Timing note:
   - active and noop2 ran at about 446ms/step under the 80-step screen.
   - Timing from this run should not be used for WR economics.
 ```
+
+## Cycle 39 H100 Result: Additive LocoProp-Style Correction
+
+Implementation:
+
+```text
+Commit:
+  17bdaf9 Add additive LocoProp correction path
+
+Semantics:
+  raw reduced gradient G is cloned before momentum.
+  normal NorMuon/Polar/variance buffers are updated from the unmodified path.
+  a separate correction q = G f(C) is built from cached feature-metric state.
+  the correction is applied only as an extra parameter delta.
+
+First probe:
+  filter=finite_t=2.0, ridge=0.20, blend/alpha=0.05
+  additive_norm_to_base=1
+  collect 0-64, apply 48-64
+  paired cases: noop, active, noop2
+```
+
+V layers 0-1 result:
+
+```text
+App: ap-xqRQZMenCXKMs6lphHEQbT
+Log: .opencode/modal_newtonv_lpa_v_finite_normbase80_h100_20260530.launch.log
+
+paired_noop:   s40=5.6118  s80=4.5281
+paired_active: s40=5.6023  s80=4.5242
+paired_noop2:  s40=5.5999  s80=4.5316
+```
+
+MLP c_fc layers 0-1 result:
+
+```text
+App: ap-FyYEObCFk1Z3R8eX5SxFOA
+Log: .opencode/modal_newtonv_lpa_mlpfc_finite_normbase80_h100_20260530.launch.log
+
+paired_noop:   s40=5.6032  s80=4.5330
+paired_active: s40=5.6080  s80=4.5259
+paired_noop2:  s40=5.5955  s80=4.5282
+```
+
+Decision:
+
+```text
+This is the first paired evidence that the LocoProp reading may be the right
+translation: keep base Muon state clean and add the right-metric solve as a
+separate parameter correction.
+
+The result is not WR-ready:
+  - The active wins are small but present on both tested surfaces.
+  - The first no-op leg still sometimes pays one-off compile/selection stalls.
+  - The no-op/noop2 spread is still nontrivial, especially at step 40.
+  - additive_norm_to_base=1 makes this a directional correction, not a faithful
+    raw LocoProp-S magnitude test.
+
+Still, the sign pattern is materially better than the prior post-varred /
+operand-insertion Newton-V result:
+  - V active beat both no-ops at step 80.
+  - MLP c_fc active beat both no-ops at step 80.
+  - The effect survived two surfaces under the same exact-state paired harness.
+
+Next:
+  1. Repeat additive V and c_fc at 120 or 200 before promotion.
+  2. Run raw, non-norm-to-base additive with a larger/tuned alpha to test true
+     LocoProp magnitude.
+  3. Fix/understand the persistent ~650ms step cost after the active window.
+  4. Add correction/base norm logging so alpha can be selected from evidence.
+```

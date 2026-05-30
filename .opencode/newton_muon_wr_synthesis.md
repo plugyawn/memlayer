@@ -2043,3 +2043,66 @@ The two next meaningful paired probes are:
   2. Clean 768-dim MLP c_fc right-metric placement, including activation-metric
      polar versus Newton-Muon style preconditioning.
 ```
+
+Additive LocoProp update:
+
+```text
+Patch:
+  17bdaf9 Add additive LocoProp correction path
+
+Tested object:
+  Delta W = Delta W_NorMuon + alpha * G f(C)
+  with G f(C) kept out of momentum, Polar Express, and variance-reduction state.
+
+Initial scaling:
+  f(C)=finite_t=2.0 cached full feature metric
+  ridge_rel=0.20
+  alpha schedule via LOCO_FULL_BLEND_MAX=0.05 over 16 steps
+  additive_norm_to_base=1
+```
+
+Paired results:
+
+```text
+V layers 0-1, collect 0-64, apply 48-64:
+  noop:   4.5281
+  active: 4.5242
+  noop2:  4.5316
+
+MLP c_fc layers 0-1, collect 0-64, apply 48-64:
+  noop:   4.5330
+  active: 4.5259
+  noop2:  4.5282
+```
+
+Updated synthesis:
+
+```text
+This is the strongest evidence so far that the failure mode was not "right
+feature metrics are useless." It was probably "right feature metrics were being
+inserted into the wrong dynamical object."
+
+The additive LocoProp-style correction changes only the parameter update. That
+keeps the tuned NorMuon state stream intact, and both V and c_fc showed a small
+positive endpoint movement in paired replay. This contrasts with the earlier
+post-varred / after-momentum Newton-Muon style insertions, where active was
+not robustly better than controls.
+
+The important caveat is that this is not a faithful raw LocoProp-S magnitude
+test yet. additive_norm_to_base=1 normalizes the local correction to the base
+NorMuon update norm before applying alpha. This makes it a clean directional
+test. It does not prove that the unnormalized local least-squares displacement
+has the right scale for the speedrun.
+
+The next lever is therefore not "more surfaces first." It is:
+  - measure correction/base norm ratios;
+  - tune alpha from those ratios;
+  - compare norm-to-base versus raw additive;
+  - then promote the best V/c_fc additive variant to 120/200.
+
+The step-time story remains bad enough to block WR use. Active and second no-op
+legs are roughly 445ms average over the 80-step screen, but non-refresh steps
+inside/after the active path are around 650ms during the late segment. This
+suggests graph/path specialization or persistent optimizer-path cost that must
+be fixed before any 200-step win can matter.
+```
