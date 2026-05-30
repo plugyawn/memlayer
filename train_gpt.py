@@ -124,6 +124,9 @@ LOCO_FULL_METRIC_SOFT_EPS = float(os.environ.get("LOCO_FULL_METRIC_SOFT_EPS", "0
 LOCO_FULL_NORM_RESTORE = os.environ.get("LOCO_FULL_NORM_RESTORE", "0" if (LOCO_FULL_NORMINVERSE or LOCO_FULL_METRIC_POLAR) else "1") == "1"
 LOCO_FULL_ADDITIVE = os.environ.get("LOCO_FULL_ADDITIVE", "0") == "1"
 LOCO_FULL_ADDITIVE_NORM_TO_BASE = os.environ.get("LOCO_FULL_ADDITIVE_NORM_TO_BASE", "0") == "1"
+LOCO_FULL_ADDITIVE_COMPONENT = os.environ.get("LOCO_FULL_ADDITIVE_COMPONENT", "full").lower()
+if LOCO_FULL_ADDITIVE_COMPONENT not in {"full", "parallel", "orthogonal"}:
+    raise ValueError("LOCO_FULL_ADDITIVE_COMPONENT must be 'full', 'parallel', or 'orthogonal'")
 LOCO_FULL_SKIP_VARRED = os.environ.get("LOCO_FULL_SKIP_VARRED", "0") == "1"
 LOCO_FULL_LOG_PRECOND = os.environ.get("LOCO_FULL_LOG_PRECOND", "0") == "1"
 LOCO_FULL_LOG_PRECOND_DETAIL = os.environ.get("LOCO_FULL_LOG_PRECOND_DETAIL", "0") == "1"
@@ -2424,6 +2427,9 @@ class NorMuonAndAdam:
                     )
             else:
                 self._loco_full_apply_attn_input_filter_inplace(correction_chunk[mat_idx], layer_idx)
+            self._loco_full_project_additive_correction_inplace(
+                correction_chunk[mat_idx], baseline_update[mat_idx]
+            )
             rawscale_update = (
                 correction_chunk[mat_idx].float().clone()
                 if before_update is not None and LOCO_FULL_ADDITIVE_NORM_TO_BASE
@@ -2480,6 +2486,9 @@ class NorMuonAndAdam:
                 continue
             before_update = correction_chunk[mat_idx].float().clone() if self._loco_full_log_step else None
             self._loco_full_apply_attn_input_filter_inplace(correction_chunk[mat_idx], layer_idx)
+            self._loco_full_project_additive_correction_inplace(
+                correction_chunk[mat_idx], baseline_update[mat_idx]
+            )
             rawscale_update = (
                 correction_chunk[mat_idx].float().clone()
                 if before_update is not None and LOCO_FULL_ADDITIVE_NORM_TO_BASE
@@ -2544,6 +2553,9 @@ class NorMuonAndAdam:
                     correction_chunk[mat_idx],
                     self.loco_diag_model.loco_full_mlp_fc_inv[layer_idx],
                 )
+            self._loco_full_project_additive_correction_inplace(
+                correction_chunk[mat_idx], baseline_update[mat_idx]
+            )
             rawscale_update = (
                 correction_chunk[mat_idx].float().clone()
                 if before_update is not None and LOCO_FULL_ADDITIVE_NORM_TO_BASE
@@ -2958,6 +2970,26 @@ class NorMuonAndAdam:
         ref_norm = ref.float().norm().clamp_min(1e-12)
         grad_norm = grad.float().norm().clamp_min(1e-12)
         grad.copy_(grad.float().mul(ref_norm.div(grad_norm)))
+
+    @staticmethod
+    @torch.compile(dynamic=False, fullgraph=True)
+    def _loco_full_keep_parallel_to_ref_inplace(grad, ref):
+        ref_f = ref.float()
+        coeff = grad.float().mul(ref_f).sum().div(ref_f.square().sum().clamp_min(1e-12))
+        grad.copy_(ref_f.mul(coeff))
+
+    @staticmethod
+    @torch.compile(dynamic=False, fullgraph=True)
+    def _loco_full_keep_orthogonal_to_ref_inplace(grad, ref):
+        ref_f = ref.float()
+        coeff = grad.float().mul(ref_f).sum().div(ref_f.square().sum().clamp_min(1e-12))
+        grad.sub_(ref_f.mul(coeff))
+
+    def _loco_full_project_additive_correction_inplace(self, grad: Tensor, ref: Tensor):
+        if LOCO_FULL_ADDITIVE_COMPONENT == "parallel":
+            NorMuonAndAdam._loco_full_keep_parallel_to_ref_inplace(grad, ref)
+        elif LOCO_FULL_ADDITIVE_COMPONENT == "orthogonal":
+            NorMuonAndAdam._loco_full_keep_orthogonal_to_ref_inplace(grad, ref)
 
     @staticmethod
     @torch.compile(dynamic=False, fullgraph=True)
@@ -4122,6 +4154,7 @@ class TrainingManager():
                 f"metric_polar={int(LOCO_FULL_METRIC_POLAR)} "
                 f"metric_soft_alpha={LOCO_FULL_METRIC_SOFT_ALPHA} metric_soft_eps={LOCO_FULL_METRIC_SOFT_EPS} "
                 f"additive={int(LOCO_FULL_ADDITIVE)} additive_norm_to_base={int(LOCO_FULL_ADDITIVE_NORM_TO_BASE)} "
+                f"additive_component={LOCO_FULL_ADDITIVE_COMPONENT} "
                 f"polar_iters={LOCO_FULL_POLAR_ITERS} windows={LOCO_FULL_WINDOWS or 'end'} "
                 f"collect_windows={LOCO_FULL_COLLECT_WINDOWS or 'same'} "
                 f"skip_varred={int(LOCO_FULL_SKIP_VARRED)} "

@@ -47,6 +47,7 @@ run_case() {
     -u LOCO_FULL_NORM_RESTORE \
     -u LOCO_FULL_ADDITIVE \
     -u LOCO_FULL_ADDITIVE_NORM_TO_BASE \
+    -u LOCO_FULL_ADDITIVE_COMPONENT \
     -u LOCO_FULL_LOCAL_STATS \
     -u LOCO_FULL_APPLY_INTERVAL \
     -u LOCO_FULL_PRECOND_DTYPE \
@@ -2783,6 +2784,7 @@ run_locoprop_additive_paired_ladder() {
   local lpa_finite_label="${lpa_finite_t/./}"
   local lpa_clip="${LPA_POWER_CLIP:-2.0}"
   local lpa_norm_to_base="${LPA_NORM_TO_BASE:-1}"
+  local lpa_component="${LPA_COMPONENT:-full}"
   local lpa_log_precond="${LPA_LOG_PRECOND:-0}"
   local lpa_log_precond_detail="${LPA_LOG_PRECOND_DETAIL:-0}"
   local lpa_log_steps="${LPA_LOG_STEPS:-48,50,56,64,80,100,120}"
@@ -2792,11 +2794,12 @@ run_locoprop_additive_paired_ladder() {
     lpa_norm_label="normbase"
   fi
 
-  run_case "lpa_paired_${lpa_surface_label}_${lpa_filter}_t${lpa_finite_label}_${lpa_norm_label}_r${lpa_ridge_label}_blend${lpa_blend_label}" \
+  run_case "lpa_paired_${lpa_surface_label}_${lpa_filter}_t${lpa_finite_label}_${lpa_norm_label}_${lpa_component}_r${lpa_ridge_label}_blend${lpa_blend_label}" \
     TRAIN_SYNC_BOS_INDEX=1 \
     NEWTONV_PAIRED_CASES="${LPA_PAIRED_CASES:-noop,active,noop2}" \
     LOCO_FULL_ADDITIVE=1 \
     LOCO_FULL_ADDITIVE_NORM_TO_BASE="${lpa_norm_to_base}" \
+    LOCO_FULL_ADDITIVE_COMPONENT="${lpa_component}" \
     LOCO_FULL_SURFACES="${lpa_surface}" \
     LOCO_DIAG_ATTN_LAYERS="${lpa_layers}" \
     LOCO_DIAG_MLP_LAYERS="${lpa_layers}" \
