@@ -442,3 +442,25 @@ SP_NORM_RESTORE=1
 SP_LOG_PRECOND=1
 SP_PAIRED_CASES=noop,active,noop2
 ```
+
+Abort note:
+
+```text
+First launch ap-4RQOjj4ZOJtIMwkp1fkZ3T was stopped as invalid.
+
+Reason:
+  paired_noop still emitted soft_mlp_fc diagnostics and applied nonzero blend
+  in the 48-64 window. The runtime no-op bit was being set on TrainingManager,
+  while NorMuonAndAdam.set_loco_step reads optimizer._loco_full_runtime_noop.
+
+Observed before stop:
+  paired_noop step 50: blend=0.125, cos to hard polar ~0.996
+  paired_noop step 64: blend=1.0, cos to hard polar ~0.77
+  paired_noop step 80 val_loss=4.5345, but this was active soft-polar,
+  not a control.
+
+Fix:
+  run_training_case now propagates runtime_loco_full_noop to
+  training_manager.optimizer._loco_full_runtime_noop and clears it after
+  each paired case.
+```

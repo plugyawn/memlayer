@@ -2345,3 +2345,20 @@ controls, this non-metric spectral-transfer probe is not enough. If it hits,
 next run is 120-step paired, then the metric version
 T_alpha(G C^-1/2) C^-1/2.
 ```
+
+Control-path correction:
+
+```text
+The first soft-polar launch exposed a paired-control bug. NEWTONV paired cases
+set training_manager._loco_full_runtime_noop, but the optimizer scheduling code
+reads optimizer._loco_full_runtime_noop. Therefore the aborted paired_noop case
+still applied the soft-polar blend.
+
+This matters for all runtime-noop paired interpretations that depended on this
+flag rather than a static LOCO_FULL_NOOP environment setting. Treat those
+controls as suspect until rerun after the propagation fix.
+
+Patch:
+  run_training_case sets and clears training_manager.optimizer._loco_full_runtime_noop
+  together with the TrainingManager-side attribute.
+```

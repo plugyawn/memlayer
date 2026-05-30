@@ -4851,6 +4851,7 @@ def run_training_case(case_name: str | None = None, runtime_loco_full_noop: bool
         print0(f"===== NEWTONV_CASE_START paired_{case_name} {_utc_now()} =====", console=True)
     restore_training_anchor(initial_state)
     training_manager._loco_full_runtime_noop = runtime_loco_full_noop
+    training_manager.optimizer._loco_full_runtime_noop = runtime_loco_full_noop
     train_loader = distributed_data_generator(
         args.train_files,
         TRAINING_STAGES[0].batch_size,
@@ -4945,6 +4946,7 @@ def run_training_case(case_name: str | None = None, runtime_loco_full_noop: bool
         )
     del train_loader
     training_manager._loco_full_runtime_noop = False
+    training_manager.optimizer._loco_full_runtime_noop = False
     if case_name is not None:
         print0(f"===== NEWTONV_CASE_END paired_{case_name} {_utc_now()} =====", console=True)
 

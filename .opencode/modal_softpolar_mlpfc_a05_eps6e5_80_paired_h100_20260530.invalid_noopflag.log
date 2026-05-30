@@ -1,0 +1,199 @@
+✓ Initialized. View run at 
+https://modal.com/apps/nipsdwip/main/ap-4RQOjj4ZOJtIMwkp1fkZ3T
+Building image im-GOtfLXVlogKQzeBC49jEo7
+
+=> Step 0: FROM base
+
+=> Step 1: COPY . /
+Saving image...
+Image saved, took 886.81ms
+
+Built image im-GOtfLXVlogKQzeBC49jEo7 in 6.19s
+
+
+Building image im-VA4etUvUvLBA16UJzIZyti
+
+=> Step 0: FROM base
+
+=> Step 1: WORKDIR /root/speedrun
+Saving image...
+Image saved, took 648.47ms
+
+Built image im-VA4etUvUvLBA16UJzIZyti in 2.71s
+
+
+✓ Created objects.
+├── 🔨 Created mount 
+│   /Users/progyan/speedrun/wr-fresh-20260526/tools/modal_nanogpt_runner.py
+├── 🔨 Created mount /Users/progyan/speedrun/wr-fresh-20260526
+├── 🔨 Created function prepare_data.
+└── 🔨 Created function run_screen.
+
+==========
+== CUDA ==
+==========
+
+CUDA Version 12.8.0
+
+Container image Copyright (c) 2016-2023, NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+
+This container image and its contents are governed by the NVIDIA Deep Learning Container License.
+By pulling and using the container, you accept the terms and conditions of this license:
+https://developer.nvidia.com/ngc/nvidia-deep-learning-container-license
+
+A copy of this license is made available in this container at /NGC-DL-CONTAINER-LICENSE for your convenience.
+
+===== NEWTONV_CASE_START softpolar_paired_mlpfc_a05_eps6e_5_blend10 2026-05-30T17:44:58Z =====
+wrote train_gpt_screen.py from train_gpt.py with steps=80 val_every=40
+[Gloo] Rank 0 is connected to 0 peer ranks. Expected number of connected peer ranks is : 0
+
+Fetching 4 files:   0%|          | 0/4 [00:00<?, ?it/s]
+Fetching 4 files: 100%|██████████| 4/4 [00:00<00:00, 6138.75it/s]
+logs/2894d61c-4c8f-42cb-a43e-c3b6faab297d.txt
+Using TRAIN_RUN_SEED=1337
+Using TRAIN_SYNC_BOS_INDEX=1
+Using NEWTONV_PAIRED_CASES=noop,active,noop2
+soft_polar surfaces=['mlp_fc'] alpha=0.5 eps=6e-05 blend_max=1.0 blend_steps=16 windows=((48, 64),) norm_restore=1
+Compiling model and warming up kernels (~7 minutes on first execution)
+Sampling steps [0, 1, 8, 18, 19, 20, 21, 24, 38, 39, 40, 41, 48, 58, 59, 60, 64, 78, 79] for warmup
+loco_full_precond step=64 soft_mlp_fc:n=2 layers=0,1 blend=1.0000e+00 norm=1.0000e+00/1.0000e+00/1.0000e+00 delta=9.6603e-01/9.5079e-01/9.8127e-01 cos=0.533282/0.518560/0.548003 target_delta=9.6603e-01/9.5079e-01/9.8127e-01 target_cos=0.533282/0.518560/0.548003
+loco_full_precond_detail step=64 soft_mlp_fc:g0:l0:delta=9.5079e-01:target_delta=9.5079e-01:cos=0.548003 | soft_mlp_fc:g2:l1:delta=9.8127e-01:target_delta=9.8127e-01:cos=0.518560
+Resetting Model
+===== NEWTONV_CASE_START paired_noop 2026-05-30T17:47:05Z =====
+step:0/80 val_loss:10.8310 train_time:0ms step_avg:0.07ms
+step:1/80 train_time:286ms step_avg:285.89ms step_ms:285.89 refresh:0
+step:2/80 train_time:507ms step_avg:253.51ms step_ms:221.14 refresh:0
+step:3/80 train_time:742ms step_avg:247.20ms step_ms:234.59 refresh:0
+step:4/80 train_time:979ms step_avg:244.71ms step_ms:237.24 refresh:0
+step:5/80 train_time:1220ms step_avg:244.07ms step_ms:241.50 refresh:0
+step:6/80 train_time:1460ms step_avg:243.25ms step_ms:239.16 refresh:0
+step:7/80 train_time:1694ms step_avg:242.06ms step_ms:234.88 refresh:0
+step:8/80 train_time:1933ms step_avg:241.65ms step_ms:238.83 refresh:0
+step:9/80 train_time:2173ms step_avg:241.45ms step_ms:239.84 refresh:0
+step:10/80 train_time:2415ms step_avg:241.47ms step_ms:241.66 refresh:0
+step:11/80 train_time:2651ms step_avg:240.96ms step_ms:235.82 refresh:0
+step:12/80 train_time:2889ms step_avg:240.76ms step_ms:238.52 refresh:0
+step:13/80 train_time:3128ms step_avg:240.63ms step_ms:239.19 refresh:0
+step:14/80 train_time:3370ms step_avg:240.72ms step_ms:241.82 refresh:0
+step:15/80 train_time:3607ms step_avg:240.47ms step_ms:237.05 refresh:0
+step:16/80 train_time:3847ms step_avg:240.47ms step_ms:240.35 refresh:0
+step:17/80 train_time:4085ms step_avg:240.27ms step_ms:237.14 refresh:0
+step:18/80 train_time:4325ms step_avg:240.30ms step_ms:240.82 refresh:0
+step:19/80 train_time:4564ms step_avg:240.23ms step_ms:238.96 refresh:0
+step:20/80 train_time:4803ms step_avg:240.17ms step_ms:238.96 refresh:0
+step:21/80 train_time:5041ms step_avg:240.03ms step_ms:237.22 refresh:0
+step:22/80 train_time:5282ms step_avg:240.07ms step_ms:241.04 refresh:0
+step:23/80 train_time:5520ms step_avg:240.01ms step_ms:238.65 refresh:0
+step:24/80 train_time:5759ms step_avg:239.98ms step_ms:239.22 refresh:0
+step:25/80 train_time:5997ms step_avg:239.88ms step_ms:237.61 refresh:0
+step:26/80 train_time:6238ms step_avg:239.93ms step_ms:240.96 refresh:0
+step:27/80 train_time:6476ms step_avg:239.86ms step_ms:238.26 refresh:0
+step:28/80 train_time:6900ms step_avg:246.43ms step_ms:423.64 refresh:0
+step:29/80 train_time:7345ms step_avg:253.28ms step_ms:445.21 refresh:0
+step:30/80 train_time:7788ms step_avg:259.60ms step_ms:442.75 refresh:0
+step:31/80 train_time:8233ms step_avg:265.58ms step_ms:445.02 refresh:0
+step:32/80 train_time:8678ms step_avg:271.17ms step_ms:444.65 refresh:0
+step:33/80 train_time:9122ms step_avg:276.41ms step_ms:444.03 refresh:0
+step:34/80 train_time:9566ms step_avg:281.36ms step_ms:444.71 refresh:0
+step:35/80 train_time:10011ms step_avg:286.03ms step_ms:444.60 refresh:0
+step:36/80 train_time:10455ms step_avg:290.40ms step_ms:443.65 refresh:0
+step:37/80 train_time:10899ms step_avg:294.58ms step_ms:444.76 refresh:0
+step:38/80 train_time:11343ms step_avg:298.51ms step_ms:444.10 refresh:0
+step:39/80 train_time:11788ms step_avg:302.26ms step_ms:444.88 refresh:0
+step:40/80 train_time:12232ms step_avg:305.81ms step_ms:444.12 refresh:0
+step:40/80 val_loss:5.6047 train_time:12295ms step_avg:307.38ms
+step:41/80 train_time:12680ms step_avg:309.26ms step_ms:447.27 refresh:0
+step:42/80 train_time:13127ms step_avg:312.56ms step_ms:447.67 refresh:0
+step:43/80 train_time:13572ms step_avg:315.63ms step_ms:444.84 refresh:0
+step:44/80 train_time:14018ms step_avg:318.60ms step_ms:446.15 refresh:0
+step:45/80 train_time:14463ms step_avg:321.40ms step_ms:444.43 refresh:0
+step:46/80 train_time:14909ms step_avg:324.11ms step_ms:446.45 refresh:0
+step:47/80 train_time:15353ms step_avg:326.67ms step_ms:444.14 refresh:0
+step:48/80 train_time:15799ms step_avg:329.15ms step_ms:445.72 refresh:0
+step:49/80 train_time:16246ms step_avg:331.55ms step_ms:446.66 refresh:0
+step:50/80 train_time:16776ms step_avg:335.52ms step_ms:530.43 refresh:0
+loco_full_precond step=50 soft_mlp_fc:n=2 layers=0,1 blend=1.2500e-01 norm=9.6666e-01/9.6578e-01/9.6753e-01 delta=9.6792e-02/9.5545e-02/9.8040e-02 cos=0.995729/0.995630/0.995827 target_delta=7.7434e-01/7.6436e-01/7.8432e-01 target_cos=0.700171/0.692440/0.707901
+loco_full_precond_detail step=50 soft_mlp_fc:g0:l0:delta=9.5545e-02:target_delta=7.6436e-01:cos=0.995827 | soft_mlp_fc:g2:l1:delta=9.8040e-02:target_delta=7.8432e-01:cos=0.995630
+step:51/80 train_time:17244ms step_avg:338.12ms step_ms:467.86 refresh:0
+step:52/80 train_time:17711ms step_avg:340.60ms step_ms:467.11 refresh:0
+step:53/80 train_time:18177ms step_avg:342.96ms step_ms:465.47 refresh:0
+step:54/80 train_time:18860ms step_avg:349.26ms step_ms:683.65 refresh:0
+step:55/80 train_time:19531ms step_avg:355.12ms step_ms:671.18 refresh:0
+step:56/80 train_time:20239ms step_avg:361.40ms step_ms:707.07 refresh:0
+loco_full_precond step=56 soft_mlp_fc:n=2 layers=0,1 blend=5.0000e-01 norm=9.1003e-01/9.0911e-01/9.1094e-01 delta=4.1455e-01/4.1254e-01/4.1656e-01 cos=0.910025/0.909109/0.910941 target_delta=8.2910e-01/8.2507e-01/8.3312e-01 target_cos=0.656292/0.652958/0.659625
+loco_full_precond_detail step=56 soft_mlp_fc:g0:l0:delta=4.1254e-01:target_delta=8.2507e-01:cos=0.910941 | soft_mlp_fc:g2:l1:delta=4.1656e-01:target_delta=8.3312e-01:cos=0.909109
+step:57/80 train_time:20909ms step_avg:366.83ms step_ms:670.53 refresh:0
+step:58/80 train_time:21594ms step_avg:372.30ms step_ms:684.50 refresh:0
+step:59/80 train_time:22270ms step_avg:377.46ms step_ms:676.71 refresh:0
+step:60/80 train_time:22948ms step_avg:382.47ms step_ms:677.82 refresh:0
+step:61/80 train_time:23625ms step_avg:387.29ms step_ms:676.59 refresh:0
+step:62/80 train_time:24304ms step_avg:392.00ms step_ms:679.53 refresh:0
+step:63/80 train_time:24975ms step_avg:396.43ms step_ms:671.15 refresh:0
+step:64/80 train_time:25658ms step_avg:400.91ms step_ms:682.96 refresh:0
+loco_full_precond step=64 soft_mlp_fc:n=2 layers=0,1 blend=1.0000e+00 norm=1.0000e+00/1.0000e+00/1.0000e+00 delta=6.7559e-01/6.7166e-01/6.7953e-01 cos=0.771779/0.769121/0.774438 target_delta=6.7559e-01/6.7166e-01/6.7953e-01 target_cos=0.771779/0.769121/0.774438
+loco_full_precond_detail step=64 soft_mlp_fc:g0:l0:delta=6.7166e-01:target_delta=6.7166e-01:cos=0.774438 | soft_mlp_fc:g2:l1:delta=6.7953e-01:target_delta=6.7953e-01:cos=0.769121
+step:65/80 train_time:26332ms step_avg:405.10ms step_ms:673.45 refresh:0
+step:66/80 train_time:26904ms step_avg:407.64ms step_ms:572.27 refresh:0
+step:67/80 train_time:27562ms step_avg:411.37ms step_ms:657.79 refresh:0
+step:68/80 train_time:28217ms step_avg:414.95ms step_ms:654.70 refresh:0
+step:69/80 train_time:28872ms step_avg:418.44ms step_ms:655.86 refresh:0
+step:70/80 train_time:29529ms step_avg:421.84ms step_ms:656.30 refresh:0
+step:71/80 train_time:30185ms step_avg:425.14ms step_ms:656.17 refresh:0
+step:72/80 train_time:30840ms step_avg:428.33ms step_ms:654.82 refresh:0
+step:73/80 train_time:31497ms step_avg:431.47ms step_ms:657.37 refresh:0
+step:74/80 train_time:32149ms step_avg:434.45ms step_ms:652.15 refresh:0
+step:75/80 train_time:32805ms step_avg:437.40ms step_ms:655.72 refresh:0
+step:76/80 train_time:33462ms step_avg:440.29ms step_ms:657.47 refresh:0
+step:77/80 train_time:34122ms step_avg:443.14ms step_ms:659.53 refresh:0
+step:78/80 train_time:34779ms step_avg:445.88ms step_ms:656.85 refresh:0
+step:79/80 train_time:35438ms step_avg:448.59ms step_ms:659.66 refresh:0
+step:80/80 train_time:36091ms step_avg:451.14ms step_ms:652.71 refresh:0
+step:80/80 val_loss:4.5345 train_time:36187ms step_avg:452.33ms
+===== NEWTONV_CASE_END paired_noop 2026-05-30T17:48:06Z =====
+===== NEWTONV_CASE_START paired_active 2026-05-30T17:48:06Z =====
+Stopping app - user stopped from CLI.
+Runner terminated.
+╭───────────────────── Traceback (most recent call last) ──────────────────────╮
+│ /Users/progyan/speedrun/wr-fresh-20260526/tools/modal_nanogpt_runner.py:202  │
+│ in run                                                                       │
+│                                                                              │
+│   201 │   extra_env = _loads_extra_env(extra_env_json)                       │
+│ ❱ 202 │   result = run_screen.remote(runner, steps, val_every, nproc, data_c │
+│   203 │   print(json.dumps(result, indent=2, sort_keys=True))                │
+│                                                                              │
+│ /Users/progyan/dw_pr/.venv/lib/python3.12/site-packages/modal/_object.py:46  │
+│ in wrapped                                                                   │
+│                                                                              │
+│    45 │   │   await self.hydrate()                                           │
+│ ❱  46 │   │   return await method(self, *args, **kwargs)                     │
+│    47                                                                        │
+│                                                                              │
+│ /Users/progyan/dw_pr/.venv/lib/python3.12/site-packages/modal/_functions.py: │
+│ 1696 in remote                                                               │
+│                                                                              │
+│   1695 │   │                                                                 │
+│ ❱ 1696 │   │   return await self._call_function(args, kwargs)                │
+│   1697                                                                       │
+│                                                                              │
+│ /Users/progyan/dw_pr/.venv/lib/python3.12/site-packages/modal/_functions.py: │
+│ 1640 in _call_function                                                       │
+│                                                                              │
+│   1639 │   │                                                                 │
+│ ❱ 1640 │   │   return await invocation.run_function()                        │
+│   1641                                                                       │
+│                                                                              │
+│ /Users/progyan/dw_pr/.venv/lib/python3.12/site-packages/modal/_functions.py: │
+│ 474 in run_function                                                          │
+│                                                                              │
+│    473 │   │   │   if await_response.output.result.status in TERMINAL_STATUS │
+│ ❱  474 │   │   │   │   return await _process_result(                         │
+│    475 │   │   │   │   │   await_response.output.result, await_response.outp │
+│                                                                              │
+│ /Users/progyan/dw_pr/.venv/lib/python3.12/site-packages/modal/_utils/functio │
+│ n_utils.py:550 in _process_result                                            │
+│                                                                              │
+│   549 │   │                                                                  │
+│ ❱ 550 │   │   raise RemoteError(result.exception)                            │
+│   551                                                                        │
+╰──────────────────────────────────────────────────────────────────────────────╯
+RemoteError
