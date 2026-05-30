@@ -130,6 +130,25 @@ LOCO_FULL_LOG_EIGEN_ENERGY = os.environ.get("LOCO_FULL_LOG_EIGEN_ENERGY", "0") =
 LOCO_FULL_LOG_POSTPOLAR = os.environ.get("LOCO_FULL_LOG_POSTPOLAR", "0") == "1"
 LOCO_FULL_APPLY_BEFORE_MOMENTUM = os.environ.get("LOCO_FULL_APPLY_BEFORE_MOMENTUM", "0") == "1"
 LOCO_FULL_APPLY_POST_VARRED = os.environ.get("LOCO_FULL_APPLY_POST_VARRED", "0") == "1"
+LOCO_SOFT_POLAR = os.environ.get("LOCO_SOFT_POLAR", "0") == "1"
+LOCO_SOFT_POLAR_SURFACES = frozenset(
+    s.strip() for s in os.environ.get("LOCO_SOFT_POLAR_SURFACES", "mlp_fc").split(",") if s.strip()
+)
+LOCO_SOFT_POLAR_SUPPORTED_SURFACES = frozenset({"mlp_fc"})
+if LOCO_SOFT_POLAR and not LOCO_SOFT_POLAR_SURFACES <= LOCO_SOFT_POLAR_SUPPORTED_SURFACES:
+    raise ValueError(f"unsupported LOCO_SOFT_POLAR_SURFACES={sorted(LOCO_SOFT_POLAR_SURFACES)}")
+LOCO_SOFT_POLAR_MLP_FC = LOCO_SOFT_POLAR and "mlp_fc" in LOCO_SOFT_POLAR_SURFACES
+LOCO_SOFT_POLAR_ALPHA = float(os.environ.get("LOCO_SOFT_POLAR_ALPHA", "0.5"))
+LOCO_SOFT_POLAR_EPS = float(os.environ.get("LOCO_SOFT_POLAR_EPS", "1e-6"))
+LOCO_SOFT_POLAR_BLEND_STEPS = int(os.environ.get("LOCO_SOFT_POLAR_BLEND_STEPS", "16"))
+LOCO_SOFT_POLAR_BLEND_MAX = float(os.environ.get("LOCO_SOFT_POLAR_BLEND_MAX", "1.0"))
+LOCO_SOFT_POLAR_END_STEP = int(os.environ.get("LOCO_SOFT_POLAR_END_STEP", "-1"))
+LOCO_SOFT_POLAR_WINDOWS_SPEC = os.environ.get("LOCO_SOFT_POLAR_WINDOWS", "").strip()
+LOCO_SOFT_POLAR_NORM_RESTORE = os.environ.get("LOCO_SOFT_POLAR_NORM_RESTORE", "1") == "1"
+LOCO_SOFT_POLAR_BLEND_RESTART_EACH_WINDOW = os.environ.get(
+    "LOCO_SOFT_POLAR_BLEND_RESTART_EACH_WINDOW",
+    "1" if LOCO_SOFT_POLAR_WINDOWS_SPEC else "0",
+) == "1"
 if LOCO_FULL_APPLY_INTERVAL <= 0:
     raise ValueError("LOCO_FULL_APPLY_INTERVAL must be positive")
 if LOCO_FULL_BLOCK_SIZE < 0:
@@ -162,6 +181,16 @@ if LOCO_FULL_ADDITIVE and (LOCO_FULL_APPLY_BEFORE_MOMENTUM or LOCO_FULL_APPLY_PO
     raise ValueError("LOCO_FULL_ADDITIVE is a separate parameter correction; do not combine it with full-C Muon operand placement")
 if LOCO_FULL_ADDITIVE and LOCO_FULL_SKIP_VARRED:
     raise ValueError("LOCO_FULL_SKIP_VARRED only applies to full-C Muon operand placement")
+if LOCO_SOFT_POLAR and (LOCO_DIAG_ACTIVE or LOCO_FULL_ACTIVE):
+    raise ValueError("LOCO_SOFT_POLAR is an isolated polar-transfer probe; do not combine it with LOCO_DIAG or LOCO_FULL")
+if not (0.0 <= LOCO_SOFT_POLAR_ALPHA <= 1.0):
+    raise ValueError("LOCO_SOFT_POLAR_ALPHA must be in [0, 1]")
+if LOCO_SOFT_POLAR_EPS < 0:
+    raise ValueError("LOCO_SOFT_POLAR_EPS must be non-negative")
+if LOCO_SOFT_POLAR_BLEND_STEPS < 0:
+    raise ValueError("LOCO_SOFT_POLAR_BLEND_STEPS must be non-negative")
+if LOCO_SOFT_POLAR_BLEND_MAX < 0:
+    raise ValueError("LOCO_SOFT_POLAR_BLEND_MAX must be non-negative")
 if LOCO_FULL_MLP_FC and (LOCO_FULL_BLOCK or LOCO_FULL_TOPSHRINK):
     raise ValueError("LOCO_FULL_SURFACES=mlp_fc currently supports dense inverse, power, finite, or metric-polar only")
 if LOCO_FULL_MLP_FC and LOCO_FULL_SKIP_VARRED:
@@ -173,7 +202,7 @@ LOCO_FULL_RESET_EACH_WINDOW = os.environ.get(
 ) == "1"
 LOCO_FULL_BLEND_RESTART_EACH_WINDOW = os.environ.get("LOCO_FULL_BLEND_RESTART_EACH_WINDOW", "1" if LOCO_FULL_WINDOWS_SPEC else "0") == "1"
 LOCO_FULL_STATS_ACTIVE = LOCO_FULL_ACTIVE and not LOCO_FULL_SCHEDULE_ONLY
-LOCO_FEATURE_ACTIVE = LOCO_DIAG_ACTIVE or LOCO_FULL_ACTIVE
+LOCO_FEATURE_ACTIVE = LOCO_DIAG_ACTIVE or LOCO_FULL_ACTIVE or LOCO_SOFT_POLAR
 TRAIN_RUN_SEED_SPEC = os.environ.get("TRAIN_RUN_SEED", "").strip()
 TRAIN_RUN_SEED = int(TRAIN_RUN_SEED_SPEC) if TRAIN_RUN_SEED_SPEC else None
 TRAIN_SYNC_BOS_INDEX = os.environ.get("TRAIN_SYNC_BOS_INDEX", "0") == "1"
@@ -204,6 +233,7 @@ def _parse_loco_step_windows(name: str, spec: str | None = None) -> tuple[tuple[
 
 LOCO_FULL_WINDOWS = _parse_loco_step_windows("LOCO_FULL_WINDOWS")
 LOCO_FULL_COLLECT_WINDOWS = _parse_loco_step_windows("LOCO_FULL_COLLECT_WINDOWS", LOCO_FULL_COLLECT_WINDOWS_SPEC)
+LOCO_SOFT_POLAR_WINDOWS = _parse_loco_step_windows("LOCO_SOFT_POLAR_WINDOWS", LOCO_SOFT_POLAR_WINDOWS_SPEC)
 
 def _parse_loco_diag_layers(name: str, count: int, *, disallow: frozenset[int] = frozenset()) -> frozenset[int] | None:
     spec = os.environ.get(name, "all").strip().lower()
@@ -259,6 +289,19 @@ def _loco_full_blend_step(step: int) -> int:
     if not (LOCO_FULL_WINDOWS and LOCO_FULL_BLEND_RESTART_EACH_WINDOW):
         return step
     starts = [lo for lo, hi in LOCO_FULL_WINDOWS if lo <= step <= hi]
+    return step - max(starts) if starts else step
+
+def _soft_polar_active_at_step(step: int) -> bool:
+    if not LOCO_SOFT_POLAR:
+        return False
+    if LOCO_SOFT_POLAR_WINDOWS:
+        return any(lo <= step <= hi for lo, hi in LOCO_SOFT_POLAR_WINDOWS)
+    return LOCO_SOFT_POLAR_END_STEP < 0 or step <= LOCO_SOFT_POLAR_END_STEP
+
+def _soft_polar_blend_step(step: int) -> int:
+    if not (LOCO_SOFT_POLAR_WINDOWS and LOCO_SOFT_POLAR_BLEND_RESTART_EACH_WINDOW):
+        return step
+    starts = [lo for lo, hi in LOCO_SOFT_POLAR_WINDOWS if lo <= step <= hi]
     return step - max(starts) if starts else step
 
 def _loco_full_should_refresh(step: int) -> bool:
@@ -581,6 +624,35 @@ def polar_express_from_operand(g: torch.Tensor, split_baddbmm: bool = False):
 
     return X
 
+def soft_polar_from_operand(g: torch.Tensor, alpha_t: torch.Tensor, eps_t: torch.Tensor):
+    """
+    Apply T_alpha,eps(X) = X (X.T X + eps I)^(-alpha/2) to the same normalized
+    operand that Polar Express would consume. This exact eig path is a first
+    screen for the spectral-transfer hypothesis; if it hits, replace with a
+    polynomial/fractional Newton-Schulz approximation.
+    """
+    X = g.float()
+    X = X / (X.norm(dim=(-2, -1), keepdim=True) * (1 + 2e-2) + 1e-6)
+    alpha = alpha_t.to(device=X.device, dtype=torch.float32)
+    eps = eps_t.to(device=X.device, dtype=torch.float32)
+    is_tall = X.size(-2) >= X.size(-1)
+    if is_tall:
+        gram = X.T @ X
+        gram = 0.5 * (gram + gram.T)
+        idx = torch.arange(gram.shape[-1], device=gram.device)
+        gram[idx, idx] += eps
+        evals, evecs = torch.linalg.eigh(gram)
+        gain = evals.clamp_min(1e-12).pow(-0.5 * alpha)
+        return (X @ evecs).mul(gain.view(1, -1)) @ evecs.T
+
+    gram = X @ X.T
+    gram = 0.5 * (gram + gram.T)
+    idx = torch.arange(gram.shape[-1], device=gram.device)
+    gram[idx, idx] += eps
+    evals, evecs = torch.linalg.eigh(gram)
+    gain = evals.clamp_min(1e-12).pow(-0.5 * alpha)
+    return evecs @ (evecs.T @ X).mul(gain.view(-1, 1))
+
 # -----------------------------------------------------------------------------
 # Sparse Comms for bigram embedding gradient reduce-scatter
 def _sparse_comms_active():
@@ -765,9 +837,11 @@ class NorMuonAndAdam:
         self.loco_diag_normuon_normsqrt = self.loco_diag_normuon and LOCO_DIAG_NORMUON_PRECOND == "normsqrt"
         self.loco_diag_normuon_normquarter = self.loco_diag_normuon and LOCO_DIAG_NORMUON_PRECOND == "normquarter"
         self.loco_full_active = LOCO_FULL_ACTIVE and loco_diag_model is not None
+        self.soft_polar_active = LOCO_SOFT_POLAR and loco_diag_model is not None
         self._loco_full_optimizer_active = False
         self._loco_full_runtime_noop = False
         self._loco_full_additive_active = False
+        self._soft_polar_optimizer_active = False
         self._loco_step = 0
         self._loco_log_step = False
         self._loco_full_log_step = False
@@ -815,6 +889,9 @@ class NorMuonAndAdam:
         self._loco_scale_clip_t = torch.tensor(LOCO_DIAG_SCALE_CLIP, dtype=torch.float32, device="cpu")
         self._loco_full_blend_t = torch.tensor(0.0, dtype=torch.float32, device="cpu")
         self._loco_full_add_lr_t = torch.tensor(0.0, dtype=torch.float32, device="cpu")
+        self._soft_polar_blend_t = torch.tensor(0.0, dtype=torch.float32, device="cpu")
+        self._soft_polar_alpha_t = torch.tensor(LOCO_SOFT_POLAR_ALPHA, dtype=torch.float32, device="cpu")
+        self._soft_polar_eps_t = torch.tensor(LOCO_SOFT_POLAR_EPS, dtype=torch.float32, device="cpu")
         self._zero_t = torch.tensor(0.0, dtype=torch.float32, device="cpu")
 
         # Track async operations
@@ -844,9 +921,21 @@ class NorMuonAndAdam:
         else:
             full_blend_step = _loco_full_blend_step(step)
             full_blend = min(LOCO_FULL_BLEND_MAX, max(0.0, full_blend_step / LOCO_FULL_BLEND_STEPS) * LOCO_FULL_BLEND_MAX)
+        soft_active_now = _soft_polar_active_at_step(step)
+        if self._loco_full_runtime_noop or not soft_active_now:
+            soft_blend = 0.0
+        elif LOCO_SOFT_POLAR_BLEND_STEPS <= 0:
+            soft_blend = LOCO_SOFT_POLAR_BLEND_MAX
+        else:
+            soft_blend_step = _soft_polar_blend_step(step)
+            soft_blend = min(
+                LOCO_SOFT_POLAR_BLEND_MAX,
+                max(0.0, soft_blend_step / LOCO_SOFT_POLAR_BLEND_STEPS) * LOCO_SOFT_POLAR_BLEND_MAX,
+            )
         self._loco_step = step
         self._loco_blend_t.fill_(blend)
         self._loco_full_blend_t.fill_(full_blend)
+        self._soft_polar_blend_t.fill_(soft_blend)
         apply_full_now = (step % LOCO_FULL_APPLY_INTERVAL) == 0
         self._loco_full_optimizer_active = (
             self.loco_full_active
@@ -855,6 +944,7 @@ class NorMuonAndAdam:
             and (LOCO_FULL_NOOP or self._loco_full_runtime_noop or full_blend != 0.0)
         )
         self._loco_full_additive_active = self._loco_full_optimizer_active and LOCO_FULL_ADDITIVE
+        self._soft_polar_optimizer_active = self.soft_polar_active and soft_blend != 0.0
         self._loco_log_step = globals().get("master_process", False) and step in LOCO_DIAG_LOG_STEP_SET
         self._loco_full_log_step = self._loco_log_step and LOCO_FULL_LOG_PRECOND
         self._loco_grad_ratio_stats.clear()
@@ -1659,6 +1749,50 @@ class NorMuonAndAdam:
                     record_postpolar_ref=False,
                 )
 
+    def _soft_polar_mlp_fc_update_inplace(
+        self,
+        operand_chunk: Tensor,
+        v_chunk: Tensor,
+        p_cfg: ParamConfig,
+        rank: int,
+    ):
+        """Blend T_alpha,eps(momentum operand) into MLP c_fc hard-polar updates."""
+        start_idx = rank * p_cfg.chunk_size
+        num_mlp_real = 22
+        blend = float(self._soft_polar_blend_t.item())
+        for mat_idx in range(p_cfg.chunk_size):
+            global_idx = start_idx + mat_idx
+            if global_idx >= num_mlp_real:
+                v_chunk[mat_idx].zero_()
+                continue
+            if global_idx % 2 == 1:
+                continue
+            layer_idx = global_idx // 2
+            if not _loco_diag_layer_active(layer_idx, LOCO_DIAG_MLP_LAYER_SET):
+                continue
+            baseline = v_chunk[mat_idx].float()
+            soft_update = soft_polar_from_operand(
+                operand_chunk[mat_idx],
+                self._soft_polar_alpha_t,
+                self._soft_polar_eps_t,
+            ).float()
+            if LOCO_SOFT_POLAR_NORM_RESTORE:
+                soft_update = soft_update.mul(
+                    baseline.norm().div(soft_update.norm().clamp_min(1e-12))
+                )
+            before_update = baseline.clone() if self._loco_full_log_step else None
+            v_chunk[mat_idx].copy_(baseline + blend * (soft_update - baseline))
+            if before_update is not None:
+                self._record_loco_full_precond_stats(
+                    "soft_mlp_fc",
+                    layer_idx,
+                    global_idx,
+                    before_update,
+                    v_chunk[mat_idx],
+                    blend,
+                    record_postpolar_ref=False,
+                )
+
     # -----------------------------------
     # NorMuon update
 
@@ -1685,6 +1819,11 @@ class NorMuonAndAdam:
         use_loco_full_before_momentum = use_loco_full_bank and LOCO_FULL_APPLY_BEFORE_MOMENTUM and not use_loco_full_post_varred
         use_loco_full_after_momentum = (
             use_loco_full_bank and not LOCO_FULL_APPLY_BEFORE_MOMENTUM and not use_loco_full_post_varred
+        )
+        use_soft_polar_mlp_fc = (
+            self._soft_polar_optimizer_active
+            and p_cfg.label == "mlp_bank"
+            and LOCO_SOFT_POLAR_MLP_FC
         )
 
         p_state = self.param_states[param]
@@ -1713,7 +1852,11 @@ class NorMuonAndAdam:
 
         # Fused Nesterov momentum + Polar Express orthogonalization
         is_large_matrix = chunk_shape[-2] > 1024
-        if use_loco_full_after_momentum:
+        if use_soft_polar_mlp_fc:
+            nesterov_momentum_operand_inplace(grad_chunk, p_state["momentum_buffer"], self._momentum_t)
+            v_chunk = polar_express_from_operand(grad_chunk, split_baddbmm=is_large_matrix)
+            self._soft_polar_mlp_fc_update_inplace(grad_chunk, v_chunk, p_cfg, rank)
+        elif use_loco_full_after_momentum:
             nesterov_momentum_operand_inplace(grad_chunk, p_state["momentum_buffer"], self._momentum_t)
             if LOCO_FULL_METRIC_POLAR and not LOCO_FULL_SCHEDULE_ONLY:
                 v_chunk = polar_express_from_operand(grad_chunk, split_baddbmm=is_large_matrix)
@@ -3955,6 +4098,15 @@ class TrainingManager():
                 f"post_varred={int(LOCO_FULL_APPLY_POST_VARRED)} "
                 f"local_stats={int(LOCO_FULL_LOCAL_STATS)} "
                 f"apply_interval={LOCO_FULL_APPLY_INTERVAL}",
+                console=True,
+            )
+        if LOCO_SOFT_POLAR:
+            print0(
+                f"soft_polar surfaces={sorted(LOCO_SOFT_POLAR_SURFACES)} "
+                f"alpha={LOCO_SOFT_POLAR_ALPHA} eps={LOCO_SOFT_POLAR_EPS} "
+                f"blend_max={LOCO_SOFT_POLAR_BLEND_MAX} blend_steps={LOCO_SOFT_POLAR_BLEND_STEPS} "
+                f"windows={LOCO_SOFT_POLAR_WINDOWS or 'end'} "
+                f"norm_restore={int(LOCO_SOFT_POLAR_NORM_RESTORE)}",
                 console=True,
             )
 

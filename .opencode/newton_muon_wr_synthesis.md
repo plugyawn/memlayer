@@ -2291,3 +2291,57 @@ Current decision:
     activation-metric local correction, or structurally paired attention
     surfaces.
 ```
+
+Soft-polar spectral transfer plan:
+
+```text
+Object:
+  T_alpha,eps(X) = X (X.T X + eps I)^(-alpha/2)
+
+First implementation:
+  X = M, the Nesterov/Muon momentum operand.
+  Replace/blend only MLP c_fc hard-polar updates.
+  Do not use feature Gram C yet.
+  Do not combine with LOCO_DIAG or LOCO_FULL.
+
+Reason:
+  This isolates whether hard polar is too aggressive before reintroducing the
+  right-feature metric. It tests singular-value partial flattening directly.
+```
+
+Patch:
+
+```text
+train_gpt.py:
+  LOCO_SOFT_POLAR=1
+  LOCO_SOFT_POLAR_SURFACES=mlp_fc
+  LOCO_SOFT_POLAR_ALPHA
+  LOCO_SOFT_POLAR_EPS
+  LOCO_SOFT_POLAR_WINDOWS
+  LOCO_SOFT_POLAR_BLEND_MAX / BLEND_STEPS
+
+tools/run_newtonv_experiment_suite.sh:
+  NEWTONV_SUITE=softpolar_paired
+```
+
+First H100 screen:
+
+```text
+surface: mlp_fc layers 0-1
+alpha: 0.5
+eps: 6e-5
+window: 48-64
+blend_max: 1.0
+norm_restore: 1
+steps: 80
+cases: noop,active,noop2
+```
+
+Interpretation gate:
+
+```text
+Promote only if active beats both noops at step 80. If active is only between
+controls, this non-metric spectral-transfer probe is not enough. If it hits,
+next run is 120-step paired, then the metric version
+T_alpha(G C^-1/2) C^-1/2.
+```

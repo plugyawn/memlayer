@@ -402,3 +402,43 @@ Meditation target before next launch:
   4. If staying with norm-to-base, test shorter pulse timing, not smaller
      alpha.
 ```
+
+## Cycle H Plan
+
+```text
+Start: 2026-05-30 21:56 IST
+GPU state before launch:
+  No active NanoGPT Modal app.
+```
+
+Meditation result:
+
+```text
+The next run should not continue scalar tweaking of the additive finite_t
+feature-metric correction. The more basic question is whether hard Polar
+Express/Muon is erasing too much singular-value information.
+
+Implemented a non-metric soft-polar probe:
+  T_alpha,eps(M) = M (M.T M + eps I)^(-alpha/2)
+
+This applies only to MLP c_fc matrices and leaves c_proj plus attention banks
+on baseline NorMuon. It is intentionally isolated from LOCO_DIAG and LOCO_FULL
+so a hit or miss is interpretable.
+```
+
+Queued H100 test:
+
+```text
+NEWTONV_SUITE=softpolar_paired
+SP_STEPS=80
+SP_VAL_EVERY=40
+SP_LAYERS=0-1
+SP_WINDOWS=48-64
+SP_ALPHA=0.5
+SP_EPS=6e-5
+SP_BLEND_MAX=1.0
+SP_BLEND_STEPS=16
+SP_NORM_RESTORE=1
+SP_LOG_PRECOND=1
+SP_PAIRED_CASES=noop,active,noop2
+```

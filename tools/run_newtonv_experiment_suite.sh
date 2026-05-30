@@ -63,6 +63,16 @@ run_case() {
     -u LOCO_FULL_LOG_SPECTRUM \
     -u LOCO_FULL_LOG_EIGEN_ENERGY \
     -u LOCO_FULL_LOG_POSTPOLAR \
+    -u LOCO_SOFT_POLAR \
+    -u LOCO_SOFT_POLAR_SURFACES \
+    -u LOCO_SOFT_POLAR_ALPHA \
+    -u LOCO_SOFT_POLAR_EPS \
+    -u LOCO_SOFT_POLAR_BLEND_STEPS \
+    -u LOCO_SOFT_POLAR_BLEND_MAX \
+    -u LOCO_SOFT_POLAR_END_STEP \
+    -u LOCO_SOFT_POLAR_WINDOWS \
+    -u LOCO_SOFT_POLAR_NORM_RESTORE \
+    -u LOCO_SOFT_POLAR_BLEND_RESTART_EACH_WINDOW \
     -u TRAIN_SYNC_BOS_INDEX \
     -u TRAIN_INIT_MODEL_PATH \
     -u TRAIN_SAVE_INIT_MODEL_PATH \
@@ -2808,6 +2818,43 @@ run_locoprop_additive_paired_ladder() {
     bash tools/run_newtonv_raw_v01_gate.sh
 }
 
+run_softpolar_paired_ladder() {
+  local sp_steps="${SP_STEPS:-80}"
+  local sp_val_every="${SP_VAL_EVERY:-40}"
+  local sp_layers="${SP_LAYERS:-0-1}"
+  local sp_windows="${SP_WINDOWS:-48-64}"
+  local sp_alpha="${SP_ALPHA:-0.5}"
+  local sp_alpha_label="${sp_alpha/./}"
+  local sp_eps="${SP_EPS:-1e-6}"
+  local sp_eps_label="${sp_eps//[^0-9A-Za-z]/_}"
+  local sp_blend="${SP_BLEND_MAX:-1.0}"
+  local sp_blend_label="${sp_blend/./}"
+  local sp_blend_steps="${SP_BLEND_STEPS:-16}"
+  local sp_norm_restore="${SP_NORM_RESTORE:-1}"
+  local sp_log_precond="${SP_LOG_PRECOND:-0}"
+  local sp_log_precond_detail="${SP_LOG_PRECOND_DETAIL:-0}"
+  local sp_log_steps="${SP_LOG_STEPS:-48,50,56,64,80,100,120}"
+
+  run_case "softpolar_paired_mlpfc_a${sp_alpha_label}_eps${sp_eps_label}_blend${sp_blend_label}" \
+    TRAIN_SYNC_BOS_INDEX=1 \
+    NEWTONV_PAIRED_CASES="${SP_PAIRED_CASES:-noop,active,noop2}" \
+    LOCO_SOFT_POLAR=1 \
+    LOCO_SOFT_POLAR_SURFACES=mlp_fc \
+    LOCO_SOFT_POLAR_ALPHA="${sp_alpha}" \
+    LOCO_SOFT_POLAR_EPS="${sp_eps}" \
+    LOCO_SOFT_POLAR_WINDOWS="${sp_windows}" \
+    LOCO_SOFT_POLAR_BLEND_MAX="${sp_blend}" \
+    LOCO_SOFT_POLAR_BLEND_STEPS="${sp_blend_steps}" \
+    LOCO_SOFT_POLAR_NORM_RESTORE="${sp_norm_restore}" \
+    LOCO_DIAG_MLP_LAYERS="${sp_layers}" \
+    LOCO_FULL_LOG_PRECOND="${sp_log_precond}" \
+    LOCO_FULL_LOG_PRECOND_DETAIL="${sp_log_precond_detail}" \
+    LOCO_DIAG_LOG_STEPS="${sp_log_steps}" \
+    SCREEN_STEPS="${sp_steps}" \
+    SCREEN_VAL_EVERY="${sp_val_every}" \
+    bash tools/run_softpolar_mlpfc_gate.sh
+}
+
 case "${suite}" in
   timing)
     run_timing_triplet
@@ -2970,6 +3017,9 @@ case "${suite}" in
   locoprop_additive_paired)
     run_locoprop_additive_paired_ladder
     ;;
+  softpolar_paired)
+    run_softpolar_paired_ladder
+    ;;
   all)
     run_timing_triplet
     run_next_ladder
@@ -2981,7 +3031,7 @@ case "${suite}" in
       bash tools/run_newtonv_raw_v01_gate.sh
     ;;
   *)
-    echo "NEWTONV_SUITE must be timing, filters, quick, raw200, promote, polar4, permutations, next, tail, warmmetric, overprecond, overpromote, scheduleonly, preconddiag, schedule_diag, rightfilter, paperstyle, paperfilter, metricpolar, metricpromote, metricv_promote, metricv_window, v_spectral_shape, paper_v_promote, metricsurfaces, surface_control, qkvo_metric_promote, qkvo_schedule, qkvo_power_shape, qkv_power_shape, qkv_inverse_control, v_varred_interaction, v_short_pulse, v_schedule_pulse, mlpfc, mlpfc_promote, mlpfc_before_control, mlpfc_filter_control, mlpfc_blend, mlpfc_postvarred_control, v_postvarred_control, v_postvarred_window, v_postvarred_finite_t, v_seed_sanity, v_paired_state_sanity, mlpfc_paired_metric, locoprop_additive_paired, or all; got ${suite}" >&2
+    echo "NEWTONV_SUITE must be timing, filters, quick, raw200, promote, polar4, permutations, next, tail, warmmetric, overprecond, overpromote, scheduleonly, preconddiag, schedule_diag, rightfilter, paperstyle, paperfilter, metricpolar, metricpromote, metricv_promote, metricv_window, v_spectral_shape, paper_v_promote, metricsurfaces, surface_control, qkvo_metric_promote, qkvo_schedule, qkvo_power_shape, qkv_power_shape, qkv_inverse_control, v_varred_interaction, v_short_pulse, v_schedule_pulse, mlpfc, mlpfc_promote, mlpfc_before_control, mlpfc_filter_control, mlpfc_blend, mlpfc_postvarred_control, v_postvarred_control, v_postvarred_window, v_postvarred_finite_t, v_seed_sanity, v_paired_state_sanity, mlpfc_paired_metric, locoprop_additive_paired, softpolar_paired, or all; got ${suite}" >&2
     exit 2
     ;;
 esac
