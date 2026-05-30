@@ -11,7 +11,12 @@ if [[ -n "${MODAL_SECRET:-}" && -z "${MODAL_TOKEN_SECRET:-}" ]]; then
   export MODAL_TOKEN_SECRET="${MODAL_SECRET}"
 fi
 
-if ! command -v modal >/dev/null 2>&1; then
+if [[ -x "tmp/modal-venv/bin/modal" ]]; then
+  # Prefer the repo-local venv: the global Anaconda Modal client can be present
+  # but incompatible with its protobuf runtime.
+  # shellcheck source=/dev/null
+  source tmp/modal-venv/bin/activate
+elif ! command -v modal >/dev/null 2>&1; then
   echo "missing modal CLI; install with: python -m pip install modal" >&2
   exit 2
 fi
