@@ -1332,9 +1332,9 @@ class NorMuonAndAdam:
                 for k, v in saved_p_state.items():
                     if isinstance(v, torch.Tensor) and k in p_state:
                         target_dtype = p_state[k].dtype
-                        p_state[k] = v.to(dtype=target_dtype, device=p_state[k].device)
+                        p_state[k].copy_(v.to(dtype=target_dtype, device=p_state[k].device))
                     else:
-                        p_state[k] = v
+                        p_state[k] = clone_state_value(v)
 
     # -----------------------------------
     # Unified optimizer step with explicit ordering
@@ -3351,6 +3351,17 @@ def distributed_data_generator(filename_pattern: str, num_tokens: int, max_seq_l
 # -----------------------------------------------------------------------------
 # Training Management
 
+def clone_state_value(value):
+    if isinstance(value, torch.Tensor):
+        return value.detach().clone()
+    if isinstance(value, dict):
+        return {k: clone_state_value(v) for k, v in value.items()}
+    if isinstance(value, list):
+        return [clone_state_value(v) for v in value]
+    if isinstance(value, tuple):
+        return tuple(clone_state_value(v) for v in value)
+    return copy.deepcopy(value)
+
 @dataclass(slots=True)
 class Hyperparameters:
     # data
@@ -4138,7 +4149,7 @@ class TrainingManager():
 
 
     def get_state(self):
-        return copy.deepcopy(self.optimizer.state_dict())
+        return clone_state_value(self.optimizer.state_dict())
 
     def sparse_index_update(self, step, bigram_indexes):
         if not _sparse_comms_active():
@@ -4273,7 +4284,7 @@ training_manager = TrainingManager(model)
 ########################################
 print0("Compiling model and warming up kernels (~7 minutes on first execution)", console=True)
 # Warmup the training kernels, then re-initialize the state so we aren't cheating
-initial_state = dict(model=copy.deepcopy(model.state_dict()),
+initial_state = dict(model=clone_state_value(model.state_dict()),
                      optimizer=training_manager.get_state(),
                      rng=capture_rng_state()) # save the initial state
 train_loader = distributed_data_generator(args.train_files, TRAINING_STAGES[0].batch_size, TRAINING_STAGES[0].train_max_seq_len, grad_accum_steps=grad_accum_steps)
