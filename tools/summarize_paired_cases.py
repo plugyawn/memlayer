@@ -46,10 +46,13 @@ def parse_logs(paths: list[Path]) -> list[dict]:
                     flush()
                 continue
             if current_case and (m := STEP_RE.search(line)):
-                current["final_step"] = int(m.group("step"))
+                step = int(m.group("step"))
+                current["final_step"] = step
                 current["total_steps"] = int(m.group("total"))
                 if m.group("val_loss") is not None:
-                    current["val_loss"] = float(m.group("val_loss"))
+                    val_loss = float(m.group("val_loss"))
+                    current["val_loss"] = val_loss
+                    current[f"val_{step}"] = val_loss
                 current["train_time_s"] = round(int(m.group("train_ms")) / 1000.0, 3)
                 current["step_avg_ms"] = float(m.group("step_avg"))
         flush()
@@ -74,6 +77,12 @@ def summarize(rows: list[dict]) -> list[dict]:
         active_loss = active.get("val_loss") if active else None
         noop_mean = sum(noop_losses) / len(noop_losses) if noop_losses else None
         delta = active_loss - noop_mean if active_loss is not None and noop_mean is not None else None
+        active_val40 = active.get("val_40") if active else None
+        noop_val40 = noop.get("val_40") if noop else None
+        noop2_val40 = noop2.get("val_40") if noop2 else None
+        noop40_losses = [loss for loss in (noop_val40, noop2_val40) if loss is not None]
+        noop40_mean = sum(noop40_losses) / len(noop40_losses) if noop40_losses else None
+        delta40 = active_val40 - noop40_mean if active_val40 is not None and noop40_mean is not None else None
         beats_both = (
             bool(noop_losses)
             and active_loss is not None
@@ -85,6 +94,9 @@ def summarize(rows: list[dict]) -> list[dict]:
                 "log": log,
                 "group": group,
                 "active_step": active.get("final_step") if active else None,
+                "active_40": active_val40,
+                "noop_mean_40": noop40_mean,
+                "delta_40": delta40,
                 "active": active_loss,
                 "noop": noop.get("val_loss") if noop else None,
                 "noop2": noop2.get("val_loss") if noop2 else None,
@@ -128,6 +140,9 @@ def print_table(rows: list[dict]) -> None:
         "component",
         "blend",
         "active_step",
+        "active_40",
+        "noop_mean_40",
+        "delta_40",
         "active",
         "noop",
         "noop2",
