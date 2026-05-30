@@ -103,6 +103,7 @@ Committed during meditation:
 5577c8f Add paired case summary parser
 0c4b06f Add additive correction norm cap
 1f6e60a Report early loss in paired summaries
+ba5b189 Add preconditioner reference summary parser
 ```
 
 Sidecar review conclusions:
@@ -142,6 +143,7 @@ Post-run parse:
 python3 tools/parse_newtonv_logs.py .opencode/modal_lpa_v_components_fixed80_h100_20260531.launch.log > .opencode/modal_lpa_v_components_fixed80_h100_20260531.parsed.md
 python3 tools/summarize_paired_cases.py .opencode/modal_lpa_v_components_fixed80_h100_20260531.launch.log > .opencode/modal_lpa_v_components_fixed80_h100_20260531.summary.md
 python3 tools/parse_loco_full_diagnostics.py .opencode/modal_lpa_v_components_fixed80_h100_20260531.launch.log > .opencode/modal_lpa_v_components_fixed80_h100_20260531.diagnostics.md
+python3 tools/summarize_precond_refs.py --name full_v_add --name full_v_add_rawscale .opencode/modal_lpa_v_components_fixed80_h100_20260531.launch.log > .opencode/modal_lpa_v_components_fixed80_h100_20260531.refs.md
 ```
 
 Promotion and falsification:
