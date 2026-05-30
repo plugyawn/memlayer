@@ -1,0 +1,23 @@
+╭───────────────────── Traceback (most recent call last) ──────────────────────╮
+│ /Users/progyan/speedrun/wr-fresh-20260526/tools/modal_nanogpt_runner.py:129  │
+│ in <module>                                                                  │
+│                                                                              │
+│   128                                                                        │
+│ ❱ 129 @app.function(                                                         │
+│   130 │   gpu=DEFAULT_GPU,                                                   │
+│                                                                              │
+│ /opt/anaconda3/lib/python3.12/site-packages/modal/app.py:879 in wrapped      │
+│                                                                              │
+│    878 │   │   │                                                             │
+│ ❱  879 │   │   │   function = _Function.from_local(                          │
+│    880 │   │   │   │   info,                                                 │
+│                                                                              │
+│ /opt/anaconda3/lib/python3.12/site-packages/modal/_functions.py:764 in       │
+│ from_local                                                                   │
+│                                                                              │
+│    763 │   │                                                                 │
+│ ❱  764 │   │   autoscaler_settings = api_pb2.AutoscalerSettings(             │
+│    765 │   │   │   min_containers=min_containers,                            │
+╰──────────────────────────────────────────────────────────────────────────────╯
+TypeError: descriptor to field 'modal.client.AutoscalerSettings.max_containers' 
+doesn't apply to 'AutoscalerSettings' object

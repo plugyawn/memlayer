@@ -1,0 +1,632 @@
+✓ Initialized. View run at 
+https://modal.com/apps/nipsdwip/main/ap-jfbq8qftdizA0vppDREKQS
+Building image im-5CmKs3S3hO4TwmQMxgJIdX
+
+=> Step 0: FROM base
+
+=> Step 1: COPY . /
+Saving image...
+Image saved, took 980.07ms
+
+Built image im-5CmKs3S3hO4TwmQMxgJIdX in 3.71s
+
+
+Building image im-osEEzogDKWbtqlyqaH6yMA
+
+=> Step 0: FROM base
+
+=> Step 1: WORKDIR /root/speedrun
+Saving image...
+Image saved, took 1.33s
+
+Built image im-osEEzogDKWbtqlyqaH6yMA in 3.12s
+
+
+✓ Created objects.
+├── 🔨 Created mount 
+│   /Users/progyan/speedrun/wr-fresh-20260526/tools/modal_nanogpt_runner.py
+├── 🔨 Created mount /Users/progyan/speedrun/wr-fresh-20260526
+├── 🔨 Created function prepare_data.
+└── 🔨 Created function run_screen.
+
+==========
+== CUDA ==
+==========
+
+CUDA Version 12.8.0
+
+Container image Copyright (c) 2016-2023, NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+
+This container image and its contents are governed by the NVIDIA Deep Learning Container License.
+By pulling and using the container, you accept the terms and conditions of this license:
+https://developer.nvidia.com/ngc/nvidia-deep-learning-container-license
+
+A copy of this license is made available in this container at /NGC-DL-CONTAINER-LICENSE for your convenience.
+
+===== LPA_SURFACE_MATRIX_START v 2026-05-30T20:31:24Z =====
+===== NEWTONV_CASE_START lpa_paired_v_finite_t20_normbase_r02_blend005 2026-05-30T20:31:24Z =====
+wrote train_gpt_screen.py from train_gpt.py with steps=80 val_every=40
+[Gloo] Rank 0 is connected to 0 peer ranks. Expected number of connected peer ranks is : 0
+
+Fetching 4 files:   0%|          | 0/4 [00:00<?, ?it/s]
+Fetching 4 files: 100%|██████████| 4/4 [00:00<00:00, 4788.02it/s]
+logs/59d56988-9cc5-4890-a54b-41e30f944dbc.txt
+Using TRAIN_RUN_SEED=1337
+Using TRAIN_SYNC_BOS_INDEX=1
+Using NEWTONV_PAIRED_CASES=noop,active,noop2
+loco_full owned_layers rank=0: attn_in=[0, 1, 2, 3, 4, 5, 6, 7, 8, 9] qk_layers=[] v_layers=[0, 1, 2, 3, 4, 5, 6, 7, 8, 9] o_layers=[] mlp_fc_layers=[] filter=finite shrink_rank=64 precond_dtype=fp32 norm_restore=0 block_size=0 static_norm=1 power_alpha=0.75 power_clip=2.0 shrink_only=0 schedule_only=0 metric_polar=0 metric_soft_alpha=1.0 metric_soft_eps=0.0 additive=1 additive_norm_to_base=1 polar_iters=5 windows=((48, 64),) collect_windows=((0, 64),) skip_varred=0 post_varred=0 local_stats=1 apply_interval=1
+Compiling model and warming up kernels (~7 minutes on first execution)
+Sampling steps [0, 1, 8, 18, 19, 20, 21, 24, 38, 39, 40, 41, 48, 58, 59, 60, 64, 78, 79] for warmup
+loco_full step=48 attn_in_gram_ema refreshed=1 owned_layers=[0, 1] mean_diag=1.9661e+04 min=1.3465e+04 p01=1.5415e+04 p50=1.9409e+04 p99=2.5810e+04 max=3.1751e+04
+loco_full step=64 attn_in_gram_ema refreshed=1 owned_layers=[0, 1] mean_diag=2.5559e+04 min=1.3633e+04 p01=1.7022e+04 p50=2.4634e+04 p99=3.8291e+04 max=4.5433e+04
+loco_full_precond step=64 full_v_add:n=2 layers=0,1 blend=5.0000e-02 norm=5.1345e-02/3.2537e-02/7.0153e-02 delta=9.4965e-01/9.3164e-01/9.6765e-01 cos=0.985268/0.976185/0.994351 target_delta=1.8993e+01/1.8633e+01/1.9353e+01 target_cos=-0.999922/-0.999993/-0.999851 ref_norm=1.0000e+00/1.0000e+00/1.0000e+00 ref_delta=1.3091e+00/1.2946e+00/1.3235e+00 ref_cos=0.143055/0.124111/0.161999 | full_v_add_rawscale:n=2 layers=0,1 blend=5.0000e-02 norm=3.5664e-01/3.4956e-01/3.6372e-01 delta=6.5161e-01/6.4975e-01/6.5346e-01 cos=0.985268/0.976185/0.994351 target_delta=1.3032e+01/1.2995e+01/1.3069e+01 target_cos=-0.994714/-0.998109/-0.991320 ref_norm=7.9641e+00/5.1846e+00/1.0744e+01 ref_delta=7.8922e+00/5.1186e+00/1.0666e+01 ref_cos=0.143055/0.124111/0.161999
+Resetting Model
+===== NEWTONV_CASE_START paired_noop 2026-05-30T20:34:41Z =====
+step:0/80 val_loss:10.8310 train_time:0ms step_avg:0.18ms
+step:1/80 train_time:341ms step_avg:341.09ms step_ms:341.09 refresh:1
+step:2/80 train_time:547ms step_avg:273.61ms step_ms:206.13 refresh:0
+step:3/80 train_time:783ms step_avg:260.96ms step_ms:235.66 refresh:0
+step:4/80 train_time:1020ms step_avg:254.95ms step_ms:236.91 refresh:0
+step:5/80 train_time:1258ms step_avg:251.60ms step_ms:238.20 refresh:0
+step:6/80 train_time:1502ms step_avg:250.40ms step_ms:244.41 refresh:0
+step:7/80 train_time:1740ms step_avg:248.52ms step_ms:237.24 refresh:0
+step:8/80 train_time:1980ms step_avg:247.47ms step_ms:240.09 refresh:0
+step:9/80 train_time:2218ms step_avg:246.45ms step_ms:238.35 refresh:0
+step:10/80 train_time:2462ms step_avg:246.23ms step_ms:244.17 refresh:0
+step:11/80 train_time:2700ms step_avg:245.46ms step_ms:237.86 refresh:0
+step:12/80 train_time:2938ms step_avg:244.86ms step_ms:238.19 refresh:0
+step:13/80 train_time:3178ms step_avg:244.44ms step_ms:239.45 refresh:0
+step:14/80 train_time:3422ms step_avg:244.41ms step_ms:244.03 refresh:0
+step:15/80 train_time:3661ms step_avg:244.05ms step_ms:238.94 refresh:0
+step:16/80 train_time:3900ms step_avg:243.73ms step_ms:239.01 refresh:0
+step:17/80 train_time:4200ms step_avg:247.04ms step_ms:300.02 refresh:1
+step:18/80 train_time:4406ms step_avg:244.80ms step_ms:206.62 refresh:0
+step:19/80 train_time:4646ms step_avg:244.50ms step_ms:239.14 refresh:0
+step:20/80 train_time:4887ms step_avg:244.35ms step_ms:241.50 refresh:0
+step:21/80 train_time:5126ms step_avg:244.12ms step_ms:239.40 refresh:0
+step:22/80 train_time:5370ms step_avg:244.11ms step_ms:243.94 refresh:0
+step:23/80 train_time:5608ms step_avg:243.82ms step_ms:237.59 refresh:0
+step:24/80 train_time:5849ms step_avg:243.72ms step_ms:241.26 refresh:0
+step:25/80 train_time:6087ms step_avg:243.49ms step_ms:237.93 refresh:0
+step:26/80 train_time:6330ms step_avg:243.46ms step_ms:242.83 refresh:0
+step:27/80 train_time:6568ms step_avg:243.28ms step_ms:238.47 refresh:0
+step:28/80 train_time:6993ms step_avg:249.75ms step_ms:424.49 refresh:0
+step:29/80 train_time:7440ms step_avg:256.57ms step_ms:447.57 refresh:0
+step:30/80 train_time:7887ms step_avg:262.89ms step_ms:446.25 refresh:0
+step:31/80 train_time:8334ms step_avg:268.83ms step_ms:446.93 refresh:0
+step:32/80 train_time:8781ms step_avg:274.40ms step_ms:447.00 refresh:0
+step:33/80 train_time:9322ms step_avg:282.49ms step_ms:541.60 refresh:1
+step:34/80 train_time:9706ms step_avg:285.48ms step_ms:384.10 refresh:0
+step:35/80 train_time:10154ms step_avg:290.11ms step_ms:447.31 refresh:0
+step:36/80 train_time:10606ms step_avg:294.62ms step_ms:452.68 refresh:0
+step:37/80 train_time:11051ms step_avg:298.69ms step_ms:445.13 refresh:0
+step:38/80 train_time:11503ms step_avg:302.71ms step_ms:451.62 refresh:0
+step:39/80 train_time:11948ms step_avg:306.37ms step_ms:445.37 refresh:0
+step:40/80 train_time:12398ms step_avg:309.94ms step_ms:449.16 refresh:0
+step:40/80 val_loss:5.6070 train_time:12461ms step_avg:311.52ms
+loco_full_step_timing through_step:39 refresh_avg:394.24ms refresh_n:3 nonrefresh_avg:303.11ms nonrefresh_n:37
+step:41/80 train_time:12844ms step_avg:313.26ms step_ms:445.99 refresh:0
+step:42/80 train_time:13290ms step_avg:316.44ms step_ms:446.71 refresh:0
+step:43/80 train_time:13738ms step_avg:319.50ms step_ms:448.16 refresh:0
+step:44/80 train_time:14185ms step_avg:322.38ms step_ms:446.02 refresh:0
+step:45/80 train_time:14632ms step_avg:325.15ms step_ms:447.14 refresh:0
+step:46/80 train_time:15077ms step_avg:327.77ms step_ms:445.55 refresh:0
+step:47/80 train_time:15524ms step_avg:330.29ms step_ms:446.44 refresh:0
+step:48/80 train_time:15970ms step_avg:332.71ms step_ms:446.45 refresh:0
+loco_full step=48 attn_in_gram_ema refreshed=1 owned_layers=[0, 1] mean_diag=2.2282e+04 min=1.3846e+04 p01=1.4906e+04 p50=2.0916e+04 p99=4.0573e+04 max=5.1152e+04
+loco_full_precond step=48 full_v_add:n=2 layers=0,1 blend=0.0000e+00 norm=7.9500e-02/3.8201e-02/1.2080e-01 delta=9.2295e-01/8.8323e-01/9.6266e-01 cos=0.974430/0.970577/0.978284 ref_norm=1.0000e+00/1.0000e+00/1.0000e+00 ref_delta=1.2601e+00/1.2284e+00/1.2918e+00 ref_cos=0.205552/0.165568/0.245536 | full_v_add_rawscale:n=2 layers=0,1 blend=0.0000e+00 norm=3.7044e-01/3.6260e-01/3.7828e-01 delta=6.4450e-01/6.3937e-01/6.4964e-01 cos=0.974430/0.970577/0.978284 ref_norm=6.3117e+00/3.1315e+00/9.4918e+00 ref_delta=6.2113e+00/3.1256e+00/9.2969e+00 ref_cos=0.205552/0.165568/0.245536
+step:49/80 train_time:16516ms step_avg:337.07ms step_ms:546.26 refresh:1
+step:50/80 train_time:16898ms step_avg:337.96ms step_ms:381.66 refresh:0
+loco_full step=50 attn_in_gram_ema refreshed=0 owned_layers=[0, 1] mean_diag=2.2282e+04 min=1.3846e+04 p01=1.4906e+04 p50=2.0916e+04 p99=4.0573e+04 max=5.1152e+04
+loco_full_precond step=50 full_v_add:n=2 layers=0,1 blend=0.0000e+00 norm=9.2148e-02/3.9044e-02/1.4525e-01 delta=9.1191e-01/8.6189e-01/9.6193e-01 cos=0.966898/0.957801/0.975995 ref_norm=1.0000e+00/1.0000e+00/1.0000e+00 ref_delta=1.2523e+00/1.2217e+00/1.2829e+00 ref_cos=0.215402/0.177033/0.253770 | full_v_add_rawscale:n=2 layers=0,1 blend=0.0000e+00 norm=3.7811e-01/3.6459e-01/3.9163e-01 delta=6.4200e-01/6.3496e-01/6.4904e-01 cos=0.966898/0.957801/0.975995 ref_norm=6.0170e+00/2.6962e+00/9.3379e+00 ref_delta=5.9200e+00/2.7046e+00/9.1355e+00 ref_cos=0.215402/0.177033/0.253770
+step:51/80 train_time:17411ms step_avg:341.40ms step_ms:513.38 refresh:0
+step:52/80 train_time:17802ms step_avg:342.34ms step_ms:390.37 refresh:0
+step:53/80 train_time:18246ms step_avg:344.25ms step_ms:443.73 refresh:0
+step:54/80 train_time:18888ms step_avg:349.77ms step_ms:642.04 refresh:0
+step:55/80 train_time:19547ms step_avg:355.40ms step_ms:659.44 refresh:0
+step:56/80 train_time:20321ms step_avg:362.88ms step_ms:774.12 refresh:0
+loco_full step=56 attn_in_gram_ema refreshed=0 owned_layers=[0, 1] mean_diag=2.2282e+04 min=1.3846e+04 p01=1.4906e+04 p50=2.0916e+04 p99=4.0573e+04 max=5.1152e+04
+loco_full_precond step=56 full_v_add:n=2 layers=0,1 blend=0.0000e+00 norm=3.1820e-02/1.1884e-02/5.1756e-02 delta=9.6974e-01/9.5121e-01/9.8827e-01 cos=0.966213/0.945517/0.986910 ref_norm=1.0000e+00/1.0000e+00/1.0000e+00 ref_delta=1.2848e+00/1.2711e+00/1.2986e+00 ref_cos=0.174508/0.156854/0.192163 | full_v_add_rawscale:n=2 layers=0,1 blend=0.0000e+00 norm=3.8020e-01/3.5537e-01/4.0504e-01 delta=6.4139e-01/6.3096e-01/6.5181e-01 cos=0.966213/0.945517/0.986910 ref_norm=1.8865e+01/7.8260e+00/2.9904e+01 ref_delta=1.8730e+01/7.7324e+00/2.9728e+01 ref_cos=0.174508/0.156854/0.192163
+step:57/80 train_time:20983ms step_avg:368.12ms step_ms:661.86 refresh:0
+step:58/80 train_time:21565ms step_avg:371.81ms step_ms:582.08 refresh:0
+step:59/80 train_time:22220ms step_avg:376.61ms step_ms:655.10 refresh:0
+step:60/80 train_time:22878ms step_avg:381.29ms step_ms:657.46 refresh:0
+step:61/80 train_time:23539ms step_avg:385.89ms step_ms:661.42 refresh:0
+step:62/80 train_time:24198ms step_avg:390.30ms step_ms:659.29 refresh:0
+step:63/80 train_time:24854ms step_avg:394.50ms step_ms:655.46 refresh:0
+step:64/80 train_time:25516ms step_avg:398.69ms step_ms:662.29 refresh:0
+loco_full step=64 attn_in_gram_ema refreshed=1 owned_layers=[0, 1] mean_diag=2.7656e+04 min=1.5396e+04 p01=1.6290e+04 p50=2.5318e+04 p99=6.0280e+04 max=7.8057e+04
+loco_full_precond step=64 full_v_add:n=2 layers=0,1 blend=0.0000e+00 norm=4.6380e-02/1.4699e-02/7.8061e-02 delta=9.5523e-01/9.2499e-01/9.8547e-01 cos=0.976207/0.963924/0.988490 ref_norm=1.0000e+00/1.0000e+00/1.0000e+00 ref_delta=1.2710e+00/1.2519e+00/1.2900e+00 ref_cos=0.192148/0.167911/0.216385 | full_v_add_rawscale:n=2 layers=0,1 blend=0.0000e+00 norm=3.5867e-01/3.4080e-01/3.7654e-01 delta=6.5500e-01/6.4488e-01/6.6512e-01 cos=0.976207/0.963924/0.988490 ref_norm=1.4005e+01/4.8237e+00/2.3185e+01 ref_delta=1.3874e+01/4.7590e+00/2.2990e+01 ref_cos=0.192148/0.167911/0.216385
+step:65/80 train_time:26303ms step_avg:404.66ms step_ms:787.13 refresh:1
+step:66/80 train_time:26869ms step_avg:407.10ms step_ms:565.67 refresh:0
+step:67/80 train_time:27531ms step_avg:410.90ms step_ms:661.74 refresh:0
+step:68/80 train_time:28191ms step_avg:414.58ms step_ms:660.73 refresh:0
+step:69/80 train_time:28849ms step_avg:418.10ms step_ms:657.45 refresh:0
+step:70/80 train_time:29509ms step_avg:421.56ms step_ms:660.14 refresh:0
+step:71/80 train_time:30170ms step_avg:424.93ms step_ms:661.01 refresh:0
+step:72/80 train_time:30827ms step_avg:428.15ms step_ms:657.01 refresh:0
+step:73/80 train_time:31489ms step_avg:431.35ms step_ms:661.83 refresh:0
+step:74/80 train_time:32147ms step_avg:434.41ms step_ms:657.70 refresh:0
+step:75/80 train_time:32808ms step_avg:437.44ms step_ms:661.42 refresh:0
+step:76/80 train_time:33462ms step_avg:440.29ms step_ms:654.19 refresh:0
+step:77/80 train_time:34121ms step_avg:443.13ms step_ms:658.96 refresh:0
+step:78/80 train_time:34782ms step_avg:445.92ms step_ms:660.91 refresh:0
+step:79/80 train_time:35440ms step_avg:448.60ms step_ms:657.82 refresh:0
+step:80/80 train_time:36099ms step_avg:451.24ms step_ms:659.02 refresh:0
+[modal-client] 2026-05-31T02:06:48+0530 Loop attempt for _run_app.<locals>.heartbeat failed
+Traceback (most recent call last):
+  File "/Users/progyan/speedrun/wr-fresh-20260526/tmp/modal-venv/lib/python3.13/site-packages/grpclib/client.py", line 369, in recv_initial_metadata
+    headers = await self._stream.recv_headers()
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/progyan/speedrun/wr-fresh-20260526/tmp/modal-venv/lib/python3.13/site-packages/grpclib/protocol.py", line 342, in recv_headers
+    await self.headers_received.wait()
+  File "/opt/homebrew/Cellar/python@3.13/3.13.5/Frameworks/Python.framework/Versions/3.13/lib/python3.13/asyncio/locks.py", line 213, in wait
+    await fut
+asyncio.exceptions.CancelledError
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/Users/progyan/speedrun/wr-fresh-20260526/tmp/modal-venv/lib/python3.13/site-packages/modal/_grpc_client.py", line 158, in direct
+    return await self.client._call_unary(self.wrapped_method, req, timeout=timeout, metadata=metadata)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/progyan/speedrun/wr-fresh-20260526/tmp/modal-venv/lib/python3.13/site-packages/modal/client.py", line 347, in _call_unary
+    return await self._call_safely(coro, grpclib_method.name)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/progyan/speedrun/wr-fresh-20260526/tmp/modal-venv/lib/python3.13/site-packages/modal/client.py", line 304, in _call_safely
+    return await request_task
+           ^^^^^^^^^^^^^^^^^^
+  File "/Users/progyan/speedrun/wr-fresh-20260526/tmp/modal-venv/lib/python3.13/site-packages/grpclib/client.py", line 913, in __call__
+    reply = await stream.recv_message()
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/progyan/speedrun/wr-fresh-20260526/tmp/modal-venv/lib/python3.13/site-packages/grpclib/client.py", line 426, in recv_message
+    await self.recv_initial_metadata()
+  File "/Users/progyan/speedrun/wr-fresh-20260526/tmp/modal-venv/lib/python3.13/site-packages/grpclib/client.py", line 368, in recv_initial_metadata
+    with self._wrapper:
+         ^^^^^^^^^^^^^
+  File "/Users/progyan/speedrun/wr-fresh-20260526/tmp/modal-venv/lib/python3.13/site-packages/grpclib/utils.py", line 70, in __exit__
+    raise self._error
+TimeoutError: Deadline exceeded
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/Users/progyan/speedrun/wr-fresh-20260526/tmp/modal-venv/lib/python3.13/site-packages/modal/_utils/async_utils.py", line 574, in loop_coro
+    await asyncio.wait_for(async_f(), timeout=timeout)
+  File "/opt/homebrew/Cellar/python@3.13/3.13.5/Frameworks/Python.framework/Versions/3.13/lib/python3.13/asyncio/tasks.py", line 507, in wait_for
+    return await fut
+           ^^^^^^^^^
+  File "/Users/progyan/speedrun/wr-fresh-20260526/tmp/modal-venv/lib/python3.13/site-packages/modal/runner.py", line 66, in _heartbeat
+    await client.stub.AppHeartbeat(request, retry=Retry(attempt_timeout=HEARTBEAT_TIMEOUT))
+modal.exception.ConnectionError: Deadline exceeded
+[modal-client] 2026-05-31T02:08:04+0530 Loop attempt for _run_app.<locals>.heartbeat failed
+Traceback (most recent call last):
+  File "/Users/progyan/speedrun/wr-fresh-20260526/tmp/modal-venv/lib/python3.13/site-packages/grpclib/client.py", line 369, in recv_initial_metadata
+    headers = await self._stream.recv_headers()
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/progyan/speedrun/wr-fresh-20260526/tmp/modal-venv/lib/python3.13/site-packages/grpclib/protocol.py", line 342, in recv_headers
+    await self.headers_received.wait()
+  File "/opt/homebrew/Cellar/python@3.13/3.13.5/Frameworks/Python.framework/Versions/3.13/lib/python3.13/asyncio/locks.py", line 213, in wait
+    await fut
+asyncio.exceptions.CancelledError
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/Users/progyan/speedrun/wr-fresh-20260526/tmp/modal-venv/lib/python3.13/site-packages/modal/_grpc_client.py", line 158, in direct
+    return await self.client._call_unary(self.wrapped_method, req, timeout=timeout, metadata=metadata)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/progyan/speedrun/wr-fresh-20260526/tmp/modal-venv/lib/python3.13/site-packages/modal/client.py", line 347, in _call_unary
+    return await self._call_safely(coro, grpclib_method.name)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/progyan/speedrun/wr-fresh-20260526/tmp/modal-venv/lib/python3.13/site-packages/modal/client.py", line 304, in _call_safely
+    return await request_task
+           ^^^^^^^^^^^^^^^^^^
+  File "/Users/progyan/speedrun/wr-fresh-20260526/tmp/modal-venv/lib/python3.13/site-packages/grpclib/client.py", line 913, in __call__
+    reply = await stream.recv_message()
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/progyan/speedrun/wr-fresh-20260526/tmp/modal-venv/lib/python3.13/site-packages/grpclib/client.py", line 426, in recv_message
+    await self.recv_initial_metadata()
+  File "/Users/progyan/speedrun/wr-fresh-20260526/tmp/modal-venv/lib/python3.13/site-packages/grpclib/client.py", line 368, in recv_initial_metadata
+    with self._wrapper:
+         ^^^^^^^^^^^^^
+  File "/Users/progyan/speedrun/wr-fresh-20260526/tmp/modal-venv/lib/python3.13/site-packages/grpclib/utils.py", line 70, in __exit__
+    raise self._error
+TimeoutError: Deadline exceeded
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/Users/progyan/speedrun/wr-fresh-20260526/tmp/modal-venv/lib/python3.13/site-packages/modal/_utils/async_utils.py", line 574, in loop_coro
+    await asyncio.wait_for(async_f(), timeout=timeout)
+  File "/opt/homebrew/Cellar/python@3.13/3.13.5/Frameworks/Python.framework/Versions/3.13/lib/python3.13/asyncio/tasks.py", line 507, in wait_for
+    return await fut
+           ^^^^^^^^^
+  File "/Users/progyan/speedrun/wr-fresh-20260526/tmp/modal-venv/lib/python3.13/site-packages/modal/runner.py", line 66, in _heartbeat
+    await client.stub.AppHeartbeat(request, retry=Retry(attempt_timeout=HEARTBEAT_TIMEOUT))
+modal.exception.ConnectionError: Deadline exceeded
+[modal-client] 2026-05-31T02:09:20+0530 Loop attempt for _run_app.<locals>.heartbeat failed
+Traceback (most recent call last):
+  File "/Users/progyan/speedrun/wr-fresh-20260526/tmp/modal-venv/lib/python3.13/site-packages/grpclib/client.py", line 369, in recv_initial_metadata
+    headers = await self._stream.recv_headers()
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/progyan/speedrun/wr-fresh-20260526/tmp/modal-venv/lib/python3.13/site-packages/grpclib/protocol.py", line 342, in recv_headers
+    await self.headers_received.wait()
+  File "/opt/homebrew/Cellar/python@3.13/3.13.5/Frameworks/Python.framework/Versions/3.13/lib/python3.13/asyncio/locks.py", line 213, in wait
+    await fut
+asyncio.exceptions.CancelledError
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/Users/progyan/speedrun/wr-fresh-20260526/tmp/modal-venv/lib/python3.13/site-packages/modal/_grpc_client.py", line 158, in direct
+    return await self.client._call_unary(self.wrapped_method, req, timeout=timeout, metadata=metadata)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/progyan/speedrun/wr-fresh-20260526/tmp/modal-venv/lib/python3.13/site-packages/modal/client.py", line 347, in _call_unary
+    return await self._call_safely(coro, grpclib_method.name)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/progyan/speedrun/wr-fresh-20260526/tmp/modal-venv/lib/python3.13/site-packages/modal/client.py", line 304, in _call_safely
+    return await request_task
+           ^^^^^^^^^^^^^^^^^^
+  File "/Users/progyan/speedrun/wr-fresh-20260526/tmp/modal-venv/lib/python3.13/site-packages/grpclib/client.py", line 913, in __call__
+    reply = await stream.recv_message()
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/progyan/speedrun/wr-fresh-20260526/tmp/modal-venv/lib/python3.13/site-packages/grpclib/client.py", line 426, in recv_message
+    await self.recv_initial_metadata()
+  File "/Users/progyan/speedrun/wr-fresh-20260526/tmp/modal-venv/lib/python3.13/site-packages/grpclib/client.py", line 368, in recv_initial_metadata
+    with self._wrapper:
+         ^^^^^^^^^^^^^
+  File "/Users/progyan/speedrun/wr-fresh-20260526/tmp/modal-venv/lib/python3.13/site-packages/grpclib/utils.py", line 70, in __exit__
+    raise self._error
+TimeoutError: Deadline exceeded
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/Users/progyan/speedrun/wr-fresh-20260526/tmp/modal-venv/lib/python3.13/site-packages/modal/_utils/async_utils.py", line 574, in loop_coro
+    await asyncio.wait_for(async_f(), timeout=timeout)
+  File "/opt/homebrew/Cellar/python@3.13/3.13.5/Frameworks/Python.framework/Versions/3.13/lib/python3.13/asyncio/tasks.py", line 507, in wait_for
+    return await fut
+           ^^^^^^^^^
+  File "/Users/progyan/speedrun/wr-fresh-20260526/tmp/modal-venv/lib/python3.13/site-packages/modal/runner.py", line 66, in _heartbeat
+    await client.stub.AppHeartbeat(request, retry=Retry(attempt_timeout=HEARTBEAT_TIMEOUT))
+modal.exception.ConnectionError: Deadline exceeded
+[modal-client] 2026-05-31T02:10:36+0530 Loop attempt for _run_app.<locals>.heartbeat failed
+Traceback (most recent call last):
+  File "/Users/progyan/speedrun/wr-fresh-20260526/tmp/modal-venv/lib/python3.13/site-packages/grpclib/client.py", line 369, in recv_initial_metadata
+    headers = await self._stream.recv_headers()
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/progyan/speedrun/wr-fresh-20260526/tmp/modal-venv/lib/python3.13/site-packages/grpclib/protocol.py", line 342, in recv_headers
+    await self.headers_received.wait()
+  File "/opt/homebrew/Cellar/python@3.13/3.13.5/Frameworks/Python.framework/Versions/3.13/lib/python3.13/asyncio/locks.py", line 213, in wait
+    await fut
+asyncio.exceptions.CancelledError
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/Users/progyan/speedrun/wr-fresh-20260526/tmp/modal-venv/lib/python3.13/site-packages/modal/_grpc_client.py", line 158, in direct
+    return await self.client._call_unary(self.wrapped_method, req, timeout=timeout, metadata=metadata)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/progyan/speedrun/wr-fresh-20260526/tmp/modal-venv/lib/python3.13/site-packages/modal/client.py", line 347, in _call_unary
+    return await self._call_safely(coro, grpclib_method.name)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/progyan/speedrun/wr-fresh-20260526/tmp/modal-venv/lib/python3.13/site-packages/modal/client.py", line 304, in _call_safely
+    return await request_task
+           ^^^^^^^^^^^^^^^^^^
+  File "/Users/progyan/speedrun/wr-fresh-20260526/tmp/modal-venv/lib/python3.13/site-packages/grpclib/client.py", line 913, in __call__
+    reply = await stream.recv_message()
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/progyan/speedrun/wr-fresh-20260526/tmp/modal-venv/lib/python3.13/site-packages/grpclib/client.py", line 426, in recv_message
+    await self.recv_initial_metadata()
+  File "/Users/progyan/speedrun/wr-fresh-20260526/tmp/modal-venv/lib/python3.13/site-packages/grpclib/client.py", line 368, in recv_initial_metadata
+    with self._wrapper:
+         ^^^^^^^^^^^^^
+  File "/Users/progyan/speedrun/wr-fresh-20260526/tmp/modal-venv/lib/python3.13/site-packages/grpclib/utils.py", line 70, in __exit__
+    raise self._error
+TimeoutError: Deadline exceeded
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/Users/progyan/speedrun/wr-fresh-20260526/tmp/modal-venv/lib/python3.13/site-packages/modal/_utils/async_utils.py", line 574, in loop_coro
+    await asyncio.wait_for(async_f(), timeout=timeout)
+  File "/opt/homebrew/Cellar/python@3.13/3.13.5/Frameworks/Python.framework/Versions/3.13/lib/python3.13/asyncio/tasks.py", line 507, in wait_for
+    return await fut
+           ^^^^^^^^^
+  File "/Users/progyan/speedrun/wr-fresh-20260526/tmp/modal-venv/lib/python3.13/site-packages/modal/runner.py", line 66, in _heartbeat
+    await client.stub.AppHeartbeat(request, retry=Retry(attempt_timeout=HEARTBEAT_TIMEOUT))
+modal.exception.ConnectionError: Deadline exceeded
+[modal-client] 2026-05-31T02:11:52+0530 Loop attempt for _run_app.<locals>.heartbeat failed
+Traceback (most recent call last):
+  File "/Users/progyan/speedrun/wr-fresh-20260526/tmp/modal-venv/lib/python3.13/site-packages/grpclib/client.py", line 369, in recv_initial_metadata
+    headers = await self._stream.recv_headers()
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/progyan/speedrun/wr-fresh-20260526/tmp/modal-venv/lib/python3.13/site-packages/grpclib/protocol.py", line 342, in recv_headers
+    await self.headers_received.wait()
+  File "/opt/homebrew/Cellar/python@3.13/3.13.5/Frameworks/Python.framework/Versions/3.13/lib/python3.13/asyncio/locks.py", line 213, in wait
+    await fut
+asyncio.exceptions.CancelledError
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/Users/progyan/speedrun/wr-fresh-20260526/tmp/modal-venv/lib/python3.13/site-packages/modal/_grpc_client.py", line 158, in direct
+    return await self.client._call_unary(self.wrapped_method, req, timeout=timeout, metadata=metadata)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/progyan/speedrun/wr-fresh-20260526/tmp/modal-venv/lib/python3.13/site-packages/modal/client.py", line 347, in _call_unary
+    return await self._call_safely(coro, grpclib_method.name)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/progyan/speedrun/wr-fresh-20260526/tmp/modal-venv/lib/python3.13/site-packages/modal/client.py", line 304, in _call_safely
+    return await request_task
+           ^^^^^^^^^^^^^^^^^^
+  File "/Users/progyan/speedrun/wr-fresh-20260526/tmp/modal-venv/lib/python3.13/site-packages/grpclib/client.py", line 913, in __call__
+    reply = await stream.recv_message()
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/progyan/speedrun/wr-fresh-20260526/tmp/modal-venv/lib/python3.13/site-packages/grpclib/client.py", line 426, in recv_message
+    await self.recv_initial_metadata()
+  File "/Users/progyan/speedrun/wr-fresh-20260526/tmp/modal-venv/lib/python3.13/site-packages/grpclib/client.py", line 368, in recv_initial_metadata
+    with self._wrapper:
+         ^^^^^^^^^^^^^
+  File "/Users/progyan/speedrun/wr-fresh-20260526/tmp/modal-venv/lib/python3.13/site-packages/grpclib/utils.py", line 70, in __exit__
+    raise self._error
+TimeoutError: Deadline exceeded
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/Users/progyan/speedrun/wr-fresh-20260526/tmp/modal-venv/lib/python3.13/site-packages/modal/_utils/async_utils.py", line 574, in loop_coro
+    await asyncio.wait_for(async_f(), timeout=timeout)
+  File "/opt/homebrew/Cellar/python@3.13/3.13.5/Frameworks/Python.framework/Versions/3.13/lib/python3.13/asyncio/tasks.py", line 507, in wait_for
+    return await fut
+           ^^^^^^^^^
+  File "/Users/progyan/speedrun/wr-fresh-20260526/tmp/modal-venv/lib/python3.13/site-packages/modal/runner.py", line 66, in _heartbeat
+    await client.stub.AppHeartbeat(request, retry=Retry(attempt_timeout=HEARTBEAT_TIMEOUT))
+modal.exception.ConnectionError: Deadline exceeded
+[modal-client] 2026-05-31T02:12:08+0530 Loop attempt for _run_app.<locals>.heartbeat failed
+Traceback (most recent call last):
+  File "/Users/progyan/speedrun/wr-fresh-20260526/tmp/modal-venv/lib/python3.13/site-packages/modal/_utils/async_utils.py", line 574, in loop_coro
+    await asyncio.wait_for(async_f(), timeout=timeout)
+  File "/opt/homebrew/Cellar/python@3.13/3.13.5/Frameworks/Python.framework/Versions/3.13/lib/python3.13/asyncio/tasks.py", line 507, in wait_for
+    return await fut
+           ^^^^^^^^^
+  File "/Users/progyan/speedrun/wr-fresh-20260526/tmp/modal-venv/lib/python3.13/site-packages/modal/runner.py", line 66, in _heartbeat
+    await client.stub.AppHeartbeat(request, retry=Retry(attempt_timeout=HEARTBEAT_TIMEOUT))
+modal.exception.ConflictError: App state is APP_STATE_STOPPED
+step:80/80 val_loss:4.5250 train_time:36194ms step_avg:452.43ms
+loco_full_step_timing through_step:79 refresh_avg:503.22ms refresh_n:5 nonrefresh_avg:447.77ms nonrefresh_n:75
+===== NEWTONV_CASE_END paired_noop 2026-05-30T20:35:42Z =====
+===== NEWTONV_CASE_START paired_active 2026-05-30T20:35:42Z =====
+step:0/80 val_loss:10.8310 train_time:0ms step_avg:0.13ms
+step:1/80 train_time:326ms step_avg:325.81ms step_ms:325.81 refresh:1
+step:2/80 train_time:533ms step_avg:266.68ms step_ms:207.55 refresh:0
+step:3/80 train_time:769ms step_avg:256.25ms step_ms:235.40 refresh:0
+step:4/80 train_time:1009ms step_avg:252.30ms step_ms:240.43 refresh:0
+step:5/80 train_time:1252ms step_avg:250.41ms step_ms:242.87 refresh:0
+step:6/80 train_time:1494ms step_avg:249.08ms step_ms:242.40 refresh:0
+step:7/80 train_time:1731ms step_avg:247.27ms step_ms:236.42 refresh:0
+step:8/80 train_time:1972ms step_avg:246.46ms step_ms:240.80 refresh:0
+step:9/80 train_time:2211ms step_avg:245.70ms step_ms:239.63 refresh:0
+step:10/80 train_time:2455ms step_avg:245.46ms step_ms:243.31 refresh:0
+step:11/80 train_time:2693ms step_avg:244.86ms step_ms:238.84 refresh:0
+step:12/80 train_time:2933ms step_avg:244.43ms step_ms:239.71 refresh:0
+step:13/80 train_time:3174ms step_avg:244.18ms step_ms:241.09 refresh:0
+step:14/80 train_time:3416ms step_avg:244.03ms step_ms:242.10 refresh:0
+step:15/80 train_time:3656ms step_avg:243.72ms step_ms:239.40 refresh:0
+step:16/80 train_time:3897ms step_avg:243.57ms step_ms:241.39 refresh:0
+step:17/80 train_time:4199ms step_avg:247.01ms step_ms:302.03 refresh:1
+step:18/80 train_time:4416ms step_avg:245.33ms step_ms:216.76 refresh:0
+step:19/80 train_time:4646ms step_avg:244.55ms step_ms:230.42 refresh:0
+step:20/80 train_time:4889ms step_avg:244.43ms step_ms:242.27 refresh:0
+step:21/80 train_time:5130ms step_avg:244.30ms step_ms:241.59 refresh:0
+step:22/80 train_time:5372ms step_avg:244.19ms step_ms:241.97 refresh:0
+step:23/80 train_time:5610ms step_avg:243.93ms step_ms:238.13 refresh:0
+step:24/80 train_time:5852ms step_avg:243.84ms step_ms:241.85 refresh:0
+step:25/80 train_time:6092ms step_avg:243.67ms step_ms:239.65 refresh:0
+step:26/80 train_time:6336ms step_avg:243.68ms step_ms:243.71 refresh:0
+step:27/80 train_time:6574ms step_avg:243.48ms step_ms:238.39 refresh:0
+step:28/80 train_time:6999ms step_avg:249.98ms step_ms:425.36 refresh:0
+step:29/80 train_time:7448ms step_avg:256.84ms step_ms:449.07 refresh:0
+step:30/80 train_time:7899ms step_avg:263.29ms step_ms:450.32 refresh:0
+step:31/80 train_time:8348ms step_avg:269.29ms step_ms:449.33 refresh:0
+step:32/80 train_time:8797ms step_avg:274.91ms step_ms:449.19 refresh:0
+step:33/80 train_time:9342ms step_avg:283.10ms step_ms:545.18 refresh:1
+step:34/80 train_time:9727ms step_avg:286.09ms step_ms:384.71 refresh:0
+step:35/80 train_time:10176ms step_avg:290.75ms step_ms:449.25 refresh:0
+step:36/80 train_time:10628ms step_avg:295.21ms step_ms:451.34 refresh:0
+step:37/80 train_time:11073ms step_avg:299.28ms step_ms:445.51 refresh:0
+step:38/80 train_time:11524ms step_avg:303.25ms step_ms:450.46 refresh:0
+step:39/80 train_time:11969ms step_avg:306.91ms step_ms:445.75 refresh:0
+step:40/80 train_time:12420ms step_avg:310.49ms step_ms:450.27 refresh:0
+step:40/80 val_loss:5.5966 train_time:12483ms step_avg:312.07ms
+loco_full_step_timing through_step:39 refresh_avg:391.01ms refresh_n:3 nonrefresh_avg:303.96ms nonrefresh_n:37
+step:41/80 train_time:12870ms step_avg:313.89ms step_ms:449.87 refresh:0
+step:42/80 train_time:13320ms step_avg:317.13ms step_ms:449.97 refresh:0
+step:43/80 train_time:13771ms step_avg:320.27ms step_ms:451.98 refresh:0
+step:44/80 train_time:14222ms step_avg:323.24ms step_ms:450.98 refresh:0
+step:45/80 train_time:14669ms step_avg:325.98ms step_ms:446.64 refresh:0
+step:46/80 train_time:15117ms step_avg:328.63ms step_ms:448.00 refresh:0
+step:47/80 train_time:15569ms step_avg:331.25ms step_ms:451.78 refresh:0
+step:48/80 train_time:16018ms step_avg:333.71ms step_ms:449.02 refresh:0
+loco_full step=48 attn_in_gram_ema refreshed=1 owned_layers=[0, 1] mean_diag=2.2282e+04 min=1.3553e+04 p01=1.4937e+04 p50=2.0826e+04 p99=4.0078e+04 max=5.0506e+04
+step:49/80 train_time:16565ms step_avg:338.06ms step_ms:546.92 refresh:1
+step:50/80 train_time:16950ms step_avg:339.00ms step_ms:385.18 refresh:0
+loco_full step=50 attn_in_gram_ema refreshed=0 owned_layers=[0, 1] mean_diag=2.2282e+04 min=1.3553e+04 p01=1.4937e+04 p50=2.0826e+04 p99=4.0078e+04 max=5.0506e+04
+loco_full_precond step=50 full_v_add:n=2 layers=0,1 blend=6.2500e-03 norm=7.6234e-02/2.9779e-02/1.2269e-01 delta=9.2775e-01/8.8471e-01/9.7079e-01 cos=0.964103/0.946873/0.981334 target_delta=1.4844e+02/1.4155e+02/1.5533e+02 target_cos=-0.999486/-0.999982/-0.998991 ref_norm=1.0000e+00/1.0000e+00/1.0000e+00 ref_delta=1.2667e+00/1.2432e+00/1.2903e+00 ref_cos=0.197405/0.167588/0.227222 | full_v_add_rawscale:n=2 layers=0,1 blend=6.2500e-03 norm=3.8274e-01/3.5981e-01/4.0567e-01 delta=6.4007e-01/6.2955e-01/6.5060e-01 cos=0.964104/0.946873/0.981334 target_delta=1.0241e+02/1.0073e+02/1.0410e+02 target_cos=-0.986038/-0.994218/-0.977859 ref_norm=7.6946e+00/3.3065e+00/1.2083e+01 ref_delta=7.5927e+00/3.2901e+00/1.1895e+01 ref_cos=0.197405/0.167588/0.227222
+step:51/80 train_time:17469ms step_avg:342.53ms step_ms:519.20 refresh:0
+step:52/80 train_time:17857ms step_avg:343.41ms step_ms:388.11 refresh:0
+step:53/80 train_time:18305ms step_avg:345.38ms step_ms:447.58 refresh:0
+step:54/80 train_time:18946ms step_avg:350.85ms step_ms:641.13 refresh:0
+step:55/80 train_time:19611ms step_avg:356.56ms step_ms:664.92 refresh:0
+step:56/80 train_time:20269ms step_avg:361.95ms step_ms:658.48 refresh:0
+loco_full step=56 attn_in_gram_ema refreshed=0 owned_layers=[0, 1] mean_diag=2.2282e+04 min=1.3553e+04 p01=1.4937e+04 p50=2.0826e+04 p99=4.0078e+04 max=5.0506e+04
+loco_full_precond step=56 full_v_add:n=2 layers=0,1 blend=2.5000e-02 norm=4.5843e-02/1.6073e-02/7.5614e-02 delta=9.5682e-01/9.2944e-01/9.8419e-01 cos=0.960958/0.937992/0.983925 target_delta=3.8273e+01/3.7178e+01/3.9368e+01 target_cos=-0.999788/-0.999995/-0.999580 ref_norm=1.0000e+00/1.0000e+00/1.0000e+00 ref_delta=1.2764e+00/1.2634e+00/1.2895e+00 ref_cos=0.185284/0.168641/0.201927 | full_v_add_rawscale:n=2 layers=0,1 blend=2.5000e-02 norm=3.8630e-01/3.5774e-01/4.1487e-01 delta=6.3936e-01/6.2756e-01/6.5115e-01 cos=0.960958/0.937991/0.983925 target_delta=2.5574e+01/2.5102e+01/2.6046e+01 target_cos=-0.982975/-0.994783/-0.971167 ref_norm=1.3872e+01/5.4866e+00/2.2257e+01 ref_delta=1.3743e+01/5.4086e+00/2.2077e+01 ref_cos=0.185284/0.168641/0.201927
+step:57/80 train_time:21031ms step_avg:368.97ms step_ms:761.87 refresh:0
+step:58/80 train_time:21612ms step_avg:372.62ms step_ms:580.92 refresh:0
+step:59/80 train_time:22275ms step_avg:377.55ms step_ms:663.19 refresh:0
+step:60/80 train_time:22938ms step_avg:382.29ms step_ms:662.18 refresh:0
+step:61/80 train_time:23601ms step_avg:386.90ms step_ms:663.35 refresh:0
+step:62/80 train_time:24268ms step_avg:391.41ms step_ms:666.59 refresh:0
+step:63/80 train_time:24929ms step_avg:395.70ms step_ms:661.64 refresh:0
+step:64/80 train_time:25589ms step_avg:399.82ms step_ms:659.58 refresh:0
+loco_full step=64 attn_in_gram_ema refreshed=1 owned_layers=[0, 1] mean_diag=2.7656e+04 min=1.5285e+04 p01=1.6128e+04 p50=2.5264e+04 p99=5.9776e+04 max=7.6338e+04
+loco_full_precond step=64 full_v_add:n=2 layers=0,1 blend=5.0000e-02 norm=5.1459e-02/1.8411e-02/8.4507e-02 delta=9.5077e-01/9.1966e-01/9.8189e-01 cos=0.969417/0.954739/0.984095 target_delta=1.9015e+01/1.8393e+01/1.9638e+01 target_cos=-0.999788/-0.999994/-0.999582 ref_norm=1.0000e+00/1.0000e+00/1.0000e+00 ref_delta=1.2609e+00/1.2351e+00/1.2867e+00 ref_cos=0.204777/0.172264/0.237290 | full_v_add_rawscale:n=2 layers=0,1 blend=5.0000e-02 norm=3.6597e-01/3.4418e-01/3.8776e-01 delta=6.5219e-01/6.4027e-01/6.6411e-01 cos=0.969417/0.954739/0.984095 target_delta=1.3044e+01/1.2805e+01/1.3282e+01 target_cos=-0.987909/-0.995035/-0.980782 ref_norm=1.1642e+01/4.5885e+00/1.8695e+01 ref_delta=1.1504e+01/4.5248e+00/1.8483e+01 ref_cos=0.204777/0.172264/0.237290
+step:65/80 train_time:26387ms step_avg:405.96ms step_ms:798.34 refresh:1
+step:66/80 train_time:26961ms step_avg:408.50ms step_ms:573.60 refresh:0
+step:67/80 train_time:27627ms step_avg:412.34ms step_ms:666.27 refresh:0
+step:68/80 train_time:28287ms step_avg:415.98ms step_ms:659.81 refresh:0
+step:69/80 train_time:28950ms step_avg:419.56ms step_ms:662.77 refresh:0
+step:70/80 train_time:29612ms step_avg:423.04ms step_ms:662.96 refresh:0
+step:71/80 train_time:30275ms step_avg:426.41ms step_ms:662.76 refresh:0
+step:72/80 train_time:30937ms step_avg:429.69ms step_ms:662.16 refresh:0
+step:73/80 train_time:31599ms step_avg:432.86ms step_ms:661.72 refresh:0
+step:74/80 train_time:32263ms step_avg:435.99ms step_ms:664.26 refresh:0
+step:75/80 train_time:32926ms step_avg:439.01ms step_ms:662.57 refresh:0
+step:76/80 train_time:33588ms step_avg:441.94ms step_ms:661.56 refresh:0
+step:77/80 train_time:34249ms step_avg:444.79ms step_ms:661.62 refresh:0
+step:78/80 train_time:34909ms step_avg:447.55ms step_ms:659.71 refresh:0
+step:79/80 train_time:35575ms step_avg:450.31ms step_ms:665.74 refresh:0
+step:80/80 train_time:36234ms step_avg:452.92ms step_ms:659.14 refresh:0
+step:80/80 val_loss:4.5250 train_time:36330ms step_avg:454.12ms
+loco_full_step_timing through_step:79 refresh_avg:503.65ms refresh_n:5 nonrefresh_avg:449.54ms nonrefresh_n:75
+===== NEWTONV_CASE_END paired_active 2026-05-30T20:36:40Z =====
+===== NEWTONV_CASE_START paired_noop2 2026-05-30T20:36:40Z =====
+step:0/80 val_loss:10.8310 train_time:0ms step_avg:0.11ms
+step:1/80 train_time:323ms step_avg:322.51ms step_ms:322.51 refresh:1
+step:2/80 train_time:544ms step_avg:272.06ms step_ms:221.61 refresh:0
+step:3/80 train_time:767ms step_avg:255.80ms step_ms:223.28 refresh:0
+step:4/80 train_time:1010ms step_avg:252.38ms step_ms:242.13 refresh:0
+step:5/80 train_time:1253ms step_avg:250.51ms step_ms:243.02 refresh:0
+step:6/80 train_time:1496ms step_avg:249.35ms step_ms:243.52 refresh:0
+step:7/80 train_time:1733ms step_avg:247.53ms step_ms:236.60 refresh:0
+step:8/80 train_time:1974ms step_avg:246.72ms step_ms:241.05 refresh:0
+step:9/80 train_time:2216ms step_avg:246.22ms step_ms:242.25 refresh:0
+step:10/80 train_time:2460ms step_avg:246.04ms step_ms:244.37 refresh:0
+step:11/80 train_time:2699ms step_avg:245.32ms step_ms:238.16 refresh:0
+step:12/80 train_time:2939ms step_avg:244.88ms step_ms:240.02 refresh:0
+step:13/80 train_time:3181ms step_avg:244.68ms step_ms:242.36 refresh:0
+step:14/80 train_time:3426ms step_avg:244.68ms step_ms:244.64 refresh:0
+step:15/80 train_time:3666ms step_avg:244.39ms step_ms:240.28 refresh:0
+step:16/80 train_time:3907ms step_avg:244.16ms step_ms:240.81 refresh:0
+step:17/80 train_time:4210ms step_avg:247.65ms step_ms:303.43 refresh:1
+step:18/80 train_time:4420ms step_avg:245.56ms step_ms:209.96 refresh:0
+step:19/80 train_time:4659ms step_avg:245.20ms step_ms:238.68 refresh:0
+step:20/80 train_time:4900ms step_avg:245.00ms step_ms:241.38 refresh:0
+step:21/80 train_time:5142ms step_avg:244.88ms step_ms:242.39 refresh:0
+step:22/80 train_time:5388ms step_avg:244.92ms step_ms:245.85 refresh:0
+step:23/80 train_time:5627ms step_avg:244.63ms step_ms:238.21 refresh:0
+step:24/80 train_time:5867ms step_avg:244.47ms step_ms:240.73 refresh:0
+step:25/80 train_time:6110ms step_avg:244.39ms step_ms:242.58 refresh:0
+step:26/80 train_time:6354ms step_avg:244.38ms step_ms:243.97 refresh:0
+step:27/80 train_time:6593ms step_avg:244.18ms step_ms:238.94 refresh:0
+step:28/80 train_time:7019ms step_avg:250.68ms step_ms:426.37 refresh:0
+step:29/80 train_time:7471ms step_avg:257.62ms step_ms:451.81 refresh:0
+step:30/80 train_time:7917ms step_avg:263.91ms step_ms:446.23 refresh:0
+step:31/80 train_time:8369ms step_avg:269.96ms step_ms:451.43 refresh:0
+step:32/80 train_time:8818ms step_avg:275.58ms step_ms:449.85 refresh:0
+step:33/80 train_time:9365ms step_avg:283.79ms step_ms:546.76 refresh:1
+step:34/80 train_time:9751ms step_avg:286.79ms step_ms:385.56 refresh:0
+step:35/80 train_time:10201ms step_avg:291.45ms step_ms:449.80 refresh:0
+step:36/80 train_time:10651ms step_avg:295.86ms step_ms:450.40 refresh:0
+step:37/80 train_time:11099ms step_avg:299.97ms step_ms:447.74 refresh:0
+step:38/80 train_time:11552ms step_avg:304.01ms step_ms:453.54 refresh:0
+step:39/80 train_time:11999ms step_avg:307.67ms step_ms:446.69 refresh:0
+step:40/80 train_time:12453ms step_avg:311.31ms step_ms:453.60 refresh:0
+step:40/80 val_loss:5.6055 train_time:12516ms step_avg:312.90ms
+loco_full_step_timing through_step:39 refresh_avg:390.90ms refresh_n:3 nonrefresh_avg:304.86ms nonrefresh_n:37
+step:41/80 train_time:12902ms step_avg:314.69ms step_ms:449.92 refresh:0
+step:42/80 train_time:13351ms step_avg:317.88ms step_ms:448.60 refresh:0
+step:43/80 train_time:13805ms step_avg:321.04ms step_ms:453.56 refresh:0
+step:44/80 train_time:14253ms step_avg:323.93ms step_ms:448.13 refresh:0
+step:45/80 train_time:14703ms step_avg:326.73ms step_ms:449.94 refresh:0
+[modal-client] 2026-05-30T20:37:09+0000 Received a cancellation signal while processing input ('in-01KSX9AYX11A80BFJBCQ6MVCZD:1780173077410-0',)
+[modal-client] 2026-05-30T20:37:09+0000 Successfully canceled input ('in-01KSX9AYX11A80BFJBCQ6MVCZD:1780173077410-0',)
+Stopping app - local client disconnected. Use `modal run --detach` to keep apps running even if your local client disconnects.
+╭───────────────────── Traceback (most recent call last) ──────────────────────╮
+│ /Users/progyan/speedrun/wr-fresh-20260526/tmp/modal-venv/lib/python3.13/site │
+│ -packages/grpclib/client.py:369 in recv_initial_metadata                     │
+│                                                                              │
+│ /Users/progyan/speedrun/wr-fresh-20260526/tmp/modal-venv/lib/python3.13/site │
+│ -packages/grpclib/protocol.py:342 in recv_headers                            │
+│                                                                              │
+│ /opt/homebrew/Cellar/python@3.13/3.13.5/Frameworks/Python.framework/Versions │
+│ /3.13/lib/python3.13/asyncio/locks.py:213 in wait                            │
+│                                                                              │
+│   212 │   │   try:                                                           │
+│ ❱ 213 │   │   │   await fut                                                  │
+│   214 │   │   │   return True                                                │
+╰──────────────────────────────────────────────────────────────────────────────╯
+CancelledError
+
+During handling of the above exception, another exception occurred:
+
+╭───────────────────── Traceback (most recent call last) ──────────────────────╮
+│ /Users/progyan/speedrun/wr-fresh-20260526/tools/modal_nanogpt_runner.py:202  │
+│ in run                                                                       │
+│                                                                              │
+│   201 │   extra_env = _loads_extra_env(extra_env_json)                       │
+│ ❱ 202 │   result = run_screen.remote(runner, steps, val_every, nproc, data_c │
+│   203 │   print(json.dumps(result, indent=2, sort_keys=True))                │
+│                                                                              │
+│ /Users/progyan/speedrun/wr-fresh-20260526/tmp/modal-venv/lib/python3.13/site │
+│ -packages/modal/_object.py:46 in wrapped                                     │
+│                                                                              │
+│    45 │   │   await self.hydrate()                                           │
+│ ❱  46 │   │   return await method(self, *args, **kwargs)                     │
+│    47                                                                        │
+│                                                                              │
+│ /Users/progyan/speedrun/wr-fresh-20260526/tmp/modal-venv/lib/python3.13/site │
+│ -packages/modal/_functions.py:1696 in remote                                 │
+│                                                                              │
+│   1695 │   │                                                                 │
+│ ❱ 1696 │   │   return await self._call_function(args, kwargs)                │
+│   1697                                                                       │
+│                                                                              │
+│ /Users/progyan/speedrun/wr-fresh-20260526/tmp/modal-venv/lib/python3.13/site │
+│ -packages/modal/_functions.py:1640 in _call_function                         │
+│                                                                              │
+│   1639 │   │                                                                 │
+│ ❱ 1640 │   │   return await invocation.run_function()                        │
+│   1641                                                                       │
+│                                                                              │
+│ /Users/progyan/speedrun/wr-fresh-20260526/tmp/modal-venv/lib/python3.13/site │
+│ -packages/modal/_functions.py:462 in run_function                            │
+│                                                                              │
+│    461 │   │   │   metadata = await self.client.get_input_plane_metadata(sel │
+│ ❱  462 │   │   │   await_response: api_pb2.AttemptAwaitResponse = await self │
+│    463 │   │   │   │   await_request,                                        │
+│                                                                              │
+│ /Users/progyan/speedrun/wr-fresh-20260526/tmp/modal-venv/lib/python3.13/site │
+│ -packages/modal/_grpc_client.py:158 in direct                                │
+│                                                                              │
+│   157 │   │   self.wrapped_method.channel = await self.client._get_channel(s │
+│ ❱ 158 │   │   return await self.client._call_unary(self.wrapped_method, req, │
+│   159                                                                        │
+│                                                                              │
+│ /Users/progyan/speedrun/wr-fresh-20260526/tmp/modal-venv/lib/python3.13/site │
+│ -packages/modal/client.py:347 in _call_unary                                 │
+│                                                                              │
+│   346 │   │   coro = grpclib_method(request, timeout=timeout, metadata=metad │
+│ ❱ 347 │   │   return await self._call_safely(coro, grpclib_method.name)      │
+│   348                                                                        │
+│                                                                              │
+│ /Users/progyan/speedrun/wr-fresh-20260526/tmp/modal-venv/lib/python3.13/site │
+│ -packages/modal/client.py:304 in _call_safely                                │
+│                                                                              │
+│   303 │   │   │   │   request_task.set_name(readable_method)                 │
+│ ❱ 304 │   │   │   │   return await request_task                              │
+│   305 │   │   │   except asyncio.CancelledError:                             │
+│                                                                              │
+│ /Users/progyan/speedrun/wr-fresh-20260526/tmp/modal-venv/lib/python3.13/site │
+│ -packages/grpclib/client.py:913 in __call__                                  │
+│                                                                              │
+│ /Users/progyan/speedrun/wr-fresh-20260526/tmp/modal-venv/lib/python3.13/site │
+│ -packages/grpclib/client.py:426 in recv_message                              │
+│                                                                              │
+│ /Users/progyan/speedrun/wr-fresh-20260526/tmp/modal-venv/lib/python3.13/site │
+│ -packages/grpclib/client.py:368 in recv_initial_metadata                     │
+│                                                                              │
+│ /Users/progyan/speedrun/wr-fresh-20260526/tmp/modal-venv/lib/python3.13/site │
+│ -packages/grpclib/utils.py:70 in __exit__                                    │
+╰──────────────────────────────────────────────────────────────────────────────╯
+StreamTerminatedError: Connection lost
