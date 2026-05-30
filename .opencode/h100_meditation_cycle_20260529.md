@@ -290,3 +290,73 @@ Next meditation focus:
      much smaller, whether the window should be earlier/shorter, or whether
      finite_t=2 is simply too strong.
 ```
+
+## Cycle F
+
+```text
+Start: 2026-05-30 16:59 IST
+GPU apps:
+  ap-iIhHsJzH6OrAZtx2YZ7JDV failed during warmup due SCREEN_STEPS=80 warmup
+  bounds including steps 80/81.
+  ap-IiMgJfVFpD8khiDOCjBTeQ completed fixed combined diagnostic active-only.
+  ap-zNbutS7o17tfwdxzyBUaga completed combined 80-step paired probe.
+  ap-lvEWc3bzcodHQ5swpTS5zf completed combined 120-step paired probe.
+  ap-RzBJfiUbhrh2IoOq98oNtK completed combined 120-step longer-window probe.
+Modal active NanoGPT apps after block: none.
+```
+
+Implementation work:
+
+```text
+4c0144a Allow additive paired combined surfaces
+00e9ff4 Fix additive diagnostic parsing and warmup bounds
+```
+
+H100 results:
+
+```text
+Combined V + MLP c_fc, layers 0-1, finite_t=2, ridge=0.20, norm-to-base.
+
+80-step paired, apply 48-64:
+  paired_noop:   4.5353
+  paired_active: 4.5267
+  paired_noop2:  4.5375
+
+120-step paired, apply 48-64:
+  paired_noop:   s80=4.6282  s120=4.1851
+  paired_active: s80=4.6159  s120=4.1841
+  paired_noop2:  s80=4.6192  s120=4.1858
+
+120-step paired, apply 48-80:
+  paired_noop:   s80=4.6268  s120=4.1868
+  paired_active: s80=4.6233  s120=4.1851
+  paired_noop2:  s80=4.6293  s120=4.1875
+```
+
+Diagnostics:
+
+```text
+At measured active steps, raw additive correction norm is huge:
+  c_fc: 14x-27x base update
+  V:     6x-18x base update
+
+Norm-to-base correction is directionally nontrivial:
+  c_fc cosine to base update: about 0.34-0.43
+  V cosine to base update:    about 0.17-0.21
+```
+
+Conclusion:
+
+```text
+The single-surface additive results failed at 120, but the combined V+c_fc
+surface is not dead. It produces a clear 80-step paired win and a tiny 120-step
+residue. That is consistent with a real early pulse whose scale/window is not
+yet right.
+
+The longer 48-80 application window was worse than the shorter 48-64 pulse at
+step 80 and did not create a stronger endpoint. Therefore the next experiment
+should reduce alpha rather than keep the correction active longer.
+
+Queued next:
+  blend_max=0.025, same combined V+c_fc 48-64 pulse, 120-step paired.
+```

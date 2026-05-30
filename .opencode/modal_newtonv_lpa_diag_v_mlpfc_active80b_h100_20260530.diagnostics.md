@@ -1,0 +1,19 @@
+## Preconditioner
+| step | case | name | layers | blend | delta_mean | target_delta_mean | cos_mean | target_cos_mean | ref_norm_mean | ref_delta_mean | ref_cos_mean |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| 64 | lpa_paired_v_mlp_fc_finite_t20_normbase_r02_blend005 | full_mlp_fc_add | 0,1 | 0.0500 | 0.9859 | 19.7180 | 0.9839 | -1.0000 | 1.0000 | 1.2937 | 0.1632 |
+| 64 | lpa_paired_v_mlp_fc_finite_t20_normbase_r02_blend005 | full_mlp_fc_add_rawscale | 0,1 | 0.0500 | 0.6526 | 13.0510 | 0.9839 | -0.9944 | 25.3460 | 25.2030 | 0.1632 |
+| 64 | lpa_paired_v_mlp_fc_finite_t20_normbase_r02_blend005 | full_v_add | 0,1 | 0.0500 | 0.9458 | 18.9160 | 0.9854 | -0.9999 | 1.0000 | 1.3087 | 0.1436 |
+| 64 | lpa_paired_v_mlp_fc_finite_t20_normbase_r02_blend005 | full_v_add_rawscale | 0,1 | 0.0500 | 0.6518 | 13.0350 | 0.9854 | -0.9948 | 7.3902 | 7.3233 | 0.1436 |
+| 50 | paired_active | full_mlp_fc_add | 0,1 | 6.2500e-03 | 0.9712 | 1.5539e+02 | 0.9422 | -0.9999 | 1.0000 | 1.1117 | 0.3820 |
+| 50 | paired_active | full_mlp_fc_add_rawscale | 0,1 | 6.2500e-03 | 0.6301 | 1.0082e+02 | 0.9422 | -0.9756 | 14.4480 | 14.0990 | 0.3820 |
+| 50 | paired_active | full_v_add | 0,1 | 6.2500e-03 | 0.8999 | 1.4398e+02 | 0.9647 | -0.9990 | 1.0000 | 1.2529 | 0.2149 |
+| 50 | paired_active | full_v_add_rawscale | 0,1 | 6.2500e-03 | 0.6412 | 1.0260e+02 | 0.9647 | -0.9869 | 5.9413 | 5.8603 | 0.2149 |
+| 56 | paired_active | full_mlp_fc_add | 0,1 | 0.0250 | 0.9850 | 39.3990 | 0.9492 | -1.0000 | 1.0000 | 1.1512 | 0.3372 |
+| 56 | paired_active | full_mlp_fc_add_rawscale | 0,1 | 0.0250 | 0.6338 | 25.3540 | 0.9492 | -0.9782 | 27.0630 | 26.7440 | 0.3372 |
+| 56 | paired_active | full_v_add | 0,1 | 0.0250 | 0.9696 | 38.7850 | 0.9643 | -0.9999 | 1.0000 | 1.2892 | 0.1689 |
+| 56 | paired_active | full_v_add_rawscale | 0,1 | 0.0250 | 0.6411 | 25.6450 | 0.9643 | -0.9849 | 18.0110 | 17.8820 | 0.1689 |
+| 64 | paired_active | full_mlp_fc_add | 0,1 | 0.0500 | 0.9769 | 19.5380 | 0.9389 | -1.0000 | 1.0000 | 1.0647 | 0.4332 |
+| 64 | paired_active | full_mlp_fc_add_rawscale | 0,1 | 0.0500 | 0.6394 | 12.7890 | 0.9389 | -0.9724 | 17.8540 | 17.4460 | 0.4332 |
+| 64 | paired_active | full_v_add | 0,1 | 0.0500 | 0.9421 | 18.8430 | 0.9679 | -0.9997 | 1.0000 | 1.2560 | 0.2109 |
+| 64 | paired_active | full_v_add_rawscale | 0,1 | 0.0500 | 0.6524 | 13.0480 | 0.9679 | -0.9877 | 9.6474 | 9.5158 | 0.2109 |

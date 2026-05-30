@@ -1,0 +1,124 @@
+✓ Initialized. View run at 
+https://modal.com/apps/nipsdwip/main/ap-iIhHsJzH6OrAZtx2YZ7JDV
+Building image im-Vcjzz5jodygC9qqwEa5x6r
+
+=> Step 0: FROM base
+
+=> Step 1: COPY . /
+Saving image...
+Image saved, took 764.32ms
+
+Built image im-Vcjzz5jodygC9qqwEa5x6r in 2.86s
+
+
+Building image im-jmiZOg2ZmeXn21Pltt6g3p
+
+=> Step 0: FROM base
+
+=> Step 1: WORKDIR /root/speedrun
+Saving image...
+Image saved, took 703.28ms
+
+Built image im-jmiZOg2ZmeXn21Pltt6g3p in 2.69s
+
+
+✓ Created objects.
+├── 🔨 Created mount 
+│   /Users/progyan/speedrun/wr-fresh-20260526/tools/modal_nanogpt_runner.py
+├── 🔨 Created mount /Users/progyan/speedrun/wr-fresh-20260526
+├── 🔨 Created function prepare_data.
+└── 🔨 Created function run_screen.
+
+==========
+== CUDA ==
+==========
+
+CUDA Version 12.8.0
+
+Container image Copyright (c) 2016-2023, NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+
+This container image and its contents are governed by the NVIDIA Deep Learning Container License.
+By pulling and using the container, you accept the terms and conditions of this license:
+https://developer.nvidia.com/ngc/nvidia-deep-learning-container-license
+
+A copy of this license is made available in this container at /NGC-DL-CONTAINER-LICENSE for your convenience.
+
+===== NEWTONV_CASE_START lpa_paired_v_mlp_fc_finite_t20_normbase_r02_blend005 2026-05-30T11:30:04Z =====
+wrote train_gpt_screen.py from train_gpt.py with steps=80 val_every=40
+[Gloo] Rank 0 is connected to 0 peer ranks. Expected number of connected peer ranks is : 0
+
+Fetching 4 files:   0%|          | 0/4 [00:00<?, ?it/s]
+Fetching 4 files: 100%|██████████| 4/4 [00:00<00:00, 8430.76it/s]
+logs/926e1709-ffd7-49ec-8775-5b65812d7336.txt
+Using TRAIN_RUN_SEED=1337
+Using TRAIN_SYNC_BOS_INDEX=1
+Using NEWTONV_PAIRED_CASES=active
+loco_full owned_layers rank=0: attn_in=[0, 1, 2, 3, 4, 5, 6, 7, 8, 9] qk_layers=[] v_layers=[0, 1, 2, 3, 4, 5, 6, 7, 8, 9] o_layers=[] mlp_fc_layers=[0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10] filter=finite shrink_rank=64 precond_dtype=fp32 norm_restore=0 block_size=0 static_norm=1 power_alpha=0.75 power_clip=2.0 shrink_only=0 schedule_only=0 metric_polar=0 additive=1 additive_norm_to_base=1 polar_iters=5 windows=((48, 64),) collect_windows=((0, 64),) skip_varred=0 post_varred=0 local_stats=1 apply_interval=1
+Compiling model and warming up kernels (~7 minutes on first execution)
+Sampling steps [0, 1, 8, 18, 19, 20, 21, 24, 38, 39, 40, 41, 48, 58, 59, 60, 64, 78, 79, 80, 81] for warmup
+/usr/local/lib/python3.10/site-packages/torch/_inductor/compile_fx.py:321: UserWarning: TensorFloat32 tensor cores for float32 matrix multiplication available but not enabled. Consider setting `torch.set_float32_matmul_precision('high')` for better performance.
+  warnings.warn(
+[rank0]:W0530 11:30:43.743000 52 site-packages/torch/_inductor/select_algorithm.py:2387] [0/1] Constructing input/output tensor meta failed for Extern Choice
+[rank0]:W0530 11:30:43.868000 52 site-packages/torch/_inductor/select_algorithm.py:2387] [0/1] Constructing input/output tensor meta failed for Extern Choice
+[rank0]:W0530 11:33:00.813000 52 site-packages/torch/_inductor/select_algorithm.py:2387] [0/7] Constructing input/output tensor meta failed for Extern Choice
+[rank0]:W0530 11:33:00.941000 52 site-packages/torch/_inductor/select_algorithm.py:2387] [0/7] Constructing input/output tensor meta failed for Extern Choice
+loco_full step=48 attn_in_gram_ema refreshed=1 owned_layers=[0, 1] mean_diag=1.9661e+04 min=1.3469e+04 p01=1.5452e+04 p50=1.9393e+04 p99=2.5800e+04 max=3.1782e+04
+loco_full step=48 mlp_fc_gram_ema refreshed=1 owned_layers=[0, 1] mean_diag=1.9661e+04 min=1.3545e+04 p01=1.5175e+04 p50=1.9432e+04 p99=2.5886e+04 max=3.2155e+04
+[rank0]:W0530 11:34:57.728000 52 site-packages/torch/_inductor/select_algorithm.py:2387] [0/11] Constructing input/output tensor meta failed for Extern Choice
+[rank0]:W0530 11:34:57.855000 52 site-packages/torch/_inductor/select_algorithm.py:2387] [0/11] Constructing input/output tensor meta failed for Extern Choice
+loco_full step=64 attn_in_gram_ema refreshed=1 owned_layers=[0, 1] mean_diag=2.5559e+04 min=1.3586e+04 p01=1.6991e+04 p50=2.4654e+04 p99=3.8213e+04 max=4.5156e+04
+loco_full step=64 mlp_fc_gram_ema refreshed=1 owned_layers=[0, 1] mean_diag=2.5559e+04 min=1.4749e+04 p01=1.7203e+04 p50=2.4674e+04 p99=3.8338e+04 max=4.9276e+04
+loco_full_precond step=64 full_mlp_fc_add:n=2 layers=0,1 blend=5.0000e-02 norm=1.3755e-02/1.1995e-02/1.5515e-02 delta=9.8646e-01/9.8473e-01/9.8819e-01 cos=0.984572/0.984258/0.984886 target_delta=1.9729e+01/1.9695e+01/1.9764e+01 target_cos=-0.999997/-0.999997/-0.999996 ref_norm=1.0000e+00/1.0000e+00/1.0000e+00 ref_delta=1.2953e+00/1.2899e+00/1.3007e+00 ref_cos=0.161094/0.154135/0.168052 | full_mlp_fc_add_rawscale:n=2 layers=0,1 blend=5.0000e-02 norm=3.5570e-01/3.5394e-01/3.5746e-01 delta=6.5276e-01/6.5089e-01/6.5463e-01 cos=0.984572/0.984258/0.984886 target_delta=1.3055e+01/1.3018e+01/1.3093e+01 target_cos=-0.994660/-0.994682/-0.994638 ref_norm=2.6306e+01/2.2813e+01/2.9800e+01 ref_delta=2.6164e+01/2.2680e+01/2.9649e+01 ref_cos=0.161094/0.154135/0.168052 | full_v_add:n=2 layers=0,1 blend=5.0000e-02 norm=5.2492e-02/3.2749e-02/7.2234e-02 delta=9.4851e-01/9.2958e-01/9.6743e-01 cos=0.985667/0.976664/0.994669 target_delta=1.8970e+01/1.8592e+01/1.9349e+01 target_cos=-0.999919/-0.999993/-0.999844 ref_norm=1.0000e+00/1.0000e+00/1.0000e+00 ref_delta=1.3069e+00/1.2932e+00/1.3207e+00 ref_cos=0.145863/0.127886/0.163840 | full_v_add_rawscale:n=2 layers=0,1 blend=5.0000e-02 norm=3.5623e-01/3.4925e-01/3.6320e-01 delta=6.5179e-01/6.4997e-01/6.5360e-01 cos=0.985667/0.976664/0.994669 target_delta=1.3036e+01/1.2999e+01/1.3072e+01 target_cos=-0.994871/-0.998219/-0.991523 ref_norm=7.8464e+00/5.0281e+00/1.0665e+01 ref_delta=7.7733e+00/4.9633e+00/1.0583e+01 ref_cos=0.145863/0.127886/0.163840
+loco_full_precond_detail step=64 full_mlp_fc_add:g0:l0:delta=9.8819e-01:target_delta=1.9764e+01:cos=0.984886 | full_mlp_fc_add:g2:l1:delta=9.8473e-01:target_delta=1.9695e+01:cos=0.984258 | full_mlp_fc_add_rawscale:g0:l0:delta=6.5089e-01:target_delta=1.3018e+01:cos=0.984886 | full_mlp_fc_add_rawscale:g2:l1:delta=6.5463e-01:target_delta=1.3093e+01:cos=0.984258 | full_v_add:g0:l0:delta=9.6743e-01:target_delta=1.9349e+01:cos=0.994669 | full_v_add:g2:l1:delta=9.2958e-01:target_delta=1.8592e+01:cos=0.976664 | full_v_add_rawscale:g0:l0:delta=6.5360e-01:target_delta=1.3072e+01:cos=0.994669 | full_v_add_rawscale:g2:l1:delta=6.4997e-01:target_delta=1.2999e+01:cos=0.976664
+loco_full step=80 attn_in_gram_ema refreshed=0 owned_layers=[0, 1] mean_diag=2.5559e+04 min=1.3586e+04 p01=1.6991e+04 p50=2.4654e+04 p99=3.8213e+04 max=4.5156e+04
+loco_full step=80 mlp_fc_gram_ema refreshed=0 owned_layers=[0, 1] mean_diag=2.5559e+04 min=1.4749e+04 p01=1.7203e+04 p50=2.4674e+04 p99=3.8338e+04 max=4.9276e+04
+[rank0]: Traceback (most recent call last):
+[rank0]:   File "/root/speedrun/train_gpt_screen.py", line 4659, in <module>
+[rank0]:     training_manager.advance_schedule(step)
+[rank0]:   File "/root/speedrun/train_gpt_screen.py", line 4449, in advance_schedule
+[rank0]:     self.mtp_weights = training_schedule.mtp_weights[step]
+[rank0]: IndexError: list index out of range
+[rank0]:[W530 11:37:45.170745064 ProcessGroupNCCL.cpp:1553] Warning: WARNING: destroy_process_group() was not called before program exit, which can leak resources. For more info, please see https://pytorch.org/docs/stable/distributed.html#shutdown (function operator())
+E0530 11:37:49.281000 31 site-packages/torch/distributed/elastic/multiprocessing/api.py:984] failed (exitcode: 1) local_rank: 0 (pid: 52) of binary: /usr/local/bin/python
+Traceback (most recent call last):
+  File "/usr/local/bin/torchrun", line 8, in <module>
+    sys.exit(main())
+  File "/usr/local/lib/python3.10/site-packages/torch/distributed/elastic/multiprocessing/errors/__init__.py", line 362, in wrapper
+    return f(*args, **kwargs)
+  File "/usr/local/lib/python3.10/site-packages/torch/distributed/run.py", line 991, in main
+    run(args)
+  File "/usr/local/lib/python3.10/site-packages/torch/distributed/run.py", line 982, in run
+    elastic_launch(
+  File "/usr/local/lib/python3.10/site-packages/torch/distributed/launcher/api.py", line 170, in __call__
+    return launch_agent(self._config, self._entrypoint, list(args))
+  File "/usr/local/lib/python3.10/site-packages/torch/distributed/launcher/api.py", line 317, in launch_agent
+    raise ChildFailedError(
+torch.distributed.elastic.multiprocessing.errors.ChildFailedError: 
+============================================================
+train_gpt_screen.py FAILED
+------------------------------------------------------------
+Failures:
+  <NO_OTHER_FAILURES>
+------------------------------------------------------------
+Root Cause (first observed failure):
+[0]:
+  time      : 2026-05-30_11:37:49
+  host      : localhost
+  rank      : 0 (local_rank: 0)
+  exitcode  : 1 (pid: 52)
+  error_file: <N/A>
+  traceback : To enable traceback see: https://pytorch.org/docs/stable/elastic/errors.html
+============================================================
+{
+  "cache_volume": "nanogpt-speedrun-cache",
+  "data_volume": "nanogpt-speedrun-fineweb10b",
+  "gpu": "H100",
+  "returncode": 1,
+  "runner": "tools/run_newtonv_experiment_suite.sh",
+  "tail": "/0.154135/0.168052 | full_v_add:n=2 layers=0,1 blend=5.0000e-02 norm=5.2492e-02/3.2749e-02/7.2234e-02 delta=9.4851e-01/9.2958e-01/9.6743e-01 cos=0.985667/0.976664/0.994669 target_delta=1.8970e+01/1.8592e+01/1.9349e+01 target_cos=-0.999919/-0.999993/-0.999844 ref_norm=1.0000e+00/1.0000e+00/1.0000e+00 ref_delta=1.3069e+00/1.2932e+00/1.3207e+00 ref_cos=0.145863/0.127886/0.163840 | full_v_add_rawscale:n=2 layers=0,1 blend=5.0000e-02 norm=3.5623e-01/3.4925e-01/3.6320e-01 delta=6.5179e-01/6.4997e-01/6.5360e-01 cos=0.985667/0.976664/0.994669 target_delta=1.3036e+01/1.2999e+01/1.3072e+01 target_cos=-0.994871/-0.998219/-0.991523 ref_norm=7.8464e+00/5.0281e+00/1.0665e+01 ref_delta=7.7733e+00/4.9633e+00/1.0583e+01 ref_cos=0.145863/0.127886/0.163840\nloco_full_precond_detail step=64 full_mlp_fc_add:g0:l0:delta=9.8819e-01:target_delta=1.9764e+01:cos=0.984886 | full_mlp_fc_add:g2:l1:delta=9.8473e-01:target_delta=1.9695e+01:cos=0.984258 | full_mlp_fc_add_rawscale:g0:l0:delta=6.5089e-01:target_delta=1.3018e+01:cos=0.984886 | full_mlp_fc_add_rawscale:g2:l1:delta=6.5463e-01:target_delta=1.3093e+01:cos=0.984258 | full_v_add:g0:l0:delta=9.6743e-01:target_delta=1.9349e+01:cos=0.994669 | full_v_add:g2:l1:delta=9.2958e-01:target_delta=1.8592e+01:cos=0.976664 | full_v_add_rawscale:g0:l0:delta=6.5360e-01:target_delta=1.3072e+01:cos=0.994669 | full_v_add_rawscale:g2:l1:delta=6.4997e-01:target_delta=1.2999e+01:cos=0.976664\nloco_full step=80 attn_in_gram_ema refreshed=0 owned_layers=[0, 1] mean_diag=2.5559e+04 min=1.3586e+04 p01=1.6991e+04 p50=2.4654e+04 p99=3.8213e+04 max=4.5156e+04\nloco_full step=80 mlp_fc_gram_ema refreshed=0 owned_layers=[0, 1] mean_diag=2.5559e+04 min=1.4749e+04 p01=1.7203e+04 p50=2.4674e+04 p99=3.8338e+04 max=4.9276e+04\n[rank0]: Traceback (most recent call last):\n[rank0]:   File \"/root/speedrun/train_gpt_screen.py\", line 4659, in <module>\n[rank0]:     training_manager.advance_schedule(step)\n[rank0]:   File \"/root/speedrun/train_gpt_screen.py\", line 4449, in advance_schedule\n[rank0]:     self.mtp_weights = training_schedule.mtp_weights[step]\n[rank0]: IndexError: list index out of range\n[rank0]:[W530 11:37:45.170745064 ProcessGroupNCCL.cpp:1553] Warning: WARNING: destroy_process_group() was not called before program exit, which can leak resources. For more info, please see https://pytorch.org/docs/stable/distributed.html#shutdown (function operator())\nE0530 11:37:49.281000 31 site-packages/torch/distributed/elastic/multiprocessing/api.py:984] failed (exitcode: 1) local_rank: 0 (pid: 52) of binary: /usr/local/bin/python\nTraceback (most recent call last):\n  File \"/usr/local/bin/torchrun\", line 8, in <module>\n    sys.exit(main())\n  File \"/usr/local/lib/python3.10/site-packages/torch/distributed/elastic/multiprocessing/errors/__init__.py\", line 362, in wrapper\n    return f(*args, **kwargs)\n  File \"/usr/local/lib/python3.10/site-packages/torch/distributed/run.py\", line 991, in main\n    run(args)\n  File \"/usr/local/lib/python3.10/site-packages/torch/distributed/run.py\", line 982, in run\n    elastic_launch(\n  File \"/usr/local/lib/python3.10/site-packages/torch/distributed/launcher/api.py\", line 170, in __call__\n    return launch_agent(self._config, self._entrypoint, list(args))\n  File \"/usr/local/lib/python3.10/site-packages/torch/distributed/launcher/api.py\", line 317, in launch_agent\n    raise ChildFailedError(\ntorch.distributed.elastic.multiprocessing.errors.ChildFailedError: \n============================================================\ntrain_gpt_screen.py FAILED\n------------------------------------------------------------\nFailures:\n  <NO_OTHER_FAILURES>\n------------------------------------------------------------\nRoot Cause (first observed failure):\n[0]:\n  time      : 2026-05-30_11:37:49\n  host      : localhost\n  rank      : 0 (local_rank: 0)\n  exitcode  : 1 (pid: 52)\n  error_file: <N/A>\n  traceback : To enable traceback see: https://pytorch.org/docs/stable/elastic/errors.html\n============================================================\n",
+  "training_summary": {},
+  "wall_time_s": 465.287
+}
+Stopping app - local entrypoint completed.
+✓ App completed. View run at 
+https://modal.com/apps/nipsdwip/main/ap-iIhHsJzH6OrAZtx2YZ7JDV

@@ -2168,3 +2168,78 @@ scale." The current finite_t=2, ridge=0.20, alpha=0.05 norm-to-base correction
 is too blunt. We need the correction/base norm and cosine diagnostics enabled
 for additive runs, then a scale/window/filter ladder chosen from those numbers.
 ```
+
+Combined additive update:
+
+```text
+Runs:
+  .opencode/modal_newtonv_lpa_v_mlpfc_finite_normbase80_paired_h100_20260530.parsed.md
+  .opencode/modal_newtonv_lpa_v_mlpfc_finite_normbase120_paired_h100_20260530.parsed.md
+  .opencode/modal_newtonv_lpa_v_mlpfc_finite_normbase120_win48_80_paired_h100_20260530.parsed.md
+  .opencode/modal_newtonv_lpa_diag_v_mlpfc_active80b_h100_20260530.diagnostics.md
+
+Surface: V + MLP c_fc, layers 0-1
+Filter: finite_t=2.0, clip=2.0, ridge_rel=0.20
+Scaling: norm-to-base additive correction
+```
+
+Result table:
+
+```text
+80-step, apply 48-64:
+  noop:   4.5353
+  active: 4.5267
+  noop2:  4.5375
+
+120-step, apply 48-64:
+  noop:   s80=4.6282  s120=4.1851
+  active: s80=4.6159  s120=4.1841
+  noop2:  s80=4.6192  s120=4.1858
+
+120-step, apply 48-80:
+  noop:   s80=4.6268  s120=4.1868
+  active: s80=4.6233  s120=4.1851
+  noop2:  s80=4.6293  s120=4.1875
+```
+
+Diagnostics:
+
+```text
+Raw additive correction norm is far too large at this alpha:
+  c_fc raw-scale ref_norm: 14x to 27x base update
+  V raw-scale ref_norm:     6x to 18x base update
+
+Norm-to-base correction is directionally meaningful, not aligned noise:
+  c_fc ref_cos: roughly 0.34 to 0.43 in measured active steps
+  V ref_cos:    roughly 0.17 to 0.21 in measured active steps
+```
+
+Updated synthesis:
+
+```text
+The combined V+c_fc result is the strongest additive signal after the
+single-surface 120-step failures. It suggests the right-feature correction may
+need to touch multiple clean 768-dimensional surfaces together; isolating only
+V or only c_fc can create a transient imbalance.
+
+The gain is still an early pulse, not a record-ready endpoint:
+  - at 80 steps, active wins clearly;
+  - at 120 steps, the shorter pulse keeps only about 0.001-0.002 loss;
+  - extending the pulse to 80 steps does not improve persistence.
+
+The next principled lever is scale, not duration. Since raw LocoProp magnitude
+is 6x-27x the base update, raw additive needs a tiny alpha. Since the
+norm-to-base correction fades at alpha=0.05, the immediate test is whether a
+smaller additive pulse preserves the step-80 gain while reducing post-pulse
+damage.
+
+Current best next H100 probe:
+  v,mlp_fc layers 0-1
+  collect 0-64
+  apply 48-64
+  finite_t=2.0
+  ridge_rel=0.20
+  norm-to-base=1
+  blend_max=0.025
+  120-step paired noop,active,noop2
+```

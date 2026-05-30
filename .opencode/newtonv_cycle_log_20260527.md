@@ -3081,3 +3081,197 @@ Current read:
     inserting the metric into Muon state, but the present norm-to-base finite
     pulse is not a WR candidate.
 ```
+
+## Cycle 42 H100 Result: Combined Additive V + MLP c_fc Diagnostics
+
+Runs:
+
+```text
+Failed warmup-bounds probe:
+  App: ap-iIhHsJzH6OrAZtx2YZ7JDV
+  Log: .opencode/modal_newtonv_lpa_diag_v_mlpfc_active80_h100_20260530.launch.log
+  Diagnostics: .opencode/modal_newtonv_lpa_diag_v_mlpfc_active80_h100_20260530.diagnostics.md
+
+Fixed active-only probe:
+  App: ap-IiMgJfVFpD8khiDOCjBTeQ
+  Log: .opencode/modal_newtonv_lpa_diag_v_mlpfc_active80b_h100_20260530.launch.log
+  Parsed: .opencode/modal_newtonv_lpa_diag_v_mlpfc_active80b_h100_20260530.parsed.md
+  Diagnostics: .opencode/modal_newtonv_lpa_diag_v_mlpfc_active80b_h100_20260530.diagnostics.md
+
+Surface: V + MLP c_fc layers 0-1
+Collect window: 0-64
+Apply window: 48-64
+Filter: finite_t=2.0, clip=2.0, ridge_rel=0.20
+Scaling: additive_norm_to_base=1
+```
+
+Fixed active-only endpoint:
+
+```text
+paired_active: s80=4.5228  step_avg=452.86ms
+```
+
+Diagnostic summary:
+
+```text
+Measured step 50:
+  c_fc norm-to-base: ref_delta=1.1117  ref_cos=0.3820
+  c_fc raw-scale:    ref_norm=14.448  ref_delta=14.099
+  V norm-to-base:    ref_delta=1.2529  ref_cos=0.2149
+  V raw-scale:       ref_norm=5.9413  ref_delta=5.8603
+
+Measured step 56:
+  c_fc norm-to-base: ref_delta=1.1512  ref_cos=0.3372
+  c_fc raw-scale:    ref_norm=27.063  ref_delta=26.744
+  V norm-to-base:    ref_delta=1.2892  ref_cos=0.1689
+  V raw-scale:       ref_norm=18.011  ref_delta=17.882
+
+Measured step 64:
+  c_fc norm-to-base: ref_delta=1.0647  ref_cos=0.4332
+  c_fc raw-scale:    ref_norm=17.854  ref_delta=17.446
+  V norm-to-base:    ref_delta=1.2560  ref_cos=0.2109
+  V raw-scale:       ref_norm=9.6474  ref_delta=9.5158
+```
+
+Read:
+
+```text
+The raw additive LocoProp correction is enormous relative to the base NorMuon
+update: roughly 6x to 27x in these logs. Raw additive is therefore not safe
+without a much smaller alpha.
+
+The norm-to-base correction is not just a tiny aligned nudge. It has low to
+moderate cosine with the base update, especially for V, so the right-feature
+metric is producing a genuinely different direction. That supports continuing
+with pulse/scale design rather than declaring the feature axis useless.
+
+The first active-only fixed endpoint looked hot at 80, but it needed paired
+controls before interpretation.
+```
+
+## Cycle 43 H100 Result: Combined Additive V + MLP c_fc 80-Step Paired
+
+Run:
+
+```text
+App: ap-zNbutS7o17tfwdxzyBUaga
+Log: .opencode/modal_newtonv_lpa_v_mlpfc_finite_normbase80_paired_h100_20260530.launch.log
+Parsed: .opencode/modal_newtonv_lpa_v_mlpfc_finite_normbase80_paired_h100_20260530.parsed.md
+
+Surface: V + MLP c_fc layers 0-1
+Collect window: 0-64
+Apply window: 48-64
+Filter: finite_t=2.0, clip=2.0, ridge_rel=0.20
+Additive alpha/blend max: 0.05 over 16 steps
+Scaling: additive_norm_to_base=1
+Cases: noop, active, noop2
+```
+
+Parsed result:
+
+```text
+paired_noop:   s80=4.5353  step_avg=446.53ms
+paired_active: s80=4.5267  step_avg=447.90ms
+paired_noop2:  s80=4.5375  step_avg=446.99ms
+```
+
+Decision:
+
+```text
+This is a real 80-step hit for the combined surface.
+
+Active beats noop by 0.0086 and noop2 by 0.0108 with matched timing. This is
+larger than the single-surface additive noise and consistent with the theory
+that V and c_fc may need to move together: both are clean 768-dimensional
+right-feature surfaces, and isolating only one of them may create a transient
+mismatch.
+
+Promotion guard:
+  - do not call this WR-ready until it survives a 120-step paired replay.
+  - if it fades, tune alpha/window before sweeping more surfaces.
+```
+
+## Cycle 44 H100 Result: Combined Additive V + MLP c_fc 120-Step Persistence
+
+Run:
+
+```text
+App: ap-lvEWc3bzcodHQ5swpTS5zf
+Log: .opencode/modal_newtonv_lpa_v_mlpfc_finite_normbase120_paired_h100_20260530.launch.log
+Parsed: .opencode/modal_newtonv_lpa_v_mlpfc_finite_normbase120_paired_h100_20260530.parsed.md
+
+Surface: V + MLP c_fc layers 0-1
+Collect window: 0-64
+Apply window: 48-64
+Filter: finite_t=2.0, clip=2.0, ridge_rel=0.20
+Additive alpha/blend max: 0.05 over 16 steps
+Scaling: additive_norm_to_base=1
+Cases: noop, active, noop2
+```
+
+Parsed result:
+
+```text
+paired_noop:   s40=5.8287  s80=4.6282  s120=4.1851  step_avg=443.69ms
+paired_active: s40=5.8147  s80=4.6159  s120=4.1841  step_avg=445.58ms
+paired_noop2:  s40=5.8178  s80=4.6192  s120=4.1858  step_avg=446.14ms
+```
+
+Decision:
+
+```text
+This keeps the combined-surface hypothesis alive, but it is not a 120-step
+promotion.
+
+Active is strongly best at step 80:
+  - 0.0123 ahead of noop
+  - 0.0033 ahead of noop2
+
+By step 120, the gain mostly fades:
+  - 0.0010 ahead of noop
+  - 0.0017 ahead of noop2
+
+Timing remains matched enough for this to be an algorithmic read. The effect
+looks like an early accelerator/pulse, not a persistent endpoint improvement
+at alpha=0.05.
+```
+
+## Cycle 45 H100 Result: Longer Combined Additive Window
+
+Run:
+
+```text
+App: ap-RzBJfiUbhrh2IoOq98oNtK
+Log: .opencode/modal_newtonv_lpa_v_mlpfc_finite_normbase120_win48_80_paired_h100_20260530.launch.log
+Parsed: .opencode/modal_newtonv_lpa_v_mlpfc_finite_normbase120_win48_80_paired_h100_20260530.parsed.md
+
+Surface: V + MLP c_fc layers 0-1
+Collect window: 0-64
+Apply window: 48-80
+Filter: finite_t=2.0, clip=2.0, ridge_rel=0.20
+Additive alpha/blend max: 0.05 over 16 steps
+Scaling: additive_norm_to_base=1
+Cases: noop, active, noop2
+```
+
+Parsed result:
+
+```text
+paired_noop:   s40=5.8255  s80=4.6268  s120=4.1868  step_avg=449.56ms
+paired_active: s40=5.8215  s80=4.6233  s120=4.1851  step_avg=449.25ms
+paired_noop2:  s40=5.8203  s80=4.6293  s120=4.1875  step_avg=449.80ms
+```
+
+Decision:
+
+```text
+Extending the active window from 48-64 to 48-80 is not better.
+
+Active is still best at 120 by about 0.0017-0.0024, but the step-80 advantage
+is weaker than the shorter 48-64 pulse. This argues against "just keep it on
+longer" and points instead to smaller alpha or shorter pulse shaping.
+
+Next run choice:
+  - lower alpha combined pulse, not longer window.
+  - first candidate: blend_max=0.025, collect 0-64, apply 48-64, 120-step paired.
+```
