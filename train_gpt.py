@@ -2434,7 +2434,8 @@ class NorMuonAndAdam:
             )
             rawscale_update = (
                 correction_chunk[mat_idx].float().clone()
-                if before_update is not None and LOCO_FULL_ADDITIVE_NORM_TO_BASE
+                if before_update is not None
+                and (LOCO_FULL_ADDITIVE_NORM_TO_BASE or LOCO_FULL_ADDITIVE_NORM_CAP > 0)
                 else None
             )
             if LOCO_FULL_ADDITIVE_NORM_TO_BASE:
@@ -2498,7 +2499,8 @@ class NorMuonAndAdam:
             )
             rawscale_update = (
                 correction_chunk[mat_idx].float().clone()
-                if before_update is not None and LOCO_FULL_ADDITIVE_NORM_TO_BASE
+                if before_update is not None
+                and (LOCO_FULL_ADDITIVE_NORM_TO_BASE or LOCO_FULL_ADDITIVE_NORM_CAP > 0)
                 else None
             )
             if LOCO_FULL_ADDITIVE_NORM_TO_BASE:
@@ -2570,7 +2572,8 @@ class NorMuonAndAdam:
             )
             rawscale_update = (
                 correction_chunk[mat_idx].float().clone()
-                if before_update is not None and LOCO_FULL_ADDITIVE_NORM_TO_BASE
+                if before_update is not None
+                and (LOCO_FULL_ADDITIVE_NORM_TO_BASE or LOCO_FULL_ADDITIVE_NORM_CAP > 0)
                 else None
             )
             if LOCO_FULL_ADDITIVE_NORM_TO_BASE:
