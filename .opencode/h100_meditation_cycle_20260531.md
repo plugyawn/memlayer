@@ -189,3 +189,78 @@ SP_PAIRED_CASES=noop,active,noop2 \
 SP_LOG_PRECOND=1 SP_LOG_PRECOND_DETAIL=1 \
 bash tools/run_newtonv_experiment_suite.sh
 ```
+
+## Cycle E
+
+```text
+GPU block start: 2026-05-31 03:38 IST
+GPU block end:   2026-05-31 03:58 IST
+Budget:          about 19.6 minutes H100 wall time
+App:             ap-wVBWgST7LA4lMC55kwDhqz
+Runner:          tools/run_lpa_component_matrix_gate.sh
+Next GPU allowed: about 2026-05-31 04:58 IST
+```
+
+Artifacts:
+
+```text
+.opencode/modal_lpa_v_components_fixed80_h100_20260531.launch.log
+.opencode/modal_lpa_v_components_fixed80_h100_20260531.parsed.md
+.opencode/modal_lpa_v_components_fixed80_h100_20260531.summary.md
+.opencode/modal_lpa_v_components_fixed80_h100_20260531.diagnostics.md
+.opencode/modal_lpa_v_components_fixed80_h100_20260531.refs.md
+```
+
+Result:
+
+| component | blend | step 40 delta vs noop mean | step 80 active | noops | step 80 delta vs noop mean | beats both |
+| --- | ---: | ---: | ---: | ---: | ---: | --- |
+| parallel | `0.05` | `+0.0142` | `4.5352` | `4.5336 / 4.5213` | `+0.0077` | no |
+| orthogonal | `0.02` | `-0.0394` | `4.5284` | `4.5377 / 4.5272` | `-0.0040` | no |
+| orthogonal | `0.05` | `-0.0135` | `4.5258` | `4.5289 / 4.5236` | `-0.0004` | no |
+
+Diagnostic sanity:
+
+```text
+parallel full_v_add:
+  ref_cos ~= 1.0
+  ref_delta ~= 0
+  Interpretation: after projection/norm-to-base, this is basically a small
+  extra copy of the base NorMuon update. It hurts, so this is not an LR-like win.
+
+orthogonal full_v_add:
+  ref_cos ~= 0
+  ref_delta ~= sqrt(2)
+  Interpretation: the projection test worked and really injected an orthogonal
+  base-norm direction scaled by blend.
+
+rawscale orthogonal V:
+  ref_norm roughly 8x at step 64 in active cases, with spikes over 20x in noops.
+  Natural-magnitude additive needs a true cap if tested.
+```
+
+Decision:
+
+```text
+Do not promote the V additive finite component form. Orthogonal 0.02 is
+suggestive because it beats the mean noop and has a large step-40 signal, but
+it does not beat both noops at step 80. Orthogonal 0.05 fades to essentially
+parity with the noop mean. Parallel is clearly worse.
+
+This is not a proof that right-preconditioning is useless. It says:
+  1. the feature-derived direction is mechanically nontrivial;
+  2. pure parallel/LR-like correction is bad;
+  3. a small orthogonal component may help briefly;
+  4. this finite V additive form is not reliable enough for WR promotion.
+```
+
+Meditation targets before another GPU:
+
+```text
+1. Decide whether orthogonal 0.02 deserves a replication/finer 0.01/0.02/0.03
+   run despite missing the strict beats-both gate.
+2. Compare that against switching contracts: true norm-capped natural
+   correction, metric-soft V, or MLP c_fc soft-polar with eps=1e-6.
+3. Avoid spending the next H100 hour on broad surfaces unless a sidecar can
+   explain why this result specifically predicts transfer.
+```
