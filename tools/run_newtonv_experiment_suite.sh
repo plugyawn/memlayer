@@ -2707,6 +2707,49 @@ run_v_paired_state_sanity_ladder() {
     bash tools/run_newtonv_raw_v01_gate.sh
 }
 
+run_mlpfc_paired_metric_ladder() {
+  local mpf_steps="${MPF_STEPS:-120}"
+  local mpf_val_every="${MPF_VAL_EVERY:-40}"
+  local mpf_layers="${MPF_LAYERS:-0-1}"
+  local mpf_collect="${MPF_COLLECT_WINDOWS:-0-112}"
+  local mpf_windows="${MPF_WINDOWS:-48-112}"
+  local mpf_refresh_interval="${MPF_REFRESH_INTERVAL:-16}"
+  local mpf_ema_beta="${MPF_EMA_BETA:-0.8}"
+  local mpf_ridge="${MPF_RIDGE_REL:-0.2}"
+  local mpf_ridge_label="${mpf_ridge/./}"
+  local mpf_blend="${MPF_BLEND_MAX:-0.02}"
+  local mpf_blend_label="${mpf_blend/./}"
+  local mpf_blend_steps="${MPF_BLEND_STEPS:-32}"
+  local mpf_filter="${MPF_FILTER:-inverse}"
+  local mpf_finite_t="${MPF_FINITE_T:-2.0}"
+  local mpf_metric_polar="${MPF_METRIC_POLAR:-1}"
+  local mpf_norm_restore="${MPF_NORM_RESTORE:-0}"
+  local mpf_clip="${MPF_POWER_CLIP:-2.0}"
+  local mpf_mode_label="metric${mpf_metric_polar}_${mpf_filter}"
+
+  run_case "mpf_paired_${mpf_mode_label}_r${mpf_ridge_label}_blend${mpf_blend_label}" \
+    TRAIN_SYNC_BOS_INDEX=1 \
+    NEWTONV_PAIRED_CASES="${MPF_PAIRED_CASES:-noop,active,noop2}" \
+    LOCO_FULL_SURFACES=mlp_fc \
+    LOCO_DIAG_MLP_LAYERS="${mpf_layers}" \
+    LOCO_FULL_COLLECT_WINDOWS="${mpf_collect}" \
+    LOCO_FULL_WINDOWS="${mpf_windows}" \
+    LOCO_FULL_REFRESH_INTERVAL="${mpf_refresh_interval}" \
+    LOCO_FULL_EMA_BETA="${mpf_ema_beta}" \
+    LOCO_FULL_RIDGE_REL="${mpf_ridge}" \
+    LOCO_FULL_BLEND_MAX="${mpf_blend}" \
+    LOCO_FULL_BLEND_STEPS="${mpf_blend_steps}" \
+    LOCO_FULL_FILTER="${mpf_filter}" \
+    LOCO_FULL_FINITE_T="${mpf_finite_t}" \
+    LOCO_FULL_POWER_CLIP="${mpf_clip}" \
+    LOCO_FULL_METRIC_POLAR="${mpf_metric_polar}" \
+    LOCO_FULL_STATIC_NORM=1 \
+    LOCO_FULL_NORM_RESTORE="${mpf_norm_restore}" \
+    SCREEN_STEPS="${mpf_steps}" \
+    SCREEN_VAL_EVERY="${mpf_val_every}" \
+    bash tools/run_newtonv_raw_v01_gate.sh
+}
+
 case "${suite}" in
   timing)
     run_timing_triplet
@@ -2863,6 +2906,9 @@ case "${suite}" in
   v_paired_state_sanity)
     run_v_paired_state_sanity_ladder
     ;;
+  mlpfc_paired_metric)
+    run_mlpfc_paired_metric_ladder
+    ;;
   all)
     run_timing_triplet
     run_next_ladder
@@ -2874,7 +2920,7 @@ case "${suite}" in
       bash tools/run_newtonv_raw_v01_gate.sh
     ;;
   *)
-    echo "NEWTONV_SUITE must be timing, filters, quick, raw200, promote, polar4, permutations, next, tail, warmmetric, overprecond, overpromote, scheduleonly, preconddiag, schedule_diag, rightfilter, paperstyle, paperfilter, metricpolar, metricpromote, metricv_promote, metricv_window, v_spectral_shape, paper_v_promote, metricsurfaces, surface_control, qkvo_metric_promote, qkvo_schedule, qkvo_power_shape, qkv_power_shape, qkv_inverse_control, v_varred_interaction, v_short_pulse, v_schedule_pulse, mlpfc, mlpfc_promote, mlpfc_before_control, mlpfc_filter_control, mlpfc_blend, mlpfc_postvarred_control, v_postvarred_control, v_postvarred_window, v_postvarred_finite_t, v_seed_sanity, v_paired_state_sanity, or all; got ${suite}" >&2
+    echo "NEWTONV_SUITE must be timing, filters, quick, raw200, promote, polar4, permutations, next, tail, warmmetric, overprecond, overpromote, scheduleonly, preconddiag, schedule_diag, rightfilter, paperstyle, paperfilter, metricpolar, metricpromote, metricv_promote, metricv_window, v_spectral_shape, paper_v_promote, metricsurfaces, surface_control, qkvo_metric_promote, qkvo_schedule, qkvo_power_shape, qkv_power_shape, qkv_inverse_control, v_varred_interaction, v_short_pulse, v_schedule_pulse, mlpfc, mlpfc_promote, mlpfc_before_control, mlpfc_filter_control, mlpfc_blend, mlpfc_postvarred_control, v_postvarred_control, v_postvarred_window, v_postvarred_finite_t, v_seed_sanity, v_paired_state_sanity, mlpfc_paired_metric, or all; got ${suite}" >&2
     exit 2
     ;;
 esac
