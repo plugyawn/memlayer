@@ -350,3 +350,44 @@ creation logs before the stop; do not count this as a valid H100 experiment.
 Fix for the actual gate: do not use zsh `[ ... '<' ... ]`; launch manually or
 use a Python wall-clock guard.
 ```
+
+Post-plan sidecar synthesis:
+
+```text
+Dewey:
+  If natural-cap is negative, it falsifies only this contract:
+    surfaces v,o,mlp_fc; layers 0-1; collect 0-64; apply 48-64;
+    finite_t=2.0; ridge=0.2; blend=0.05; cap=1x base update; 80-step screen.
+
+  It does not falsify right-preconditioning generally, all-layer/later-window
+  variants, QK, true Newton-Muon path insertion, metric-soft,
+  activation-metric polar, or lower additive caps.
+
+  If negative, the single next run should be the narrow V orthogonal
+  0.01/0.02/0.03 200-step persistence ladder. If that misses, kill this
+  additive finite-V family.
+
+Confucius:
+  The useful diagnostic is not target_cos for additive logs. Watch rawscale
+  ref_norm_mean, ref_cos_mean, and ref_delta_mean:
+
+    ref_norm_mean:
+      5x-30x means the cap is essential and the run is testing a large local
+      natural correction clipped into a trust region.
+      near 1x means norm-to-base was probably not the main problem.
+
+    ref_cos_mean:
+      near 1.0 means LR/schedule clone, not a real metric win.
+      0.1-0.5 means distinct but not adversarial, the promising zone.
+      near 0 means orthogonal feature signal.
+      negative means likely wrong sign/object/window unless loss proves
+      otherwise.
+
+    ref_delta_mean:
+      large and stable means the metric materially changes the update;
+      large and noisy means the local solve/eigen tail is probably unstable.
+
+  If a surface beats both noops and rawscale ref_cos is not near 1, the metric
+  is not useless. If rawscale is structured but active loses, the metric is
+  probably entering the wrong object or time window.
+```
