@@ -3,7 +3,7 @@ set -euo pipefail
 
 steps="${SCREEN_STEPS:-200}"
 val_every="${SCREEN_VAL_EVERY:-50}"
-warmup="${SCREEN_WARMUP:-0,1,8,18,19,20,21,24,38,39,40,41,48,58,59,60}"
+warmup="${SCREEN_WARMUP:-0,1,8,18,19,20,21,24,38,39,40,41,48,58,59,60,64,78,79,80,81}"
 layers="${LOCO_DIAG_ATTN_LAYERS:-0-1}"
 label_layers="${layers//[^0-9A-Za-z]/_}"
 log_path="${LOG_PATH:-.opencode/newtonv_fullv_layers${label_layers}_end100_raw_fp32_screen${steps}.log}"
