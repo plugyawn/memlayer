@@ -2520,3 +2520,110 @@ The next worthwhile design change is not another V blend value. It is either:
   3. measure the true target update scale/cosine against actual parameter
      displacement and choose a non-linear gate/pulse.
 ```
+
+Fixed-control additive surface screen:
+
+```text
+Artifacts:
+  .opencode/modal_lpa_surface_fixed80_h100_20260531.summary.md
+  .opencode/modal_lpa_surface_fixed80_h100_20260531.diagnostics.md
+
+V, MLP c_fc, O headwise; finite_t=2.0, ridge=0.20,
+norm-to-base additive, blend_max=0.05, window 48-64:
+
+  V:
+    active=4.5250, noop1=4.5250, noop2 incomplete
+    Read: no visible active win.
+
+  MLP c_fc:
+    active=4.5251, noop1=4.5235, noop2=4.5224
+    delta_vs_noop_mean=+0.0022
+    Read: worse.
+
+  O headwise:
+    active=4.5239, noop1=4.5189, noop2=4.5209
+    delta_vs_noop_mean=+0.0040
+    Read: worse.
+```
+
+Updated read:
+
+```text
+The first true fixed-control additive surface screen did not rescue the
+state-decoupled LocoProp-style correction. The most plausible cheap surfaces
+all failed or were incomplete. The important diagnostic shift is that the local
+correction is not sign-flipped: ref_cos is weakly positive against the base
+NorMuon update. The failure is more likely that the correction is either:
+  1. mostly a small extra aligned step after norm-to-base, or
+  2. a large raw local solve whose magnitude is not governed by a safe trust
+     rule.
+```
+
+Fixed-control V component screen:
+
+```text
+Artifacts:
+  .opencode/modal_lpa_v_components_fixed80_h100_20260531.summary.md
+  .opencode/modal_lpa_v_components_fixed80_h100_20260531.refs.md
+
+V layers 0-1; finite_t=2.0, ridge=0.20, norm-to-base additive,
+window 48-64:
+
+  parallel:0.05
+    active_40=5.6163, noop_mean_40=5.6021, delta_40=+0.0142
+    active_80=4.5352, noops=4.5336 / 4.5213
+    noop_mean=4.5274, delta80=+0.0077, beats_both=no
+
+  orthogonal:0.02
+    active_40=5.5858, noop_mean_40=5.6252, delta_40=-0.0394
+    active_80=4.5284, noops=4.5377 / 4.5272
+    noop_mean=4.5324, delta80=-0.0040, beats_both=no
+
+  orthogonal:0.05
+    active_40=5.6005, noop_mean_40=5.6140, delta_40=-0.0135
+    active_80=4.5258, noops=4.5289 / 4.5236
+    noop_mean=4.5263, delta80=-0.0004, beats_both=no
+```
+
+Diagnostic read:
+
+```text
+parallel full_v_add:
+  ref_cos ~= 1.0
+  ref_delta ~= 0
+  Interpretation: after projection/norm-to-base, this is basically a small
+  extra copy of the base NorMuon update. It hurts.
+
+orthogonal full_v_add:
+  ref_cos ~= 0
+  ref_delta ~= sqrt(2)
+  Interpretation: the projection test is mechanically valid; it injects an
+  orthogonal base-norm direction scaled by blend.
+
+orthogonal rawscale:
+  raw local corrections are often many times the base update norm, including
+  roughly 8x in active step-64 rows and larger spikes in noops. Therefore a
+  natural-magnitude additive test needs an explicit cap.
+```
+
+Updated read:
+
+```text
+Do not say right-preconditioning never works. The feature-derived V direction
+is mechanically real, and orthogonal:0.02 produced a large step-40 win and a
+step-80 win versus noop mean. But it failed the strict step-80 gate because it
+missed the best noop by 0.0012. The result is below promotion quality.
+
+The next distinct question is whether forced norm-to-base is the wrong trust
+rule. A capped natural-magnitude additive LPA test should preserve local
+curvature magnitude up to a base-update norm cap:
+
+  LPA_NORM_TO_BASE=0
+  LPA_NORM_CAP=1
+  LPA_COMPONENT=full
+  surfaces=v,o,mlp_fc
+
+Falsify this contract unless at least one surface beats both paired noops at
+step 80, improves noop mean by at least 0.003, avoids step-40 regression worse
+than +0.02, and stays within about 1% step-time overhead.
+```
