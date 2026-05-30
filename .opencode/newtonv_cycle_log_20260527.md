@@ -3275,3 +3275,54 @@ Next run choice:
   - lower alpha combined pulse, not longer window.
   - first candidate: blend_max=0.025, collect 0-64, apply 48-64, 120-step paired.
 ```
+
+## Cycle 46 H100 Result: Lower-Alpha Combined Additive Pulse
+
+Run:
+
+```text
+App: ap-8eOdEIkaAbx45x4Xil0umd
+Log: .opencode/modal_newtonv_lpa_v_mlpfc_finite_normbase120_blend0025_paired_h100_20260530.launch.log
+Parsed: .opencode/modal_newtonv_lpa_v_mlpfc_finite_normbase120_blend0025_paired_h100_20260530.parsed.md
+
+Surface: V + MLP c_fc layers 0-1
+Collect window: 0-64
+Apply window: 48-64
+Filter: finite_t=2.0, clip=2.0, ridge_rel=0.20
+Additive alpha/blend max: 0.025 over 16 steps
+Scaling: additive_norm_to_base=1
+Cases: noop, active, noop2
+```
+
+Parsed result:
+
+```text
+paired_noop:   s40=5.8217  s80=4.6171  s120=4.1834  step_avg=448.99ms
+paired_active: s40=5.8099  s80=4.6156  s120=4.1829  step_avg=448.83ms
+paired_noop2:  s40=5.8198  s80=4.6162  s120=4.1810  step_avg=450.63ms
+```
+
+Decision:
+
+```text
+Lowering alpha from 0.05 to 0.025 does not promote.
+
+The active leg is slightly better than the first no-op at steps 80 and 120,
+but noop2 beats active by:
+  - 0.0006 at step 80
+  - 0.0019 at step 120
+
+The smaller pulse therefore removed the large 80-step win rather than making
+the 120-step endpoint robust. This argues that the prior combined-surface hit
+was not simply "too much alpha"; it may have been a transient interaction that
+needs a different object or timing, not scalar shrinkage.
+
+Updated next action:
+  - do not queue another same-family H100 run immediately.
+  - stop and redesign the additive correction family before more spend.
+  - candidates to reason through before the next run:
+      raw additive with alpha chosen from norm-ratio logs;
+      shorter 48-56 pulse;
+      activation-metric local correction instead of finite_t inverse;
+      surfaces that are structurally paired, especially V+O or QK+V.
+```

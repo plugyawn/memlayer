@@ -2243,3 +2243,51 @@ Current best next H100 probe:
   blend_max=0.025
   120-step paired noop,active,noop2
 ```
+
+Lower-alpha follow-up:
+
+```text
+Run:
+  .opencode/modal_newtonv_lpa_v_mlpfc_finite_normbase120_blend0025_paired_h100_20260530.parsed.md
+
+120-step, apply 48-64, blend_max=0.025:
+  noop:   s80=4.6171  s120=4.1834
+  active: s80=4.6156  s120=4.1829
+  noop2:  s80=4.6162  s120=4.1810
+```
+
+Updated synthesis:
+
+```text
+The lower-alpha probe did not rescue the combined additive pulse. It was near
+the first no-op but lost to noop2 at both step 80 and step 120. This matters
+because the prior alpha=0.05 run had a real step-80 win; halving alpha largely
+removed the useful early effect instead of preserving it while reducing fade.
+
+Therefore the current evidence does not support another same-family scalar
+sweep. The remaining useful hypotheses are more structural:
+
+1. Raw LocoProp scale is not intrinsically impossible, but it needs alpha chosen
+   from the measured 6x-27x norm ratios. That means alpha should be around
+   0.002-0.006 for comparable parameter-displacement size, not 0.05.
+
+2. The finite_t inverse correction may still be the wrong spectral object.
+   Activation-metric local correction or a clipped half-whitening correction
+   is more faithful to "Muon in whitened input coordinates" and preserves a
+   different part of the metric.
+
+3. The surface pairing may be wrong. V+c_fc is a plausible clean pair, but the
+   attention computation naturally couples V with O and Q with K. A next run
+   should not be a broad surface sweep; it should test one structurally paired
+   surface family with paired controls.
+
+4. Timing may need to be shorter, not weaker. The 48-80 window hurt, and
+   blend=0.025 erased the early hit. A 48-56 high-alpha pulse is a better test
+   of "early metric kick, avoid post-pulse damage" than another lower alpha.
+
+Current decision:
+  - same finite_t norm-to-base combined additive ladder is paused.
+  - next H100 should only launch after choosing between raw tiny-alpha,
+    activation-metric local correction, or structurally paired attention
+    surfaces.
+```

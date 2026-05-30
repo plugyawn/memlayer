@@ -360,3 +360,45 @@ should reduce alpha rather than keep the correction active longer.
 Queued next:
   blend_max=0.025, same combined V+c_fc 48-64 pulse, 120-step paired.
 ```
+
+## Cycle G
+
+```text
+Start: 2026-05-30 17:37 IST
+GPU app:
+  ap-8eOdEIkaAbx45x4Xil0umd completed low-alpha combined V+c_fc probe.
+Modal active NanoGPT apps after block: none.
+```
+
+H100 result:
+
+```text
+Combined V + MLP c_fc, layers 0-1, finite_t=2, ridge=0.20, norm-to-base.
+Apply window: 48-64
+Blend max: 0.025
+
+paired_noop:   s80=4.6171  s120=4.1834  step_avg=448.99ms
+paired_active: s80=4.6156  s120=4.1829  step_avg=448.83ms
+paired_noop2:  s80=4.6162  s120=4.1810  step_avg=450.63ms
+```
+
+Conclusion:
+
+```text
+Lower alpha does not promote. Active is only slightly better than the first
+noop and worse than noop2 at both measured checkpoints. The alpha=0.05 run had
+a bigger step-80 signal; alpha=0.025 mostly erased it.
+
+This means the immediate issue is probably not simple over-application of the
+same norm-to-base finite_t correction. The next GPU slot should not be spent
+on another scalar tweak of this exact object.
+
+Meditation target before next launch:
+  1. Decide whether to test raw additive with alpha derived from the 6x-27x
+     norm-ratio diagnostics.
+  2. Decide whether to implement activation-metric local correction
+     polar(G L^-T) L^-1 rather than finite_t inverse.
+  3. Decide whether surface pairing should move from V+c_fc to V+O or QK+V.
+  4. If staying with norm-to-base, test shorter pulse timing, not smaller
+     alpha.
+```
