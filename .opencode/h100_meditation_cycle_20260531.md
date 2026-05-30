@@ -264,3 +264,76 @@ Meditation targets before another GPU:
 3. Avoid spending the next H100 hour on broad surfaces unless a sidecar can
    explain why this result specifically predicts transfer.
 ```
+
+## Cycle E Meditation Update
+
+```text
+Meditation start: 2026-05-31 03:58 IST
+Current check:     2026-05-31 04:10 IST
+Next GPU allowed:  about 2026-05-31 04:58 IST
+Modal apps:        ap-wVBWgST7LA4lMC55kwDhqz stopped, no active tasks
+Repo state:        clean after 8e4d833
+```
+
+Read-only sidecar recommendations:
+
+```text
+Avicenna:
+  Recommendation: run exactly one narrow V orthogonal fine ladder, then kill
+  this additive finite V form if it misses.
+
+  Reason: orthogonal:0.02 was not a strict step-80 win because active 4.5284
+  missed the best noop 4.5272 by 0.0012. But it beat both noops hard at step
+  40 and diagnostics show the injection was mechanically clean: ref_cos ~= 0,
+  ref_delta ~= sqrt(2). Parallel 0.05 was bad, so this was not simply an
+  LR-like perturbation.
+
+  Proposed run: V only, orthogonal blends 0.01/0.02/0.03, 200 steps.
+  Gate: continue only if one case beats both paired noops at step 200 by
+  at least 0.003-0.005 and is not only a step-40 blip.
+
+Anscombe:
+  Recommendation: switch contracts to true norm-capped natural-magnitude
+  additive LPA across v,o,mlp_fc with full component.
+
+  Reason: the orthogonal 0.02 hint is too weak to promote, and forced
+  norm-matching may be the wrong intervention. Newton/LocoProp/K-FAC/Shampoo
+  all care about curvature-scaled magnitude, while Polar-Muon erases most
+  singular-value magnitude. Test a small additive trust-region term capped by
+  the Muon update norm instead of renormalizing it to the base update.
+
+  Proposed run: v,o,mlp_fc, component=full, LPA_NORM_TO_BASE=0,
+  LPA_NORM_CAP=1, blend=0.05, 80 steps.
+  Gate: keep only if one surface beats both paired noops at step 80 and
+  improves the noop mean by at least 0.003, without step-40 regression > 0.02
+  or step-time overhead > 1%.
+```
+
+Decision for next GPU:
+
+```text
+Prefer the natural-capped additive surface screen next.
+
+Reason:
+  1. The V orthogonal fine ladder is a replication of a near-miss; useful, but
+     it mostly asks whether a small no-op-control variance gap flips at 200.
+  2. The natural-capped screen asks a distinct mechanistic question: whether
+     right-preconditioned magnitude is what gets lost when we force norm-to-base
+     or push the metric through Polar/Muon.
+  3. It is already implemented, uses fixed paired noops, touches only the
+     three most plausible cheap surfaces, and should fit within the next
+     one-hour H100 block.
+  4. If no surface clears the strict gate, additive LocoProp magnitude in the
+     early 48-64 window should be stopped rather than tuned.
+```
+
+Prepared command for the 04:58 IST gate:
+
+```bash
+NANOGPT_MODAL_GPU='H100!' MODAL_GPU='H100!' MODAL_DETACH=1 \
+MODAL_RUN_NAME='lpa-natcap-surface80-20260531' \
+MODAL_RUNNER='tools/run_lpa_surface_matrix_gate.sh' \
+SCREEN_STEPS=80 SCREEN_VAL_EVERY=40 \
+MODAL_EXTRA_ENV_JSON='{"LPA_SUITE_LABEL_PREFIX":"lpa_natcap_surface80_20260531","LPA_SURFACE_MATRIX":"v,o,mlp_fc","LPA_COMPONENT":"full","LPA_NORM_TO_BASE":"0","LPA_NORM_CAP":"1","LPA_STEPS":"80","LPA_VAL_EVERY":"40","LPA_LAYERS":"0-1","LPA_COLLECT_WINDOWS":"0-64","LPA_WINDOWS":"48-64","LPA_REFRESH_INTERVAL":"16","LPA_EMA_BETA":"0.8","LPA_RIDGE_REL":"0.2","LPA_BLEND_MAX":"0.05","LPA_BLEND_STEPS":"16","LPA_FINITE_T":"2.0","LPA_POWER_CLIP":"2.0","LPA_PAIRED_CASES":"noop,active,noop2","LPA_LOG_PRECOND":"1","LPA_LOG_PRECOND_DETAIL":"1"}' \
+tools/run_modal_newtonv_raw_gate.sh 2>&1 | tee .opencode/modal_lpa_natcap_surface80_h100_20260531.launch.log
+```
