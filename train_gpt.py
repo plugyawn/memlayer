@@ -976,6 +976,7 @@ class NorMuonAndAdam:
         blend: float,
         record_postpolar_ref: bool = True,
         reference: Tensor | None = None,
+        record_blend_target: bool = True,
     ):
         if not self._loco_full_log_step:
             return
@@ -1007,7 +1008,7 @@ class NorMuonAndAdam:
             stat["ref_norm_ratio"] = after_norm.div(ref_norm).item()
             stat["ref_delta_ratio"] = (after - ref).norm().div(ref_norm).item()
             stat["ref_cos"] = ref.flatten().dot(after.flatten()).div(ref_norm * after_norm).clamp(-1.0, 1.0).item()
-        if blend > 1e-12:
+        if record_blend_target and blend > 1e-12:
             target = before + delta.div(blend)
             target_norm = target.norm().clamp_min(1e-12)
             target_cos = before.flatten().dot(target.flatten()).div(before_norm * target_norm).clamp(-1.0, 1.0)
@@ -2443,6 +2444,7 @@ class NorMuonAndAdam:
                         float(self._loco_full_blend_t.item()),
                         record_postpolar_ref=False,
                         reference=baseline_update[mat_idx],
+                        record_blend_target=False,
                     )
                 self._record_loco_full_precond_stats(
                     "full_o_add" if is_o else "full_v_add",
@@ -2453,6 +2455,7 @@ class NorMuonAndAdam:
                     float(self._loco_full_blend_t.item()),
                     record_postpolar_ref=False,
                     reference=baseline_update[mat_idx],
+                    record_blend_target=False,
                 )
 
     def _loco_full_additive_qk_correction_inplace(
@@ -2497,6 +2500,7 @@ class NorMuonAndAdam:
                         float(self._loco_full_blend_t.item()),
                         record_postpolar_ref=False,
                         reference=baseline_update[mat_idx],
+                        record_blend_target=False,
                     )
                 self._record_loco_full_precond_stats(
                     "full_qk_add",
@@ -2507,6 +2511,7 @@ class NorMuonAndAdam:
                     float(self._loco_full_blend_t.item()),
                     record_postpolar_ref=False,
                     reference=baseline_update[mat_idx],
+                    record_blend_target=False,
                 )
 
     def _loco_full_additive_mlp_fc_correction_inplace(
@@ -2559,6 +2564,7 @@ class NorMuonAndAdam:
                         float(self._loco_full_blend_t.item()),
                         record_postpolar_ref=False,
                         reference=baseline_update[mat_idx],
+                        record_blend_target=False,
                     )
                 self._record_loco_full_precond_stats(
                     "full_mlp_fc_add",
@@ -2569,6 +2575,7 @@ class NorMuonAndAdam:
                     float(self._loco_full_blend_t.item()),
                     record_postpolar_ref=False,
                     reference=baseline_update[mat_idx],
+                    record_blend_target=False,
                 )
 
     def _loco_full_metric_polar_mlp_fc_update_inplace(
