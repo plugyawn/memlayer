@@ -3326,3 +3326,62 @@ Updated next action:
       activation-metric local correction instead of finite_t inverse;
       surfaces that are structurally paired, especially V+O or QK+V.
 ```
+
+## Cycle 47 H100 Result: Non-Metric Soft-Polar MLP c_fc Probe
+
+Run:
+
+```text
+App: ap-GkKIN2ulkB1agUh7vWvYCz
+Invalid stopped pre-run: ap-4RQOjj4ZOJtIMwkp1fkZ3T
+Log: .opencode/modal_softpolar_mlpfc_a05_eps6e5_80_paired_h100_20260530.launch.log
+Parsed: .opencode/modal_softpolar_mlpfc_a05_eps6e5_80_paired_h100_20260530.parsed.md
+Diagnostics: .opencode/modal_softpolar_mlpfc_a05_eps6e5_80_paired_h100_20260530.diagnostics.md
+
+Surface: MLP c_fc layers 0-1
+Object: T_alpha,eps(M) = M (M.T M + eps I)^(-alpha/2)
+alpha=0.5
+eps=6e-5
+Apply window: 48-64
+Blend max: 1.0 over 16 steps
+Norm restore: 1
+Cases: noop, active, noop2
+```
+
+Control-path note:
+
+```text
+The first launch was stopped because paired_noop was not actually a noop:
+runtime_loco_full_noop was set on TrainingManager, but the optimizer reads
+optimizer._loco_full_runtime_noop. The fix propagates the runtime flag into the
+optimizer and clears it after each paired case.
+```
+
+Parsed result after fix:
+
+```text
+paired_noop:   s40=5.6096  s80=4.5288  step_avg=447.42ms
+paired_active: s40=5.6069  s80=4.5420  step_avg=454.57ms
+paired_noop2:  s40=5.6024  s80=4.5226  step_avg=446.22ms
+```
+
+Diagnostics:
+
+```text
+active step 50: blend=0.125  delta=0.0874  target_delta=0.6989  cos=0.9965  target_cos=0.7558
+active step 56: blend=0.500  delta=0.4153  target_delta=0.8306  cos=0.9097  target_cos=0.6550
+active step 64: blend=1.000  delta=0.7253  target_delta=0.7253  cos=0.7370  target_cos=0.7370
+```
+
+Decision:
+
+```text
+Do not promote.
+
+This object is not being washed away: by the end of the active window it is a
+large update-direction intervention. It still loses by 0.0132 against the first
+noop and 0.0194 against noop2 at step 80. The non-metric soft-polar probe says
+"hard Polar Express is not obviously too aggressive on MLP c_fc layers 0-1" in
+this schedule. A same-family alpha sweep is lower priority than returning to a
+true right-feature metric or a state-decoupled local correction.
+```

@@ -2362,3 +2362,33 @@ Patch:
   run_training_case sets and clears training_manager.optimizer._loco_full_runtime_noop
   together with the TrainingManager-side attribute.
 ```
+
+Soft-polar result:
+
+```text
+Fixed app: ap-GkKIN2ulkB1agUh7vWvYCz
+
+MLP c_fc layers 0-1, alpha=0.5, eps=6e-5, window 48-64:
+  paired_noop:   step80=4.5288  step_avg=447.42ms
+  paired_active: step80=4.5420  step_avg=454.57ms
+  paired_noop2:  step80=4.5226  step_avg=446.22ms
+
+Active loses to both noops. Do not promote.
+```
+
+Interpretation:
+
+```text
+The soft-polar transform was not washed away. At step 64 the full-blend
+soft_mlp_fc intervention had delta=0.7253 and cosine=0.7370 relative to the
+hard-polar update. Therefore the failure is not "the update was too tiny to
+test." It is a real negative result for non-metric partial singular-value
+flattening on early MLP c_fc layers under this window.
+
+This pushes the next useful hypothesis back toward either:
+  1. a true right-feature metric, not just T_alpha(M);
+  2. a state-decoupled LocoProp-style local correction;
+  3. a different structurally coupled surface, especially V/O or QK/V;
+  4. much smaller/shorter pulse only if motivated by diagnostics, not as a
+     blind same-family sweep.
+```

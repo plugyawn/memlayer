@@ -464,3 +464,32 @@ Fix:
   training_manager.optimizer._loco_full_runtime_noop and clears it after
   each paired case.
 ```
+
+Fixed H100 result:
+
+```text
+App: ap-GkKIN2ulkB1agUh7vWvYCz
+Log: .opencode/modal_softpolar_mlpfc_a05_eps6e5_80_paired_h100_20260530.launch.log
+Parsed: .opencode/modal_softpolar_mlpfc_a05_eps6e5_80_paired_h100_20260530.parsed.md
+Diagnostics: .opencode/modal_softpolar_mlpfc_a05_eps6e5_80_paired_h100_20260530.diagnostics.md
+
+paired_noop:   s40=5.6096  s80=4.5288  step_avg=447.42ms
+paired_active: s40=5.6069  s80=4.5420  step_avg=454.57ms
+paired_noop2:  s40=5.6024  s80=4.5226  step_avg=446.22ms
+```
+
+Decision:
+
+```text
+No promotion.
+
+The soft-polar perturbation was active and large enough to matter:
+  step 64 target_delta=0.7253, target_cos=0.7370
+
+But it hurt final step-80 loss by:
+  +0.0132 vs noop
+  +0.0194 vs noop2
+
+This rules out the simple non-metric "hard polar is too aggressive for MLP c_fc
+0-1" probe. Same-family alpha sweeps are not the highest-value next GPU use.
+```
