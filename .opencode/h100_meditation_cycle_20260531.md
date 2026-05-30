@@ -81,3 +81,74 @@ Next meditation targets:
 4. Avoid further H100 screens until we resolve this directionality issue from
    diagnostics or a tiny deterministic local tensor test.
 ```
+
+## Cycle D Meditation Update
+
+```text
+Meditation start: 2026-05-31 02:38 IST
+Current check:     2026-05-31 02:53 IST
+Next GPU allowed:  about 2026-05-31 03:38 IST
+Modal apps:        all recent apps stopped, no active tasks
+Modal billing:     nanogpt-speedrun-newton-muon about $60.01 month-to-date pre-credit
+                  exact remaining grant still requires Modal dashboard
+```
+
+Committed during meditation:
+
+```text
+9fa7ea4 Add additive component ladder runner
+5c85288 Prefer local Modal client for billing check
+5577c8f Add paired case summary parser
+```
+
+Sidecar review conclusions:
+
+```text
+Both read-only sidecars agreed that the next GPU spend should be the V component
+ladder before adding a new rawscale/natural-magnitude correction.
+
+Reason:
+  LPA_NORM_TO_BASE=1 projects the right-feature correction, rescales it to the
+  base NorMuon update norm, then applies it with additive LR blend. Therefore:
+    orthogonal:0.02 = 2% base-norm orthogonal kick
+    orthogonal:0.05 = 5% base-norm orthogonal kick
+    parallel:0.05 = LR/schedule/control comparator
+
+Rawscale with LPA_NORM_TO_BASE=0 is not a cap. Existing diagnostics show raw
+V corrections often around 8-13x the base-update norm, and MLP/O can be larger.
+At blend=0.05 that can be a large uncontrolled perturbation.
+```
+
+Next H100 ladder:
+
+```bash
+NANOGPT_MODAL_GPU='H100!' MODAL_GPU='H100!' MODAL_DETACH=1 \
+MODAL_RUN_NAME='lpa-v-components-20260531' \
+MODAL_RUNNER='tools/run_lpa_component_matrix_gate.sh' \
+SCREEN_STEPS=80 SCREEN_VAL_EVERY=40 \
+MODAL_EXTRA_ENV_JSON='{"LPA_COMPONENT_MATRIX":"parallel:0.05,orthogonal:0.02,orthogonal:0.05","LPA_SUITE_LABEL_PREFIX":"lpa_v_components_fixed80_20260531","LPA_SURFACE":"v","LPA_LAYERS":"0-1","LPA_COLLECT_WINDOWS":"0-64","LPA_WINDOWS":"48-64","LPA_REFRESH_INTERVAL":"16","LPA_EMA_BETA":"0.8","LPA_RIDGE_REL":"0.2","LPA_BLEND_STEPS":"16","LPA_FINITE_T":"2.0","LPA_POWER_CLIP":"2.0","LPA_NORM_TO_BASE":"1","LPA_LOG_PRECOND":"1","LPA_LOG_PRECOND_DETAIL":"0"}' \
+tools/run_modal_newtonv_raw_gate.sh 2>&1 | tee .opencode/modal_lpa_v_components_fixed80_h100_20260531.launch.log
+```
+
+Post-run parse:
+
+```bash
+python3 tools/parse_newtonv_logs.py .opencode/modal_lpa_v_components_fixed80_h100_20260531.launch.log > .opencode/modal_lpa_v_components_fixed80_h100_20260531.parsed.md
+python3 tools/summarize_paired_cases.py .opencode/modal_lpa_v_components_fixed80_h100_20260531.launch.log > .opencode/modal_lpa_v_components_fixed80_h100_20260531.summary.md
+python3 tools/parse_loco_full_diagnostics.py .opencode/modal_lpa_v_components_fixed80_h100_20260531.launch.log > .opencode/modal_lpa_v_components_fixed80_h100_20260531.diagnostics.md
+```
+
+Promotion and falsification:
+
+```text
+Promote only if an orthogonal active case beats both noops at step 80 by at
+least 0.003-0.005. If orthogonal:0.02 wins and orthogonal:0.05 loses, run
+orthogonal 0.01/0.02/0.03 at 200 steps. If parallel wins but orthogonal loses,
+treat it as LR/schedule perturbation, not feature-axis alpha. If both
+orthogonal cases lose, falsify this additive finite V form for now.
+
+Diagnostic sanity:
+  orthogonal full_v_add ref_cos_mean should be near 0
+  parallel full_v_add ref_cos_mean should be near +1 or -1
+  full_v_add_rawscale should be parsed separately to estimate natural magnitude
+```
