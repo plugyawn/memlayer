@@ -99,6 +99,7 @@ Committed during meditation:
 9fa7ea4 Add additive component ladder runner
 5c85288 Prefer local Modal client for billing check
 5577c8f Add paired case summary parser
+0c4b06f Add additive correction norm cap
 ```
 
 Sidecar review conclusions:
@@ -114,9 +115,11 @@ Reason:
     orthogonal:0.05 = 5% base-norm orthogonal kick
     parallel:0.05 = LR/schedule/control comparator
 
-Rawscale with LPA_NORM_TO_BASE=0 is not a cap. Existing diagnostics show raw
-V corrections often around 8-13x the base-update norm, and MLP/O can be larger.
-At blend=0.05 that can be a large uncontrolled perturbation.
+Rawscale with LPA_NORM_TO_BASE=0 is not a cap unless LPA_NORM_CAP is set.
+Existing diagnostics show raw V corrections often around 8-13x the base-update
+norm, and MLP/O can be larger. At blend=0.05 that can be a large uncontrolled
+perturbation. Commit 0c4b06f added a disabled-by-default cap so the fallback can
+use LPA_NORM_TO_BASE=0 plus LPA_NORM_CAP=1 without another implementation cycle.
 ```
 
 Next H100 ladder:
