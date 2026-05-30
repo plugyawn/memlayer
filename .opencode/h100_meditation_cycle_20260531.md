@@ -337,3 +337,16 @@ SCREEN_STEPS=80 SCREEN_VAL_EVERY=40 \
 MODAL_EXTRA_ENV_JSON='{"LPA_SUITE_LABEL_PREFIX":"lpa_natcap_surface80_20260531","LPA_SURFACE_MATRIX":"v,o,mlp_fc","LPA_COMPONENT":"full","LPA_NORM_TO_BASE":"0","LPA_NORM_CAP":"1","LPA_STEPS":"80","LPA_VAL_EVERY":"40","LPA_LAYERS":"0-1","LPA_COLLECT_WINDOWS":"0-64","LPA_WINDOWS":"48-64","LPA_REFRESH_INTERVAL":"16","LPA_EMA_BETA":"0.8","LPA_RIDGE_REL":"0.2","LPA_BLEND_MAX":"0.05","LPA_BLEND_STEPS":"16","LPA_FINITE_T":"2.0","LPA_POWER_CLIP":"2.0","LPA_PAIRED_CASES":"noop,active,noop2","LPA_LOG_PRECOND":"1","LPA_LOG_PRECOND_DETAIL":"1"}' \
 tools/run_modal_newtonv_raw_gate.sh 2>&1 | tee .opencode/modal_lpa_natcap_surface80_h100_20260531.launch.log
 ```
+
+Launch guard incident:
+
+```text
+At 2026-05-31 04:12 IST a malformed zsh string-comparison guard fell through
+early and initialized app ap-KRLqoFpRZZs0WroKYNLsCG. The app was stopped with
+`modal app stop -y`, local launcher processes were killed, and `modal app list`
+showed the app stopped with 0 tasks. The output only reached image/object
+creation logs before the stop; do not count this as a valid H100 experiment.
+
+Fix for the actual gate: do not use zsh `[ ... '<' ... ]`; launch manually or
+use a Python wall-clock guard.
+```
