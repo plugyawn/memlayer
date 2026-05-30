@@ -360,6 +360,16 @@ MODAL_EXTRA_ENV_JSON='{"LPA_SUITE_LABEL_PREFIX":"lpa_natcap20_surface80_20260531
 tools/run_modal_newtonv_raw_gate.sh 2>&1 | tee .opencode/modal_lpa_natcap20_surface80_h100_20260531.launch.log
 ```
 
+Post-run parse:
+
+```bash
+python3 tools/parse_newtonv_logs.py .opencode/modal_lpa_natcap20_surface80_h100_20260531.launch.log > .opencode/modal_lpa_natcap20_surface80_h100_20260531.parsed.md
+python3 tools/summarize_paired_cases.py .opencode/modal_lpa_natcap20_surface80_h100_20260531.launch.log > .opencode/modal_lpa_natcap20_surface80_h100_20260531.summary.md
+python3 tools/parse_loco_full_diagnostics.py .opencode/modal_lpa_natcap20_surface80_h100_20260531.launch.log > .opencode/modal_lpa_natcap20_surface80_h100_20260531.diagnostics.md
+python3 tools/summarize_precond_refs.py --name full_v_add_rawscale --name full_o_add_rawscale --name full_mlp_fc_add_rawscale --name full_v_add --name full_o_add --name full_mlp_fc_add .opencode/modal_lpa_natcap20_surface80_h100_20260531.launch.log > .opencode/modal_lpa_natcap20_surface80_h100_20260531.refs.md
+python3 tools/summarize_natcap_gate.py .opencode/modal_lpa_natcap20_surface80_h100_20260531.launch.log > .opencode/modal_lpa_natcap20_surface80_h100_20260531.gate.md
+```
+
 Launch guard incident:
 
 ```text
