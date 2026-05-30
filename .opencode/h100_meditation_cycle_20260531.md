@@ -91,6 +91,8 @@ Next GPU allowed:  about 2026-05-31 03:38 IST
 Modal apps:        all recent apps stopped, no active tasks
 Modal billing:     nanogpt-speedrun-newton-muon about $60.01 month-to-date pre-credit
                   exact remaining grant still requires Modal dashboard
+Data preflight:    CPU-only Modal prepare returned fineweb train shards 1-2 and
+                  validation shard, elapsed 0.44s remote
 ```
 
 Committed during meditation:
