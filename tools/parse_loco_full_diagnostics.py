@@ -15,6 +15,9 @@ PRECOND_SEG_RE = re.compile(
     r"cos=(?P<cos_mean>[-+0-9.eE]+)/(?P<cos_min>[-+0-9.eE]+)/(?P<cos_max>[-+0-9.eE]+)"
     r"(?: target_delta=(?P<target_delta_mean>[-+0-9.eE]+)/(?P<target_delta_min>[-+0-9.eE]+)/(?P<target_delta_max>[-+0-9.eE]+) "
     r"target_cos=(?P<target_cos_mean>[-+0-9.eE]+)/(?P<target_cos_min>[-+0-9.eE]+)/(?P<target_cos_max>[-+0-9.eE]+))?"
+    r"(?: ref_norm=(?P<ref_norm_mean>[-+0-9.eE]+)/(?P<ref_norm_min>[-+0-9.eE]+)/(?P<ref_norm_max>[-+0-9.eE]+) "
+    r"ref_delta=(?P<ref_delta_mean>[-+0-9.eE]+)/(?P<ref_delta_min>[-+0-9.eE]+)/(?P<ref_delta_max>[-+0-9.eE]+) "
+    r"ref_cos=(?P<ref_cos_mean>[-+0-9.eE]+)/(?P<ref_cos_min>[-+0-9.eE]+)/(?P<ref_cos_max>[-+0-9.eE]+))?"
 )
 SPECTRUM_RE = re.compile(
     r"loco_full_spectrum step=(?P<step>\d+) (?P<name>\w+) layer=(?P<layer>\d+) "
@@ -157,6 +160,9 @@ def main() -> None:
                 "target_delta_mean",
                 "cos_mean",
                 "target_cos_mean",
+                "ref_norm_mean",
+                "ref_delta_mean",
+                "ref_cos_mean",
             ],
         )
     if merged["spectrum"]:

@@ -34,7 +34,12 @@ def main() -> None:
     args = parse_args()
     source = Path(args.source)
     output = Path(args.output)
-    warmup_steps = ", ".join(str(int(part.strip())) for part in args.warmup.split(",") if part.strip())
+    warmup_set = {
+        int(part.strip())
+        for part in args.warmup.split(",")
+        if part.strip() and 0 <= int(part.strip()) < args.steps
+    }
+    warmup_steps = ", ".join(str(step) for step in sorted(warmup_set))
 
     text = source.read_text()
     text = replace_once(
