@@ -19,17 +19,17 @@ export MODAL_GPU="${gpu}"
 export MODAL_NANOGPT_GPU="${gpu}"
 export NANOGPT_MODAL_GPU="${gpu}"
 
-if ! command -v modal >/dev/null 2>&1; then
-  if [[ -x "tmp/modal-venv/bin/modal" ]]; then
-    # shellcheck source=/dev/null
-    source tmp/modal-venv/bin/activate
-  else
-    python3 -m venv tmp/modal-venv
-    # shellcheck source=/dev/null
-    source tmp/modal-venv/bin/activate
-    python -m pip install -q --upgrade pip
-    python -m pip install -q modal
-  fi
+if [[ -x "tmp/modal-venv/bin/modal" ]]; then
+  # Prefer the repo-local venv: the global Anaconda Modal client can be present
+  # but incompatible with its protobuf runtime.
+  # shellcheck source=/dev/null
+  source tmp/modal-venv/bin/activate
+elif ! command -v modal >/dev/null 2>&1; then
+  python3 -m venv tmp/modal-venv
+  # shellcheck source=/dev/null
+  source tmp/modal-venv/bin/activate
+  python -m pip install -q --upgrade pip
+  python -m pip install -q modal
 fi
 
 steps="${SCREEN_STEPS:-200}"
