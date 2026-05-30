@@ -2774,71 +2774,38 @@ run_locoprop_additive_paired_ladder() {
   local lpa_log_precond="${LPA_LOG_PRECOND:-0}"
   local lpa_log_precond_detail="${LPA_LOG_PRECOND_DETAIL:-0}"
   local lpa_log_steps="${LPA_LOG_STEPS:-48,50,56,64,80,100,120}"
+  local lpa_surface_label="${lpa_surface//,/_}"
   local lpa_norm_label="raw"
   if [[ "${lpa_norm_to_base}" == "1" ]]; then
     lpa_norm_label="normbase"
   fi
 
-  case "${lpa_surface}" in
-    v|qk|o|qk,v|v,o|qk,v,o)
-      run_case "lpa_paired_${lpa_surface//,/_}_${lpa_filter}_t${lpa_finite_label}_${lpa_norm_label}_r${lpa_ridge_label}_blend${lpa_blend_label}" \
-        TRAIN_SYNC_BOS_INDEX=1 \
-        NEWTONV_PAIRED_CASES="${LPA_PAIRED_CASES:-noop,active,noop2}" \
-        LOCO_FULL_ADDITIVE=1 \
-        LOCO_FULL_ADDITIVE_NORM_TO_BASE="${lpa_norm_to_base}" \
-        LOCO_FULL_SURFACES="${lpa_surface}" \
-        LOCO_DIAG_ATTN_LAYERS="${lpa_layers}" \
-        LOCO_FULL_COLLECT_WINDOWS="${lpa_collect}" \
-        LOCO_FULL_WINDOWS="${lpa_windows}" \
-        LOCO_FULL_REFRESH_INTERVAL="${lpa_refresh_interval}" \
-        LOCO_FULL_EMA_BETA="${lpa_ema_beta}" \
-        LOCO_FULL_RIDGE_REL="${lpa_ridge}" \
-        LOCO_FULL_BLEND_MAX="${lpa_blend}" \
-        LOCO_FULL_BLEND_STEPS="${lpa_blend_steps}" \
-        LOCO_FULL_FILTER="${lpa_filter}" \
-        LOCO_FULL_FINITE_T="${lpa_finite_t}" \
-        LOCO_FULL_POWER_CLIP="${lpa_clip}" \
-        LOCO_FULL_LOG_PRECOND="${lpa_log_precond}" \
-        LOCO_FULL_LOG_PRECOND_DETAIL="${lpa_log_precond_detail}" \
-        LOCO_DIAG_LOG_STEPS="${lpa_log_steps}" \
-        LOCO_FULL_STATIC_NORM=1 \
-        LOCO_FULL_NORM_RESTORE=0 \
-        SCREEN_STEPS="${lpa_steps}" \
-        SCREEN_VAL_EVERY="${lpa_val_every}" \
-        bash tools/run_newtonv_raw_v01_gate.sh
-      ;;
-    mlp_fc)
-      run_case "lpa_paired_mlp_fc_${lpa_filter}_t${lpa_finite_label}_${lpa_norm_label}_r${lpa_ridge_label}_blend${lpa_blend_label}" \
-        TRAIN_SYNC_BOS_INDEX=1 \
-        NEWTONV_PAIRED_CASES="${LPA_PAIRED_CASES:-noop,active,noop2}" \
-        LOCO_FULL_ADDITIVE=1 \
-        LOCO_FULL_ADDITIVE_NORM_TO_BASE="${lpa_norm_to_base}" \
-        LOCO_FULL_SURFACES=mlp_fc \
-        LOCO_DIAG_MLP_LAYERS="${lpa_layers}" \
-        LOCO_FULL_COLLECT_WINDOWS="${lpa_collect}" \
-        LOCO_FULL_WINDOWS="${lpa_windows}" \
-        LOCO_FULL_REFRESH_INTERVAL="${lpa_refresh_interval}" \
-        LOCO_FULL_EMA_BETA="${lpa_ema_beta}" \
-        LOCO_FULL_RIDGE_REL="${lpa_ridge}" \
-        LOCO_FULL_BLEND_MAX="${lpa_blend}" \
-        LOCO_FULL_BLEND_STEPS="${lpa_blend_steps}" \
-        LOCO_FULL_FILTER="${lpa_filter}" \
-        LOCO_FULL_FINITE_T="${lpa_finite_t}" \
-        LOCO_FULL_POWER_CLIP="${lpa_clip}" \
-        LOCO_FULL_LOG_PRECOND="${lpa_log_precond}" \
-        LOCO_FULL_LOG_PRECOND_DETAIL="${lpa_log_precond_detail}" \
-        LOCO_DIAG_LOG_STEPS="${lpa_log_steps}" \
-        LOCO_FULL_STATIC_NORM=1 \
-        LOCO_FULL_NORM_RESTORE=0 \
-        SCREEN_STEPS="${lpa_steps}" \
-        SCREEN_VAL_EVERY="${lpa_val_every}" \
-        bash tools/run_newtonv_raw_v01_gate.sh
-      ;;
-    *)
-      echo "LPA_SURFACE must be v, qk, o, qk,v, v,o, qk,v,o, or mlp_fc; got ${lpa_surface}" >&2
-      exit 1
-      ;;
-  esac
+  run_case "lpa_paired_${lpa_surface_label}_${lpa_filter}_t${lpa_finite_label}_${lpa_norm_label}_r${lpa_ridge_label}_blend${lpa_blend_label}" \
+    TRAIN_SYNC_BOS_INDEX=1 \
+    NEWTONV_PAIRED_CASES="${LPA_PAIRED_CASES:-noop,active,noop2}" \
+    LOCO_FULL_ADDITIVE=1 \
+    LOCO_FULL_ADDITIVE_NORM_TO_BASE="${lpa_norm_to_base}" \
+    LOCO_FULL_SURFACES="${lpa_surface}" \
+    LOCO_DIAG_ATTN_LAYERS="${lpa_layers}" \
+    LOCO_DIAG_MLP_LAYERS="${lpa_layers}" \
+    LOCO_FULL_COLLECT_WINDOWS="${lpa_collect}" \
+    LOCO_FULL_WINDOWS="${lpa_windows}" \
+    LOCO_FULL_REFRESH_INTERVAL="${lpa_refresh_interval}" \
+    LOCO_FULL_EMA_BETA="${lpa_ema_beta}" \
+    LOCO_FULL_RIDGE_REL="${lpa_ridge}" \
+    LOCO_FULL_BLEND_MAX="${lpa_blend}" \
+    LOCO_FULL_BLEND_STEPS="${lpa_blend_steps}" \
+    LOCO_FULL_FILTER="${lpa_filter}" \
+    LOCO_FULL_FINITE_T="${lpa_finite_t}" \
+    LOCO_FULL_POWER_CLIP="${lpa_clip}" \
+    LOCO_FULL_LOG_PRECOND="${lpa_log_precond}" \
+    LOCO_FULL_LOG_PRECOND_DETAIL="${lpa_log_precond_detail}" \
+    LOCO_DIAG_LOG_STEPS="${lpa_log_steps}" \
+    LOCO_FULL_STATIC_NORM=1 \
+    LOCO_FULL_NORM_RESTORE=0 \
+    SCREEN_STEPS="${lpa_steps}" \
+    SCREEN_VAL_EVERY="${lpa_val_every}" \
+    bash tools/run_newtonv_raw_v01_gate.sh
 }
 
 case "${suite}" in
