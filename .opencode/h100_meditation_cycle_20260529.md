@@ -213,6 +213,7 @@ Immediate next work:
   1. Add correction/base norm logging.
   2. Rerun V and c_fc with raw additive scaling versus norm-to-base.
   3. Extend the best additive variant to 120/200 if it still clears controls.
-  4. Investigate why the late segment remains around 650ms/step even after the
-     nominal active window.
+  4. Measure incremental additive overhead against a matched schedule-only
+     control rather than reading the normal late-screen 650ms segment as
+     additive-specific overhead.
 ```

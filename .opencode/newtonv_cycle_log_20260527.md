@@ -2967,6 +2967,7 @@ Next:
   1. Repeat additive V and c_fc at 120 or 200 before promotion.
   2. Run raw, non-norm-to-base additive with a larger/tuned alpha to test true
      LocoProp magnitude.
-  3. Fix/understand the persistent ~650ms step cost after the active window.
+  3. Measure incremental additive overhead against a matched schedule-only
+     control; the ~650ms late segment also appears in older no-op logs.
   4. Add correction/base norm logging so alpha can be selected from evidence.
 ```

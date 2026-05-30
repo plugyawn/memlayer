@@ -2100,9 +2100,11 @@ The next lever is therefore not "more surfaces first." It is:
   - compare norm-to-base versus raw additive;
   - then promote the best V/c_fc additive variant to 120/200.
 
-The step-time story remains bad enough to block WR use. Active and second no-op
-legs are roughly 445ms average over the 80-step screen, but non-refresh steps
-inside/after the active path are around 650ms during the late segment. This
-suggests graph/path specialization or persistent optimizer-path cost that must
-be fixed before any 200-step win can matter.
+The step-time story is not settled by these screens. Active and second no-op
+legs are roughly 445ms average over the 80-step screen, matching the repaired
+post-varred paired run. The visible ~650ms late-segment steps also appear in
+older no-op/control logs, so they are probably the normal screen schedule shape
+rather than additive staying active after the window. The timing question is
+now narrower: measure incremental additive overhead against a matched
+schedule-only paired control, not against early-step timings.
 ```
