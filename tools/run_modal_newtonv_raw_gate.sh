@@ -41,6 +41,15 @@ log_path="${LOG_PATH:-}"
 extra_env_json="${MODAL_EXTRA_ENV_JSON:-{}}"
 
 args=(
+)
+if [[ "${MODAL_DETACH:-0}" == "1" ]]; then
+  args+=(--detach)
+fi
+if [[ -n "${MODAL_RUN_NAME:-}" ]]; then
+  args+=(--name "${MODAL_RUN_NAME}")
+fi
+
+args+=(
   tools/modal_nanogpt_runner.py::run
   --runner "${runner}"
   --steps "${steps}"
