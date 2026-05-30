@@ -146,3 +146,24 @@ Next meditation focus:
   2. How to implement the V post-window optimizer-state tail ablation.
   3. Whether MLP c_fc activation-metric polar is the next cleaner theory probe.
 ```
+
+Prepared next non-launched suite:
+
+```text
+Commit: 4e8d4ff Add paired MLP fc metric suite
+Suite: NEWTONV_SUITE=mlpfc_paired_metric
+Default cases: noop,active,noop2
+Default surface: mlp_fc
+Default mode: activation-metric polar
+Default layers/window: layers 0-1, collect 0-112, apply 48-112
+```
+
+Rationale:
+
+```text
+V finite-t post-varred is not currently a hit under paired controls. The next
+cleaner theory probe is c_fc because it is an affine 768-dimensional surface
+where right-side feature geometry should map most directly to KFAC/LocoProp /
+Newton-Muon reasoning. The paired harness should be used before any broad
+QKVO sweep.
+```
