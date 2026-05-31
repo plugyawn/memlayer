@@ -56,7 +56,7 @@
   price_per_hour: $2.35
   created_at: 2026-05-31T11:46:00Z
   expected_stop: after the two-trial 1x target-loss run completes, fails, or user redirects
-  status: running-track3-locom-1x
+  status: terminated-after-provenance-mismatch-audit
   termination_policy: keep while actively training or gathering requested benchmark evidence; do not touch unrelated pods
 - pod_id: d60c61dbd5284331b6467023e35acf9c
   name: track3-locom-nm-4xh100-20260531

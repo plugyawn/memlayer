@@ -14,6 +14,8 @@ python3 tools/make_track3_locoprop_m.py \
 
 python3 -m py_compile "${generated_script}"
 
+echo "track3_locom_runner source=${source_script} generated=${generated_script} steps=${steps} trials=${trials} nproc=${nproc} mbs=${TRACK3_MBS:-64} pass_trial_arg=${TRACK3_PASS_TRIAL_ARG:-1}"
+
 if [[ "${TRACK3_DRY_RUN:-0}" == "1" ]]; then
   echo "generated ${generated_script}"
   exit 0
