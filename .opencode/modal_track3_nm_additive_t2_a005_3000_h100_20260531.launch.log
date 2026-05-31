@@ -1,0 +1,388 @@
+Note that running a local entrypoint in detached mode only keeps the last triggered Modal function alive after the parent process has been killed or disconnected.
+✓ Initialized. View run at 
+https://modal.com/apps/nipsdwip/main/ap-au8YjkfAxboXTxJY5ZlgYW
+Building image im-z4Wey3z9bghUC4POIBy96O
+
+=> Step 0: FROM base
+
+=> Step 1: WORKDIR /root/speedrun
+Saving image...
+Image saved, took 1.16s
+
+Built image im-z4Wey3z9bghUC4POIBy96O in 2.95s
+
+
+Building image im-5XbzKtEi0xa72wdQ1GRzsH
+
+=> Step 0: FROM base
+
+=> Step 1: RUN python -m pip install torch==2.11
+Looking in indexes: http://pypi-mirror.modal.local:5555/simple
+Collecting torch==2.11
+  Obtaining dependency information for torch==2.11 from http://pypi-mirror.modal.local:5555/simple/torch/torch-2.11.0-cp310-cp310-manylinux_2_28_x86_64.whl.metadata
+  Downloading http://pypi-mirror.modal.local:5555/simple/torch/torch-2.11.0-cp310-cp310-manylinux_2_28_x86_64.whl.metadata (29 kB)
+Requirement already satisfied: filelock in /usr/local/lib/python3.10/site-packages (from torch==2.11) (3.29.0)
+Requirement already satisfied: typing-extensions>=4.10.0 in /usr/local/lib/python3.10/site-packages (from torch==2.11) (4.15.0)
+Requirement already satisfied: setuptools<82 in /usr/local/lib/python3.10/site-packages (from torch==2.11) (68.1.2)
+Requirement already satisfied: sympy>=1.13.3 in /usr/local/lib/python3.10/site-packages (from torch==2.11) (1.14.0)
+Requirement already satisfied: networkx>=2.5.1 in /usr/local/lib/python3.10/site-packages (from torch==2.11) (3.4.2)
+Requirement already satisfied: jinja2 in /usr/local/lib/python3.10/site-packages (from torch==2.11) (3.1.6)
+Requirement already satisfied: fsspec>=0.8.5 in /usr/local/lib/python3.10/site-packages (from torch==2.11) (2026.2.0)
+Collecting cuda-toolkit[cublas,cudart,cufft,cufile,cupti,curand,cusolver,cusparse,nvjitlink,nvrtc,nvtx]==13.0.2 (from torch==2.11)
+  Obtaining dependency information for cuda-toolkit[cublas,cudart,cufft,cufile,cupti,curand,cusolver,cusparse,nvjitlink,nvrtc,nvtx]==13.0.2 from http://pypi-mirror.modal.local:5555/simple/cuda-toolkit/cuda_toolkit-13.0.2-py2.py3-none-any.whl.metadata
+  Downloading http://pypi-mirror.modal.local:5555/simple/cuda-toolkit/cuda_toolkit-13.0.2-py2.py3-none-any.whl.metadata (9.4 kB)
+Collecting cuda-bindings<14,>=13.0.3 (from torch==2.11)
+  Obtaining dependency information for cuda-bindings<14,>=13.0.3 from http://pypi-mirror.modal.local:5555/simple/cuda-bindings/cuda_bindings-13.3.1-cp310-cp310-manylinux_2_24_x86_64.manylinux_2_28_x86_64.whl.metadata
+  Downloading http://pypi-mirror.modal.local:5555/simple/cuda-bindings/cuda_bindings-13.3.1-cp310-cp310-manylinux_2_24_x86_64.manylinux_2_28_x86_64.whl.metadata (2.5 kB)
+Collecting nvidia-cudnn-cu13==9.19.0.56 (from torch==2.11)
+  Obtaining dependency information for nvidia-cudnn-cu13==9.19.0.56 from http://pypi-mirror.modal.local:5555/simple/nvidia-cudnn-cu13/nvidia_cudnn_cu13-9.19.0.56-py3-none-manylinux_2_27_x86_64.whl.metadata
+  Downloading http://pypi-mirror.modal.local:5555/simple/nvidia-cudnn-cu13/nvidia_cudnn_cu13-9.19.0.56-py3-none-manylinux_2_27_x86_64.whl.metadata (1.9 kB)
+Collecting nvidia-cusparselt-cu13==0.8.0 (from torch==2.11)
+  Obtaining dependency information for nvidia-cusparselt-cu13==0.8.0 from http://pypi-mirror.modal.local:5555/simple/nvidia-cusparselt-cu13/nvidia_cusparselt_cu13-0.8.0-py3-none-manylinux2014_x86_64.whl.metadata
+  Downloading http://pypi-mirror.modal.local:5555/simple/nvidia-cusparselt-cu13/nvidia_cusparselt_cu13-0.8.0-py3-none-manylinux2014_x86_64.whl.metadata (12 kB)
+Collecting nvidia-nccl-cu13==2.28.9 (from torch==2.11)
+  Obtaining dependency information for nvidia-nccl-cu13==2.28.9 from http://pypi-mirror.modal.local:5555/simple/nvidia-nccl-cu13/nvidia_nccl_cu13-2.28.9-py3-none-manylinux_2_18_x86_64.whl.metadata
+  Downloading http://pypi-mirror.modal.local:5555/simple/nvidia-nccl-cu13/nvidia_nccl_cu13-2.28.9-py3-none-manylinux_2_18_x86_64.whl.metadata (2.0 kB)
+Collecting nvidia-nvshmem-cu13==3.4.5 (from torch==2.11)
+  Obtaining dependency information for nvidia-nvshmem-cu13==3.4.5 from http://pypi-mirror.modal.local:5555/simple/nvidia-nvshmem-cu13/nvidia_nvshmem_cu13-3.4.5-py3-none-manylinux2014_x86_64.manylinux_2_17_x86_64.whl.metadata
+  Downloading http://pypi-mirror.modal.local:5555/simple/nvidia-nvshmem-cu13/nvidia_nvshmem_cu13-3.4.5-py3-none-manylinux2014_x86_64.manylinux_2_17_x86_64.whl.metadata (2.1 kB)
+Requirement already satisfied: triton==3.6.0 in /usr/local/lib/python3.10/site-packages (from torch==2.11) (3.6.0)
+Collecting nvidia-cusolver==12.0.4.66.* (from cuda-toolkit[cublas,cudart,cufft,cufile,cupti,curand,cusolver,cusparse,nvjitlink,nvrtc,nvtx]==13.0.2->torch==2.11)
+  Obtaining dependency information for nvidia-cusolver==12.0.4.66.* from http://pypi-mirror.modal.local:5555/simple/nvidia-cusolver/nvidia_cusolver-12.0.4.66-py3-none-manylinux_2_27_x86_64.whl.metadata
+  Downloading http://pypi-mirror.modal.local:5555/simple/nvidia-cusolver/nvidia_cusolver-12.0.4.66-py3-none-manylinux_2_27_x86_64.whl.metadata (1.8 kB)
+Collecting nvidia-cufile==1.15.1.6.* (from cuda-toolkit[cublas,cudart,cufft,cufile,cupti,curand,cusolver,cusparse,nvjitlink,nvrtc,nvtx]==13.0.2->torch==2.11)
+  Obtaining dependency information for nvidia-cufile==1.15.1.6.* from http://pypi-mirror.modal.local:5555/simple/nvidia-cufile/nvidia_cufile-1.15.1.6-py3-none-manylinux2014_x86_64.manylinux_2_17_x86_64.whl.metadata
+  Downloading http://pypi-mirror.modal.local:5555/simple/nvidia-cufile/nvidia_cufile-1.15.1.6-py3-none-manylinux2014_x86_64.manylinux_2_17_x86_64.whl.metadata (1.7 kB)
+Collecting nvidia-cufft==12.0.0.61.* (from cuda-toolkit[cublas,cudart,cufft,cufile,cupti,curand,cusolver,cusparse,nvjitlink,nvrtc,nvtx]==13.0.2->torch==2.11)
+  Obtaining dependency information for nvidia-cufft==12.0.0.61.* from http://pypi-mirror.modal.local:5555/simple/nvidia-cufft/nvidia_cufft-12.0.0.61-py3-none-manylinux2014_x86_64.manylinux_2_17_x86_64.whl.metadata
+  Downloading http://pypi-mirror.modal.local:5555/simple/nvidia-cufft/nvidia_cufft-12.0.0.61-py3-none-manylinux2014_x86_64.manylinux_2_17_x86_64.whl.metadata (1.8 kB)
+Collecting nvidia-nvtx==13.0.85.* (from cuda-toolkit[cublas,cudart,cufft,cufile,cupti,curand,cusolver,cusparse,nvjitlink,nvrtc,nvtx]==13.0.2->torch==2.11)
+  Obtaining dependency information for nvidia-nvtx==13.0.85.* from http://pypi-mirror.modal.local:5555/simple/nvidia-nvtx/nvidia_nvtx-13.0.85-py3-none-manylinux1_x86_64.manylinux_2_5_x86_64.whl.metadata
+  Downloading http://pypi-mirror.modal.local:5555/simple/nvidia-nvtx/nvidia_nvtx-13.0.85-py3-none-manylinux1_x86_64.manylinux_2_5_x86_64.whl.metadata (1.8 kB)
+Collecting nvidia-cuda-cupti==13.0.85.* (from cuda-toolkit[cublas,cudart,cufft,cufile,cupti,curand,cusolver,cusparse,nvjitlink,nvrtc,nvtx]==13.0.2->torch==2.11)
+  Obtaining dependency information for nvidia-cuda-cupti==13.0.85.* from http://pypi-mirror.modal.local:5555/simple/nvidia-cuda-cupti/nvidia_cuda_cupti-13.0.85-py3-none-manylinux_2_25_x86_64.whl.metadata
+  Downloading http://pypi-mirror.modal.local:5555/simple/nvidia-cuda-cupti/nvidia_cuda_cupti-13.0.85-py3-none-manylinux_2_25_x86_64.whl.metadata (1.7 kB)
+Collecting nvidia-cuda-nvrtc==13.0.88.* (from cuda-toolkit[cublas,cudart,cufft,cufile,cupti,curand,cusolver,cusparse,nvjitlink,nvrtc,nvtx]==13.0.2->torch==2.11)
+  Obtaining dependency information for nvidia-cuda-nvrtc==13.0.88.* from http://pypi-mirror.modal.local:5555/simple/nvidia-cuda-nvrtc/nvidia_cuda_nvrtc-13.0.88-py3-none-manylinux2010_x86_64.manylinux_2_12_x86_64.whl.metadata
+  Downloading http://pypi-mirror.modal.local:5555/simple/nvidia-cuda-nvrtc/nvidia_cuda_nvrtc-13.0.88-py3-none-manylinux2010_x86_64.manylinux_2_12_x86_64.whl.metadata (1.7 kB)
+Collecting nvidia-cublas==13.1.0.3.* (from cuda-toolkit[cublas,cudart,cufft,cufile,cupti,curand,cusolver,cusparse,nvjitlink,nvrtc,nvtx]==13.0.2->torch==2.11)
+  Obtaining dependency information for nvidia-cublas==13.1.0.3.* from http://pypi-mirror.modal.local:5555/simple/nvidia-cublas/nvidia_cublas-13.1.0.3-py3-none-manylinux_2_27_x86_64.whl.metadata
+  Downloading http://pypi-mirror.modal.local:5555/simple/nvidia-cublas/nvidia_cublas-13.1.0.3-py3-none-manylinux_2_27_x86_64.whl.metadata (1.7 kB)
+Collecting nvidia-nvjitlink==13.0.88.* (from cuda-toolkit[cublas,cudart,cufft,cufile,cupti,curand,cusolver,cusparse,nvjitlink,nvrtc,nvtx]==13.0.2->torch==2.11)
+  Obtaining dependency information for nvidia-nvjitlink==13.0.88.* from http://pypi-mirror.modal.local:5555/simple/nvidia-nvjitlink/nvidia_nvjitlink-13.0.88-py3-none-manylinux2010_x86_64.manylinux_2_12_x86_64.whl.metadata
+  Downloading http://pypi-mirror.modal.local:5555/simple/nvidia-nvjitlink/nvidia_nvjitlink-13.0.88-py3-none-manylinux2010_x86_64.manylinux_2_12_x86_64.whl.metadata (1.7 kB)
+Collecting nvidia-cuda-runtime==13.0.96.* (from cuda-toolkit[cublas,cudart,cufft,cufile,cupti,curand,cusolver,cusparse,nvjitlink,nvrtc,nvtx]==13.0.2->torch==2.11)
+  Obtaining dependency information for nvidia-cuda-runtime==13.0.96.* from http://pypi-mirror.modal.local:5555/simple/nvidia-cuda-runtime/nvidia_cuda_runtime-13.0.96-py3-none-manylinux2014_x86_64.manylinux_2_17_x86_64.whl.metadata
+  Downloading http://pypi-mirror.modal.local:5555/simple/nvidia-cuda-runtime/nvidia_cuda_runtime-13.0.96-py3-none-manylinux2014_x86_64.manylinux_2_17_x86_64.whl.metadata (1.7 kB)
+Collecting nvidia-curand==10.4.0.35.* (from cuda-toolkit[cublas,cudart,cufft,cufile,cupti,curand,cusolver,cusparse,nvjitlink,nvrtc,nvtx]==13.0.2->torch==2.11)
+  Obtaining dependency information for nvidia-curand==10.4.0.35.* from http://pypi-mirror.modal.local:5555/simple/nvidia-curand/nvidia_curand-10.4.0.35-py3-none-manylinux_2_27_x86_64.whl.metadata
+  Downloading http://pypi-mirror.modal.local:5555/simple/nvidia-curand/nvidia_curand-10.4.0.35-py3-none-manylinux_2_27_x86_64.whl.metadata (1.7 kB)
+Collecting nvidia-cusparse==12.6.3.3.* (from cuda-toolkit[cublas,cudart,cufft,cufile,cupti,curand,cusolver,cusparse,nvjitlink,nvrtc,nvtx]==13.0.2->torch==2.11)
+  Obtaining dependency information for nvidia-cusparse==12.6.3.3.* from http://pypi-mirror.modal.local:5555/simple/nvidia-cusparse/nvidia_cusparse-12.6.3.3-py3-none-manylinux2014_x86_64.manylinux_2_17_x86_64.whl.metadata
+  Downloading http://pypi-mirror.modal.local:5555/simple/nvidia-cusparse/nvidia_cusparse-12.6.3.3-py3-none-manylinux2014_x86_64.manylinux_2_17_x86_64.whl.metadata (1.8 kB)
+Requirement already satisfied: cuda-pathfinder>=1.4.2 in /usr/local/lib/python3.10/site-packages (from cuda-bindings<14,>=13.0.3->torch==2.11) (1.5.5)
+Requirement already satisfied: mpmath<1.4,>=1.1.0 in /usr/local/lib/python3.10/site-packages (from sympy>=1.13.3->torch==2.11) (1.3.0)
+Requirement already satisfied: MarkupSafe>=2.0 in /usr/local/lib/python3.10/site-packages (from jinja2->torch==2.11) (3.0.3)
+Downloading http://pypi-mirror.modal.local:5555/simple/torch/torch-2.11.0-cp310-cp310-manylinux_2_28_x86_64.whl (530.6 MB)
+   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 530.6/530.6 MB 136.8 MB/s eta 0:00:00
+Downloading http://pypi-mirror.modal.local:5555/simple/nvidia-cudnn-cu13/nvidia_cudnn_cu13-9.19.0.56-py3-none-manylinux_2_27_x86_64.whl (366.1 MB)
+   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 366.1/366.1 MB 116.2 MB/s eta 0:00:00
+Downloading http://pypi-mirror.modal.local:5555/simple/nvidia-cusparselt-cu13/nvidia_cusparselt_cu13-0.8.0-py3-none-manylinux2014_x86_64.whl (169.9 MB)
+   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 169.9/169.9 MB 139.6 MB/s eta 0:00:00
+Downloading http://pypi-mirror.modal.local:5555/simple/nvidia-nccl-cu13/nvidia_nccl_cu13-2.28.9-py3-none-manylinux_2_18_x86_64.whl (196.5 MB)
+   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 196.5/196.5 MB 151.6 MB/s eta 0:00:00
+Downloading http://pypi-mirror.modal.local:5555/simple/nvidia-nvshmem-cu13/nvidia_nvshmem_cu13-3.4.5-py3-none-manylinux2014_x86_64.manylinux_2_17_x86_64.whl (60.4 MB)
+   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 60.4/60.4 MB 256.0 MB/s eta 0:00:00
+Downloading http://pypi-mirror.modal.local:5555/simple/nvidia-cublas/nvidia_cublas-13.1.0.3-py3-none-manylinux_2_27_x86_64.whl (423.1 MB)
+   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 423.1/423.1 MB 159.8 MB/s eta 0:00:00
+Downloading http://pypi-mirror.modal.local:5555/simple/nvidia-cuda-cupti/nvidia_cuda_cupti-13.0.85-py3-none-manylinux_2_25_x86_64.whl (10.7 MB)
+   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 10.7/10.7 MB 267.2 MB/s eta 0:00:00
+Downloading http://pypi-mirror.modal.local:5555/simple/nvidia-cuda-nvrtc/nvidia_cuda_nvrtc-13.0.88-py3-none-manylinux2010_x86_64.manylinux_2_12_x86_64.whl (90.2 MB)
+   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 90.2/90.2 MB 319.6 MB/s eta 0:00:00
+Downloading http://pypi-mirror.modal.local:5555/simple/nvidia-cuda-runtime/nvidia_cuda_runtime-13.0.96-py3-none-manylinux2014_x86_64.manylinux_2_17_x86_64.whl (2.2 MB)
+   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 2.2/2.2 MB 230.0 MB/s eta 0:00:00
+Downloading http://pypi-mirror.modal.local:5555/simple/nvidia-cufft/nvidia_cufft-12.0.0.61-py3-none-manylinux2014_x86_64.manylinux_2_17_x86_64.whl (214.1 MB)
+   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 214.1/214.1 MB 279.8 MB/s eta 0:00:00
+Downloading http://pypi-mirror.modal.local:5555/simple/nvidia-cufile/nvidia_cufile-1.15.1.6-py3-none-manylinux2014_x86_64.manylinux_2_17_x86_64.whl (1.2 MB)
+   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 1.2/1.2 MB 318.2 MB/s eta 0:00:00
+Downloading http://pypi-mirror.modal.local:5555/simple/nvidia-curand/nvidia_curand-10.4.0.35-py3-none-manylinux_2_27_x86_64.whl (59.5 MB)
+   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 59.5/59.5 MB 279.6 MB/s eta 0:00:00
+Downloading http://pypi-mirror.modal.local:5555/simple/nvidia-cusolver/nvidia_cusolver-12.0.4.66-py3-none-manylinux_2_27_x86_64.whl (200.9 MB)
+   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 200.9/200.9 MB 283.5 MB/s eta 0:00:00
+Downloading http://pypi-mirror.modal.local:5555/simple/nvidia-cusparse/nvidia_cusparse-12.6.3.3-py3-none-manylinux2014_x86_64.manylinux_2_17_x86_64.whl (145.9 MB)
+   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 145.9/145.9 MB 290.5 MB/s eta 0:00:00
+Downloading http://pypi-mirror.modal.local:5555/simple/nvidia-nvjitlink/nvidia_nvjitlink-13.0.88-py3-none-manylinux2010_x86_64.manylinux_2_12_x86_64.whl (40.7 MB)
+   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 40.7/40.7 MB 293.9 MB/s eta 0:00:00
+Downloading http://pypi-mirror.modal.local:5555/simple/nvidia-nvtx/nvidia_nvtx-13.0.85-py3-none-manylinux1_x86_64.manylinux_2_5_x86_64.whl (148 kB)
+   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 148.0/148.0 kB 264.5 MB/s eta 0:00:00
+Downloading http://pypi-mirror.modal.local:5555/simple/cuda-bindings/cuda_bindings-13.3.1-cp310-cp310-manylinux_2_24_x86_64.manylinux_2_28_x86_64.whl (6.7 MB)
+   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 6.7/6.7 MB 123.6 MB/s eta 0:00:00
+Downloading http://pypi-mirror.modal.local:5555/simple/cuda-toolkit/cuda_toolkit-13.0.2-py2.py3-none-any.whl (2.4 kB)
+Installing collected packages: nvidia-cusparselt-cu13, cuda-toolkit, nvidia-nvtx, nvidia-nvshmem-cu13, nvidia-nvjitlink, nvidia-nccl-cu13, nvidia-curand, nvidia-cufile, nvidia-cuda-runtime, nvidia-cuda-nvrtc, nvidia-cuda-cupti, nvidia-cublas, cuda-bindings, nvidia-cusparse, nvidia-cufft, nvidia-cudnn-cu13, nvidia-cusolver, torch
+  Attempting uninstall: cuda-bindings
+    Found existing installation: cuda-bindings 12.9.4
+    Uninstalling cuda-bindings-12.9.4:
+      Successfully uninstalled cuda-bindings-12.9.4
+  Attempting uninstall: torch
+    Found existing installation: torch 2.10.0
+    Uninstalling torch-2.10.0:
+      Successfully uninstalled torch-2.10.0
+Successfully installed cuda-bindings-13.3.1 cuda-toolkit-13.0.2 nvidia-cublas-13.1.0.3 nvidia-cuda-cupti-13.0.85 nvidia-cuda-nvrtc-13.0.88 nvidia-cuda-runtime-13.0.96 nvidia-cudnn-cu13-9.19.0.56 nvidia-cufft-12.0.0.61 nvidia-cufile-1.15.1.6 nvidia-curand-10.4.0.35 nvidia-cusolver-12.0.4.66 nvidia-cusparse-12.6.3.3 nvidia-cusparselt-cu13-0.8.0 nvidia-nccl-cu13-2.28.9 nvidia-nvjitlink-13.0.88 nvidia-nvshmem-cu13-3.4.5 nvidia-nvtx-13.0.85 torch-2.11.0
+
+[notice] A new release of pip is available: 23.2.1 -> 26.1.1
+[notice] To update, run: pip install --upgrade pip
+Saving image...
+Image saved, took 1.86s
+
+Built image im-5XbzKtEi0xa72wdQ1GRzsH in 93.58s
+
+
+✓ Created objects.
+├── 🔨 Created mount 
+│   /Users/progyan/speedrun/wr-fresh-20260526/tools/modal_nanogpt_runner.py
+├── 🔨 Created mount /Users/progyan/speedrun/wr-fresh-20260526
+├── 🔨 Created function prepare_data.
+└── 🔨 Created function run_screen.
+
+==========
+== CUDA ==
+==========
+
+CUDA Version 12.8.0
+
+Container image Copyright (c) 2016-2023, NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+
+This container image and its contents are governed by the NVIDIA Deep Learning Container License.
+By pulling and using the container, you accept the terms and conditions of this license:
+https://developer.nvidia.com/ngc/nvidia-deep-learning-container-license
+
+A copy of this license is made available in this container at /NGC-DL-CONTAINER-LICENSE for your convenience.
+
+logs/e524ef07-4884-4847-859c-fc71aa771afa.txt
+step:0/3000 val_loss:10.82583 train_time:0.000s step_avg:nanms
+step:1/3000 train_time:56.348s step_avg:56348.24ms
+step:2/3000 train_time:57.536s step_avg:28768.07ms
+step:3/3000 train_time:58.795s step_avg:19598.21ms
+step:4/3000 train_time:60.054s step_avg:15013.49ms
+step:5/3000 train_time:61.315s step_avg:12263.08ms
+step:6/3000 train_time:62.576s step_avg:10429.40ms
+step:7/3000 train_time:63.838s step_avg:9119.73ms
+step:8/3000 train_time:65.099s step_avg:8137.35ms
+step:9/3000 train_time:66.355s step_avg:7372.77ms
+step:10/3000 train_time:67.615s step_avg:6761.52ms
+step:11/3000 train_time:68.880s step_avg:6261.81ms
+step:12/3000 train_time:70.142s step_avg:5845.20ms
+step:13/3000 train_time:71.412s step_avg:5493.23ms
+step:14/3000 train_time:72.679s step_avg:5191.33ms
+step:15/3000 train_time:73.938s step_avg:4929.20ms
+step:16/3000 train_time:75.201s step_avg:4700.07ms
+step:17/3000 train_time:76.465s step_avg:4497.94ms
+step:18/3000 train_time:77.735s step_avg:4318.64ms
+step:19/3000 train_time:79.001s step_avg:4157.96ms
+step:20/3000 train_time:80.268s step_avg:4013.38ms
+step:21/3000 train_time:81.541s step_avg:3882.90ms
+step:22/3000 train_time:82.808s step_avg:3764.01ms
+step:23/3000 train_time:84.074s step_avg:3655.37ms
+step:24/3000 train_time:85.338s step_avg:3555.77ms
+step:25/3000 train_time:86.608s step_avg:3464.32ms
+step:26/3000 train_time:87.883s step_avg:3380.12ms
+step:27/3000 train_time:89.155s step_avg:3302.02ms
+step:28/3000 train_time:90.424s step_avg:3229.43ms
+step:29/3000 train_time:91.698s step_avg:3162.01ms
+step:30/3000 train_time:92.975s step_avg:3099.18ms
+step:31/3000 train_time:94.244s step_avg:3040.12ms
+step:32/3000 train_time:95.516s step_avg:2984.88ms
+step:33/3000 train_time:96.788s step_avg:2932.98ms
+step:34/3000 train_time:98.065s step_avg:2884.27ms
+step:35/3000 train_time:99.345s step_avg:2838.41ms
+step:36/3000 train_time:100.625s step_avg:2795.14ms
+step:37/3000 train_time:101.903s step_avg:2754.14ms
+step:38/3000 train_time:103.182s step_avg:2715.31ms
+step:39/3000 train_time:104.459s step_avg:2678.43ms
+step:40/3000 train_time:105.733s step_avg:2643.32ms
+step:41/3000 train_time:107.006s step_avg:2609.89ms
+step:42/3000 train_time:108.279s step_avg:2578.06ms
+step:43/3000 train_time:109.553s step_avg:2547.75ms
+step:44/3000 train_time:110.827s step_avg:2518.80ms
+step:45/3000 train_time:112.104s step_avg:2491.20ms
+step:46/3000 train_time:113.379s step_avg:2464.77ms
+step:47/3000 train_time:114.655s step_avg:2439.48ms
+step:48/3000 train_time:115.934s step_avg:2415.28ms
+step:49/3000 train_time:117.210s step_avg:2392.04ms
+step:50/3000 train_time:118.489s step_avg:2369.79ms
+step:51/3000 train_time:119.762s step_avg:2348.28ms
+step:52/3000 train_time:121.044s step_avg:2327.77ms
+step:53/3000 train_time:122.318s step_avg:2307.88ms
+step:54/3000 train_time:123.595s step_avg:2288.80ms
+step:55/3000 train_time:124.873s step_avg:2270.42ms
+step:56/3000 train_time:126.143s step_avg:2252.55ms
+step:57/3000 train_time:127.422s step_avg:2235.47ms
+step:58/3000 train_time:128.695s step_avg:2218.87ms
+step:59/3000 train_time:129.969s step_avg:2202.87ms
+step:60/3000 train_time:131.241s step_avg:2187.35ms
+step:61/3000 train_time:132.512s step_avg:2172.32ms
+step:62/3000 train_time:133.790s step_avg:2157.90ms
+step:63/3000 train_time:135.065s step_avg:2143.89ms
+step:64/3000 train_time:137.706s step_avg:2151.66ms
+step:65/3000 train_time:138.989s step_avg:2138.29ms
+step:66/3000 train_time:140.274s step_avg:2125.36ms
+step:67/3000 train_time:141.558s step_avg:2112.81ms
+step:68/3000 train_time:142.863s step_avg:2100.93ms
+step:69/3000 train_time:144.192s step_avg:2089.73ms
+step:70/3000 train_time:145.478s step_avg:2078.25ms
+step:71/3000 train_time:146.761s step_avg:2067.06ms
+step:72/3000 train_time:148.041s step_avg:2056.13ms
+step:73/3000 train_time:149.326s step_avg:2045.56ms
+step:74/3000 train_time:150.612s step_avg:2035.30ms
+step:75/3000 train_time:151.897s step_avg:2025.29ms
+step:76/3000 train_time:153.174s step_avg:2015.45ms
+step:77/3000 train_time:154.456s step_avg:2005.92ms
+step:78/3000 train_time:155.736s step_avg:1996.62ms
+step:79/3000 train_time:157.097s step_avg:1988.57ms
+step:80/3000 train_time:158.383s step_avg:1979.79ms
+step:81/3000 train_time:159.756s step_avg:1972.30ms
+step:82/3000 train_time:161.067s step_avg:1964.23ms
+step:83/3000 train_time:162.372s step_avg:1956.29ms
+step:84/3000 train_time:163.665s step_avg:1948.39ms
+step:85/3000 train_time:164.954s step_avg:1940.63ms
+step:86/3000 train_time:166.240s step_avg:1933.02ms
+step:87/3000 train_time:167.533s step_avg:1925.67ms
+step:88/3000 train_time:168.824s step_avg:1918.46ms
+step:89/3000 train_time:170.114s step_avg:1911.39ms
+step:90/3000 train_time:171.399s step_avg:1904.44ms
+step:91/3000 train_time:172.691s step_avg:1897.70ms
+step:92/3000 train_time:173.977s step_avg:1891.05ms
+step:93/3000 train_time:175.266s step_avg:1884.58ms
+step:94/3000 train_time:176.554s step_avg:1878.24ms
+step:95/3000 train_time:177.846s step_avg:1872.07ms
+step:96/3000 train_time:179.134s step_avg:1865.98ms
+step:97/3000 train_time:180.425s step_avg:1860.05ms
+step:98/3000 train_time:181.714s step_avg:1854.22ms
+step:99/3000 train_time:182.998s step_avg:1848.46ms
+step:100/3000 train_time:184.288s step_avg:1842.88ms
+step:101/3000 train_time:185.572s step_avg:1837.35ms
+step:102/3000 train_time:186.859s step_avg:1831.95ms
+step:103/3000 train_time:188.148s step_avg:1826.68ms
+step:104/3000 train_time:189.441s step_avg:1821.54ms
+step:105/3000 train_time:190.728s step_avg:1816.46ms
+step:106/3000 train_time:192.022s step_avg:1811.53ms
+step:107/3000 train_time:193.306s step_avg:1806.60ms
+step:108/3000 train_time:194.597s step_avg:1801.82ms
+step:109/3000 train_time:195.886s step_avg:1797.12ms
+step:110/3000 train_time:197.174s step_avg:1792.49ms
+step:111/3000 train_time:198.458s step_avg:1787.91ms
+step:112/3000 train_time:199.747s step_avg:1783.45ms
+step:113/3000 train_time:201.047s step_avg:1779.18ms
+step:114/3000 train_time:202.339s step_avg:1774.90ms
+step:115/3000 train_time:203.623s step_avg:1770.64ms
+step:116/3000 train_time:204.912s step_avg:1766.48ms
+step:117/3000 train_time:206.196s step_avg:1762.36ms
+step:118/3000 train_time:207.476s step_avg:1758.27ms
+step:119/3000 train_time:208.757s step_avg:1754.26ms
+step:120/3000 train_time:210.043s step_avg:1750.36ms
+step:121/3000 train_time:211.331s step_avg:1746.53ms
+step:122/3000 train_time:212.610s step_avg:1742.70ms
+step:123/3000 train_time:213.898s step_avg:1739.01ms
+step:124/3000 train_time:215.177s step_avg:1735.30ms
+step:125/3000 train_time:216.455s step_avg:1731.64ms
+step:125/3000 val_loss:4.71964 train_time:216.455s step_avg:1731.64ms
+step:126/3000 train_time:217.750s step_avg:1728.17ms
+step:127/3000 train_time:219.043s step_avg:1724.75ms
+step:128/3000 train_time:220.928s step_avg:1726.00ms
+step:129/3000 train_time:222.210s step_avg:1722.55ms
+step:130/3000 train_time:223.495s step_avg:1719.19ms
+step:131/3000 train_time:224.782s step_avg:1715.89ms
+step:132/3000 train_time:226.070s step_avg:1712.65ms
+step:133/3000 train_time:227.364s step_avg:1709.50ms
+step:134/3000 train_time:228.662s step_avg:1706.43ms
+step:135/3000 train_time:229.955s step_avg:1703.37ms
+step:136/3000 train_time:231.252s step_avg:1700.39ms
+step:137/3000 train_time:232.543s step_avg:1697.39ms
+step:138/3000 train_time:233.840s step_avg:1694.49ms
+step:139/3000 train_time:235.130s step_avg:1691.58ms
+step:140/3000 train_time:236.422s step_avg:1688.73ms
+step:141/3000 train_time:237.719s step_avg:1685.95ms
+step:142/3000 train_time:239.024s step_avg:1683.27ms
+step:143/3000 train_time:240.316s step_avg:1680.53ms
+step:144/3000 train_time:241.609s step_avg:1677.84ms
+step:145/3000 train_time:242.902s step_avg:1675.19ms
+step:146/3000 train_time:244.194s step_avg:1672.56ms
+step:147/3000 train_time:245.492s step_avg:1670.02ms
+step:148/3000 train_time:246.783s step_avg:1667.45ms
+step:149/3000 train_time:248.079s step_avg:1664.96ms
+step:150/3000 train_time:249.368s step_avg:1662.45ms
+step:151/3000 train_time:250.665s step_avg:1660.03ms
+step:152/3000 train_time:251.967s step_avg:1657.68ms
+step:153/3000 train_time:253.261s step_avg:1655.30ms
+step:154/3000 train_time:254.554s step_avg:1652.95ms
+step:155/3000 train_time:255.849s step_avg:1650.64ms
+step:156/3000 train_time:257.150s step_avg:1648.40ms
+step:157/3000 train_time:258.444s step_avg:1646.14ms
+step:158/3000 train_time:259.736s step_avg:1643.90ms
+step:159/3000 train_time:261.029s step_avg:1641.69ms
+step:160/3000 train_time:262.321s step_avg:1639.51ms
+step:161/3000 train_time:263.612s step_avg:1637.34ms
+step:162/3000 train_time:264.898s step_avg:1635.18ms
+step:163/3000 train_time:266.188s step_avg:1633.06ms
+step:164/3000 train_time:267.476s step_avg:1630.95ms
+step:165/3000 train_time:268.766s step_avg:1628.89ms
+step:166/3000 train_time:270.055s step_avg:1626.84ms
+step:167/3000 train_time:271.339s step_avg:1624.79ms
+step:168/3000 train_time:272.626s step_avg:1622.78ms
+step:169/3000 train_time:273.916s step_avg:1620.80ms
+step:170/3000 train_time:275.205s step_avg:1618.85ms
+step:171/3000 train_time:276.489s step_avg:1616.89ms
+step:172/3000 train_time:277.771s step_avg:1614.95ms
+step:173/3000 train_time:279.056s step_avg:1613.04ms
+step:174/3000 train_time:280.346s step_avg:1611.18ms
+step:175/3000 train_time:281.639s step_avg:1609.37ms
+Stopping app - user stopped from CLI.
+step:176/3000 train_time:282.927s step_avg:1607.54ms
+step:177/3000 train_time:284.214s step_avg:1605.73ms
+step:178/3000 train_time:285.507s step_avg:1603.97ms
+step:179/3000 train_time:286.807s step_avg:1602.27ms
+Runner terminated.
+╭───────────────────── Traceback (most recent call last) ──────────────────────╮
+│ /Users/progyan/speedrun/wr-fresh-20260526/tools/modal_nanogpt_runner.py:213  │
+│ in run                                                                       │
+│                                                                              │
+│   212 │   extra_env = _loads_extra_env(extra_env_json)                       │
+│ ❱ 213 │   result = run_screen.remote(runner, steps, val_every, nproc, data_c │
+│   214 │   print(json.dumps(result, indent=2, sort_keys=True))                │
+│                                                                              │
+│ /Users/progyan/speedrun/wr-fresh-20260526/tmp/modal-venv/lib/python3.13/site │
+│ -packages/modal/_object.py:46 in wrapped                                     │
+│                                                                              │
+│    45 │   │   await self.hydrate()                                           │
+│ ❱  46 │   │   return await method(self, *args, **kwargs)                     │
+│    47                                                                        │
+│                                                                              │
+│ /Users/progyan/speedrun/wr-fresh-20260526/tmp/modal-venv/lib/python3.13/site │
+│ -packages/modal/_functions.py:1696 in remote                                 │
+│                                                                              │
+│   1695 │   │                                                                 │
+│ ❱ 1696 │   │   return await self._call_function(args, kwargs)                │
+│   1697                                                                       │
+│                                                                              │
+│ /Users/progyan/speedrun/wr-fresh-20260526/tmp/modal-venv/lib/python3.13/site │
+│ -packages/modal/_functions.py:1640 in _call_function                         │
+│                                                                              │
+│   1639 │   │                                                                 │
+│ ❱ 1640 │   │   return await invocation.run_function()                        │
+│   1641                                                                       │
+│                                                                              │
+│ /Users/progyan/speedrun/wr-fresh-20260526/tmp/modal-venv/lib/python3.13/site │
+│ -packages/modal/_functions.py:474 in run_function                            │
+│                                                                              │
+│    473 │   │   │   if await_response.output.result.status in TERMINAL_STATUS │
+│ ❱  474 │   │   │   │   return await _process_result(                         │
+│    475 │   │   │   │   │   await_response.output.result, await_response.outp │
+│                                                                              │
+│ /Users/progyan/speedrun/wr-fresh-20260526/tmp/modal-venv/lib/python3.13/site │
+│ -packages/modal/_utils/function_utils.py:550 in _process_result              │
+│                                                                              │
+│   549 │   │                                                                  │
+│ ❱ 550 │   │   raise RemoteError(result.exception)                            │
+│   551                                                                        │
+╰──────────────────────────────────────────────────────────────────────────────╯
+RemoteError
