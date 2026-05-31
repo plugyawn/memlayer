@@ -51,6 +51,8 @@ LOCO_M_GATHER_SAMPLES = _env_flag("TRACK3_LOCOM_GATHER_SAMPLES", "1")
 LOCO_M_ACCUM_SAMPLES = _env_flag("TRACK3_LOCOM_ACCUM_SAMPLES", "0")
 LOCO_M_MICRO_SAMPLE_TOKENS = int(os.environ.get("TRACK3_LOCOM_MICRO_SAMPLE_TOKENS", "32"))
 TRACK3_TARGET_LOSS = float(os.environ.get("TRACK3_TARGET_LOSS", "0"))
+TRACK3_SEED_BASE = int(os.environ.get("TRACK3_SEED_BASE", "0"))
+TRACK3_SEED_OFFSET = int(os.environ.get("TRACK3_SEED_OFFSET", "0"))
 LOCO_M_LOG_STEPS = {
     int(x)
     for x in os.environ.get("TRACK3_LOCOM_LOG_STEPS", "0,1,2,10,50,125,250,500").split(",")
@@ -430,8 +432,17 @@ def muon_update(grad, momentum, mu=0.95, nesterov=True):
         text,
         'print0(f"Running PyTorch {torch.version.__version__} compiled for CUDA {torch.version.cuda}"',
         f'print0("Track3 LocoProp-M generated run: source={source_label} train_steps={train_steps}")\n'
-        'print0(f"LocoM enabled={LOCO_M_ENABLED} layers={LOCO_M_LAYERS_SPEC} steps={LOCO_M_LOCAL_STEPS} sample_tokens={LOCO_M_SAMPLE_TOKENS} gather={LOCO_M_GATHER_SAMPLES} accum={LOCO_M_ACCUM_SAMPLES} micro_sample_tokens={LOCO_M_MICRO_SAMPLE_TOKENS} inner_lr={LOCO_M_INNER_LR} target_gamma={LOCO_M_TARGET_GAMMA} prox={LOCO_M_PROX} alpha={LOCO_M_ALPHA} norm_to_base={LOCO_M_NORM_TO_BASE} norm_cap={LOCO_M_NORM_CAP} target_loss={TRACK3_TARGET_LOSS}")\n'
+        'print0(f"LocoM enabled={LOCO_M_ENABLED} layers={LOCO_M_LAYERS_SPEC} steps={LOCO_M_LOCAL_STEPS} sample_tokens={LOCO_M_SAMPLE_TOKENS} gather={LOCO_M_GATHER_SAMPLES} accum={LOCO_M_ACCUM_SAMPLES} micro_sample_tokens={LOCO_M_MICRO_SAMPLE_TOKENS} inner_lr={LOCO_M_INNER_LR} target_gamma={LOCO_M_TARGET_GAMMA} prox={LOCO_M_PROX} alpha={LOCO_M_ALPHA} norm_to_base={LOCO_M_NORM_TO_BASE} norm_cap={LOCO_M_NORM_CAP} target_loss={TRACK3_TARGET_LOSS} seed_base={TRACK3_SEED_BASE} seed_offset={TRACK3_SEED_OFFSET}")\n'
         'print0(f"Running PyTorch {torch.version.__version__} compiled for CUDA {torch.version.cuda}"',
+    )
+    text = replace_exact(
+        text,
+        "for _ in range(num_trials):\n",
+        "for trial_idx in range(num_trials):\n"
+        "    track3_trial_seed = TRACK3_SEED_BASE + TRACK3_SEED_OFFSET + trial_idx\n"
+        "    torch.manual_seed(track3_trial_seed)\n"
+        "    torch.cuda.manual_seed_all(track3_trial_seed)\n"
+        "    print0(f\"track3_trial_seed={track3_trial_seed} trial={trial_idx}\", console=True)\n",
     )
     if "    train_steps = 3350\n" in text:
         text = replace_exact(
