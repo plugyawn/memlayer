@@ -603,3 +603,16 @@ MLP-only pulse, because PR291 uses a late schedule and all/selected Muon
 matrices; but it would say our current local alpha=0.9 pulse is not the missing
 control.
 ```
+
+Implementation update:
+
+```text
+Commit 833fe93 extends the no-C Soft-Muon probe beyond MLP c_fc so future
+screens can set:
+  LOCO_SOFT_POLAR_SURFACES=qk,v,o,mlp_fc
+
+The first guarded H100 run remains MLP c_fc only, because it is the clean
+control for the latest cap20 MLP c_fc feature-Gram result. If MLP-only is
+neutral rather than bad, the next no-C run should broaden surfaces before
+returning to C.
+```
