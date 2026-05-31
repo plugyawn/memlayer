@@ -1,0 +1,27 @@
+started 2026-05-31T17:05:12+00:00
+repo=/home/ubuntu/wr-fresh-20260526 commit=
+label=track3_simple_locom_prime_a_target328_seed200 nproc=1 steps=3350 trials=1 target=3.28 data_chunks=20 source=records/track_3_optimization/train_gpt_simple.py
+locom layers=all K=4 sample_tokens=1024 inner_lr=0.1 prox=0.1 alpha=1.0 norm_cap=0.20 mbs=16 gather=1 accum=0
+====GENERATE====
+track3_locom_runner source=records/track_3_optimization/train_gpt_simple.py generated=/root/prime_track3_logs/track3_simple_locom_prime_a_target328_seed200_train_gpt_simple_locom.py steps=3350 trials=1 nproc=1 mbs=16 pass_trial_arg=1
+generated /root/prime_track3_logs/track3_simple_locom_prime_a_target328_seed200_train_gpt_simple_locom.py
+====TRAIN_TAIL====
+track3_locom_runner source=records/track_3_optimization/train_gpt_simple.py generated=/root/prime_track3_logs/track3_simple_locom_prime_a_target328_seed200_train_gpt_simple_locom.py steps=3350 trials=1 nproc=1 mbs=16 pass_trial_arg=1
+logs/65a84a7e-a834-43ef-9638-ea11d9cec5ce.txt
+track3_trial_seed=200 trial=0
+locoprop_m_owner rank=0 world=1 owned_layers=[0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11] sample_tokens=1024 gather_samples=True accum_samples=False micro_sample_tokens=32
+step:0/3350 val_loss:10.82579 train_time:0.000s step_avg:nanms
+locoprop_m_prepare step=0 l0:loss0=1.420e-06,lossK=1.039e-01,corr_norm=1.487e+01,grad_norm=0.000e+00,cos_desc=0.000,tokens=1024 | l1:loss0=1.431e-06,lossK=4.969e-01,corr_norm=3.186e+01,grad_norm=0.000e+00,cos_desc=0.000,tokens=1024 | l2:loss0=1.447e-06,lossK=1.752e-01,corr_norm=1.862e+01,grad_norm=0.000e+00,cos_desc=0.000,tokens=1024 | l3:loss0=1.421e-06,lossK=1.202e+00,corr_norm=5.293e+01,grad_norm=0.000e+00,cos_desc=0.000,tokens=1024
+locoprop_m_apply step=0 shape=(3072, 768):base_step=0.000e+00,corr_norm=1.487e+01,scale=0.000e+00 | shape=(3072, 768):base_step=0.000e+00,corr_norm=3.186e+01,scale=0.000e+00 | shape=(3072, 768):base_step=0.000e+00,corr_norm=1.862e+01,scale=0.000e+00 | shape=(3072, 768):base_step=0.000e+00,corr_norm=5.293e+01,scale=0.000e+00 | shape=(3072, 768):base_step=0.000e+00,corr_norm=1.615e+01,scale=0.000e+00 | shape=(3072, 768):base_step=0.000e+00,corr_norm=1.366e+01,scale=0.000e+00 | shape=(3072, 768):base_step=0.000e+00,corr_norm=1.172e+01,scale=0.000e+00 | shape=(3072, 768):base_step=0.000e+00,corr_norm=9.472e+00,scale=0.000e+00
+step:1/3350 train_time:16.596s step_avg:16596.45ms
+locoprop_m_prepare step=1 l0:loss0=1.424e-06,lossK=5.800e-02,corr_norm=1.025e+01,grad_norm=0.000e+00,cos_desc=0.000,tokens=1024 | l1:loss0=1.395e-06,lossK=1.335e-01,corr_norm=1.640e+01,grad_norm=0.000e+00,cos_desc=0.000,tokens=1024 | l2:loss0=1.435e-06,lossK=7.562e-02,corr_norm=1.151e+01,grad_norm=0.000e+00,cos_desc=0.000,tokens=1024 | l3:loss0=1.408e-06,lossK=5.386e-02,corr_norm=1.023e+01,grad_norm=0.000e+00,cos_desc=0.000,tokens=1024
+locoprop_m_apply step=1 shape=(3072, 768):base_step=0.000e+00,corr_norm=1.025e+01,scale=0.000e+00 | shape=(3072, 768):base_step=0.000e+00,corr_norm=1.640e+01,scale=0.000e+00 | shape=(3072, 768):base_step=0.000e+00,corr_norm=1.151e+01,scale=0.000e+00 | shape=(3072, 768):base_step=0.000e+00,corr_norm=1.023e+01,scale=0.000e+00 | shape=(3072, 768):base_step=0.000e+00,corr_norm=1.309e+01,scale=0.000e+00 | shape=(3072, 768):base_step=0.000e+00,corr_norm=1.002e+01,scale=0.000e+00 | shape=(3072, 768):base_step=0.000e+00,corr_norm=1.422e+01,scale=0.000e+00 | shape=(3072, 768):base_step=0.000e+00,corr_norm=9.760e+00,scale=0.000e+00
+step:2/3350 train_time:23.388s step_avg:11693.85ms
+locoprop_m_prepare step=2 l0:loss0=1.429e-06,lossK=6.196e-02,corr_norm=1.177e+01,grad_norm=2.655e+03,cos_desc=-0.076,tokens=1024 | l1:loss0=1.416e-06,lossK=1.263e-01,corr_norm=1.714e+01,grad_norm=2.869e+03,cos_desc=-0.042,tokens=1024 | l2:loss0=1.420e-06,lossK=2.707e-01,corr_norm=3.239e+01,grad_norm=3.089e+03,cos_desc=-0.108,tokens=1024 | l3:loss0=1.406e-06,lossK=3.503e+00,corr_norm=1.361e+02,grad_norm=3.335e+03,cos_desc=-0.024,tokens=1024
+locoprop_m_apply step=2 shape=(3072, 768):base_step=1.939e+00,corr_norm=1.177e+01,scale=3.297e-02 | shape=(3072, 768):base_step=1.940e+00,corr_norm=1.714e+01,scale=2.263e-02 | shape=(3072, 768):base_step=1.939e+00,corr_norm=3.239e+01,scale=1.197e-02 | shape=(3072, 768):base_step=1.938e+00,corr_norm=1.361e+02,scale=2.849e-03 | shape=(3072, 768):base_step=1.941e+00,corr_norm=9.471e+01,scale=4.100e-03 | shape=(3072, 768):base_step=1.940e+00,corr_norm=1.548e+02,scale=2.507e-03 | shape=(3072, 768):base_step=1.943e+00,corr_norm=4.119e+02,scale=9.432e-04 | shape=(3072, 768):base_step=1.941e+00,corr_norm=7.744e+02,scale=5.014e-04
+step:3/3350 train_time:30.228s step_avg:10076.01ms
+step:4/3350 train_time:37.067s step_avg:9266.70ms
+step:5/3350 train_time:43.917s step_avg:8783.31ms
+====PS====
+root        4968    4965  3 17:05 ?        00:00:03 /root/venv/bin/python /root/venv/bin/torchrun --standalone --nproc_per_node=1 /root/prime_track3_logs/track3_simple_locom_prime_a_target328_seed200_train_gpt_simple_locom.py 1
+root        4991    4968 99 17:05 ?        00:01:36 /root/venv/bin/python -u /root/prime_track3_logs/track3_simple_locom_prime_a_target328_seed200_train_gpt_simple_locom.py 1

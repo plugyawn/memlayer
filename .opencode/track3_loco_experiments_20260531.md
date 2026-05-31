@@ -396,3 +396,27 @@ Read: this was stopped after the provenance mismatch audit. It used the official
 - Log: `.opencode/modal_track3_simple_locom_target328_1xh100_laneB_2trials_20260531.launch.log`.
 
 Read: this is the apples-to-apples follow-up to the simple Track 3 base lane where LocoProp-M materialized. It intentionally does not use the official Newton-Muon or PR291 sources. The two lanes provide four 1x-H100 seeds total while keeping each lane detached and isolated.
+
+## Prime Simple Track 3 Base + LocoProp-M Target Runs
+
+`track3-simple-locom-prime-a-1xh100-20260531`
+
+- Provider: Prime Intellect, MassedCompute H100 PCIe, `$2.35/hr`.
+- Pod: `8312077bfda9403fb5377b81c1e802e0`, SSH `ubuntu@216.81.248.32`.
+- Source: simple Track 3 base, `records/track_3_optimization/train_gpt_simple.py`.
+- Setting: 1x H100, one trial, `TRACK3_TRAIN_STEPS=3350`, `TRACK3_TARGET_LOSS=3.28`, `TRACK3_MBS=16`, `K=4`, `sample_tokens=1024`, all MLP `fc` surfaces, cap `0.20`.
+- Seed: `200` via `TRACK3_SEED_BASE=0`, `TRACK3_SEED_OFFSET=200`.
+- Status: active training running. Local evidence log captured through step 5; generated script confirmed `track3_trial_seed=200 trial=0`.
+- Remote logs: `/root/prime_track3_logs/track3_simple_locom_prime_a_target328_seed200.log`; local snapshot `.opencode/prime_track3_simple_locom_target328_seed200_1xh100_20260531.launch.log`.
+
+`track3-simple-locom-prime-b-1xh100-20260531`
+
+- Provider: Prime Intellect, MassedCompute H100 PCIe, `$2.35/hr`.
+- Pod: `b3ebfcf259094999b5a363fcd749e07d`, SSH `ubuntu@216.81.200.33`.
+- Source: simple Track 3 base, `records/track_3_optimization/train_gpt_simple.py`.
+- Setting: same as Prime lane A.
+- Seed: `300` via `TRACK3_SEED_BASE=0`, `TRACK3_SEED_OFFSET=300`.
+- Status: active training running. Local evidence log captured through step 5; generated script confirmed `track3_trial_seed=300 trial=0`.
+- Remote logs: `/root/prime_track3_logs/track3_simple_locom_prime_b_target328_seed300.log`; local snapshot `.opencode/prime_track3_simple_locom_target328_seed300_1xh100_20260531.launch.log`.
+
+Read: these two Prime lanes are independent one-run confirmations, separate from the two detached Modal two-trial lanes. They use the same simple Track 3 base and LocoProp-M settings, but distinct seed offsets.

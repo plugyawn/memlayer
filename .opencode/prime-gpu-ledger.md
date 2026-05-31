@@ -68,3 +68,23 @@
   expected_stop: after the two-seed 4x target-loss run completes, fails, or user redirects
   status: terminated-after-step375-distributed-mismatch
   termination_policy: keep while actively training or gathering requested benchmark evidence; do not touch unrelated pods
+- pod_id: 8312077bfda9403fb5377b81c1e802e0
+  name: track3-simple-locom-prime-a-1xh100-20260531
+  owner: current-agent
+  purpose: Simple Track 3 base with LocoProp-M correction, 1x H100, one run to target loss 3.28
+  gpu: 1x H100 80GB PCIe
+  price_per_hour: $2.35
+  created_at: 2026-05-31T22:31:00+05:30
+  expected_stop: after the one-run 1x target-loss run completes, fails, or user redirects
+  status: active-training-running
+  termination_policy: keep while actively training or gathering requested benchmark evidence; terminate after completion/failure
+- pod_id: b3ebfcf259094999b5a363fcd749e07d
+  name: track3-simple-locom-prime-b-1xh100-20260531
+  owner: current-agent
+  purpose: Simple Track 3 base with LocoProp-M correction, 1x H100, one run to target loss 3.28
+  gpu: 1x H100 80GB PCIe
+  price_per_hour: $2.35
+  created_at: 2026-05-31T22:31:00+05:30
+  expected_stop: after the one-run 1x target-loss run completes, fails, or user redirects
+  status: active-training-running
+  termination_policy: keep while actively training or gathering requested benchmark evidence; terminate after completion/failure
