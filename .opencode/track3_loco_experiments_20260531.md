@@ -406,7 +406,7 @@ Read: this is the apples-to-apples follow-up to the simple Track 3 base lane whe
 - Source: simple Track 3 base, `records/track_3_optimization/train_gpt_simple.py`.
 - Setting: 1x H100, one trial, `TRACK3_TRAIN_STEPS=3350`, `TRACK3_TARGET_LOSS=3.28`, `TRACK3_MBS=16`, `K=4`, `sample_tokens=1024`, all MLP `fc` surfaces, cap `0.20`.
 - Seed: `200` via `TRACK3_SEED_BASE=0`, `TRACK3_SEED_OFFSET=200`.
-- Status: active training running. Local evidence log captured through step 5; generated script confirmed `track3_trial_seed=200 trial=0`.
+- Status: active training running. Step 125 validation is `4.65727` at `6922.50ms/step`; generated script confirmed `track3_trial_seed=200 trial=0`.
 - Remote logs: `/root/prime_track3_logs/track3_simple_locom_prime_a_target328_seed200.log`; local snapshot `.opencode/prime_track3_simple_locom_target328_seed200_1xh100_20260531.launch.log`.
 
 `track3-simple-locom-prime-b-1xh100-20260531`
@@ -416,7 +416,7 @@ Read: this is the apples-to-apples follow-up to the simple Track 3 base lane whe
 - Source: simple Track 3 base, `records/track_3_optimization/train_gpt_simple.py`.
 - Setting: same as Prime lane A.
 - Seed: `300` via `TRACK3_SEED_BASE=0`, `TRACK3_SEED_OFFSET=300`.
-- Status: active training running. Local evidence log captured through step 5; generated script confirmed `track3_trial_seed=300 trial=0`.
+- Status: active training running. Step 125 validation is `4.63836` at `6927.66ms/step`; generated script confirmed `track3_trial_seed=300 trial=0`.
 - Remote logs: `/root/prime_track3_logs/track3_simple_locom_prime_b_target328_seed300.log`; local snapshot `.opencode/prime_track3_simple_locom_target328_seed300_1xh100_20260531.launch.log`.
 
-Read: these two Prime lanes are independent one-run confirmations, separate from the two detached Modal two-trial lanes. They use the same simple Track 3 base and LocoProp-M settings, but distinct seed offsets.
+Read: these two Prime lanes are independent one-run confirmations, separate from the two detached Modal two-trial lanes. They use the same simple Track 3 base and LocoProp-M settings, but distinct seed offsets. Loss is in the expected active LocoProp-M band at the first screen, but MassedCompute H100 throughput is about `6.9s/step`, roughly half the Modal speed observed for the same setup.
