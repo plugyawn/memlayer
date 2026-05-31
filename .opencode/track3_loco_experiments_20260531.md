@@ -14,7 +14,7 @@ Context:
 - Mode: `TRACK3_NM_MODE=inverse`.
 - App: `ap-70FfWdH8GjpnM5Dcfwop0Q`.
 - Log: `.opencode/modal_track3_nm_3000_h100_20260531_r3.launch.log`.
-- Status when this ledger was first written: active at step 1000+.
+- Stopped by request after covering enough distance; runner exited after step 1155.
 
 Observed validation:
 
@@ -28,6 +28,7 @@ Observed validation:
 | 750 | 3.70750 |
 | 875 | 3.66553 |
 | 1000 | 3.62499 |
+| 1125 | 3.59503 |
 
 ## Finite-Step LocoProp Filter
 
@@ -84,4 +85,3 @@ Observed validation:
 | 125 | 4.68139 | +0.01919 |
 
 Read: additive local displacement on top of Muon/NM state was harmful at both tested scales. Alpha `0.005` was less destructive than `0.05`, but still too far behind to justify continuing.
-
