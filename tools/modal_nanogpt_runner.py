@@ -17,6 +17,8 @@ DEFAULT_GPU = os.environ.get(
     "NANOGPT_MODAL_GPU",
     os.environ.get("MODAL_NANOGPT_GPU", os.environ.get("MODAL_GPU", "H100")),
 )
+RUN_TIMEOUT = int(os.environ.get("NANOGPT_MODAL_RUN_TIMEOUT", "30000"))
+MAX_CONTAINERS = int(os.environ.get("NANOGPT_MODAL_MAX_CONTAINERS", "2"))
 
 if DEFAULT_GPU not in {"H100", "H100!", "GH200", "H100:8", "H100!:8"}:
     raise ValueError("Only H100/H100!/GH200 or 8x H100 specs are allowed for this speedrun runner.")
@@ -141,10 +143,10 @@ def _ensure_data(data_chunks: int = 2) -> dict[str, object]:
     cpu=16,
     memory=131072,
     ephemeral_disk=524288,
-    timeout=14400,
+    timeout=RUN_TIMEOUT,
     startup_timeout=1800,
     scaledown_window=60,
-    max_containers=1,
+    max_containers=MAX_CONTAINERS,
     volumes={str(CACHE_MOUNT): cache_volume, str(DATA_MOUNT): data_volume},
 )
 def run_screen(
