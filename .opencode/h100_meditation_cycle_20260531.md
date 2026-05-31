@@ -424,3 +424,51 @@ Confucius:
   is not useless. If rawscale is structured but active loses, the metric is
   probably entering the wrong object or time window.
 ```
+
+## Cycle F
+
+```text
+GPU block start: 2026-05-31 05:04 IST
+GPU block status: in progress
+Apps:
+  ap-SI4mPLZWIHv0omZG4kgNRd stopped during Modal image build, no training
+  ap-7UXFoA81Pqco4Wdcitfei1 completed V then failed during O setup
+  ap-xAjg3zgyNryI0DTaBS2p4c completed O and MLP c_fc rest run
+```
+
+Natural-cap20 surface screen:
+
+```text
+Contract:
+  surfaces: v,o,mlp_fc
+  layers: 0-1
+  collect: 0-64
+  apply: 48-64
+  finite_t: 2.0
+  ridge: 0.2
+  LPA_NORM_TO_BASE=0
+  LPA_NORM_CAP=20
+  LPA_BLEND_MAX=0.005
+```
+
+Result:
+
+| surface | active_40 | delta_40 | active | noop1 | noop2 | noop_mean | delta | beats both | overhead | raw ref_norm | raw ref_cos | read |
+| --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: | --- | ---: | ---: | ---: | --- |
+| V | `5.6117` | `+0.0133` | `4.5245` | `4.5166` | `4.5335` | `4.5251` | `-0.0006` | no | `+0.27%` | `9.8554` | `0.2069` | no gate |
+| O | `5.6079` | `-0.0029` | `4.5345` | `4.5350` | `4.5240` | `4.5295` | `+0.0050` | no | `+0.20%` | `10.1390` | `0.3290` | worse |
+| MLP c_fc | `5.6076` | `-0.0222` | `4.5247` | `4.5286` | `4.5297` | `4.5291` | `-0.0044` | yes | `+0.24%` | `18.6070` | `0.4073` | pass |
+
+Interpretation:
+
+```text
+This is the first clean positive result in the current fixed-control cycle.
+MLP c_fc natural-cap20 additive LPA beats both paired noops at step 80, clears
+the -0.003 noop-mean threshold, improves at step 40, and has negligible timing
+overhead. The rawscale diagnostic is not an LR clone: ref_cos is about 0.41 and
+raw ref_norm is about 18.6x before the cap. The cap is active and meaningful.
+
+V did not pass despite structured rawscale. O was worse. The immediate next
+H100 spend should be a 200-step MLP c_fc persistence test with the same
+contract, not a broad new surface sweep.
+```
