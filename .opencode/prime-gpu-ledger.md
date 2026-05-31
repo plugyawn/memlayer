@@ -48,3 +48,23 @@
   expected_stop: immediately after the 60-step gate or earlier unrecoverable setup failure
   status: terminated-after-norminverse-blend05-reject
   termination_policy: keep only while actively setting up or running this single gate
+- pod_id: b45df3092c7640cf9f7b112cb54534f0
+  name: track3-locom-nm-1xh100-20260531
+  owner: current-agent
+  purpose: Track 3 official Newton-Muon source with LocoProp-M correction, 1x H100, two trials to target loss 3.28
+  gpu: 1x H100 80GB PCIe
+  price_per_hour: $2.35
+  created_at: 2026-05-31T11:46:00Z
+  expected_stop: after the two-trial 1x target-loss run completes, fails, or user redirects
+  status: running-track3-locom-1x
+  termination_policy: keep while actively training or gathering requested benchmark evidence; do not touch unrelated pods
+- pod_id: d60c61dbd5284331b6467023e35acf9c
+  name: track3-locom-nm-4xh100-20260531
+  owner: current-agent
+  purpose: Track 3 official Newton-Muon source with LocoProp-M correction, 4x H100 distributed two-seed target-loss test
+  gpu: 4x H100 80GB PCIe
+  price_per_hour: $9.40
+  created_at: 2026-05-31T11:46:00Z
+  expected_stop: after the two-seed 4x target-loss run completes, fails, or user redirects
+  status: running-track3-locom-4x
+  termination_policy: keep while actively training or gathering requested benchmark evidence; do not touch unrelated pods
