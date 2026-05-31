@@ -60,6 +60,7 @@ LOCO_M_LOG_STEPS = {
 }
 LOCO_M_OWNED_LAYER_SET: set[int] = set()
 LOCO_M_APPLY_STATS: list[str] = []
+LOCO_M_CURRENT_STEP = -1
 '''
 
 
@@ -102,7 +103,12 @@ LOCOM_MLP = r'''class MLP(nn.Module):
             setattr(self, name, self._loco_sample(value).to(torch.bfloat16))
 
     def _capture_locom(self, x: Tensor, pre: Tensor, post: Tensor):
-        if not (LOCO_M_ENABLED and self.training and self.layer_idx in LOCO_M_LAYER_SET):
+        if not (
+            LOCO_M_ENABLED
+            and self.training
+            and self.layer_idx in LOCO_M_LAYER_SET
+            and _locom_active(LOCO_M_CURRENT_STEP)
+        ):
             return
         self._store_loco_sample("_loco_x", x)
         self._store_loco_sample("_loco_post", post)
@@ -135,6 +141,11 @@ def _locom_active(step: int) -> bool:
         and step < LOCO_M_END_STEP
         and step % max(LOCO_M_INTERVAL, 1) == 0
     )
+
+@torch.no_grad()
+def set_locoprop_m_current_step(step: int):
+    global LOCO_M_CURRENT_STEP
+    LOCO_M_CURRENT_STEP = step
 
 @torch.no_grad()
 def attach_locoprop_m_optimizer(model: nn.Module, optimizer: torch.optim.Optimizer):
@@ -432,7 +443,7 @@ def muon_update(grad, momentum, mu=0.95, nesterov=True):
         text,
         'print0(f"Running PyTorch {torch.version.__version__} compiled for CUDA {torch.version.cuda}"',
         f'print0("Track3 LocoProp-M generated run: source={source_label} train_steps={train_steps}")\n'
-        'print0(f"LocoM enabled={LOCO_M_ENABLED} layers={LOCO_M_LAYERS_SPEC} steps={LOCO_M_LOCAL_STEPS} sample_tokens={LOCO_M_SAMPLE_TOKENS} gather={LOCO_M_GATHER_SAMPLES} accum={LOCO_M_ACCUM_SAMPLES} micro_sample_tokens={LOCO_M_MICRO_SAMPLE_TOKENS} inner_lr={LOCO_M_INNER_LR} target_gamma={LOCO_M_TARGET_GAMMA} prox={LOCO_M_PROX} alpha={LOCO_M_ALPHA} norm_to_base={LOCO_M_NORM_TO_BASE} norm_cap={LOCO_M_NORM_CAP} target_loss={TRACK3_TARGET_LOSS} seed_base={TRACK3_SEED_BASE} seed_offset={TRACK3_SEED_OFFSET}")\n'
+        'print0(f"LocoM enabled={LOCO_M_ENABLED} layers={LOCO_M_LAYERS_SPEC} steps={LOCO_M_LOCAL_STEPS} sample_tokens={LOCO_M_SAMPLE_TOKENS} gather={LOCO_M_GATHER_SAMPLES} accum={LOCO_M_ACCUM_SAMPLES} micro_sample_tokens={LOCO_M_MICRO_SAMPLE_TOKENS} inner_lr={LOCO_M_INNER_LR} target_gamma={LOCO_M_TARGET_GAMMA} prox={LOCO_M_PROX} alpha={LOCO_M_ALPHA} norm_to_base={LOCO_M_NORM_TO_BASE} norm_cap={LOCO_M_NORM_CAP} start_step={LOCO_M_START_STEP} end_step={LOCO_M_END_STEP} interval={LOCO_M_INTERVAL} target_loss={TRACK3_TARGET_LOSS} seed_base={TRACK3_SEED_BASE} seed_offset={TRACK3_SEED_OFFSET}")\n'
         'print0(f"Running PyTorch {torch.version.__version__} compiled for CUDA {torch.version.cuda}"',
     )
     text = replace_exact(
@@ -504,6 +515,13 @@ def muon_update(grad, momentum, mu=0.95, nesterov=True):
             break
     if not target_inserted:
         raise RuntimeError("validation target-loss insertion pattern not found")
+    text = replace_exact(
+        text,
+        "        # --------------- TRAINING SECTION -----------------\n        inputs, targets = next(train_loader)\n",
+        "        # --------------- TRAINING SECTION -----------------\n"
+        "        set_locoprop_m_current_step(step)\n"
+        "        inputs, targets = next(train_loader)\n",
+    )
     step_block_inserted = False
     for indent in ("        ", "    "):
         old = (

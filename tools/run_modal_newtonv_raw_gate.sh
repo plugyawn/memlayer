@@ -37,6 +37,7 @@ val_every="${SCREEN_VAL_EVERY:-50}"
 data_chunks="${MODAL_DATA_CHUNKS:-2}"
 nproc="${NPROC_PER_NODE:-1}"
 runner="${MODAL_RUNNER:-tools/run_newtonv_raw_v01_gate.sh}"
+entrypoint="${MODAL_ENTRYPOINT:-run}"
 log_path="${LOG_PATH:-}"
 extra_env_json="${MODAL_EXTRA_ENV_JSON:-{}}"
 
@@ -50,7 +51,7 @@ if [[ -n "${MODAL_RUN_NAME:-}" ]]; then
 fi
 
 args+=(
-  tools/modal_nanogpt_runner.py::run
+  "tools/modal_nanogpt_runner.py::${entrypoint}"
   --runner "${runner}"
   --steps "${steps}"
   --val-every "${val_every}"

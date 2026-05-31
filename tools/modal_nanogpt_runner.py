@@ -213,3 +213,34 @@ def run(
     extra_env = _loads_extra_env(extra_env_json)
     result = run_screen.remote(runner, steps, val_every, nproc, data_chunks, log_path, extra_env)
     print(json.dumps(result, indent=2, sort_keys=True))
+
+
+@app.local_entrypoint()
+def run_spawn(
+    runner: str = "tools/run_newtonv_raw_v01_gate.sh",
+    steps: int = 200,
+    val_every: int = 50,
+    nproc: int = 1,
+    data_chunks: int = 2,
+    log_path: str | None = None,
+    extra_env_json: str = "{}",
+) -> None:
+    extra_env = _loads_extra_env(extra_env_json)
+    call = run_screen.spawn(runner, steps, val_every, nproc, data_chunks, log_path, extra_env)
+    print(
+        json.dumps(
+            {
+                "gpu": DEFAULT_GPU,
+                "runner": runner,
+                "steps": steps,
+                "val_every": val_every,
+                "nproc": nproc,
+                "data_chunks": data_chunks,
+                "function_call_id": call.object_id,
+                "dashboard_url": call.get_dashboard_url(),
+                "mode": "spawn",
+            },
+            indent=2,
+            sort_keys=True,
+        )
+    )
