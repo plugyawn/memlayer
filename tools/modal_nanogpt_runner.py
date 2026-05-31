@@ -48,6 +48,8 @@ image = (
     .add_local_dir(".", str(REMOTE_ROOT), copy=True, ignore=_ignore_source)
     .workdir(str(REMOTE_ROOT))
 )
+if os.environ.get("NANOGPT_MODAL_TORCH"):
+    image = image.pip_install(f"torch=={os.environ['NANOGPT_MODAL_TORCH']}")
 
 app = modal.App(
     APP_NAME,
@@ -80,14 +82,23 @@ def _parse_training_summary(output: str) -> dict[str, object]:
         r"step:(\d+)/(\d+) val_loss:([0-9.]+) train_time:([0-9]+)ms step_avg:([0-9.]+)ms",
         output,
     )
-    if not matches:
-        return {}
-    step, total_steps, val_loss, train_ms, step_avg_ms = matches[-1]
+    if matches:
+        step, total_steps, val_loss, train_ms, step_avg_ms = matches[-1]
+        train_time_s = round(int(train_ms) / 1000.0, 3)
+    else:
+        matches = re.findall(
+            r"step:(\d+)/(\d+) val_loss:([0-9.]+) train_time:([0-9.]+)s step_avg:([0-9.]+)ms",
+            output,
+        )
+        if not matches:
+            return {}
+        step, total_steps, val_loss, train_s, step_avg_ms = matches[-1]
+        train_time_s = round(float(train_s), 3)
     return {
         "step": int(step),
         "total_steps": int(total_steps),
         "val_loss": float(val_loss),
-        "train_time_s": round(int(train_ms) / 1000.0, 3),
+        "train_time_s": train_time_s,
         "step_avg_ms": float(step_avg_ms),
     }
 
