@@ -406,7 +406,7 @@ Read: this is the apples-to-apples follow-up to the simple Track 3 base lane whe
 - Source: simple Track 3 base, `records/track_3_optimization/train_gpt_simple.py`.
 - Setting: 1x H100, one trial, `TRACK3_TRAIN_STEPS=3350`, `TRACK3_TARGET_LOSS=3.28`, `TRACK3_MBS=16`, `K=4`, `sample_tokens=1024`, all MLP `fc` surfaces, cap `0.20`.
 - Seed: `200` via `TRACK3_SEED_BASE=0`, `TRACK3_SEED_OFFSET=200`.
-- Status: active training running. Step 125 validation was `4.65727`; step 250 validation is `4.11026` at `6841.85ms/step`; generated script confirmed `track3_trial_seed=200 trial=0`.
+- Status: active training running. Step 125 validation was `4.65727`; step 250 validation is `4.11026`; step 500 validation is `3.82715`; step 625 validation is `3.75865`; step 750 validation is `3.71291` at about `6839.72ms/step`. Generated script confirmed `track3_trial_seed=200 trial=0`.
 - Remote logs: `/root/prime_track3_logs/track3_simple_locom_prime_a_target328_seed200.log`; local snapshot `.opencode/prime_track3_simple_locom_target328_seed200_1xh100_20260531.launch.log`.
 
 `track3-simple-locom-prime-b-1xh100-20260531`
@@ -416,7 +416,30 @@ Read: this is the apples-to-apples follow-up to the simple Track 3 base lane whe
 - Source: simple Track 3 base, `records/track_3_optimization/train_gpt_simple.py`.
 - Setting: same as Prime lane A.
 - Seed: `300` via `TRACK3_SEED_BASE=0`, `TRACK3_SEED_OFFSET=300`.
-- Status: active training running. Step 125 validation was `4.63836`; step 250 validation is `4.10626` at `6843.28ms/step`; generated script confirmed `track3_trial_seed=300 trial=0`.
+- Status: active training running. Step 125 validation was `4.63836`; step 250 validation is `4.10626`; step 500 validation is `3.82762`; step 625 validation is `3.75818`; step 750 validation is `3.71037` at about `6838.21ms/step`. Generated script confirmed `track3_trial_seed=300 trial=0`.
 - Remote logs: `/root/prime_track3_logs/track3_simple_locom_prime_b_target328_seed300.log`; local snapshot `.opencode/prime_track3_simple_locom_target328_seed300_1xh100_20260531.launch.log`.
 
-Read: these two Prime lanes are independent one-run confirmations, separate from the two detached Modal two-trial lanes. They use the same simple Track 3 base and LocoProp-M settings, but distinct seed offsets. Loss is in the expected active LocoProp-M band at the first screen, but MassedCompute H100 throughput is about `6.9s/step`, roughly half the Modal speed observed for the same setup.
+Read: these two Prime lanes are independent one-run confirmations, separate from the two detached Modal two-trial lanes. They use the same simple Track 3 base and LocoProp-M settings, but distinct seed offsets. Loss is in the expected active LocoProp-M band at the first screen, but MassedCompute H100 throughput is about `6.9s/step`, roughly half the Modal speed observed for the same setup. By step 750 the average validation is `3.71164`, which is still worse than the official Newton-Muon reference at step 750 (`3.70750`) by about `0.00414`; this remains before the 3350-step schedule reaches cooldown at about step 1005.
+
+## Modal Simple Track 3 Base + LocoProp-M 3000-Step Schedule
+
+`track3-simple-locom-3000-h100-r1-20260601`
+
+- Provider: Modal, H100.
+- App: `ap-xrr3SwqoT5wcGGwVsWjIck`.
+- Source: simple Track 3 base, `records/track_3_optimization/train_gpt_simple.py`.
+- Intended setting: 1x H100, `TRACK3_TRAIN_STEPS=3000`, `TRACK3_TARGET_LOSS=3.28`, `TRACK3_MBS=16`, `K=4`, `sample_tokens=1024`, all MLP `fc` surfaces, cap `0.20`.
+- Status: failed immediately. The Modal runner only forwards `TRACK3_*` settings through `MODAL_EXTRA_ENV_JSON`; this first launch did not do that, so it ran with default `mbs=64`, default seed, and default `sample_tokens=2048`, then OOMed after step 0.
+- Local log: `.opencode/modal_track3-simple-locom-3000-h100-r1-20260601.launch.log`.
+
+`track3-simple-locom-3000-h100-r1b-20260601`
+
+- Provider: Modal, H100.
+- App: `ap-JzZSBnBxCcchS9cE9P7qjK`.
+- Source: simple Track 3 base, `records/track_3_optimization/train_gpt_simple.py`.
+- Setting: 1x H100, one trial, `TRACK3_TRAIN_STEPS=3000`, `TRACK3_TARGET_LOSS=3.28`, `TRACK3_MBS=16`, `K=4`, `sample_tokens=1024`, all MLP `fc` surfaces, cap `0.20`.
+- Seed: `400` via `TRACK3_SEED_BASE=0`, `TRACK3_SEED_OFFSET=400`.
+- Status: active detached Modal run. Verified from Modal logs: `steps=3000`, `mbs=16`, `track3_trial_seed=400`, owned layers `[0..11]`, `sample_tokens=1024`; step 2 applied nonzero capped corrections and the run was at step 12 with `step_avg=4170.54ms` when local stream was disconnected.
+- Local launch log: `.opencode/modal_track3-simple-locom-3000-h100-r1b-20260601.launch.log`.
+
+Read: this is the clean long Modal lane requested after the Prime runs showed schedule-transfer ambiguity. It matches the simple Track 3 base + LocoProp-M settings used for the Prime lanes, but on a 3000-step schedule and Modal H100 throughput. The local Modal CLI was terminated after the detached remote function was verified live; `modal app list` showed `ap-JzZSBnBxCcchS9cE9P7qjK` in `ephemeral` state with one task after disconnect.

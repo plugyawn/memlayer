@@ -1,0 +1,106 @@
+Note that running a local entrypoint in detached mode only keeps the last triggered Modal function alive after the parent process has been killed or disconnected.
+✓ Initialized. View run at 
+https://modal.com/apps/nipsdwip/main/ap-xrr3SwqoT5wcGGwVsWjIck
+Building image im-tgKwBxO1PWGgMTG8RSUDZt
+
+=> Step 0: FROM base
+
+=> Step 1: COPY . /
+Saving image...
+Image saved, took 1.63s
+
+Built image im-tgKwBxO1PWGgMTG8RSUDZt in 4.07s
+
+
+Building image im-MObA2BA13u6I16cE99uE4Q
+
+=> Step 0: FROM base
+
+=> Step 1: WORKDIR /root/speedrun
+Saving image...
+Image saved, took 740.30ms
+
+Built image im-MObA2BA13u6I16cE99uE4Q in 3.10s
+
+
+✓ Created objects.
+├── 🔨 Created mount 
+│   /Users/progyan/speedrun/wr-fresh-20260526/tools/modal_nanogpt_runner.py
+├── 🔨 Created mount /Users/progyan/speedrun/wr-fresh-20260526
+├── 🔨 Created function prepare_data.
+└── 🔨 Created function run_screen.
+
+==========
+== CUDA ==
+==========
+
+CUDA Version 12.8.0
+
+Container image Copyright (c) 2016-2023, NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+
+This container image and its contents are governed by the NVIDIA Deep Learning Container License.
+By pulling and using the container, you accept the terms and conditions of this license:
+https://developer.nvidia.com/ngc/nvidia-deep-learning-container-license
+
+A copy of this license is made available in this container at /NGC-DL-CONTAINER-LICENSE for your convenience.
+
+track3_locom_runner source=records/track_3_optimization/train_gpt_simple.py generated=/tmp/train_gpt_simple_locoprop_m_3000.py steps=3000 trials=1 nproc=1 mbs=64 pass_trial_arg=1
+logs/02cbc759-834b-4670-8b55-95953eed13bd.txt
+track3_trial_seed=0 trial=0
+locoprop_m_owner rank=0 world=1 owned_layers=[0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11] sample_tokens=2048 gather_samples=True accum_samples=False micro_sample_tokens=32
+step:0/3000 val_loss:10.82584 train_time:0.000s step_avg:nanms
+[rank0]: Traceback (most recent call last):
+[rank0]:   File "/tmp/train_gpt_simple_locoprop_m_3000.py", line 625, in <module>
+[rank0]:     model(inputs[i*mbs:(i+1)*mbs], targets[i*mbs:(i+1)*mbs]).backward()
+[rank0]:   File "/usr/local/lib/python3.10/site-packages/torch/nn/modules/module.py", line 1776, in _wrapped_call_impl
+[rank0]:     return self._call_impl(*args, **kwargs)
+[rank0]:   File "/usr/local/lib/python3.10/site-packages/torch/nn/modules/module.py", line 1787, in _call_impl
+[rank0]:     return forward_call(*args, **kwargs)
+[rank0]:   File "/tmp/train_gpt_simple_locoprop_m_3000.py", line 255, in forward
+[rank0]:     return F.cross_entropy(logits.view(targets.numel(), -1), targets.view(-1), reduction="sum")
+[rank0]:   File "/usr/local/lib/python3.10/site-packages/torch/nn/functional.py", line 3504, in cross_entropy
+[rank0]:     return torch._C._nn.cross_entropy_loss(
+[rank0]: torch.OutOfMemoryError: CUDA out of memory. Tried to allocate 12.28 GiB. GPU 0 has a total capacity of 79.18 GiB of which 6.98 GiB is free. Process 1 has 72.19 GiB memory in use. Of the allocated memory 70.80 GiB is allocated by PyTorch, and 180.16 MiB is reserved by PyTorch but unallocated. If reserved but unallocated memory is large try setting PYTORCH_ALLOC_CONF=expandable_segments:True to avoid fragmentation.  See documentation for Memory Management  (https://pytorch.org/docs/stable/notes/cuda.html#environment-variables)
+[rank0]:[W531 18:49:07.989003694 ProcessGroupNCCL.cpp:1553] Warning: WARNING: destroy_process_group() was not called before program exit, which can leak resources. For more info, please see https://pytorch.org/docs/stable/distributed.html#shutdown (function operator())
+E0531 18:49:08.630000 28 site-packages/torch/distributed/elastic/multiprocessing/api.py:984] failed (exitcode: 1) local_rank: 0 (pid: 48) of binary: /usr/local/bin/python
+Traceback (most recent call last):
+  File "/usr/local/bin/torchrun", line 8, in <module>
+    sys.exit(main())
+  File "/usr/local/lib/python3.10/site-packages/torch/distributed/elastic/multiprocessing/errors/__init__.py", line 362, in wrapper
+    return f(*args, **kwargs)
+  File "/usr/local/lib/python3.10/site-packages/torch/distributed/run.py", line 991, in main
+    run(args)
+  File "/usr/local/lib/python3.10/site-packages/torch/distributed/run.py", line 982, in run
+    elastic_launch(
+  File "/usr/local/lib/python3.10/site-packages/torch/distributed/launcher/api.py", line 170, in __call__
+    return launch_agent(self._config, self._entrypoint, list(args))
+  File "/usr/local/lib/python3.10/site-packages/torch/distributed/launcher/api.py", line 317, in launch_agent
+    raise ChildFailedError(
+torch.distributed.elastic.multiprocessing.errors.ChildFailedError: 
+============================================================
+/tmp/train_gpt_simple_locoprop_m_3000.py FAILED
+------------------------------------------------------------
+Failures:
+  <NO_OTHER_FAILURES>
+------------------------------------------------------------
+Root Cause (first observed failure):
+[0]:
+  time      : 2026-05-31_18:49:08
+  host      : localhost
+  rank      : 0 (local_rank: 0)
+  exitcode  : 1 (pid: 48)
+  error_file: <N/A>
+  traceback : To enable traceback see: https://pytorch.org/docs/stable/elastic/errors.html
+============================================================
+{
+  "cache_volume": "nanogpt-speedrun-cache",
+  "data_volume": "nanogpt-speedrun-fineweb10b",
+  "gpu": "H100",
+  "returncode": 1,
+  "runner": "tools/run_track3_locoprop_m.sh",
+  "tail": "track3_locom_runner source=records/track_3_optimization/train_gpt_simple.py generated=/tmp/train_gpt_simple_locoprop_m_3000.py steps=3000 trials=1 nproc=1 mbs=64 pass_trial_arg=1\nlogs/02cbc759-834b-4670-8b55-95953eed13bd.txt\ntrack3_trial_seed=0 trial=0\nlocoprop_m_owner rank=0 world=1 owned_layers=[0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11] sample_tokens=2048 gather_samples=True accum_samples=False micro_sample_tokens=32\nstep:0/3000 val_loss:10.82584 train_time:0.000s step_avg:nanms\n[rank0]: Traceback (most recent call last):\n[rank0]:   File \"/tmp/train_gpt_simple_locoprop_m_3000.py\", line 625, in <module>\n[rank0]:     model(inputs[i*mbs:(i+1)*mbs], targets[i*mbs:(i+1)*mbs]).backward()\n[rank0]:   File \"/usr/local/lib/python3.10/site-packages/torch/nn/modules/module.py\", line 1776, in _wrapped_call_impl\n[rank0]:     return self._call_impl(*args, **kwargs)\n[rank0]:   File \"/usr/local/lib/python3.10/site-packages/torch/nn/modules/module.py\", line 1787, in _call_impl\n[rank0]:     return forward_call(*args, **kwargs)\n[rank0]:   File \"/tmp/train_gpt_simple_locoprop_m_3000.py\", line 255, in forward\n[rank0]:     return F.cross_entropy(logits.view(targets.numel(), -1), targets.view(-1), reduction=\"sum\")\n[rank0]:   File \"/usr/local/lib/python3.10/site-packages/torch/nn/functional.py\", line 3504, in cross_entropy\n[rank0]:     return torch._C._nn.cross_entropy_loss(\n[rank0]: torch.OutOfMemoryError: CUDA out of memory. Tried to allocate 12.28 GiB. GPU 0 has a total capacity of 79.18 GiB of which 6.98 GiB is free. Process 1 has 72.19 GiB memory in use. Of the allocated memory 70.80 GiB is allocated by PyTorch, and 180.16 MiB is reserved by PyTorch but unallocated. If reserved but unallocated memory is large try setting PYTORCH_ALLOC_CONF=expandable_segments:True to avoid fragmentation.  See documentation for Memory Management  (https://pytorch.org/docs/stable/notes/cuda.html#environment-variables)\n[rank0]:[W531 18:49:07.989003694 ProcessGroupNCCL.cpp:1553] Warning: WARNING: destroy_process_group() was not called before program exit, which can leak resources. For more info, please see https://pytorch.org/docs/stable/distributed.html#shutdown (function operator())\nE0531 18:49:08.630000 28 site-packages/torch/distributed/elastic/multiprocessing/api.py:984] failed (exitcode: 1) local_rank: 0 (pid: 48) of binary: /usr/local/bin/python\nTraceback (most recent call last):\n  File \"/usr/local/bin/torchrun\", line 8, in <module>\n    sys.exit(main())\n  File \"/usr/local/lib/python3.10/site-packages/torch/distributed/elastic/multiprocessing/errors/__init__.py\", line 362, in wrapper\n    return f(*args, **kwargs)\n  File \"/usr/local/lib/python3.10/site-packages/torch/distributed/run.py\", line 991, in main\n    run(args)\n  File \"/usr/local/lib/python3.10/site-packages/torch/distributed/run.py\", line 982, in run\n    elastic_launch(\n  File \"/usr/local/lib/python3.10/site-packages/torch/distributed/launcher/api.py\", line 170, in __call__\n    return launch_agent(self._config, self._entrypoint, list(args))\n  File \"/usr/local/lib/python3.10/site-packages/torch/distributed/launcher/api.py\", line 317, in launch_agent\n    raise ChildFailedError(\ntorch.distributed.elastic.multiprocessing.errors.ChildFailedError: \n============================================================\n/tmp/train_gpt_simple_locoprop_m_3000.py FAILED\n------------------------------------------------------------\nFailures:\n  <NO_OTHER_FAILURES>\n------------------------------------------------------------\nRoot Cause (first observed failure):\n[0]:\n  time      : 2026-05-31_18:49:08\n  host      : localhost\n  rank      : 0 (local_rank: 0)\n  exitcode  : 1 (pid: 48)\n  error_file: <N/A>\n  traceback : To enable traceback see: https://pytorch.org/docs/stable/elastic/errors.html\n============================================================\n",
+  "training_summary": {},
+  "wall_time_s": 39.186
+}
+✓ App completed. View run at 
+https://modal.com/apps/nipsdwip/main/ap-xrr3SwqoT5wcGGwVsWjIck

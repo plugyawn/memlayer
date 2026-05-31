@@ -1,0 +1,43 @@
+Note that running a local entrypoint in detached mode only keeps the last triggered Modal function alive after the parent process has been killed or disconnected.
+✓ Initialized. View run at 
+https://modal.com/apps/nipsdwip/main/ap-JzZSBnBxCcchS9cE9P7qjK
+✓ Created objects.
+├── 🔨 Created mount 
+│   /Users/progyan/speedrun/wr-fresh-20260526/tools/modal_nanogpt_runner.py
+├── 🔨 Created mount /Users/progyan/speedrun/wr-fresh-20260526
+├── 🔨 Created function prepare_data.
+└── 🔨 Created function run_screen.
+
+==========
+== CUDA ==
+==========
+
+CUDA Version 12.8.0
+
+Container image Copyright (c) 2016-2023, NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+
+This container image and its contents are governed by the NVIDIA Deep Learning Container License.
+By pulling and using the container, you accept the terms and conditions of this license:
+https://developer.nvidia.com/ngc/nvidia-deep-learning-container-license
+
+A copy of this license is made available in this container at /NGC-DL-CONTAINER-LICENSE for your convenience.
+
+track3_locom_runner source=records/track_3_optimization/train_gpt_simple.py generated=/tmp/train_gpt_simple_locoprop_m_3000.py steps=3000 trials=1 nproc=1 mbs=16 pass_trial_arg=1
+logs/ca2258d2-1427-4dad-80d3-99225e5e662b.txt
+track3_trial_seed=400 trial=0
+locoprop_m_owner rank=0 world=1 owned_layers=[0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11] sample_tokens=1024 gather_samples=True accum_samples=False micro_sample_tokens=32
+step:0/3000 val_loss:10.82580 train_time:0.000s step_avg:nanms
+locoprop_m_prepare step=0 l0:loss0=1.413e-06,lossK=9.560e-02,corr_norm=1.448e+01,grad_norm=0.000e+00,cos_desc=0.000,tokens=1024 | l1:loss0=1.407e-06,lossK=7.463e-01,corr_norm=4.145e+01,grad_norm=0.000e+00,cos_desc=0.000,tokens=1024 | l2:loss0=1.456e-06,lossK=1.635e-01,corr_norm=1.891e+01,grad_norm=0.000e+00,cos_desc=0.000,tokens=1024 | l3:loss0=1.420e-06,lossK=9.887e-02,corr_norm=1.437e+01,grad_norm=0.000e+00,cos_desc=0.000,tokens=1024
+locoprop_m_apply step=0 shape=(3072, 768):base_step=0.000e+00,corr_norm=1.448e+01,scale=0.000e+00 | shape=(3072, 768):base_step=0.000e+00,corr_norm=4.145e+01,scale=0.000e+00 | shape=(3072, 768):base_step=0.000e+00,corr_norm=1.891e+01,scale=0.000e+00 | shape=(3072, 768):base_step=0.000e+00,corr_norm=1.437e+01,scale=0.000e+00 | shape=(3072, 768):base_step=0.000e+00,corr_norm=2.337e+01,scale=0.000e+00 | shape=(3072, 768):base_step=0.000e+00,corr_norm=1.275e+01,scale=0.000e+00 | shape=(3072, 768):base_step=0.000e+00,corr_norm=1.804e+01,scale=0.000e+00 | shape=(3072, 768):base_step=0.000e+00,corr_norm=1.142e+01,scale=0.000e+00
+step:1/3000 train_time:9.451s step_avg:9451.20ms
+locoprop_m_prepare step=1 l0:loss0=1.412e-06,lossK=7.519e-02,corr_norm=1.236e+01,grad_norm=0.000e+00,cos_desc=0.000,tokens=1024 | l1:loss0=1.416e-06,lossK=8.727e-01,corr_norm=4.306e+01,grad_norm=0.000e+00,cos_desc=0.000,tokens=1024 | l2:loss0=1.428e-06,lossK=1.018e-01,corr_norm=1.426e+01,grad_norm=0.000e+00,cos_desc=0.000,tokens=1024 | l3:loss0=1.412e-06,lossK=8.732e-02,corr_norm=1.277e+01,grad_norm=0.000e+00,cos_desc=0.000,tokens=1024
+locoprop_m_apply step=1 shape=(3072, 768):base_step=0.000e+00,corr_norm=1.236e+01,scale=0.000e+00 | shape=(3072, 768):base_step=0.000e+00,corr_norm=4.306e+01,scale=0.000e+00 | shape=(3072, 768):base_step=0.000e+00,corr_norm=1.426e+01,scale=0.000e+00 | shape=(3072, 768):base_step=0.000e+00,corr_norm=1.277e+01,scale=0.000e+00 | shape=(3072, 768):base_step=0.000e+00,corr_norm=1.003e+01,scale=0.000e+00 | shape=(3072, 768):base_step=0.000e+00,corr_norm=8.342e+00,scale=0.000e+00 | shape=(3072, 768):base_step=0.000e+00,corr_norm=1.903e+01,scale=0.000e+00 | shape=(3072, 768):base_step=0.000e+00,corr_norm=1.274e+01,scale=0.000e+00
+step:2/3000 train_time:13.130s step_avg:6565.04ms
+locoprop_m_prepare step=2 l0:loss0=1.426e-06,lossK=3.349e-02,corr_norm=8.593e+00,grad_norm=2.583e+03,cos_desc=-0.063,tokens=1024 | l1:loss0=1.411e-06,lossK=5.877e-02,corr_norm=1.306e+01,grad_norm=2.808e+03,cos_desc=-0.105,tokens=1024 | l2:loss0=1.423e-06,lossK=1.147e-01,corr_norm=2.052e+01,grad_norm=3.066e+03,cos_desc=-0.102,tokens=1024 | l3:loss0=1.407e-06,lossK=9.553e-01,corr_norm=6.983e+01,grad_norm=3.252e+03,cos_desc=-0.097,tokens=1024
+locoprop_m_apply step=2 shape=(3072, 768):base_step=1.940e+00,corr_norm=8.593e+00,scale=4.514e-02 | shape=(3072, 768):base_step=1.940e+00,corr_norm=1.306e+01,scale=2.971e-02 | shape=(3072, 768):base_step=1.939e+00,corr_norm=2.052e+01,scale=1.890e-02 | shape=(3072, 768):base_step=1.939e+00,corr_norm=6.983e+01,scale=5.553e-03 | shape=(3072, 768):base_step=1.941e+00,corr_norm=1.212e+02,scale=3.204e-03 | shape=(3072, 768):base_step=1.941e+00,corr_norm=3.062e+02,scale=1.268e-03 | shape=(3072, 768):base_step=1.942e+00,corr_norm=4.530e+02,scale=8.575e-04 | shape=(3072, 768):base_step=1.941e+00,corr_norm=9.918e+02,scale=3.915e-04
+step:3/3000 train_time:16.820s step_avg:5606.56ms
+step:4/3000 train_time:20.510s step_avg:5127.42ms
+step:5/3000 train_time:24.204s step_avg:4840.75ms
+step:6/3000 train_time:27.892s step_avg:4648.70ms
+step:7/3000 train_time:31.581s step_avg:4511.63ms
+step:8/3000 train_time:35.274s step_avg:4409.26ms
