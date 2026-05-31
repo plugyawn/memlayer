@@ -131,26 +131,41 @@ Implementation files:
 
 ## Next Experiment
 
-Queued after H100 meditation:
+Completed PR291 compound 80-step screen:
+
+| case | meaning | delta vs noop mean | read |
+| --- | --- | ---: | --- |
+| `mlpfc_sched` | path-only control for MLP c_fc | `-0.0018` | tiny path/noise positive |
+| `mlpfc` | PR291 p=0.1 on MLP c_fc | `+0.0050` | failed |
+| `all_l01` | PR291 p=0.1 on `qk,v,o,mlp_fc`, layers `0-1` | `-0.0067` | passed 80-step gate |
+
+Interpretation: the PR291 polynomial did not reproduce the exact-eig MLP-only
+hit. The broad surface run did pass, which makes the immediate hypothesis
+surface coupling in the Muon bank, not MLP-local softening.
+
+Current queued follow-up:
 
 ```text
-runner: tools/run_softpolar_pr291_two_screen.sh
-steps: 80
+runner: tools/run_softpolar_mlpfc_gate.sh
+steps: 200
 paired cases: noop, active, noop2
-cases:
-  1. mlpfc_sched: schedule-only split path, zero soft update
-  2. mlpfc: PR291 p=0.1 polynomial on MLP c_fc
-  3. all_l01: PR291 p=0.1 polynomial on qk,v,o,mlp_fc layers 0-1
+surfaces: qk,v,o,mlp_fc
+layers: 0-1
+implementation: PR291 p=0.1 polynomial Soft-Muon
 ```
 
 Decision rule:
 
 ```text
-If mlpfc_sched wins, treat the exact alpha0.9 result as path-confounded.
-If mlpfc active wins but broad loses, keep Soft-Muon narrow and promote to 200.
-If broad wins at 80, run broad PR291 200-step paired before returning to C.
-If all PR291 polynomial cases lose, exact eig alpha0.9 was not a faithful
-PR291 adaptation; retest exact broad or drop back to feature-C diagnostics.
+If broad PR291 still beats both noops at 200, it becomes the main optimizer
+branch and should be expanded by surface/layer schedule rather than C.
+
+If it wins at 80/120 but fades by 200, it joins the early-nudge family; next
+test should be late-window PR291 or a PR291 schedule closer to the original
+late Soft-Muon ramp.
+
+If it loses outright, the exact-eig MLP result remains a spectral-transfer
+signal, but PR291 polynomial broadening is not currently the answer.
 ```
 
 ## Open Risks

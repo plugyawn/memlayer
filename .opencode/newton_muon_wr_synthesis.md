@@ -2831,3 +2831,41 @@ feature-Gram work: log future alignment between an applied C-derived correction
 and future raw gradients / future base NorMuon updates. The recent no-C hit
 does not answer that question; it only moves the immediate branch priority.
 ```
+
+PR291 polynomial compound screen:
+
+```text
+Artifacts:
+  .opencode/modal_softmuon_pr291_tri_80_h100_20260531.launch.log
+  .opencode/modal_softmuon_pr291_tri_80_h100_20260531.summary.md
+  .opencode/modal_softmuon_pr291_tri_80_h100_20260531.parsed.md
+  .opencode/modal_softmuon_pr291_tri_80_h100_20260531.diagnostics.md
+  .opencode/modal_softmuon_pr291_tri_80_h100_20260531.loss.svg
+
+80-step paired results:
+  mlpfc_sched:
+    active=4.5293, noops=4.5296 / 4.5325, noop_mean=4.5311, delta=-0.0018
+  mlpfc:
+    active=4.5379, noops=4.5307 / 4.5351, noop_mean=4.5329, delta=+0.0050
+  all_l01:
+    active=4.5450, noops=4.5485 / 4.5549, noop_mean=4.5517, delta=-0.0067
+```
+
+Updated synthesis:
+
+```text
+PR291-style p=0.1 polynomial is not equivalent to the exact eig alpha0.9 MLP
+result in this branch. MLP c_fc alone failed badly at 80.
+
+However, broad qk,v,o,mlp_fc layers 0-1 passed the 80-step paired screen. This
+is compatible with the idea that Soft-Muon is a coupled matrix-bank optimizer
+change rather than a single-surface local correction. The result is also much
+more aligned with PR291's actual style: broad Muon singular-value transfer, not
+feature C.
+
+Immediate implication:
+  promote all_l01 PR291 polynomial to 200 before spending more H100 on feature
+  Gram C. If it survives, C becomes a secondary additive question. If it fades,
+  the branch still has the exact-eig MLP 200-step signal but not a PR291
+  polynomial persistence result.
+```

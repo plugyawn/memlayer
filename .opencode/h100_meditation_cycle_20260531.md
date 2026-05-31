@@ -740,3 +740,59 @@ This compound runner executes two screens in one Modal container:
 If broad all-surface polynomial is bad or too noisy, rerun a lower-risk
 v,mlp_fc polynomial screen. If broad is positive at 80, promote to 200.
 ```
+
+## Cycle H Result
+
+PR291 no-C Soft-Muon compound 80-step screen:
+
+```text
+App: ap-ZdYpg6zpyoTNnfUOMvGz5k
+GPU block end: 2026-05-31T07:31:22Z / 2026-05-31 13:01:22 IST
+
+Artifacts:
+  .opencode/modal_softmuon_pr291_tri_80_h100_20260531.launch.log
+  .opencode/modal_softmuon_pr291_tri_80_h100_20260531.summary.md
+  .opencode/modal_softmuon_pr291_tri_80_h100_20260531.parsed.md
+  .opencode/modal_softmuon_pr291_tri_80_h100_20260531.diagnostics.md
+  .opencode/modal_softmuon_pr291_tri_80_h100_20260531.loss.svg
+```
+
+Result:
+
+| case | active_40 | noop_mean_40 | delta_40 | active_80 | noop1 | noop2 | noop_mean | delta | beats both |
+| --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | --- |
+| `mlpfc_sched` | `5.6477` | `5.6448` | `+0.0029` | `4.5293` | `4.5296` | `4.5325` | `4.5311` | `-0.0018` | yes |
+| `mlpfc` | `5.6110` | `5.6112` | `-0.0002` | `4.5379` | `4.5307` | `4.5351` | `4.5329` | `+0.0050` | no |
+| `all_l01` | `5.6774` | `5.6883` | `-0.0109` | `4.5450` | `4.5485` | `4.5549` | `4.5517` | `-0.0067` | yes |
+
+Interpretation:
+
+```text
+The exact-eig MLP-only alpha0.9 hit did not transfer to PR291 polynomial
+MLP-only. MLP polynomial was worse at 80.
+
+Broad qk,v,o,mlp_fc on layers 0-1 did pass the 80-step paired gate. This says
+the PR291-style polynomial may need coupled surfaces; isolating MLP c_fc is not
+the right test for it.
+
+The schedule-only MLP path has a tiny positive 80-step drift, so future claims
+should not ignore path controls. But the broad active gain is larger:
+  all_l01 delta vs noop mean = -0.0067
+  schedule-only MLP delta vs noop mean = -0.0018
+
+Promote broad PR291 all_l01 to 200 immediately.
+```
+
+Launched 200-step promotion:
+
+```text
+App: ap-25Oswlrs4ybWc7PlBqJCRZ
+Runner: tools/run_softpolar_mlpfc_gate.sh
+SCREEN_STEPS=200
+LOCO_SOFT_POLAR_IMPL=pr291
+LOCO_SOFT_POLAR_POWER=0.1
+LOCO_SOFT_POLAR_SURFACES=qk,v,o,mlp_fc
+LOCO_SOFT_POLAR_WINDOWS=48-64
+LOCO_DIAG_MLP_LAYERS=0-1
+LOCO_DIAG_ATTN_LAYERS=0-1
+```
