@@ -429,11 +429,12 @@ Confucius:
 
 ```text
 GPU block start: 2026-05-31 05:04 IST
-GPU block status: in progress
+GPU block status: completed
 Apps:
   ap-SI4mPLZWIHv0omZG4kgNRd stopped during Modal image build, no training
   ap-7UXFoA81Pqco4Wdcitfei1 completed V then failed during O setup
   ap-xAjg3zgyNryI0DTaBS2p4c completed O and MLP c_fc rest run
+  ap-IOZ8bKtwuqWQxk3OuGa73H completed MLP c_fc 200-step persistence follow-up
 ```
 
 Natural-cap20 surface screen:
@@ -471,4 +472,75 @@ raw ref_norm is about 18.6x before the cap. The cap is active and meaningful.
 V did not pass despite structured rawscale. O was worse. The immediate next
 H100 spend should be a 200-step MLP c_fc persistence test with the same
 contract, not a broad new surface sweep.
+```
+
+MLP c_fc 200-step persistence follow-up:
+
+```text
+App: ap-IOZ8bKtwuqWQxk3OuGa73H
+GPU block end: 2026-05-31T05:18:16Z / 2026-05-31 10:48:16 IST
+Next H100 allowed after meditation: 2026-05-31 11:48:16 IST
+
+Contract:
+  surface: mlp_fc
+  layers: 0-1
+  collect: 0-64
+  apply: 48-64
+  finite_t: 2.0
+  ridge: 0.2
+  LPA_NORM_TO_BASE=0
+  LPA_NORM_CAP=20
+  LPA_BLEND_MAX=0.005
+  paired cases: noop, active, noop2
+```
+
+Result:
+
+| step | active | noop1 | noop2 | read |
+| ---: | ---: | ---: | ---: | --- |
+| 40 | `5.8629` | unavailable in gate table | unavailable in gate table | active was worse than noop mean by `+0.0038` |
+| 200 | `3.8876` | `3.8850` | `3.8843` | active worse than both noops |
+
+Gate summary:
+
+```text
+active=3.8876
+noop_mean=3.8846
+delta_vs_noop_mean=+0.0030
+beats_both=no
+gate_pass=no
+raw_step=64
+raw_ref_norm=14.1530
+raw_ref_delta=13.8240
+raw_ref_cos=0.3628
+```
+
+Timing note:
+
+```text
+paired_noop step_avg was contaminated by a large one-off step spike, so the
+negative overhead in the gate table is not meaningful. The loss comparison is
+still valid because active lost to both paired noops.
+```
+
+Updated interpretation:
+
+```text
+The 80-step MLP c_fc natural-cap hit did not persist. More importantly, the
+200-step run did not reproduce a clean 80-step advantage inside the longer
+run: active was already worse than noop mean at step 40, and by step 200 it was
+worse than both noops.
+
+This downgrades natural-cap20 MLP c_fc from "first clean positive" to
+"transient / variance-sensitive early hit." It does not falsify
+right-preconditioning generally, because the raw correction remains structured
+and non-collinear with the base update. It does falsify this exact promotion
+contract:
+  mlp_fc, layers 0-1, collect 0-64, apply 48-64, finite_t=2.0,
+  ridge=0.2, cap20, blend0.005, additive state-decoupled correction.
+
+Do not launch another immediate GPU run from this result. The next hour should
+be spent reasoning about why 80-step wins are not 200-step-persistent and what
+diagnostic would distinguish a real right-metric benefit from an early
+trajectory nudge.
 ```

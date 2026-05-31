@@ -2633,3 +2633,69 @@ Falsify this contract unless at least one surface beats both paired noops at
 step 80, improves noop mean by at least 0.003, avoids step-40 regression worse
 than +0.02, and stays within about 1% step-time overhead.
 ```
+
+Natural-cap20 MLP c_fc persistence:
+
+```text
+Artifacts:
+  .opencode/modal_lpa_natcap20_mlpfc200_h100_20260531.launch.log
+  .opencode/modal_lpa_natcap20_mlpfc200_h100_20260531.summary.md
+  .opencode/modal_lpa_natcap20_mlpfc200_h100_20260531.gate.md
+  .opencode/modal_lpa_natcap20_mlpfc200_h100_20260531.refs.md
+
+MLP c_fc, layers 0-1, collect 0-64, apply 48-64,
+finite_t=2.0, ridge=0.20, cap20, blend=0.005:
+
+  step200 active=3.8876
+  step200 noop1=3.8850
+  step200 noop2=3.8843
+  noop_mean=3.8846
+  delta_vs_noop_mean=+0.0030
+  beats_both=no
+  gate_pass=no
+
+  raw_step=64
+  raw_ref_norm=14.1530
+  raw_ref_delta=13.8240
+  raw_ref_cos=0.3628
+```
+
+Updated synthesis:
+
+```text
+Right-preconditioning has not failed in the sense of "no visible effect."
+It keeps creating structured, surface-dependent motion:
+  - full V inverse had a real early signal and some 200-step signal, but was
+    too slow and sensitive to controls.
+  - V orthogonal additive produced an early win and near-miss at 80, but did
+    not clear paired controls.
+  - MLP c_fc natural-cap20 cleared the 80-step gate once, with a nontrivial
+    raw correction direction.
+
+The current failure mode is narrower and more important:
+  the right-metric correction is not improving the persistent 200-step
+  trajectory under the trust rules tested so far.
+
+The repeated 80-to-200 fade suggests that the correction is acting like an
+early trajectory nudge rather than a durable optimizer improvement. Plausible
+causes:
+  1. The active window fixes a short-horizon conditioning issue that baseline
+     NorMuon catches up to by 120-200.
+  2. The correction is local-layer faithful but globally myopic: it ignores
+     output curvature, downstream compensation, and representation drift.
+  3. Linear blend/norm rules either wash the correction into the baseline
+     direction or preserve too much local-solve magnitude without a reliable
+     phase gate.
+  4. Single-surface isolation may be incoherent: V or c_fc may need paired
+     downstream surfaces, but broad QK/O/V/MLP coupling is too expensive to
+     sweep without a stronger diagnostic.
+
+Next diagnostic priority:
+  measure whether the right-metric correction is predictive of future descent,
+  not just different from the base update at application time. The clean test
+  is to log dot products/cosines between the correction applied at steps 48-64
+  and future raw gradients or future base updates at steps 80, 120, 160, 200.
+  If the future alignment turns negative or vanishes, the 80-step wins are
+  short-horizon nudges. If it remains positive but loss fades, the issue is
+  likely scale/schedule/coupling rather than direction.
+```
