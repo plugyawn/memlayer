@@ -147,7 +147,11 @@ LOCO_SOFT_POLAR_QK = LOCO_SOFT_POLAR and "qk" in LOCO_SOFT_POLAR_SURFACES
 LOCO_SOFT_POLAR_V = LOCO_SOFT_POLAR and "v" in LOCO_SOFT_POLAR_SURFACES
 LOCO_SOFT_POLAR_O = LOCO_SOFT_POLAR and "o" in LOCO_SOFT_POLAR_SURFACES
 LOCO_SOFT_POLAR_MLP_FC = LOCO_SOFT_POLAR and "mlp_fc" in LOCO_SOFT_POLAR_SURFACES
+LOCO_SOFT_POLAR_IMPL = os.environ.get("LOCO_SOFT_POLAR_IMPL", "exact").lower()
+if LOCO_SOFT_POLAR_IMPL not in {"exact", "pr291"}:
+    raise ValueError("LOCO_SOFT_POLAR_IMPL must be 'exact' or 'pr291'")
 LOCO_SOFT_POLAR_ALPHA = float(os.environ.get("LOCO_SOFT_POLAR_ALPHA", "0.5"))
+LOCO_SOFT_POLAR_POWER = float(os.environ.get("LOCO_SOFT_POLAR_POWER", str(max(0.0, 1.0 - LOCO_SOFT_POLAR_ALPHA))))
 LOCO_SOFT_POLAR_EPS = float(os.environ.get("LOCO_SOFT_POLAR_EPS", "1e-6"))
 LOCO_SOFT_POLAR_BLEND_STEPS = int(os.environ.get("LOCO_SOFT_POLAR_BLEND_STEPS", "16"))
 LOCO_SOFT_POLAR_BLEND_MAX = float(os.environ.get("LOCO_SOFT_POLAR_BLEND_MAX", "1.0"))
@@ -198,6 +202,10 @@ if LOCO_SOFT_POLAR and (LOCO_DIAG_ACTIVE or LOCO_FULL_ACTIVE):
     raise ValueError("LOCO_SOFT_POLAR is an isolated polar-transfer probe; do not combine it with LOCO_DIAG or LOCO_FULL")
 if not (0.0 <= LOCO_SOFT_POLAR_ALPHA <= 1.0):
     raise ValueError("LOCO_SOFT_POLAR_ALPHA must be in [0, 1]")
+if not (0.0 <= LOCO_SOFT_POLAR_POWER <= 1.0):
+    raise ValueError("LOCO_SOFT_POLAR_POWER must be in [0, 1]")
+if LOCO_SOFT_POLAR_IMPL == "pr291" and abs(LOCO_SOFT_POLAR_POWER - 0.1) > 1e-6:
+    raise ValueError("LOCO_SOFT_POLAR_IMPL=pr291 currently supports only LOCO_SOFT_POLAR_POWER=0.1")
 if LOCO_SOFT_POLAR_EPS < 0:
     raise ValueError("LOCO_SOFT_POLAR_EPS must be non-negative")
 if LOCO_SOFT_POLAR_BLEND_STEPS < 0:
@@ -637,6 +645,46 @@ def polar_express_from_operand(g: torch.Tensor, split_baddbmm: bool = False):
 
     return X
 
+def gram_frobenius_norm_estimate(x: torch.Tensor, keepdim: bool = False, eps: float = 1e-7):
+    gram = x.mT @ x if x.size(-2) > x.size(-1) else x @ x.mT
+    return gram.norm(dim=(-2, -1), keepdim=keepdim).sqrt().clamp_min(eps)
+
+def soft_muon_pr291_from_operand(g: torch.Tensor):
+    """
+    PR291-style p=0.1 Soft-Muon polynomial. This is a no-C singular-value
+    transfer probe, not a right-feature preconditioner.
+    """
+    x = g.bfloat16()
+    transposed = x.size(-2) > x.size(-1)
+    if transposed:
+        x = x.mT
+    x = x / gram_frobenius_norm_estimate(x, keepdim=True, eps=1e-7).to(x.dtype)
+
+    coeffs = (
+        0.1091613623,
+        0.07085664498,
+        0.05210528973,
+        0.05457295795,
+        0.05011334061,
+        0.03334622198,
+        0.05022104481,
+        0.1053727358,
+        0.1187323776,
+        0.1185061091,
+        0.1185059576,
+        0.1185059576,
+    )
+    a, b, c = 2.0, -1.5, 0.5
+    out = torch.zeros_like(x)
+    for coeff in coeffs:
+        out = out + coeff * x
+        gram = x @ x.mT
+        basis = b * gram + c * (gram @ gram)
+        x = a * x + basis @ x
+    if transposed:
+        out = out.mT
+    return out
+
 def soft_polar_from_operand(g: torch.Tensor, alpha_t: torch.Tensor, eps_t: torch.Tensor):
     """
     Apply T_alpha,eps(X) = X (X.T X + eps I)^(-alpha/2) to the same normalized
@@ -644,6 +692,9 @@ def soft_polar_from_operand(g: torch.Tensor, alpha_t: torch.Tensor, eps_t: torch
     screen for the spectral-transfer hypothesis; if it hits, replace with a
     polynomial/fractional Newton-Schulz approximation.
     """
+    if LOCO_SOFT_POLAR_IMPL == "pr291":
+        return soft_muon_pr291_from_operand(g)
+
     X = g.float()
     X = X / (X.norm(dim=(-2, -1), keepdim=True) * (1 + 2e-2) + 1e-6)
     alpha = alpha_t.to(device=X.device, dtype=torch.float32)
@@ -4307,7 +4358,8 @@ class TrainingManager():
         if LOCO_SOFT_POLAR:
             print0(
                 f"soft_polar surfaces={sorted(LOCO_SOFT_POLAR_SURFACES)} "
-                f"alpha={LOCO_SOFT_POLAR_ALPHA} eps={LOCO_SOFT_POLAR_EPS} "
+                f"impl={LOCO_SOFT_POLAR_IMPL} alpha={LOCO_SOFT_POLAR_ALPHA} "
+                f"power={LOCO_SOFT_POLAR_POWER} eps={LOCO_SOFT_POLAR_EPS} "
                 f"blend_max={LOCO_SOFT_POLAR_BLEND_MAX} blend_steps={LOCO_SOFT_POLAR_BLEND_STEPS} "
                 f"windows={LOCO_SOFT_POLAR_WINDOWS or 'end'} "
                 f"norm_restore={int(LOCO_SOFT_POLAR_NORM_RESTORE)}",

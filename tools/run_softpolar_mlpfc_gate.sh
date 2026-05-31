@@ -7,15 +7,25 @@ warmup="${SCREEN_WARMUP:-0,1,8,18,19,20,21,24,38,39,40,41,48,58,59,60,64,78,79,8
 layers="${LOCO_DIAG_MLP_LAYERS:-0-1}"
 attn_layers="${LOCO_DIAG_ATTN_LAYERS:-${layers}}"
 surfaces="${LOCO_SOFT_POLAR_SURFACES:-mlp_fc}"
+impl="${LOCO_SOFT_POLAR_IMPL:-exact}"
 alpha="${LOCO_SOFT_POLAR_ALPHA:-0.5}"
+if [[ -n "${LOCO_SOFT_POLAR_POWER:-}" ]]; then
+  power="${LOCO_SOFT_POLAR_POWER}"
+elif [[ "${impl}" == "pr291" ]]; then
+  power="0.1"
+else
+  power="$(python3 -c "print(max(0.0, 1.0 - float('${alpha}')))")"
+fi
 eps="${LOCO_SOFT_POLAR_EPS:-1e-6}"
 windows="${LOCO_SOFT_POLAR_WINDOWS:-48-64}"
 label_layers="${layers//[^0-9A-Za-z]/_}"
 label_surfaces="${surfaces//[^0-9A-Za-z]/_}"
 label_windows="${windows//[^0-9A-Za-z]/_}"
+label_impl="${impl//[^0-9A-Za-z]/_}"
 label_alpha="${alpha//[^0-9A-Za-z]/_}"
+label_power="${power//[^0-9A-Za-z]/_}"
 label_eps="${eps//[^0-9A-Za-z]/_}"
-log_path="${LOG_PATH:-.opencode/softpolar_${label_surfaces}_layers${label_layers}_win${label_windows}_a${label_alpha}_eps${label_eps}_screen${steps}.log}"
+log_path="${LOG_PATH:-.opencode/softpolar_${label_impl}_${label_surfaces}_layers${label_layers}_win${label_windows}_a${label_alpha}_p${label_power:-default}_eps${label_eps}_screen${steps}.log}"
 cache_dir="${TORCHINDUCTOR_CACHE_DIR:-${HOME}/.cache/torchinductor-speedrun-newtonv}"
 nproc="${NPROC_PER_NODE:-1}"
 
@@ -33,7 +43,9 @@ PYTHONUNBUFFERED=1 \
 TORCHINDUCTOR_CACHE_DIR="${cache_dir}" \
 LOCO_SOFT_POLAR=1 \
 LOCO_SOFT_POLAR_SURFACES="${surfaces}" \
+LOCO_SOFT_POLAR_IMPL="${impl}" \
 LOCO_SOFT_POLAR_ALPHA="${alpha}" \
+LOCO_SOFT_POLAR_POWER="${power}" \
 LOCO_SOFT_POLAR_EPS="${eps}" \
 LOCO_SOFT_POLAR_WINDOWS="${windows}" \
 LOCO_SOFT_POLAR_BLEND_MAX="${LOCO_SOFT_POLAR_BLEND_MAX:-1.0}" \

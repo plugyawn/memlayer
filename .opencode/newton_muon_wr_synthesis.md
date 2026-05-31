@@ -2790,3 +2790,23 @@ time on C:
     surface-broadened exact control remains positive;
   - only then reconsider whether feature C adds anything on top.
 ```
+
+Implementation note:
+
+```text
+The branch now has both exact and PR291-style no-C Soft-Muon implementations:
+  LOCO_SOFT_POLAR_IMPL=exact
+  LOCO_SOFT_POLAR_IMPL=pr291
+
+The PR291 path is intentionally narrow: p=0.1 only, gram-Frobenius/Schatten-4
+input normalization, 12 Newton-Schulz basis terms with the PR coefficients,
+and no feature C. It is not the full PR291 optimizer stack because it excludes
+SOAP, contra-Muon, u/w-floor changes, and the late 2500-step schedule.
+
+This is the right next control because it answers:
+  did the exact eig alpha0.9 hit because p~=0.1 Soft-Muon is useful here, or
+  because the exact eig/no-C probe introduced some unrelated path artifact?
+
+If the polynomial path keeps the 80-step alpha0.9 gain and survives to 200,
+feature-Gram C becomes a second-order add-on rather than the main branch.
+```

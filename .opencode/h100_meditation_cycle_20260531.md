@@ -692,3 +692,44 @@ alpha0.9 surfaces before returning to feature C:
 The alpha0.9 MLP-only result is not large enough by itself for a WR claim, but
 it is strong enough to make PR291-style no-C Soft-Muon the top immediate branch.
 ```
+
+## Cycle H Prep
+
+PR291 polynomial adaptation:
+
+```text
+Added a separate no-C implementation flag:
+  LOCO_SOFT_POLAR_IMPL=exact   # current eig T_alpha control
+  LOCO_SOFT_POLAR_IMPL=pr291   # p=0.1 PR291 polynomial Soft-Muon
+
+The PR291 path uses the p=0.1 linear combination of 12 Newton-Schulz basis
+terms, with the same gram-Frobenius / Schatten-4 style input normalization
+from the PR. It still runs inside our controlled no-C probe:
+  raw grad -> Nesterov operand -> baseline Polar Express update
+  raw grad -> Nesterov operand -> PR291 soft polynomial
+  blend/norm-restore soft update into baseline update
+  then ordinary NorMuon variance reduction and update
+
+This deliberately does not implement SOAP, contra-Muon, or the PR291 late
+2500-step schedule yet. The next H100 run is a clean local adaptation test of
+the Soft-Muon singular-value transfer only.
+```
+
+Next queued decision:
+
+```text
+When the H100 meditation window opens at 12:57:39 IST, run a short broad no-C
+surface screen with the polynomial path before returning to feature C.
+
+Preferred command:
+  LOCO_SOFT_POLAR_IMPL=pr291
+  LOCO_SOFT_POLAR_ALPHA=0.9
+  LOCO_SOFT_POLAR_POWER=0.1
+  LOCO_SOFT_POLAR_SURFACES=qk,v,o,mlp_fc
+  LOCO_SOFT_POLAR_WINDOWS=48-64
+  SCREEN_STEPS=80
+  paired cases noop,active,noop2
+
+If broad all-surface polynomial is bad or too noisy, rerun a lower-risk
+v,mlp_fc polynomial screen. If broad is positive at 80, promote to 200.
+```
