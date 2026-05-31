@@ -443,3 +443,51 @@ Read: these two Prime lanes are independent one-run confirmations, separate from
 - Local launch log: `.opencode/modal_track3-simple-locom-3000-h100-r1b-20260601.launch.log`.
 
 Read: this is the clean long Modal lane requested after the Prime runs showed schedule-transfer ambiguity. It matches the simple Track 3 base + LocoProp-M settings used for the Prime lanes, but on a 3000-step schedule and Modal H100 throughput. The local Modal CLI was terminated after the detached remote function was verified live; `modal app list` showed `ap-JzZSBnBxCcchS9cE9P7qjK` in `ephemeral` state with one task after disconnect.
+
+## 2026-06-01 LocoProp-M Diagnostic Read
+
+The exact thing that worked in the 500-step simple-base screen was not a clean local solve. It was the capped additive correction.
+
+Evidence from the two 500-step simple-base runs:
+
+| Run | Step 125 | Step 250 | Step 500 | LocoProp stats |
+| --- | ---: | ---: | ---: | --- |
+| `modal_track3_locom_m_all_k4_mbs16_500_h100_20260531` | 4.63912 | 4.07139 | 3.74983 | prepare loss ratios mostly huge; apply/base exactly 0.20 at logged steps |
+| `modal_track3_locom_m_all_k4_mbs16_500_confirm_r2_h100_20260531` | 4.64379 | 4.07186 | 3.74855 | same cap-saturated behavior |
+| `modal_track3_locom_m_all_k4_mbs16_a0_control_500_h100_20260531` | 4.68004 | n/a | n/a | same prepare path but apply/base 0 |
+
+Representative parsed stats:
+
+- 500 r1 step 2: median `lossK/loss0 = 1.24e5`, mean `cos_desc = -0.091`, median `apply/base = 0.20`.
+- 500 r1 step 10: median `lossK/loss0 = 1.36e10`, median `apply/base = 0.20`.
+- 500 r1 step 125: median `lossK/loss0 = 2.79e5`, median `apply/base = 0.20`.
+- 500 r2 step 250: median `lossK/loss0 = 245`, median `apply/base = 0.20`.
+
+Read: the 500-step win is real relative to the alpha-zero control at step 125, but the local optimizer itself is usually diverging. The guardrail that made it usable was the `0.20 * base_step` cap. This should be treated as a bounded perturbation / early regularizer, not evidence that `K=4, inner_lr=0.1, prox=0.1` is a good LocoProp-M solve.
+
+The long 8x simple-base run agrees with the 1x long runs, so distributed cancellation is not the main explanation.
+
+| Step | 8x LocoProp | simple tuned base mean | delta vs base | official NM ref | delta vs NM |
+| ---: | ---: | ---: | ---: | ---: | ---: |
+| 125 | 4.65208 | 4.67603 | -0.02395 | 4.66507 | -0.01299 |
+| 250 | 4.10883 | 4.12913 | -0.02030 | 4.11784 | -0.00901 |
+| 500 | 3.82689 | 3.83569 | -0.00880 | 3.82416 | +0.00273 |
+| 1000 | 3.63810 | 3.64322 | -0.00512 | 3.62916 | +0.00894 |
+| 1250 | 3.58144 | 3.58182 | -0.00038 | 3.56677 | +0.01467 |
+| 2000 | 3.44620 | 3.44582 | +0.00038 | n/a | n/a |
+| 3000 | 3.31322 | 3.31168 | +0.00154 | 3.30198 | +0.01124 |
+| 3350 | 3.28003 | 3.27847 | +0.00156 | n/a | n/a |
+
+Long-run parsed stats show the same early cap-saturation:
+
+- 8x step 2: median `lossK/loss0 = 4.27e7`, median `apply/base = 0.20`.
+- 8x step 10: median `lossK/loss0 = 3.39e13`, median `apply/base = 0.20`.
+- 8x step 125: median `lossK/loss0 = 4.92e3`, median `apply/base = 0.20`.
+- 8x step 1000: one printed layer is healthy (`lossK/loss0 < 1`), the other is still bad (`~1.31e3`); median `apply/base = 0.115` because one layer is no longer cap-limited and the other is.
+
+Interpretation: the strong short-screen improvement is a start-from-zero capped perturbation plus an aggressive 500-step cooldown. In the 3350-step schedule it remains modestly helpful through roughly step 1000, then becomes neutral/worse during long refinement. Keeping the same capped perturbation active throughout the full schedule likely leaves a state that is slightly worse for final cooldown.
+
+Two diagnostic follow-up Modal lanes are active:
+
+- `track3-simple-locom-3000-start0-stable-h100-r1-20260601`: app `ap-ZXkryyc23Dw7xpQTO6MzF3`, seed 600, `inner_lr=0.005`, `prox=1.0`, `cap=0.05`, start step 0. Diagnostics are clean, but step 125 is `4.67998`, so this is too weak to reproduce the early signal.
+- `track3-simple-locom-3000-start0-end900-k4cap20-h100-r1-20260601`: app `ap-Kc1exQhQl2dwJMM9TyFqYx`, function `fc-01KSZV9E25TDB3EKKCXMC2BE1E`, seed 700, original `K=4`, `inner_lr=0.1`, `prox=0.1`, `cap=0.20`, start step 0, end step 900. This is the direct test of the current hypothesis: keep the early cap-limited kick, then turn it off before long-schedule refinement.
