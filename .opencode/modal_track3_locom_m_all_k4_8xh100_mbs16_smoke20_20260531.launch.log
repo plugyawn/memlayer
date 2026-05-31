@@ -1,0 +1,75 @@
+✓ Initialized. View run at 
+https://modal.com/apps/nipsdwip/main/ap-wOSZ0i23gRX70iOqVAO12B
+✓ Created objects.
+├── 🔨 Created mount 
+│   /Users/progyan/speedrun/wr-fresh-20260526/tools/modal_nanogpt_runner.py
+├── 🔨 Created mount /Users/progyan/speedrun/wr-fresh-20260526
+├── 🔨 Created function prepare_data.
+└── 🔨 Created function run_screen.
+
+==========
+== CUDA ==
+==========
+
+CUDA Version 12.8.0
+
+Container image Copyright (c) 2016-2023, NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+
+This container image and its contents are governed by the NVIDIA Deep Learning Container License.
+By pulling and using the container, you accept the terms and conditions of this license:
+https://developer.nvidia.com/ngc/nvidia-deep-learning-container-license
+
+A copy of this license is made available in this container at /NGC-DL-CONTAINER-LICENSE for your convenience.
+
+logs/743e8ef7-ec3c-4119-8045-b937cf0a6b9c.txt
+locoprop_m_owner rank=0 world=8 owned_layers=[0, 8] global_sample_tokens=1024
+step:0/20 val_loss:10.82585 train_time:0.000s step_avg:nanms
+locoprop_m_prepare step=0 l0:loss0=1.426e-06,lossK=1.569e-02,corr_norm=4.826e+00,grad_norm=0.000e+00,cos_desc=0.000,tokens=1024 | l8:loss0=1.413e-06,lossK=2.992e-02,corr_norm=6.940e+00,grad_norm=0.000e+00,cos_desc=0.000,tokens=1024
+locoprop_m_apply step=0 shape=(3072, 768):base_step=0.000e+00,corr_norm=4.826e+00,scale=0.000e+00 | shape=(3072, 768):base_step=0.000e+00,corr_norm=6.940e+00,scale=0.000e+00
+step:1/20 train_time:16.709s step_avg:16708.59ms
+locoprop_m_prepare step=1 l0:loss0=1.424e-06,lossK=4.982e-02,corr_norm=9.406e+00,grad_norm=0.000e+00,cos_desc=0.000,tokens=1024 | l8:loss0=1.417e-06,lossK=5.926e-02,corr_norm=1.008e+01,grad_norm=0.000e+00,cos_desc=0.000,tokens=1024
+locoprop_m_apply step=1 shape=(3072, 768):base_step=0.000e+00,corr_norm=9.406e+00,scale=0.000e+00 | shape=(3072, 768):base_step=0.000e+00,corr_norm=1.008e+01,scale=0.000e+00
+step:2/20 train_time:17.192s step_avg:8596.02ms
+locoprop_m_prepare step=2 l0:loss0=1.435e-06,lossK=1.313e-01,corr_norm=1.709e+01,grad_norm=2.620e+03,cos_desc=-0.064,tokens=1024 | l8:loss0=1.425e-06,lossK=1.321e+02,corr_norm=1.198e+03,grad_norm=4.670e+03,cos_desc=-0.202,tokens=1024
+locoprop_m_apply step=2 shape=(3072, 768):base_step=1.939e+00,corr_norm=1.709e+01,scale=2.269e-02 | shape=(3072, 768):base_step=1.940e+00,corr_norm=1.198e+03,scale=3.239e-04
+step:3/20 train_time:17.681s step_avg:5893.76ms
+step:4/20 train_time:18.158s step_avg:4539.40ms
+step:5/20 train_time:18.634s step_avg:3726.70ms
+step:6/20 train_time:19.113s step_avg:3185.42ms
+step:7/20 train_time:19.591s step_avg:2798.72ms
+step:8/20 train_time:20.068s step_avg:2508.52ms
+step:9/20 train_time:20.547s step_avg:2283.03ms
+step:10/20 train_time:21.023s step_avg:2102.30ms
+step:10/20 val_loss:6.49361 train_time:21.025s step_avg:2102.47ms
+locoprop_m_prepare step=10 l0:loss0=3.963e-06,lossK=1.671e+02,corr_norm=8.751e+02,grad_norm=1.554e+04,cos_desc=0.098,tokens=1024 | l8:loss0=2.555e-06,lossK=1.557e+03,corr_norm=4.148e+03,grad_norm=1.348e+04,cos_desc=0.385,tokens=1024
+locoprop_m_apply step=10 shape=(3072, 768):base_step=1.387e+00,corr_norm=8.751e+02,scale=3.169e-04 | shape=(3072, 768):base_step=1.352e+00,corr_norm=4.148e+03,scale=6.519e-05
+step:11/20 train_time:21.515s step_avg:1955.89ms
+step:12/20 train_time:21.993s step_avg:1832.74ms
+step:13/20 train_time:22.469s step_avg:1728.40ms
+step:14/20 train_time:22.949s step_avg:1639.23ms
+step:15/20 train_time:23.425s step_avg:1561.69ms
+step:16/20 train_time:23.903s step_avg:1493.95ms
+step:17/20 train_time:24.382s step_avg:1434.21ms
+step:18/20 train_time:24.860s step_avg:1381.09ms
+step:19/20 train_time:25.338s step_avg:1333.58ms
+step:20/20 train_time:25.813s step_avg:1290.66ms
+step:20/20 val_loss:6.18299 train_time:25.815s step_avg:479.02ms
+{
+  "cache_volume": "nanogpt-speedrun-cache",
+  "data_volume": "nanogpt-speedrun-fineweb10b",
+  "gpu": "H100",
+  "returncode": 0,
+  "runner": "tools/run_track3_locoprop_m.sh",
+  "tail": "logs/743e8ef7-ec3c-4119-8045-b937cf0a6b9c.txt\nlocoprop_m_owner rank=0 world=8 owned_layers=[0, 8] global_sample_tokens=1024\nstep:0/20 val_loss:10.82585 train_time:0.000s step_avg:nanms\nlocoprop_m_prepare step=0 l0:loss0=1.426e-06,lossK=1.569e-02,corr_norm=4.826e+00,grad_norm=0.000e+00,cos_desc=0.000,tokens=1024 | l8:loss0=1.413e-06,lossK=2.992e-02,corr_norm=6.940e+00,grad_norm=0.000e+00,cos_desc=0.000,tokens=1024\nlocoprop_m_apply step=0 shape=(3072, 768):base_step=0.000e+00,corr_norm=4.826e+00,scale=0.000e+00 | shape=(3072, 768):base_step=0.000e+00,corr_norm=6.940e+00,scale=0.000e+00\nstep:1/20 train_time:16.709s step_avg:16708.59ms\nlocoprop_m_prepare step=1 l0:loss0=1.424e-06,lossK=4.982e-02,corr_norm=9.406e+00,grad_norm=0.000e+00,cos_desc=0.000,tokens=1024 | l8:loss0=1.417e-06,lossK=5.926e-02,corr_norm=1.008e+01,grad_norm=0.000e+00,cos_desc=0.000,tokens=1024\nlocoprop_m_apply step=1 shape=(3072, 768):base_step=0.000e+00,corr_norm=9.406e+00,scale=0.000e+00 | shape=(3072, 768):base_step=0.000e+00,corr_norm=1.008e+01,scale=0.000e+00\nstep:2/20 train_time:17.192s step_avg:8596.02ms\nlocoprop_m_prepare step=2 l0:loss0=1.435e-06,lossK=1.313e-01,corr_norm=1.709e+01,grad_norm=2.620e+03,cos_desc=-0.064,tokens=1024 | l8:loss0=1.425e-06,lossK=1.321e+02,corr_norm=1.198e+03,grad_norm=4.670e+03,cos_desc=-0.202,tokens=1024\nlocoprop_m_apply step=2 shape=(3072, 768):base_step=1.939e+00,corr_norm=1.709e+01,scale=2.269e-02 | shape=(3072, 768):base_step=1.940e+00,corr_norm=1.198e+03,scale=3.239e-04\nstep:3/20 train_time:17.681s step_avg:5893.76ms\nstep:4/20 train_time:18.158s step_avg:4539.40ms\nstep:5/20 train_time:18.634s step_avg:3726.70ms\nstep:6/20 train_time:19.113s step_avg:3185.42ms\nstep:7/20 train_time:19.591s step_avg:2798.72ms\nstep:8/20 train_time:20.068s step_avg:2508.52ms\nstep:9/20 train_time:20.547s step_avg:2283.03ms\nstep:10/20 train_time:21.023s step_avg:2102.30ms\nstep:10/20 val_loss:6.49361 train_time:21.025s step_avg:2102.47ms\nlocoprop_m_prepare step=10 l0:loss0=3.963e-06,lossK=1.671e+02,corr_norm=8.751e+02,grad_norm=1.554e+04,cos_desc=0.098,tokens=1024 | l8:loss0=2.555e-06,lossK=1.557e+03,corr_norm=4.148e+03,grad_norm=1.348e+04,cos_desc=0.385,tokens=1024\nlocoprop_m_apply step=10 shape=(3072, 768):base_step=1.387e+00,corr_norm=8.751e+02,scale=3.169e-04 | shape=(3072, 768):base_step=1.352e+00,corr_norm=4.148e+03,scale=6.519e-05\nstep:11/20 train_time:21.515s step_avg:1955.89ms\nstep:12/20 train_time:21.993s step_avg:1832.74ms\nstep:13/20 train_time:22.469s step_avg:1728.40ms\nstep:14/20 train_time:22.949s step_avg:1639.23ms\nstep:15/20 train_time:23.425s step_avg:1561.69ms\nstep:16/20 train_time:23.903s step_avg:1493.95ms\nstep:17/20 train_time:24.382s step_avg:1434.21ms\nstep:18/20 train_time:24.860s step_avg:1381.09ms\nstep:19/20 train_time:25.338s step_avg:1333.58ms\nstep:20/20 train_time:25.813s step_avg:1290.66ms\nstep:20/20 val_loss:6.18299 train_time:25.815s step_avg:479.02ms\n",
+  "training_summary": {
+    "step": 20,
+    "step_avg_ms": 479.02,
+    "total_steps": 20,
+    "train_time_s": 25.815,
+    "val_loss": 6.18299
+  },
+  "wall_time_s": 62.94
+}
+Stopping app - local entrypoint completed.
+✓ App completed. View run at 
+https://modal.com/apps/nipsdwip/main/ap-wOSZ0i23gRX70iOqVAO12B

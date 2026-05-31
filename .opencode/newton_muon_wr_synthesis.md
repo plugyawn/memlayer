@@ -2869,3 +2869,47 @@ Immediate implication:
   the branch still has the exact-eig MLP 200-step signal but not a PR291
   polynomial persistence result.
 ```
+
+Broad PR291 all_l01 200-step promotion:
+
+```text
+Artifacts:
+  .opencode/modal_softmuon_pr291_all_l01_200_h100_20260531.launch.log
+  .opencode/modal_softmuon_pr291_all_l01_200_h100_20260531.summary.md
+  .opencode/modal_softmuon_pr291_all_l01_200_h100_20260531.parsed.md
+  .opencode/modal_softmuon_pr291_all_l01_200_h100_20260531.diagnostics.md
+  .opencode/modal_softmuon_pr291_all_l01_200_h100_20260531.loss.svg
+
+200-step result:
+  active=3.8836
+  noop1=3.8874
+  noop2=3.8844
+  noop_mean=3.8859
+  delta_vs_noop_mean=-0.0023
+  beats_both=yes
+
+Intermediate checkpoints:
+  step40  delta=+0.0104
+  step80  delta=-0.0073
+  step120 delta=+0.0009
+  step160 delta=+0.0001
+```
+
+Updated synthesis:
+
+```text
+This is the first PR291-style no-C polynomial result that survives to 200.
+It is not a large enough margin to call WR-ready, but it is a valid positive
+optimizer signal under paired controls.
+
+The non-monotone curve matters. Broad Soft-Muon is worse at 40, wins around
+80, loses its edge near 120/160, then finishes ahead at 200. That suggests the
+intervention is not just a transient early-loss accelerator; it changes the
+trajectory in a way that can recover later. But the margin against the best
+noop is only 0.0008, so path controls and replication still matter.
+
+The next control is broad schedule-only at 200:
+  if schedule-only also wins at comparable size, the result is path-confounded;
+  if schedule-only is neutral or loses, PR291-style p=0.1 broad Soft-Muon
+  becomes the main non-C branch.
+```

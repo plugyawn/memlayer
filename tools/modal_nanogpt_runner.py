@@ -18,8 +18,8 @@ DEFAULT_GPU = os.environ.get(
     os.environ.get("MODAL_NANOGPT_GPU", os.environ.get("MODAL_GPU", "H100")),
 )
 
-if DEFAULT_GPU not in {"H100", "H100!", "GH200"}:
-    raise ValueError("Only H100/H100! or GH200 are allowed for this speedrun runner.")
+if DEFAULT_GPU not in {"H100", "H100!", "GH200", "H100:8", "H100!:8"}:
+    raise ValueError("Only H100/H100!/GH200 or 8x H100 specs are allowed for this speedrun runner.")
 
 
 def _ignore_source(path: Path) -> bool:
@@ -45,11 +45,10 @@ image = (
     .apt_install("git", "build-essential", "python3.10-dev")
     .pip_install_from_requirements("requirements.txt")
     .pip_install("kernels==0.11.7")
-    .add_local_dir(".", str(REMOTE_ROOT), copy=True, ignore=_ignore_source)
-    .workdir(str(REMOTE_ROOT))
 )
 if os.environ.get("NANOGPT_MODAL_TORCH"):
     image = image.pip_install(f"torch=={os.environ['NANOGPT_MODAL_TORCH']}")
+image = image.add_local_dir(".", str(REMOTE_ROOT), copy=True, ignore=_ignore_source).workdir(str(REMOTE_ROOT))
 
 app = modal.App(
     APP_NAME,

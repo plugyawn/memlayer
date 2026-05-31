@@ -85,3 +85,195 @@ Observed validation:
 | 125 | 4.68139 | +0.01919 |
 
 Read: additive local displacement on top of Muon/NM state was harmful at both tested scales. Alpha `0.005` was less destructive than `0.05`, but still too far behind to justify continuing.
+
+## Sampled LocoProp-M Local Matching Correction
+
+Implementation:
+
+- Branch/base: local `codex/wr-fresh-20260526`; generated from the official Track 3 `records/track_3_optimization/train_gpt_simple.py`, not from a GitHub PR.
+- Files: `tools/make_track3_locoprop_m.py`, `tools/run_track3_locoprop_m.sh`.
+- Surface: all 12 MLP `fc` matrices.
+- Semantics: leave Muon state unchanged, run a sampled local LocoProp-M matching solve from cached `X`, post-ReLU-squared activations, and preactivation gradients, then apply the local displacement after the Muon step.
+- Matching target: `post_target = post - gamma * dpre`.
+- Local solve: 4 matching-loss steps, `sample_tokens=1024`, `inner_lr=0.1`, `prox=0.1`, `gamma=1.0`.
+- Application: correction is capped at `0.20 * ||Muon update||` per matrix; no norm-to-base rescale.
+- Runtime accommodation: `TRACK3_MBS=16` and no `model.compile`, because eager hooks plus `mbs=64` OOM on H100.
+
+Failed smoke:
+
+`track3-locom-m-all-k4-500-h100-20260531`
+
+- App: `ap-Tby3R4S4tYlsd2bsJPTp7O`.
+- Log: `.opencode/modal_track3_locom_m_all_k4_500_h100_20260531.launch.log`.
+- Result: OOM before the first optimizer step with `mbs=64`.
+
+Active 500-step run:
+
+`track3-locom-m-all-k4-mbs16-500-h100-20260531`
+
+- App: `ap-ls756LDL1iUPDbUPFRY0mI`.
+- Log: `.opencode/modal_track3_locom_m_all_k4_mbs16_500_h100_20260531.launch.log`.
+- Return code: 0.
+
+Observed validation:
+
+| Step | Val loss | Delta vs official NM reference |
+| ---: | ---: | ---: |
+| 125 | 4.63912 | -0.02308 |
+| 250 | 4.07139 | -0.04425 |
+| 375 | 3.85413 | -0.07251 |
+| 500 | 3.74983 | -0.07287 |
+
+Timing:
+
+| Step | Step avg |
+| ---: | ---: |
+| 125 | 3719.22ms |
+| 250 | 3600.28ms |
+| 375 | 3601.51ms |
+| 500 | 3601.85ms |
+
+Diagnostics:
+
+- The loss signal is large versus the previous official-NM reference, especially by 375/500.
+- The implementation is not speed-relevant yet: eager mode plus 12 sampled local solves makes it roughly `3.6s/step`.
+- The local solver is not cleanly tuned. `lossK` often exceeds `loss0`, sometimes by orders of magnitude, and the correction is frequently governed by the `0.20 * ||Muon update||` cap.
+- The sampled correction cosine with raw descent is weak and sometimes negative, so this result should be read as "capped LocoProp-M displacement can move Track 3 strongly," not as evidence that `inner_lr=0.1` is the right local optimizer.
+- Same-path alpha-zero control is required because this run changed compile/microbatch/capture behavior relative to the official NM reference.
+- Important capture caveat discovered after the initial 1x/8x mismatch: by default the implementation overwrites cached feature/target samples on every microbatch, so the local solve sees only the final microbatch, not the full optimizer batch. This is now explicit as the default "last microbatch" mode.
+- Added `TRACK3_LOCOM_ACCUM_SAMPLES=1` and `TRACK3_LOCOM_MICRO_SAMPLE_TOKENS` to test a faithful accumulated-sample variant. With `mbs=16`, `MICRO_SAMPLE_TOKENS=32` gives 1024 total rows on 1x and 1024 gathered rows on 8x.
+
+Alpha-zero control:
+
+`track3-locom-m-all-k4-mbs16-a0-control-500-h100-20260531`
+
+- App: `ap-q9Y06l7o92OcaeQeg9XOeP`.
+- Log: `.opencode/modal_track3_locom_m_all_k4_mbs16_a0_control_500_h100_20260531.launch.log`.
+- Purpose: identical capture/local-solve path with `TRACK3_LOCOM_ALPHA=0.0`, to separate the LocoProp-M displacement from eager/mbs/local-compute path effects.
+- Status: local Modal client/app stopped around step 166, so this did not complete 500.
+- First comparable screen: step 125 val `4.68004`.
+- Read: at step 125 the active LocoProp-M run beat this same-path alpha-zero control by about `0.0409` loss.
+
+Corrected-owner 1x confirmation:
+
+`track3-locom-m-all-k4-mbs16-500-confirm-r2-h100-20260531`
+
+- App: `ap-8ckZBjRYnwQp8GIaZMcZ1M`.
+- Log: `.opencode/modal_track3_locom_m_all_k4_mbs16_500_confirm_r2_h100_20260531.launch.log`.
+- Purpose: confirm the 1x signal after the owner-step application path was corrected for distributed compatibility.
+- Status: running.
+
+Observed validation:
+
+| Step | Val loss | Delta vs first active LocoProp-M | Delta vs alpha-zero control |
+| ---: | ---: | ---: | ---: |
+| 125 | 4.64379 | +0.00467 | -0.03625 |
+| 250 | 4.07186 | +0.00047 | n/a |
+| 375 | 3.85202 | -0.00211 | n/a |
+| 450 | 3.77372 | -0.00139 | n/a |
+| 475 | 3.75684 | -0.00124 | n/a |
+| 500 | 3.74855 | -0.00128 | n/a |
+
+Read: the 1x signal reproduces closely enough after the owner-step correction. This makes the weaker 8x behavior more likely to be caused by distributed sampling/application semantics than by the corrected code path simply killing the idea.
+
+8x H100 distributed tests:
+
+`track3-locom-m-all-k4-8xh100-mbs16-smoke20-20260531`
+
+- App: `ap-wOSZ0i23gRX70iOqVAO12B`.
+- Log: `.opencode/modal_track3_locom_m_all_k4_8xh100_mbs16_smoke20_20260531.launch.log`.
+- Result: passed 20 steps with `mbs=16`; step 20 val `6.18299`, step avg `479.02ms`.
+
+`track3-locom-m-all-k4-8xh100-mbs16-target328-r1-20260531`
+
+- App: `ap-3vQFqAHx6xAuGtZfU3d1GV`.
+- Log: `.opencode/modal_track3_locom_m_all_k4_8xh100_mbs16_target328_r1_20260531.launch.log`.
+- Setting: gather sampled local-solve rows across ranks, total `sample_tokens=1024`.
+- Status: completed.
+
+Observed validation:
+
+| Step | Val loss |
+| ---: | ---: |
+| 125 | 4.65208 |
+| 250 | 4.10883 |
+| 375 | 3.92628 |
+| 500 | 3.82689 |
+| 625 | 3.75912 |
+| 750 | 3.71309 |
+| 875 | 3.67272 |
+| 1000 | 3.63810 |
+| 1125 | 3.61087 |
+| 1250 | 3.58144 |
+| 1375 | 3.55518 |
+| 1500 | 3.52545 |
+| 1625 | 3.50672 |
+| 1750 | 3.48503 |
+| 1875 | 3.46570 |
+| 2000 | 3.44620 |
+| 2125 | 3.42888 |
+| 2250 | 3.41089 |
+| 2375 | 3.39460 |
+| 2500 | 3.37829 |
+| 2625 | 3.36138 |
+| 2750 | 3.34522 |
+| 2875 | 3.32902 |
+| 3000 | 3.31322 |
+| 3025 | 3.30928 |
+| 3050 | 3.30617 |
+| 3075 | 3.30343 |
+| 3100 | 3.30059 |
+| 3125 | 3.29779 |
+| 3150 | 3.29479 |
+| 3175 | 3.29221 |
+| 3200 | 3.28959 |
+| 3225 | 3.28724 |
+| 3250 | 3.28515 |
+| 3275 | 3.28334 |
+| 3300 | 3.28177 |
+| 3325 | 3.28059 |
+| 3350 | 3.28003 |
+
+Read: the 8x gathered path is much faster, but it does not reproduce the strong 1x 500-step loss. It still essentially reaches the Track 3 target distance, ending at `3.28003` after 3350 steps with final validation step avg `488.81ms`. This may be because cross-rank sample aggregation changes/cancels the local matching correction; the correction diagnostics show small or unstable cosine with raw descent on some owner layers.
+
+Queued batching diagnostic:
+
+`track3-locom-m-all-k4-8xh100-mbs16-nogather-local1024-500-r1-20260531`
+
+- App: `ap-Er7gnOFDojDlp4lp3SuDuR`.
+- Log: `.opencode/modal_track3_locom_m_all_k4_8xh100_mbs16_nogather_local1024_500_r1_20260531.launch.log`.
+- Setting: `TRACK3_LOCOM_GATHER_SAMPLES=0`, `TRACK3_LOCOM_SAMPLE_TOKENS=1024`; each owning rank solves from its local 1024-row sample rather than a cross-rank gathered sample.
+- Purpose: directly test whether the distributed/global sample construction is washing out the early 1x signal.
+- Status: created/queued, no training output yet.
+
+Queued accumulated-sample diagnostic:
+
+`track3-locom-m-all-k4-mbs16-accum32-125-h100-r1-20260531`
+
+- App: pending in `.opencode/modal_track3_locom_m_all_k4_mbs16_accum32_125_h100_r1_20260531.launch.log`.
+- Setting: `TRACK3_LOCOM_ACCUM_SAMPLES=1`, `TRACK3_LOCOM_MICRO_SAMPLE_TOKENS=32`, 1x H100, 125 steps.
+- Purpose: test whether the strong 1x last-microbatch signal survives when the local LocoProp-M solve sees samples accumulated across all microbatches in the optimizer step.
+- Status: failed before step 1 with CUDA OOM. The eager hook path plus accumulated samples used about `75.7 GiB` allocated and failed on an additional `3.07 GiB` allocation. Accumulated sampling needs a streaming/compact implementation before it is viable.
+
+## Current WR `train_gpt.py` LocoProp-M Side Run
+
+`wr-locom-m-cfc-k4-mbs-default-500-h100-r1-20260531`
+
+- App: pending in `.opencode/modal_wr_locom_m_cfc_k4_500_h100_r1_20260531.launch.log`.
+- Runner: `tools/run_wr_locoprop_m_500.sh`.
+- Generator: `tools/make_wr_locoprop_m.py`.
+- Surface: current WR `mlp_bank[:, 0]` / MLP `c_fc` only.
+- Setting: 1x H100, 500 steps, `WR_LOCOM_STEPS=4`, `WR_LOCOM_SAMPLE_TOKENS=1024`, `WR_LOCOM_INNER_LR=0.1`, `WR_LOCOM_PROX=0.1`, `WR_LOCOM_NORM_CAP=0.20`.
+- Semantics: same sampled LocoProp-M local matching correction as Track 3, applied as a state-decoupled post-NorMuon displacement through the WR bank update machinery.
+- Status: launched by mistake after misunderstanding "Track 3 WR"; local Modal client was stopped. Do not use this as evidence for the Track 3 question.
+
+## Track 3 Newton-Muon WR + LocoProp-M
+
+`track3-nm-locom-m-all-k4-mbs16-500-h100-r1-20260531`
+
+- App: `ap-0hClpIUHRTyqF0xxTenp9e`.
+- Log: `.opencode/modal_track3_nm_locom_m_all_k4_mbs16_500_h100_r1_20260531.launch.log`.
+- Runner: `tools/run_track3_locoprop_m.sh`.
+- Source: `records/track_3_optimization/results/20260505_newton_muon/train_gpt_simple_newton_muon.py`.
+- Setting: official Track 3 Newton-Muon script plus sampled LocoProp-M over all MLP `fc` surfaces, 1x H100, 500 steps, `TRACK3_MBS=16`, `K=4`, `sample_tokens=1024`, cap `0.20`.
+- Status: launched/created, no training values yet.

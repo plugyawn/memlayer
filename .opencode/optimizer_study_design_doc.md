@@ -2,14 +2,15 @@
 
 Status: working design doc.
 Branch: `codex/wr-fresh-20260526`.
-Latest pushed evidence commit: `70cda3f`.
+Latest pushed evidence commit: `b1388b0`.
 
 ## One-Sentence Summary
 
 The current evidence says feature-derived right metrics are mechanically real
-but not yet persistent enough, while no-C Soft-Muon singular-value transfer has
-the cleanest recent paired 200-step signal and should be promoted before more
-feature-Gram plumbing.
+but not yet persistent enough, while no-C Soft-Muon has a real-looking
+200-step signal that is currently confounded by the schedule-only split
+optimizer path. The next useful experiment is separating singular-value
+transfer from the explicit momentum-operand/polar-from-operand path.
 
 ## Scope
 
@@ -20,7 +21,7 @@ This document tracks optimizer interventions for the NanoGPT speedrun branch:
 | Diagonal feature Gram | per-coordinate input-energy scaling before/inside NorMuon | mostly noise or transient |
 | Full feature Gram / Newton-Muon | right-precondition with `C = X^T X`, then Muon/polar | real early V signal, too slow and control-sensitive |
 | Additive LocoProp-style correction | state-decoupled local `G f(C)` weight correction | structured but 80-step hits fade by 200 |
-| No-C Soft-Muon | change Muon singular-value transfer without `C` | best recent 200-step paired control |
+| No-C Soft-Muon | change Muon singular-value transfer without `C` | promising but path-confounded at 200 |
 
 Non-goals for this branch right now:
 
@@ -63,6 +64,11 @@ raw gradient
 ```
 
 ## Evidence So Far
+
+Study plot artifacts:
+
+- `.opencode/optimizer_study_softmuon_200.svg`
+- `.opencode/optimizer_study_softmuon_200_summary.md`
 
 ### Feature C / LocoProp-style correction
 
@@ -154,18 +160,51 @@ layers: 0-1
 implementation: PR291 p=0.1 polynomial Soft-Muon
 ```
 
+Completed 200-step broad result:
+
+| step | active | noop mean | delta | read |
+| ---: | ---: | ---: | ---: | --- |
+| 40 | `5.8676` | `5.8572` | `+0.0104` | worse |
+| 80 | `5.1044` | `5.1117` | `-0.0073` | strong early win |
+| 120 | `4.3914` | `4.3905` | `+0.0009` | parity/slightly worse |
+| 160 | `4.0519` | `4.0518` | `+0.0001` | parity |
+| 200 | `3.8836` | `3.8859` | `-0.0023` | beats both noops |
+
+The broad PR291 polynomial result survives to 200, but with a small margin
+against the best noop (`0.0008`). This is a positive optimizer signal, not a WR
+claim.
+
+Completed 200-step schedule-only broad control:
+
+| step | active | noop mean | delta | read |
+| ---: | ---: | ---: | ---: | --- |
+| 40 | `5.8559` | `5.8674` | `-0.0115` | schedule path wins early |
+| 80 | `5.0815` | `5.0949` | `-0.0134` | large mid-run win |
+| 120 | `4.3943` | `4.3948` | `-0.0005` | parity/slightly better |
+| 160 | `4.0511` | `4.0509` | `+0.0002` | parity |
+| 200 | `3.8845` | `3.8866` | `-0.0021` | beats both noops |
+
 Decision rule:
 
 ```text
-If broad PR291 still beats both noops at 200, it becomes the main optimizer
-branch and should be expanded by surface/layer schedule rather than C.
+Schedule-only beats both noops by roughly the same size as broad PR291
+Soft-Muon. Therefore the broad PR291 200-step result is path-confounded.
 
-If it wins at 80/120 but fades by 200, it joins the early-nudge family; next
-test should be late-window PR291 or a PR291 schedule closer to the original
-late Soft-Muon ramp.
+The next test must isolate active singular-value transfer from the split path.
+Run exact no-C Soft-Muon on the same broad surfaces/layers/window and compare
+against the schedule-only row above.
+```
 
-If it loses outright, the exact-eig MLP result remains a spectral-transfer
-signal, but PR291 polynomial broadening is not currently the answer.
+Queued exact broad Soft-Muon:
+
+```text
+runner: tools/run_softpolar_mlpfc_gate.sh
+steps: 200
+surfaces: qk,v,o,mlp_fc
+layers: 0-1
+window: 48-64
+implementation: exact eig Soft-Muon, alpha=0.9
+diagnostic: LOCO_FULL_LOG_PRECOND=1
 ```
 
 ## Open Risks

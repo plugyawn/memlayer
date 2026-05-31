@@ -12,7 +12,7 @@ fi
 
 gpu="${NANOGPT_MODAL_GPU:-${MODAL_GPU:-${MODAL_NANOGPT_GPU:-H100}}}"
 case "${gpu}" in
-  H100|H100!|GH200) ;;
+  H100|H100!|GH200|H100:8|H100!:8) ;;
   *) echo "Only H100/H100! or GH200 are allowed; got MODAL_GPU=${gpu}" >&2; exit 2 ;;
 esac
 export MODAL_GPU="${gpu}"

@@ -1,0 +1,711 @@
+✓ Initialized. View run at 
+https://modal.com/apps/nipsdwip/main/ap-ls756LDL1iUPDbUPFRY0mI
+Building image im-bx0rfd5rVLGjbIjSIdjXKa
+
+=> Step 0: FROM base
+
+=> Step 1: COPY . /
+Saving image...
+Image saved, took 1.14s
+
+Built image im-bx0rfd5rVLGjbIjSIdjXKa in 4.02s
+
+
+Building image im-7m2dTnZUnOdWhkdQoPvToZ
+
+=> Step 0: FROM base
+
+=> Step 1: WORKDIR /root/speedrun
+Saving image...
+Image saved, took 703.65ms
+
+Built image im-7m2dTnZUnOdWhkdQoPvToZ in 3.40s
+
+
+Building image im-BalNMaSkYmYC9lXhGNZh94
+
+=> Step 0: FROM base
+
+=> Step 1: RUN python -m pip install torch==2.11
+Looking in indexes: http://pypi-mirror.modal.local:5555/simple
+Collecting torch==2.11
+  Obtaining dependency information for torch==2.11 from http://pypi-mirror.modal.local:5555/simple/torch/torch-2.11.0-cp310-cp310-manylinux_2_28_x86_64.whl.metadata
+  Downloading http://pypi-mirror.modal.local:5555/simple/torch/torch-2.11.0-cp310-cp310-manylinux_2_28_x86_64.whl.metadata (29 kB)
+Requirement already satisfied: filelock in /usr/local/lib/python3.10/site-packages (from torch==2.11) (3.29.0)
+Requirement already satisfied: typing-extensions>=4.10.0 in /usr/local/lib/python3.10/site-packages (from torch==2.11) (4.15.0)
+Requirement already satisfied: setuptools<82 in /usr/local/lib/python3.10/site-packages (from torch==2.11) (68.1.2)
+Requirement already satisfied: sympy>=1.13.3 in /usr/local/lib/python3.10/site-packages (from torch==2.11) (1.14.0)
+Requirement already satisfied: networkx>=2.5.1 in /usr/local/lib/python3.10/site-packages (from torch==2.11) (3.4.2)
+Requirement already satisfied: jinja2 in /usr/local/lib/python3.10/site-packages (from torch==2.11) (3.1.6)
+Requirement already satisfied: fsspec>=0.8.5 in /usr/local/lib/python3.10/site-packages (from torch==2.11) (2026.2.0)
+Collecting cuda-toolkit[cublas,cudart,cufft,cufile,cupti,curand,cusolver,cusparse,nvjitlink,nvrtc,nvtx]==13.0.2 (from torch==2.11)
+  Obtaining dependency information for cuda-toolkit[cublas,cudart,cufft,cufile,cupti,curand,cusolver,cusparse,nvjitlink,nvrtc,nvtx]==13.0.2 from http://pypi-mirror.modal.local:5555/simple/cuda-toolkit/cuda_toolkit-13.0.2-py2.py3-none-any.whl.metadata
+  Downloading http://pypi-mirror.modal.local:5555/simple/cuda-toolkit/cuda_toolkit-13.0.2-py2.py3-none-any.whl.metadata (9.4 kB)
+Collecting cuda-bindings<14,>=13.0.3 (from torch==2.11)
+  Obtaining dependency information for cuda-bindings<14,>=13.0.3 from http://pypi-mirror.modal.local:5555/simple/cuda-bindings/cuda_bindings-13.3.1-cp310-cp310-manylinux_2_24_x86_64.manylinux_2_28_x86_64.whl.metadata
+  Downloading http://pypi-mirror.modal.local:5555/simple/cuda-bindings/cuda_bindings-13.3.1-cp310-cp310-manylinux_2_24_x86_64.manylinux_2_28_x86_64.whl.metadata (2.5 kB)
+Collecting nvidia-cudnn-cu13==9.19.0.56 (from torch==2.11)
+  Obtaining dependency information for nvidia-cudnn-cu13==9.19.0.56 from http://pypi-mirror.modal.local:5555/simple/nvidia-cudnn-cu13/nvidia_cudnn_cu13-9.19.0.56-py3-none-manylinux_2_27_x86_64.whl.metadata
+  Downloading http://pypi-mirror.modal.local:5555/simple/nvidia-cudnn-cu13/nvidia_cudnn_cu13-9.19.0.56-py3-none-manylinux_2_27_x86_64.whl.metadata (1.9 kB)
+Collecting nvidia-cusparselt-cu13==0.8.0 (from torch==2.11)
+  Obtaining dependency information for nvidia-cusparselt-cu13==0.8.0 from http://pypi-mirror.modal.local:5555/simple/nvidia-cusparselt-cu13/nvidia_cusparselt_cu13-0.8.0-py3-none-manylinux2014_x86_64.whl.metadata
+  Downloading http://pypi-mirror.modal.local:5555/simple/nvidia-cusparselt-cu13/nvidia_cusparselt_cu13-0.8.0-py3-none-manylinux2014_x86_64.whl.metadata (12 kB)
+Collecting nvidia-nccl-cu13==2.28.9 (from torch==2.11)
+  Obtaining dependency information for nvidia-nccl-cu13==2.28.9 from http://pypi-mirror.modal.local:5555/simple/nvidia-nccl-cu13/nvidia_nccl_cu13-2.28.9-py3-none-manylinux_2_18_x86_64.whl.metadata
+  Downloading http://pypi-mirror.modal.local:5555/simple/nvidia-nccl-cu13/nvidia_nccl_cu13-2.28.9-py3-none-manylinux_2_18_x86_64.whl.metadata (2.0 kB)
+Collecting nvidia-nvshmem-cu13==3.4.5 (from torch==2.11)
+  Obtaining dependency information for nvidia-nvshmem-cu13==3.4.5 from http://pypi-mirror.modal.local:5555/simple/nvidia-nvshmem-cu13/nvidia_nvshmem_cu13-3.4.5-py3-none-manylinux2014_x86_64.manylinux_2_17_x86_64.whl.metadata
+  Downloading http://pypi-mirror.modal.local:5555/simple/nvidia-nvshmem-cu13/nvidia_nvshmem_cu13-3.4.5-py3-none-manylinux2014_x86_64.manylinux_2_17_x86_64.whl.metadata (2.1 kB)
+Requirement already satisfied: triton==3.6.0 in /usr/local/lib/python3.10/site-packages (from torch==2.11) (3.6.0)
+Collecting nvidia-cusolver==12.0.4.66.* (from cuda-toolkit[cublas,cudart,cufft,cufile,cupti,curand,cusolver,cusparse,nvjitlink,nvrtc,nvtx]==13.0.2->torch==2.11)
+  Obtaining dependency information for nvidia-cusolver==12.0.4.66.* from http://pypi-mirror.modal.local:5555/simple/nvidia-cusolver/nvidia_cusolver-12.0.4.66-py3-none-manylinux_2_27_x86_64.whl.metadata
+  Downloading http://pypi-mirror.modal.local:5555/simple/nvidia-cusolver/nvidia_cusolver-12.0.4.66-py3-none-manylinux_2_27_x86_64.whl.metadata (1.8 kB)
+Collecting nvidia-cufile==1.15.1.6.* (from cuda-toolkit[cublas,cudart,cufft,cufile,cupti,curand,cusolver,cusparse,nvjitlink,nvrtc,nvtx]==13.0.2->torch==2.11)
+  Obtaining dependency information for nvidia-cufile==1.15.1.6.* from http://pypi-mirror.modal.local:5555/simple/nvidia-cufile/nvidia_cufile-1.15.1.6-py3-none-manylinux2014_x86_64.manylinux_2_17_x86_64.whl.metadata
+  Downloading http://pypi-mirror.modal.local:5555/simple/nvidia-cufile/nvidia_cufile-1.15.1.6-py3-none-manylinux2014_x86_64.manylinux_2_17_x86_64.whl.metadata (1.7 kB)
+Collecting nvidia-cufft==12.0.0.61.* (from cuda-toolkit[cublas,cudart,cufft,cufile,cupti,curand,cusolver,cusparse,nvjitlink,nvrtc,nvtx]==13.0.2->torch==2.11)
+  Obtaining dependency information for nvidia-cufft==12.0.0.61.* from http://pypi-mirror.modal.local:5555/simple/nvidia-cufft/nvidia_cufft-12.0.0.61-py3-none-manylinux2014_x86_64.manylinux_2_17_x86_64.whl.metadata
+  Downloading http://pypi-mirror.modal.local:5555/simple/nvidia-cufft/nvidia_cufft-12.0.0.61-py3-none-manylinux2014_x86_64.manylinux_2_17_x86_64.whl.metadata (1.8 kB)
+Collecting nvidia-nvtx==13.0.85.* (from cuda-toolkit[cublas,cudart,cufft,cufile,cupti,curand,cusolver,cusparse,nvjitlink,nvrtc,nvtx]==13.0.2->torch==2.11)
+  Obtaining dependency information for nvidia-nvtx==13.0.85.* from http://pypi-mirror.modal.local:5555/simple/nvidia-nvtx/nvidia_nvtx-13.0.85-py3-none-manylinux1_x86_64.manylinux_2_5_x86_64.whl.metadata
+  Downloading http://pypi-mirror.modal.local:5555/simple/nvidia-nvtx/nvidia_nvtx-13.0.85-py3-none-manylinux1_x86_64.manylinux_2_5_x86_64.whl.metadata (1.8 kB)
+Collecting nvidia-cuda-cupti==13.0.85.* (from cuda-toolkit[cublas,cudart,cufft,cufile,cupti,curand,cusolver,cusparse,nvjitlink,nvrtc,nvtx]==13.0.2->torch==2.11)
+  Obtaining dependency information for nvidia-cuda-cupti==13.0.85.* from http://pypi-mirror.modal.local:5555/simple/nvidia-cuda-cupti/nvidia_cuda_cupti-13.0.85-py3-none-manylinux_2_25_x86_64.whl.metadata
+  Downloading http://pypi-mirror.modal.local:5555/simple/nvidia-cuda-cupti/nvidia_cuda_cupti-13.0.85-py3-none-manylinux_2_25_x86_64.whl.metadata (1.7 kB)
+Collecting nvidia-cuda-nvrtc==13.0.88.* (from cuda-toolkit[cublas,cudart,cufft,cufile,cupti,curand,cusolver,cusparse,nvjitlink,nvrtc,nvtx]==13.0.2->torch==2.11)
+  Obtaining dependency information for nvidia-cuda-nvrtc==13.0.88.* from http://pypi-mirror.modal.local:5555/simple/nvidia-cuda-nvrtc/nvidia_cuda_nvrtc-13.0.88-py3-none-manylinux2010_x86_64.manylinux_2_12_x86_64.whl.metadata
+  Downloading http://pypi-mirror.modal.local:5555/simple/nvidia-cuda-nvrtc/nvidia_cuda_nvrtc-13.0.88-py3-none-manylinux2010_x86_64.manylinux_2_12_x86_64.whl.metadata (1.7 kB)
+Collecting nvidia-cublas==13.1.0.3.* (from cuda-toolkit[cublas,cudart,cufft,cufile,cupti,curand,cusolver,cusparse,nvjitlink,nvrtc,nvtx]==13.0.2->torch==2.11)
+  Obtaining dependency information for nvidia-cublas==13.1.0.3.* from http://pypi-mirror.modal.local:5555/simple/nvidia-cublas/nvidia_cublas-13.1.0.3-py3-none-manylinux_2_27_x86_64.whl.metadata
+  Downloading http://pypi-mirror.modal.local:5555/simple/nvidia-cublas/nvidia_cublas-13.1.0.3-py3-none-manylinux_2_27_x86_64.whl.metadata (1.7 kB)
+Collecting nvidia-nvjitlink==13.0.88.* (from cuda-toolkit[cublas,cudart,cufft,cufile,cupti,curand,cusolver,cusparse,nvjitlink,nvrtc,nvtx]==13.0.2->torch==2.11)
+  Obtaining dependency information for nvidia-nvjitlink==13.0.88.* from http://pypi-mirror.modal.local:5555/simple/nvidia-nvjitlink/nvidia_nvjitlink-13.0.88-py3-none-manylinux2010_x86_64.manylinux_2_12_x86_64.whl.metadata
+  Downloading http://pypi-mirror.modal.local:5555/simple/nvidia-nvjitlink/nvidia_nvjitlink-13.0.88-py3-none-manylinux2010_x86_64.manylinux_2_12_x86_64.whl.metadata (1.7 kB)
+Collecting nvidia-cuda-runtime==13.0.96.* (from cuda-toolkit[cublas,cudart,cufft,cufile,cupti,curand,cusolver,cusparse,nvjitlink,nvrtc,nvtx]==13.0.2->torch==2.11)
+  Obtaining dependency information for nvidia-cuda-runtime==13.0.96.* from http://pypi-mirror.modal.local:5555/simple/nvidia-cuda-runtime/nvidia_cuda_runtime-13.0.96-py3-none-manylinux2014_x86_64.manylinux_2_17_x86_64.whl.metadata
+  Downloading http://pypi-mirror.modal.local:5555/simple/nvidia-cuda-runtime/nvidia_cuda_runtime-13.0.96-py3-none-manylinux2014_x86_64.manylinux_2_17_x86_64.whl.metadata (1.7 kB)
+Collecting nvidia-curand==10.4.0.35.* (from cuda-toolkit[cublas,cudart,cufft,cufile,cupti,curand,cusolver,cusparse,nvjitlink,nvrtc,nvtx]==13.0.2->torch==2.11)
+  Obtaining dependency information for nvidia-curand==10.4.0.35.* from http://pypi-mirror.modal.local:5555/simple/nvidia-curand/nvidia_curand-10.4.0.35-py3-none-manylinux_2_27_x86_64.whl.metadata
+  Downloading http://pypi-mirror.modal.local:5555/simple/nvidia-curand/nvidia_curand-10.4.0.35-py3-none-manylinux_2_27_x86_64.whl.metadata (1.7 kB)
+Collecting nvidia-cusparse==12.6.3.3.* (from cuda-toolkit[cublas,cudart,cufft,cufile,cupti,curand,cusolver,cusparse,nvjitlink,nvrtc,nvtx]==13.0.2->torch==2.11)
+  Obtaining dependency information for nvidia-cusparse==12.6.3.3.* from http://pypi-mirror.modal.local:5555/simple/nvidia-cusparse/nvidia_cusparse-12.6.3.3-py3-none-manylinux2014_x86_64.manylinux_2_17_x86_64.whl.metadata
+  Downloading http://pypi-mirror.modal.local:5555/simple/nvidia-cusparse/nvidia_cusparse-12.6.3.3-py3-none-manylinux2014_x86_64.manylinux_2_17_x86_64.whl.metadata (1.8 kB)
+Requirement already satisfied: cuda-pathfinder>=1.4.2 in /usr/local/lib/python3.10/site-packages (from cuda-bindings<14,>=13.0.3->torch==2.11) (1.5.5)
+Requirement already satisfied: mpmath<1.4,>=1.1.0 in /usr/local/lib/python3.10/site-packages (from sympy>=1.13.3->torch==2.11) (1.3.0)
+Requirement already satisfied: MarkupSafe>=2.0 in /usr/local/lib/python3.10/site-packages (from jinja2->torch==2.11) (3.0.3)
+Downloading http://pypi-mirror.modal.local:5555/simple/torch/torch-2.11.0-cp310-cp310-manylinux_2_28_x86_64.whl (530.6 MB)
+   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 530.6/530.6 MB 212.7 MB/s eta 0:00:00
+Downloading http://pypi-mirror.modal.local:5555/simple/nvidia-cudnn-cu13/nvidia_cudnn_cu13-9.19.0.56-py3-none-manylinux_2_27_x86_64.whl (366.1 MB)
+   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 366.1/366.1 MB 288.7 MB/s eta 0:00:00
+Downloading http://pypi-mirror.modal.local:5555/simple/nvidia-cusparselt-cu13/nvidia_cusparselt_cu13-0.8.0-py3-none-manylinux2014_x86_64.whl (169.9 MB)
+   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 169.9/169.9 MB 263.8 MB/s eta 0:00:00
+Downloading http://pypi-mirror.modal.local:5555/simple/nvidia-nccl-cu13/nvidia_nccl_cu13-2.28.9-py3-none-manylinux_2_18_x86_64.whl (196.5 MB)
+   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 196.5/196.5 MB 190.6 MB/s eta 0:00:00
+Downloading http://pypi-mirror.modal.local:5555/simple/nvidia-nvshmem-cu13/nvidia_nvshmem_cu13-3.4.5-py3-none-manylinux2014_x86_64.manylinux_2_17_x86_64.whl (60.4 MB)
+   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 60.4/60.4 MB 273.5 MB/s eta 0:00:00
+Downloading http://pypi-mirror.modal.local:5555/simple/nvidia-cublas/nvidia_cublas-13.1.0.3-py3-none-manylinux_2_27_x86_64.whl (423.1 MB)
+   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 423.1/423.1 MB 161.6 MB/s eta 0:00:00
+Downloading http://pypi-mirror.modal.local:5555/simple/nvidia-cuda-cupti/nvidia_cuda_cupti-13.0.85-py3-none-manylinux_2_25_x86_64.whl (10.7 MB)
+   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 10.7/10.7 MB 276.2 MB/s eta 0:00:00
+Downloading http://pypi-mirror.modal.local:5555/simple/nvidia-cuda-nvrtc/nvidia_cuda_nvrtc-13.0.88-py3-none-manylinux2010_x86_64.manylinux_2_12_x86_64.whl (90.2 MB)
+   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 90.2/90.2 MB 265.5 MB/s eta 0:00:00
+Downloading http://pypi-mirror.modal.local:5555/simple/nvidia-cuda-runtime/nvidia_cuda_runtime-13.0.96-py3-none-manylinux2014_x86_64.manylinux_2_17_x86_64.whl (2.2 MB)
+   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 2.2/2.2 MB 219.6 MB/s eta 0:00:00
+Downloading http://pypi-mirror.modal.local:5555/simple/nvidia-cufft/nvidia_cufft-12.0.0.61-py3-none-manylinux2014_x86_64.manylinux_2_17_x86_64.whl (214.1 MB)
+   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 214.1/214.1 MB 256.9 MB/s eta 0:00:00
+Downloading http://pypi-mirror.modal.local:5555/simple/nvidia-cufile/nvidia_cufile-1.15.1.6-py3-none-manylinux2014_x86_64.manylinux_2_17_x86_64.whl (1.2 MB)
+   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 1.2/1.2 MB 312.7 MB/s eta 0:00:00
+Downloading http://pypi-mirror.modal.local:5555/simple/nvidia-curand/nvidia_curand-10.4.0.35-py3-none-manylinux_2_27_x86_64.whl (59.5 MB)
+   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 59.5/59.5 MB 307.6 MB/s eta 0:00:00
+Downloading http://pypi-mirror.modal.local:5555/simple/nvidia-cusolver/nvidia_cusolver-12.0.4.66-py3-none-manylinux_2_27_x86_64.whl (200.9 MB)
+   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 200.9/200.9 MB 268.0 MB/s eta 0:00:00
+Downloading http://pypi-mirror.modal.local:5555/simple/nvidia-cusparse/nvidia_cusparse-12.6.3.3-py3-none-manylinux2014_x86_64.manylinux_2_17_x86_64.whl (145.9 MB)
+   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 145.9/145.9 MB 338.8 MB/s eta 0:00:00
+Downloading http://pypi-mirror.modal.local:5555/simple/nvidia-nvjitlink/nvidia_nvjitlink-13.0.88-py3-none-manylinux2010_x86_64.manylinux_2_12_x86_64.whl (40.7 MB)
+   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 40.7/40.7 MB 222.4 MB/s eta 0:00:00
+Downloading http://pypi-mirror.modal.local:5555/simple/nvidia-nvtx/nvidia_nvtx-13.0.85-py3-none-manylinux1_x86_64.manylinux_2_5_x86_64.whl (148 kB)
+   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 148.0/148.0 kB 326.7 MB/s eta 0:00:00
+Downloading http://pypi-mirror.modal.local:5555/simple/cuda-bindings/cuda_bindings-13.3.1-cp310-cp310-manylinux_2_24_x86_64.manylinux_2_28_x86_64.whl (6.7 MB)
+   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 6.7/6.7 MB 148.2 MB/s eta 0:00:00
+Downloading http://pypi-mirror.modal.local:5555/simple/cuda-toolkit/cuda_toolkit-13.0.2-py2.py3-none-any.whl (2.4 kB)
+Installing collected packages: nvidia-cusparselt-cu13, cuda-toolkit, nvidia-nvtx, nvidia-nvshmem-cu13, nvidia-nvjitlink, nvidia-nccl-cu13, nvidia-curand, nvidia-cufile, nvidia-cuda-runtime, nvidia-cuda-nvrtc, nvidia-cuda-cupti, nvidia-cublas, cuda-bindings, nvidia-cusparse, nvidia-cufft, nvidia-cudnn-cu13, nvidia-cusolver, torch
+  Attempting uninstall: cuda-bindings
+    Found existing installation: cuda-bindings 12.9.4
+    Uninstalling cuda-bindings-12.9.4:
+      Successfully uninstalled cuda-bindings-12.9.4
+  Attempting uninstall: torch
+    Found existing installation: torch 2.10.0
+    Uninstalling torch-2.10.0:
+      Successfully uninstalled torch-2.10.0
+Successfully installed cuda-bindings-13.3.1 cuda-toolkit-13.0.2 nvidia-cublas-13.1.0.3 nvidia-cuda-cupti-13.0.85 nvidia-cuda-nvrtc-13.0.88 nvidia-cuda-runtime-13.0.96 nvidia-cudnn-cu13-9.19.0.56 nvidia-cufft-12.0.0.61 nvidia-cufile-1.15.1.6 nvidia-curand-10.4.0.35 nvidia-cusolver-12.0.4.66 nvidia-cusparse-12.6.3.3 nvidia-cusparselt-cu13-0.8.0 nvidia-nccl-cu13-2.28.9 nvidia-nvjitlink-13.0.88 nvidia-nvshmem-cu13-3.4.5 nvidia-nvtx-13.0.85 torch-2.11.0
+
+[notice] A new release of pip is available: 23.2.1 -> 26.1.1
+[notice] To update, run: pip install --upgrade pip
+Saving image...
+Image saved, took 1.75s
+
+Built image im-BalNMaSkYmYC9lXhGNZh94 in 90.65s
+
+
+✓ Created objects.
+├── 🔨 Created mount 
+│   /Users/progyan/speedrun/wr-fresh-20260526/tools/modal_nanogpt_runner.py
+├── 🔨 Created mount /Users/progyan/speedrun/wr-fresh-20260526
+├── 🔨 Created function prepare_data.
+└── 🔨 Created function run_screen.
+
+==========
+== CUDA ==
+==========
+
+CUDA Version 12.8.0
+
+Container image Copyright (c) 2016-2023, NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+
+This container image and its contents are governed by the NVIDIA Deep Learning Container License.
+By pulling and using the container, you accept the terms and conditions of this license:
+https://developer.nvidia.com/ngc/nvidia-deep-learning-container-license
+
+A copy of this license is made available in this container at /NGC-DL-CONTAINER-LICENSE for your convenience.
+
+logs/c75f7456-480f-431e-9911-40506160550f.txt
+step:0/500 val_loss:10.82580 train_time:0.000s step_avg:nanms
+locoprop_m_prepare step=0 l0:loss0=1.432e-06,lossK=4.498e-01,corr_norm=3.212e+01,grad_norm=0.000e+00,cos_desc=0.000,tokens=1024 | l1:loss0=1.429e-06,lossK=3.466e+00,corr_norm=9.019e+01,grad_norm=0.000e+00,cos_desc=0.000,tokens=1024 | l2:loss0=1.431e-06,lossK=1.846e-01,corr_norm=2.027e+01,grad_norm=0.000e+00,cos_desc=0.000,tokens=1024 | l3:loss0=1.444e-06,lossK=6.082e-01,corr_norm=3.740e+01,grad_norm=0.000e+00,cos_desc=0.000,tokens=1024
+locoprop_m_apply step=0 l0:base_step=0.000e+00,corr_norm=3.212e+01,scale=0.000e+00 | l1:base_step=0.000e+00,corr_norm=9.019e+01,scale=0.000e+00 | l2:base_step=0.000e+00,corr_norm=2.027e+01,scale=0.000e+00 | l3:base_step=0.000e+00,corr_norm=3.740e+01,scale=0.000e+00
+step:1/500 train_time:19.014s step_avg:19013.52ms
+locoprop_m_prepare step=1 l0:loss0=1.419e-06,lossK=4.213e-01,corr_norm=2.992e+01,grad_norm=0.000e+00,cos_desc=0.000,tokens=1024 | l1:loss0=1.423e-06,lossK=1.331e-01,corr_norm=1.634e+01,grad_norm=0.000e+00,cos_desc=0.000,tokens=1024 | l2:loss0=1.409e-06,lossK=5.119e-02,corr_norm=1.002e+01,grad_norm=0.000e+00,cos_desc=0.000,tokens=1024 | l3:loss0=1.416e-06,lossK=5.194e-01,corr_norm=3.309e+01,grad_norm=0.000e+00,cos_desc=0.000,tokens=1024
+locoprop_m_apply step=1 l0:base_step=0.000e+00,corr_norm=2.992e+01,scale=0.000e+00 | l1:base_step=0.000e+00,corr_norm=1.634e+01,scale=0.000e+00 | l2:base_step=0.000e+00,corr_norm=1.002e+01,scale=0.000e+00 | l3:base_step=0.000e+00,corr_norm=3.309e+01,scale=0.000e+00
+step:2/500 train_time:22.604s step_avg:11301.79ms
+locoprop_m_prepare step=2 l0:loss0=1.414e-06,lossK=2.969e-02,corr_norm=8.084e+00,grad_norm=2.591e+03,cos_desc=-0.090,tokens=1024 | l1:loss0=1.453e-06,lossK=1.455e-01,corr_norm=2.018e+01,grad_norm=2.847e+03,cos_desc=-0.071,tokens=1024 | l2:loss0=1.427e-06,lossK=2.097e-01,corr_norm=2.843e+01,grad_norm=3.081e+03,cos_desc=-0.136,tokens=1024 | l3:loss0=1.406e-06,lossK=2.347e+00,corr_norm=1.118e+02,grad_norm=3.310e+03,cos_desc=-0.068,tokens=1024
+locoprop_m_apply step=2 l0:base_step=1.939e+00,corr_norm=8.084e+00,scale=4.796e-02 | l1:base_step=1.941e+00,corr_norm=2.018e+01,scale=1.924e-02 | l2:base_step=1.940e+00,corr_norm=2.843e+01,scale=1.364e-02 | l3:base_step=1.938e+00,corr_norm=1.118e+02,scale=3.467e-03
+step:3/500 train_time:26.210s step_avg:8736.55ms
+step:4/500 train_time:29.807s step_avg:7451.81ms
+step:5/500 train_time:33.413s step_avg:6682.69ms
+step:6/500 train_time:37.022s step_avg:6170.30ms
+step:7/500 train_time:40.620s step_avg:5802.82ms
+step:8/500 train_time:44.219s step_avg:5527.34ms
+step:9/500 train_time:47.815s step_avg:5312.75ms
+step:10/500 train_time:51.409s step_avg:5140.90ms
+locoprop_m_prepare step=10 l0:loss0=5.115e-06,lossK=7.894e+06,corr_norm=2.638e+05,grad_norm=2.738e+04,cos_desc=0.345,tokens=1024 | l1:loss0=3.566e-06,lossK=8.603e+03,corr_norm=4.558e+03,grad_norm=2.213e+04,cos_desc=0.001,tokens=1024 | l2:loss0=3.110e-06,lossK=2.283e+03,corr_norm=4.611e+03,grad_norm=2.058e+04,cos_desc=-0.146,tokens=1024 | l3:loss0=3.445e-06,lossK=8.536e+04,corr_norm=2.950e+04,grad_norm=2.161e+04,cos_desc=0.215,tokens=1024
+locoprop_m_apply step=10 l0:base_step=1.940e+00,corr_norm=2.638e+05,scale=1.470e-06 | l1:base_step=1.940e+00,corr_norm=4.558e+03,scale=8.515e-05 | l2:base_step=1.937e+00,corr_norm=4.611e+03,scale=8.401e-05 | l3:base_step=1.922e+00,corr_norm=2.950e+04,scale=1.303e-05
+step:11/500 train_time:55.018s step_avg:5001.61ms
+step:12/500 train_time:58.618s step_avg:4884.80ms
+step:13/500 train_time:62.217s step_avg:4785.90ms
+step:14/500 train_time:65.817s step_avg:4701.18ms
+step:15/500 train_time:69.413s step_avg:4627.56ms
+step:16/500 train_time:73.021s step_avg:4563.80ms
+step:17/500 train_time:76.618s step_avg:4506.95ms
+step:18/500 train_time:80.213s step_avg:4456.27ms
+step:19/500 train_time:83.815s step_avg:4411.31ms
+step:20/500 train_time:87.411s step_avg:4370.53ms
+step:21/500 train_time:91.008s step_avg:4333.69ms
+step:22/500 train_time:94.617s step_avg:4300.78ms
+step:23/500 train_time:98.221s step_avg:4270.48ms
+step:24/500 train_time:101.833s step_avg:4243.02ms
+step:25/500 train_time:105.428s step_avg:4217.12ms
+step:26/500 train_time:109.027s step_avg:4193.36ms
+step:27/500 train_time:112.630s step_avg:4171.46ms
+step:28/500 train_time:116.222s step_avg:4150.79ms
+step:29/500 train_time:119.820s step_avg:4131.71ms
+step:30/500 train_time:123.418s step_avg:4113.92ms
+step:31/500 train_time:127.012s step_avg:4097.16ms
+step:32/500 train_time:130.605s step_avg:4081.39ms
+step:33/500 train_time:134.208s step_avg:4066.91ms
+step:34/500 train_time:137.806s step_avg:4053.12ms
+step:35/500 train_time:141.406s step_avg:4040.18ms
+step:36/500 train_time:145.002s step_avg:4027.84ms
+step:37/500 train_time:148.609s step_avg:4016.45ms
+step:38/500 train_time:152.207s step_avg:4005.46ms
+step:39/500 train_time:155.809s step_avg:3995.12ms
+step:40/500 train_time:159.412s step_avg:3985.30ms
+step:41/500 train_time:163.012s step_avg:3975.91ms
+step:42/500 train_time:166.613s step_avg:3966.97ms
+step:43/500 train_time:170.212s step_avg:3958.43ms
+step:44/500 train_time:173.812s step_avg:3950.27ms
+step:45/500 train_time:177.408s step_avg:3942.40ms
+step:46/500 train_time:181.002s step_avg:3934.83ms
+step:47/500 train_time:184.604s step_avg:3927.75ms
+step:48/500 train_time:188.205s step_avg:3920.94ms
+step:49/500 train_time:191.803s step_avg:3914.35ms
+step:50/500 train_time:195.401s step_avg:3908.01ms
+locoprop_m_prepare step=50 l0:loss0=2.385e-05,lossK=2.911e-01,corr_norm=2.017e+01,grad_norm=3.008e+04,cos_desc=-0.064,tokens=1024 | l1:loss0=1.264e-05,lossK=1.424e+00,corr_norm=4.935e+01,grad_norm=1.802e+04,cos_desc=0.007,tokens=1024 | l2:loss0=8.447e-06,lossK=1.117e-01,corr_norm=1.326e+01,grad_norm=1.241e+04,cos_desc=0.007,tokens=1024 | l3:loss0=6.667e-06,lossK=2.138e-01,corr_norm=2.605e+01,grad_norm=9.561e+03,cos_desc=0.046,tokens=1024
+locoprop_m_apply step=50 l0:base_step=1.939e+00,corr_norm=2.017e+01,scale=1.922e-02 | l1:base_step=1.939e+00,corr_norm=4.935e+01,scale=7.858e-03 | l2:base_step=1.939e+00,corr_norm=1.326e+01,scale=2.923e-02 | l3:base_step=1.939e+00,corr_norm=2.605e+01,scale=1.489e-02
+step:51/500 train_time:199.010s step_avg:3902.15ms
+step:52/500 train_time:202.607s step_avg:3896.28ms
+step:53/500 train_time:206.205s step_avg:3890.65ms
+step:54/500 train_time:209.800s step_avg:3885.19ms
+step:55/500 train_time:213.398s step_avg:3879.96ms
+step:56/500 train_time:216.995s step_avg:3874.90ms
+step:57/500 train_time:220.590s step_avg:3869.99ms
+step:58/500 train_time:224.185s step_avg:3865.25ms
+step:59/500 train_time:227.778s step_avg:3860.64ms
+step:60/500 train_time:231.372s step_avg:3856.19ms
+step:61/500 train_time:234.968s step_avg:3851.93ms
+step:62/500 train_time:238.559s step_avg:3847.73ms
+step:63/500 train_time:242.153s step_avg:3843.69ms
+step:64/500 train_time:245.749s step_avg:3839.82ms
+step:65/500 train_time:249.337s step_avg:3835.96ms
+step:66/500 train_time:252.929s step_avg:3832.25ms
+step:67/500 train_time:256.516s step_avg:3828.60ms
+step:68/500 train_time:260.113s step_avg:3825.19ms
+step:69/500 train_time:263.708s step_avg:3821.85ms
+step:70/500 train_time:267.299s step_avg:3818.56ms
+step:71/500 train_time:270.897s step_avg:3815.45ms
+step:72/500 train_time:274.499s step_avg:3812.49ms
+step:73/500 train_time:278.093s step_avg:3809.49ms
+step:74/500 train_time:281.688s step_avg:3806.59ms
+step:75/500 train_time:285.282s step_avg:3803.76ms
+step:76/500 train_time:288.876s step_avg:3801.00ms
+step:77/500 train_time:292.464s step_avg:3798.24ms
+step:78/500 train_time:296.059s step_avg:3795.63ms
+step:79/500 train_time:299.652s step_avg:3793.07ms
+step:80/500 train_time:303.243s step_avg:3790.54ms
+step:81/500 train_time:306.835s step_avg:3788.09ms
+step:82/500 train_time:310.430s step_avg:3785.73ms
+step:83/500 train_time:314.027s step_avg:3783.46ms
+step:84/500 train_time:317.623s step_avg:3781.22ms
+step:85/500 train_time:321.212s step_avg:3778.97ms
+step:86/500 train_time:324.803s step_avg:3776.78ms
+step:87/500 train_time:328.396s step_avg:3774.67ms
+step:88/500 train_time:331.990s step_avg:3772.62ms
+step:89/500 train_time:335.590s step_avg:3770.67ms
+step:90/500 train_time:339.183s step_avg:3768.70ms
+step:91/500 train_time:342.776s step_avg:3766.77ms
+step:92/500 train_time:346.369s step_avg:3764.88ms
+step:93/500 train_time:349.961s step_avg:3763.02ms
+step:94/500 train_time:353.551s step_avg:3761.19ms
+step:95/500 train_time:357.143s step_avg:3759.40ms
+step:96/500 train_time:360.734s step_avg:3757.64ms
+step:97/500 train_time:364.326s step_avg:3755.94ms
+step:98/500 train_time:367.915s step_avg:3754.24ms
+step:99/500 train_time:371.511s step_avg:3752.63ms
+step:100/500 train_time:375.114s step_avg:3751.14ms
+step:101/500 train_time:378.709s step_avg:3749.59ms
+step:102/500 train_time:382.302s step_avg:3748.06ms
+step:103/500 train_time:385.900s step_avg:3746.61ms
+step:104/500 train_time:389.492s step_avg:3745.11ms
+step:105/500 train_time:393.082s step_avg:3743.64ms
+step:106/500 train_time:396.687s step_avg:3742.33ms
+step:107/500 train_time:400.278s step_avg:3740.91ms
+step:108/500 train_time:403.866s step_avg:3739.50ms
+step:109/500 train_time:407.462s step_avg:3738.19ms
+step:110/500 train_time:411.054s step_avg:3736.85ms
+step:111/500 train_time:414.642s step_avg:3735.51ms
+step:112/500 train_time:418.229s step_avg:3734.18ms
+step:113/500 train_time:421.819s step_avg:3732.91ms
+step:114/500 train_time:425.408s step_avg:3731.65ms
+step:115/500 train_time:429.000s step_avg:3730.44ms
+step:116/500 train_time:432.589s step_avg:3729.21ms
+step:117/500 train_time:436.176s step_avg:3728.00ms
+step:118/500 train_time:439.763s step_avg:3726.81ms
+step:119/500 train_time:443.348s step_avg:3725.62ms
+step:120/500 train_time:446.937s step_avg:3724.47ms
+step:121/500 train_time:450.538s step_avg:3723.45ms
+step:122/500 train_time:454.128s step_avg:3722.36ms
+step:123/500 train_time:457.720s step_avg:3721.30ms
+step:124/500 train_time:461.310s step_avg:3720.25ms
+step:125/500 train_time:464.903s step_avg:3719.22ms
+step:125/500 val_loss:4.63912 train_time:464.903s step_avg:3719.22ms
+locoprop_m_prepare step=125 l0:loss0=8.257e-05,lossK=1.828e+00,corr_norm=3.305e+01,grad_norm=1.922e+04,cos_desc=0.037,tokens=1024 | l1:loss0=1.919e-05,lossK=8.105e-02,corr_norm=8.905e+00,grad_norm=9.002e+03,cos_desc=0.035,tokens=1024 | l2:loss0=1.291e-05,lossK=3.524e+01,corr_norm=4.936e+02,grad_norm=6.237e+03,cos_desc=0.000,tokens=1024 | l3:loss0=1.166e-05,lossK=6.246e+00,corr_norm=2.172e+02,grad_norm=4.977e+03,cos_desc=0.159,tokens=1024
+locoprop_m_apply step=125 l0:base_step=1.941e+00,corr_norm=3.305e+01,scale=1.175e-02 | l1:base_step=1.939e+00,corr_norm=8.905e+00,scale=4.355e-02 | l2:base_step=1.940e+00,corr_norm=4.936e+02,scale=7.861e-04 | l3:base_step=1.940e+00,corr_norm=2.172e+02,scale=1.787e-03
+step:126/500 train_time:468.499s step_avg:3718.25ms
+step:127/500 train_time:472.091s step_avg:3717.25ms
+step:128/500 train_time:475.685s step_avg:3716.29ms
+step:129/500 train_time:479.277s step_avg:3715.33ms
+step:130/500 train_time:482.869s step_avg:3714.37ms
+step:131/500 train_time:486.461s step_avg:3713.45ms
+step:132/500 train_time:490.052s step_avg:3712.51ms
+step:133/500 train_time:493.644s step_avg:3711.61ms
+step:134/500 train_time:497.233s step_avg:3710.69ms
+step:135/500 train_time:500.826s step_avg:3709.82ms
+step:136/500 train_time:504.417s step_avg:3708.95ms
+step:137/500 train_time:508.011s step_avg:3708.11ms
+step:138/500 train_time:511.605s step_avg:3707.29ms
+step:139/500 train_time:515.198s step_avg:3706.46ms
+step:140/500 train_time:518.791s step_avg:3705.65ms
+step:141/500 train_time:522.384s step_avg:3704.85ms
+step:142/500 train_time:525.978s step_avg:3704.07ms
+step:143/500 train_time:529.571s step_avg:3703.29ms
+step:144/500 train_time:533.166s step_avg:3702.54ms
+step:145/500 train_time:536.760s step_avg:3701.79ms
+step:146/500 train_time:540.353s step_avg:3701.05ms
+step:147/500 train_time:543.947s step_avg:3700.32ms
+step:148/500 train_time:547.543s step_avg:3699.61ms
+step:149/500 train_time:551.135s step_avg:3698.90ms
+step:150/500 train_time:554.728s step_avg:3698.19ms
+step:151/500 train_time:558.318s step_avg:3697.47ms
+step:152/500 train_time:561.909s step_avg:3696.77ms
+step:153/500 train_time:565.498s step_avg:3696.07ms
+step:154/500 train_time:569.097s step_avg:3695.44ms
+step:155/500 train_time:572.699s step_avg:3694.83ms
+step:156/500 train_time:576.300s step_avg:3694.23ms
+step:157/500 train_time:579.900s step_avg:3693.63ms
+step:158/500 train_time:583.503s step_avg:3693.06ms
+step:159/500 train_time:587.105s step_avg:3692.48ms
+step:160/500 train_time:590.701s step_avg:3691.88ms
+step:161/500 train_time:594.299s step_avg:3691.30ms
+step:162/500 train_time:597.899s step_avg:3690.73ms
+step:163/500 train_time:601.500s step_avg:3690.19ms
+step:164/500 train_time:605.100s step_avg:3689.63ms
+step:165/500 train_time:608.706s step_avg:3689.13ms
+step:166/500 train_time:612.304s step_avg:3688.58ms
+step:167/500 train_time:615.912s step_avg:3688.10ms
+step:168/500 train_time:619.509s step_avg:3687.55ms
+step:169/500 train_time:623.107s step_avg:3687.02ms
+step:170/500 train_time:626.703s step_avg:3686.49ms
+step:171/500 train_time:630.303s step_avg:3685.98ms
+step:172/500 train_time:633.901s step_avg:3685.47ms
+step:173/500 train_time:637.500s step_avg:3684.97ms
+step:174/500 train_time:641.100s step_avg:3684.48ms
+step:175/500 train_time:644.699s step_avg:3683.99ms
+step:176/500 train_time:648.295s step_avg:3683.50ms
+step:177/500 train_time:651.896s step_avg:3683.03ms
+step:178/500 train_time:655.500s step_avg:3682.58ms
+step:179/500 train_time:659.104s step_avg:3682.15ms
+step:180/500 train_time:662.713s step_avg:3681.74ms
+step:181/500 train_time:666.311s step_avg:3681.28ms
+step:182/500 train_time:669.910s step_avg:3680.83ms
+step:183/500 train_time:673.511s step_avg:3680.39ms
+step:184/500 train_time:677.109s step_avg:3679.94ms
+step:185/500 train_time:680.706s step_avg:3679.49ms
+step:186/500 train_time:684.304s step_avg:3679.05ms
+step:187/500 train_time:687.899s step_avg:3678.61ms
+step:188/500 train_time:691.499s step_avg:3678.19ms
+step:189/500 train_time:695.097s step_avg:3677.76ms
+step:190/500 train_time:698.695s step_avg:3677.34ms
+step:191/500 train_time:702.453s step_avg:3677.76ms
+step:192/500 train_time:706.053s step_avg:3677.36ms
+step:193/500 train_time:709.655s step_avg:3676.97ms
+step:194/500 train_time:713.254s step_avg:3676.57ms
+step:195/500 train_time:716.850s step_avg:3676.15ms
+step:196/500 train_time:720.452s step_avg:3675.78ms
+step:197/500 train_time:724.050s step_avg:3675.38ms
+step:198/500 train_time:727.647s step_avg:3674.99ms
+step:199/500 train_time:731.247s step_avg:3674.61ms
+step:200/500 train_time:734.845s step_avg:3674.23ms
+step:201/500 train_time:738.444s step_avg:3673.85ms
+step:202/500 train_time:742.044s step_avg:3673.49ms
+step:203/500 train_time:745.644s step_avg:3673.12ms
+step:204/500 train_time:749.242s step_avg:3672.76ms
+step:205/500 train_time:752.840s step_avg:3672.39ms
+step:206/500 train_time:756.442s step_avg:3672.05ms
+step:207/500 train_time:760.044s step_avg:3671.71ms
+step:208/500 train_time:763.645s step_avg:3671.37ms
+step:209/500 train_time:767.244s step_avg:3671.02ms
+step:210/500 train_time:770.849s step_avg:3670.71ms
+step:211/500 train_time:774.447s step_avg:3670.37ms
+step:212/500 train_time:778.045s step_avg:3670.03ms
+step:213/500 train_time:781.643s step_avg:3669.68ms
+step:214/500 train_time:785.241s step_avg:3669.35ms
+step:215/500 train_time:788.838s step_avg:3669.01ms
+step:216/500 train_time:792.437s step_avg:3668.69ms
+step:217/500 train_time:796.041s step_avg:3668.39ms
+step:218/500 train_time:799.647s step_avg:3668.10ms
+step:219/500 train_time:803.247s step_avg:3667.79ms
+step:220/500 train_time:806.851s step_avg:3667.51ms
+step:221/500 train_time:810.452s step_avg:3667.20ms
+step:222/500 train_time:814.052s step_avg:3666.90ms
+step:223/500 train_time:817.655s step_avg:3666.61ms
+step:224/500 train_time:821.255s step_avg:3666.32ms
+step:225/500 train_time:824.858s step_avg:3666.04ms
+step:226/500 train_time:828.467s step_avg:3665.78ms
+step:227/500 train_time:832.067s step_avg:3665.49ms
+step:228/500 train_time:835.668s step_avg:3665.21ms
+step:229/500 train_time:839.271s step_avg:3664.94ms
+step:230/500 train_time:842.873s step_avg:3664.66ms
+step:231/500 train_time:846.476s step_avg:3664.40ms
+step:232/500 train_time:850.077s step_avg:3664.13ms
+step:233/500 train_time:853.674s step_avg:3663.84ms
+step:234/500 train_time:857.272s step_avg:3663.55ms
+step:235/500 train_time:860.879s step_avg:3663.31ms
+step:236/500 train_time:864.478s step_avg:3663.04ms
+step:237/500 train_time:868.086s step_avg:3662.81ms
+step:238/500 train_time:871.685s step_avg:3662.54ms
+step:239/500 train_time:875.288s step_avg:3662.29ms
+step:240/500 train_time:878.899s step_avg:3662.08ms
+step:241/500 train_time:882.502s step_avg:3661.84ms
+step:242/500 train_time:886.112s step_avg:3661.62ms
+step:243/500 train_time:889.710s step_avg:3661.36ms
+step:244/500 train_time:893.311s step_avg:3661.11ms
+step:245/500 train_time:896.911s step_avg:3660.86ms
+step:246/500 train_time:900.510s step_avg:3660.61ms
+step:247/500 train_time:904.116s step_avg:3660.39ms
+step:248/500 train_time:907.728s step_avg:3660.19ms
+step:249/500 train_time:911.339s step_avg:3659.99ms
+step:250/500 train_time:914.938s step_avg:3659.75ms
+step:250/500 val_loss:4.07139 train_time:914.938s step_avg:3600.28ms
+locoprop_m_prepare step=250 l0:loss0=8.261e-05,lossK=8.526e-02,corr_norm=7.969e+00,grad_norm=1.227e+04,cos_desc=0.001,tokens=1024 | l1:loss0=1.617e-05,lossK=5.479e+03,corr_norm=5.619e+03,grad_norm=4.468e+03,cos_desc=0.059,tokens=1024 | l2:loss0=1.600e-05,lossK=1.663e+02,corr_norm=9.973e+02,grad_norm=3.961e+03,cos_desc=0.167,tokens=1024 | l3:loss0=1.538e-05,lossK=2.472e-03,corr_norm=1.607e+00,grad_norm=3.250e+03,cos_desc=0.015,tokens=1024
+locoprop_m_apply step=250 l0:base_step=1.385e+00,corr_norm=7.969e+00,scale=3.476e-02 | l1:base_step=1.386e+00,corr_norm=5.619e+03,scale=4.933e-05 | l2:base_step=1.385e+00,corr_norm=9.973e+02,scale=2.777e-04 | l3:base_step=1.385e+00,corr_norm=1.607e+00,scale=1.724e-01
+step:251/500 train_time:918.546s step_avg:3659.54ms
+step:252/500 train_time:922.143s step_avg:3659.30ms
+step:253/500 train_time:925.741s step_avg:3659.05ms
+step:254/500 train_time:929.340s step_avg:3658.82ms
+step:255/500 train_time:932.944s step_avg:3658.60ms
+step:256/500 train_time:936.546s step_avg:3658.38ms
+step:257/500 train_time:940.145s step_avg:3658.15ms
+step:258/500 train_time:943.745s step_avg:3657.93ms
+step:259/500 train_time:947.346s step_avg:3657.71ms
+step:260/500 train_time:950.944s step_avg:3657.48ms
+step:261/500 train_time:954.552s step_avg:3657.29ms
+step:262/500 train_time:958.152s step_avg:3657.07ms
+step:263/500 train_time:961.762s step_avg:3656.89ms
+step:264/500 train_time:965.362s step_avg:3656.67ms
+step:265/500 train_time:968.961s step_avg:3656.46ms
+step:266/500 train_time:972.571s step_avg:3656.28ms
+step:267/500 train_time:976.170s step_avg:3656.07ms
+step:268/500 train_time:979.770s step_avg:3655.86ms
+step:269/500 train_time:983.370s step_avg:3655.65ms
+step:270/500 train_time:986.977s step_avg:3655.47ms
+step:271/500 train_time:990.585s step_avg:3655.29ms
+step:272/500 train_time:994.185s step_avg:3655.09ms
+step:273/500 train_time:997.783s step_avg:3654.88ms
+step:274/500 train_time:1001.390s step_avg:3654.71ms
+step:275/500 train_time:1004.995s step_avg:3654.53ms
+step:276/500 train_time:1008.594s step_avg:3654.33ms
+step:277/500 train_time:1012.204s step_avg:3654.17ms
+step:278/500 train_time:1015.815s step_avg:3654.01ms
+step:279/500 train_time:1019.424s step_avg:3653.85ms
+step:280/500 train_time:1023.022s step_avg:3653.65ms
+step:281/500 train_time:1026.620s step_avg:3653.45ms
+step:282/500 train_time:1030.220s step_avg:3653.26ms
+step:283/500 train_time:1033.820s step_avg:3653.07ms
+step:284/500 train_time:1037.417s step_avg:3652.88ms
+step:285/500 train_time:1041.016s step_avg:3652.69ms
+step:286/500 train_time:1044.614s step_avg:3652.50ms
+step:287/500 train_time:1048.213s step_avg:3652.31ms
+step:288/500 train_time:1051.812s step_avg:3652.13ms
+step:289/500 train_time:1055.409s step_avg:3651.93ms
+step:290/500 train_time:1059.007s step_avg:3651.75ms
+step:291/500 train_time:1062.606s step_avg:3651.57ms
+step:292/500 train_time:1066.210s step_avg:3651.40ms
+step:293/500 train_time:1069.811s step_avg:3651.23ms
+step:294/500 train_time:1073.410s step_avg:3651.05ms
+step:295/500 train_time:1077.010s step_avg:3650.88ms
+step:296/500 train_time:1080.619s step_avg:3650.74ms
+step:297/500 train_time:1084.221s step_avg:3650.58ms
+step:298/500 train_time:1087.822s step_avg:3650.41ms
+step:299/500 train_time:1091.419s step_avg:3650.23ms
+step:300/500 train_time:1095.015s step_avg:3650.05ms
+step:301/500 train_time:1098.614s step_avg:3649.88ms
+step:302/500 train_time:1102.214s step_avg:3649.72ms
+step:303/500 train_time:1105.825s step_avg:3649.59ms
+step:304/500 train_time:1109.423s step_avg:3649.42ms
+step:305/500 train_time:1113.021s step_avg:3649.25ms
+step:306/500 train_time:1116.619s step_avg:3649.08ms
+step:307/500 train_time:1120.219s step_avg:3648.92ms
+step:308/500 train_time:1123.818s step_avg:3648.76ms
+step:309/500 train_time:1127.415s step_avg:3648.59ms
+step:310/500 train_time:1131.014s step_avg:3648.43ms
+step:311/500 train_time:1134.614s step_avg:3648.28ms
+step:312/500 train_time:1138.213s step_avg:3648.12ms
+step:313/500 train_time:1141.811s step_avg:3647.96ms
+step:314/500 train_time:1145.411s step_avg:3647.81ms
+step:315/500 train_time:1149.008s step_avg:3647.65ms
+step:316/500 train_time:1152.608s step_avg:3647.49ms
+step:317/500 train_time:1156.206s step_avg:3647.34ms
+step:318/500 train_time:1159.811s step_avg:3647.21ms
+step:319/500 train_time:1163.409s step_avg:3647.05ms
+step:320/500 train_time:1167.009s step_avg:3646.90ms
+step:321/500 train_time:1170.610s step_avg:3646.76ms
+step:322/500 train_time:1174.209s step_avg:3646.61ms
+step:323/500 train_time:1177.812s step_avg:3646.48ms
+step:324/500 train_time:1181.419s step_avg:3646.36ms
+step:325/500 train_time:1185.018s step_avg:3646.21ms
+step:326/500 train_time:1188.619s step_avg:3646.07ms
+step:327/500 train_time:1192.228s step_avg:3645.96ms
+step:328/500 train_time:1195.834s step_avg:3645.84ms
+step:329/500 train_time:1199.441s step_avg:3645.72ms
+step:330/500 train_time:1203.054s step_avg:3645.62ms
+step:331/500 train_time:1206.654s step_avg:3645.48ms
+step:332/500 train_time:1210.266s step_avg:3645.38ms
+step:333/500 train_time:1213.879s step_avg:3645.28ms
+step:334/500 train_time:1217.481s step_avg:3645.15ms
+step:335/500 train_time:1221.093s step_avg:3645.05ms
+step:336/500 train_time:1224.693s step_avg:3644.92ms
+step:337/500 train_time:1228.293s step_avg:3644.79ms
+step:338/500 train_time:1231.893s step_avg:3644.65ms
+step:339/500 train_time:1235.493s step_avg:3644.52ms
+step:340/500 train_time:1239.100s step_avg:3644.41ms
+step:341/500 train_time:1242.700s step_avg:3644.28ms
+step:342/500 train_time:1246.298s step_avg:3644.15ms
+step:343/500 train_time:1249.898s step_avg:3644.02ms
+step:344/500 train_time:1253.511s step_avg:3643.93ms
+step:345/500 train_time:1257.113s step_avg:3643.81ms
+step:346/500 train_time:1260.712s step_avg:3643.68ms
+step:347/500 train_time:1264.309s step_avg:3643.54ms
+step:348/500 train_time:1267.908s step_avg:3643.41ms
+step:349/500 train_time:1271.504s step_avg:3643.28ms
+step:350/500 train_time:1275.101s step_avg:3643.15ms
+step:351/500 train_time:1278.701s step_avg:3643.02ms
+step:352/500 train_time:1282.299s step_avg:3642.90ms
+step:353/500 train_time:1285.899s step_avg:3642.77ms
+step:354/500 train_time:1289.500s step_avg:3642.65ms
+step:355/500 train_time:1293.114s step_avg:3642.57ms
+step:356/500 train_time:1296.713s step_avg:3642.45ms
+step:357/500 train_time:1300.312s step_avg:3642.33ms
+step:358/500 train_time:1303.911s step_avg:3642.21ms
+step:359/500 train_time:1307.511s step_avg:3642.09ms
+step:360/500 train_time:1311.110s step_avg:3641.97ms
+step:361/500 train_time:1314.709s step_avg:3641.85ms
+step:362/500 train_time:1318.308s step_avg:3641.74ms
+step:363/500 train_time:1321.906s step_avg:3641.61ms
+step:364/500 train_time:1325.504s step_avg:3641.49ms
+step:365/500 train_time:1329.101s step_avg:3641.37ms
+step:366/500 train_time:1332.700s step_avg:3641.26ms
+step:367/500 train_time:1336.311s step_avg:3641.17ms
+step:368/500 train_time:1339.909s step_avg:3641.06ms
+step:369/500 train_time:1343.510s step_avg:3640.95ms
+step:370/500 train_time:1347.121s step_avg:3640.87ms
+step:371/500 train_time:1350.721s step_avg:3640.76ms
+step:372/500 train_time:1354.319s step_avg:3640.64ms
+step:373/500 train_time:1357.921s step_avg:3640.54ms
+step:374/500 train_time:1361.521s step_avg:3640.43ms
+step:375/500 train_time:1365.126s step_avg:3640.34ms
+step:375/500 val_loss:3.85413 train_time:1365.127s step_avg:3601.51ms
+step:376/500 train_time:1368.735s step_avg:3640.25ms
+step:377/500 train_time:1372.345s step_avg:3640.17ms
+step:378/500 train_time:1375.941s step_avg:3640.05ms
+step:379/500 train_time:1379.550s step_avg:3639.97ms
+step:380/500 train_time:1383.148s step_avg:3639.86ms
+step:381/500 train_time:1386.846s step_avg:3640.02ms
+step:382/500 train_time:1390.445s step_avg:3639.91ms
+step:383/500 train_time:1394.055s step_avg:3639.83ms
+step:384/500 train_time:1397.656s step_avg:3639.73ms
+step:385/500 train_time:1401.266s step_avg:3639.65ms
+step:386/500 train_time:1404.864s step_avg:3639.55ms
+step:387/500 train_time:1408.463s step_avg:3639.44ms
+step:388/500 train_time:1412.059s step_avg:3639.33ms
+step:389/500 train_time:1415.670s step_avg:3639.25ms
+step:390/500 train_time:1419.269s step_avg:3639.15ms
+step:391/500 train_time:1422.869s step_avg:3639.05ms
+step:392/500 train_time:1426.474s step_avg:3638.96ms
+step:393/500 train_time:1430.072s step_avg:3638.86ms
+step:394/500 train_time:1433.680s step_avg:3638.78ms
+step:395/500 train_time:1437.278s step_avg:3638.68ms
+step:396/500 train_time:1440.891s step_avg:3638.61ms
+step:397/500 train_time:1444.496s step_avg:3638.53ms
+step:398/500 train_time:1448.095s step_avg:3638.43ms
+step:399/500 train_time:1451.694s step_avg:3638.33ms
+step:400/500 train_time:1455.305s step_avg:3638.26ms
+step:401/500 train_time:1458.907s step_avg:3638.17ms
+step:402/500 train_time:1462.507s step_avg:3638.08ms
+step:403/500 train_time:1466.104s step_avg:3637.98ms
+step:404/500 train_time:1469.702s step_avg:3637.88ms
+step:405/500 train_time:1473.311s step_avg:3637.80ms
+step:406/500 train_time:1476.917s step_avg:3637.73ms
+step:407/500 train_time:1480.515s step_avg:3637.63ms
+step:408/500 train_time:1484.114s step_avg:3637.54ms
+step:409/500 train_time:1487.713s step_avg:3637.44ms
+step:410/500 train_time:1491.322s step_avg:3637.37ms
+step:411/500 train_time:1494.933s step_avg:3637.31ms
+step:412/500 train_time:1498.531s step_avg:3637.21ms
+step:413/500 train_time:1502.131s step_avg:3637.12ms
+step:414/500 train_time:1505.742s step_avg:3637.06ms
+step:415/500 train_time:1509.352s step_avg:3636.99ms
+step:416/500 train_time:1512.949s step_avg:3636.90ms
+step:417/500 train_time:1516.549s step_avg:3636.81ms
+step:418/500 train_time:1520.156s step_avg:3636.74ms
+step:419/500 train_time:1523.758s step_avg:3636.65ms
+step:420/500 train_time:1527.362s step_avg:3636.58ms
+step:421/500 train_time:1530.961s step_avg:3636.49ms
+step:422/500 train_time:1534.567s step_avg:3636.41ms
+step:423/500 train_time:1538.170s step_avg:3636.34ms
+step:424/500 train_time:1541.770s step_avg:3636.25ms
+step:425/500 train_time:1545.366s step_avg:3636.15ms
+step:426/500 train_time:1548.964s step_avg:3636.07ms
+step:427/500 train_time:1552.564s step_avg:3635.98ms
+step:428/500 train_time:1556.178s step_avg:3635.93ms
+step:429/500 train_time:1559.775s step_avg:3635.84ms
+step:430/500 train_time:1563.371s step_avg:3635.75ms
+step:431/500 train_time:1566.966s step_avg:3635.65ms
+step:432/500 train_time:1570.564s step_avg:3635.57ms
+step:433/500 train_time:1574.162s step_avg:3635.48ms
+step:434/500 train_time:1577.762s step_avg:3635.40ms
+step:435/500 train_time:1581.362s step_avg:3635.31ms
+step:436/500 train_time:1584.960s step_avg:3635.23ms
+step:437/500 train_time:1588.564s step_avg:3635.16ms
+step:438/500 train_time:1592.163s step_avg:3635.08ms
+step:439/500 train_time:1595.760s step_avg:3634.99ms
+step:440/500 train_time:1599.359s step_avg:3634.91ms
+step:441/500 train_time:1602.957s step_avg:3634.82ms
+step:442/500 train_time:1606.565s step_avg:3634.76ms
+step:443/500 train_time:1610.165s step_avg:3634.68ms
+step:444/500 train_time:1613.763s step_avg:3634.60ms
+step:445/500 train_time:1617.360s step_avg:3634.52ms
+step:446/500 train_time:1620.957s step_avg:3634.43ms
+step:447/500 train_time:1624.554s step_avg:3634.35ms
+step:448/500 train_time:1628.152s step_avg:3634.27ms
+step:449/500 train_time:1631.752s step_avg:3634.19ms
+step:450/500 train_time:1635.349s step_avg:3634.11ms
+step:450/500 val_loss:3.77511 train_time:1635.349s step_avg:3602.97ms
+step:451/500 train_time:1638.955s step_avg:3634.05ms
+step:452/500 train_time:1642.548s step_avg:3633.96ms
+step:453/500 train_time:1646.154s step_avg:3633.89ms
+step:454/500 train_time:1649.763s step_avg:3633.84ms
+step:455/500 train_time:1653.362s step_avg:3633.76ms
+step:456/500 train_time:1656.959s step_avg:3633.68ms
+step:457/500 train_time:1660.560s step_avg:3633.61ms
+step:458/500 train_time:1664.171s step_avg:3633.56ms
+step:459/500 train_time:1667.770s step_avg:3633.49ms
+step:460/500 train_time:1671.367s step_avg:3633.41ms
+step:461/500 train_time:1674.969s step_avg:3633.34ms
+step:462/500 train_time:1678.568s step_avg:3633.26ms
+step:463/500 train_time:1682.176s step_avg:3633.21ms
+step:464/500 train_time:1685.776s step_avg:3633.14ms
+step:465/500 train_time:1689.375s step_avg:3633.06ms
+step:466/500 train_time:1692.987s step_avg:3633.02ms
+step:467/500 train_time:1696.587s step_avg:3632.95ms
+step:468/500 train_time:1700.192s step_avg:3632.89ms
+step:469/500 train_time:1703.791s step_avg:3632.82ms
+step:470/500 train_time:1707.401s step_avg:3632.77ms
+step:471/500 train_time:1711.008s step_avg:3632.71ms
+step:472/500 train_time:1714.615s step_avg:3632.66ms
+step:473/500 train_time:1718.212s step_avg:3632.58ms
+step:474/500 train_time:1721.819s step_avg:3632.53ms
+step:475/500 train_time:1725.427s step_avg:3632.48ms
+step:475/500 val_loss:3.75808 train_time:1725.427s step_avg:3603.10ms
+step:476/500 train_time:1729.026s step_avg:3632.41ms
+step:477/500 train_time:1732.624s step_avg:3632.34ms
+step:478/500 train_time:1736.233s step_avg:3632.29ms
+step:479/500 train_time:1739.842s step_avg:3632.24ms
+step:480/500 train_time:1743.441s step_avg:3632.17ms
+step:481/500 train_time:1747.041s step_avg:3632.10ms
+step:482/500 train_time:1750.642s step_avg:3632.04ms
+step:483/500 train_time:1754.243s step_avg:3631.97ms
+step:484/500 train_time:1757.844s step_avg:3631.91ms
+step:485/500 train_time:1761.443s step_avg:3631.84ms
+step:486/500 train_time:1765.051s step_avg:3631.79ms
+step:487/500 train_time:1768.651s step_avg:3631.73ms
+step:488/500 train_time:1772.255s step_avg:3631.67ms
+step:489/500 train_time:1775.854s step_avg:3631.60ms
+step:490/500 train_time:1779.462s step_avg:3631.55ms
+step:491/500 train_time:1783.061s step_avg:3631.49ms
+step:492/500 train_time:1786.662s step_avg:3631.43ms
+step:493/500 train_time:1790.259s step_avg:3631.36ms
+step:494/500 train_time:1793.858s step_avg:3631.29ms
+step:495/500 train_time:1797.468s step_avg:3631.25ms
+step:496/500 train_time:1801.064s step_avg:3631.18ms
+step:497/500 train_time:1804.662s step_avg:3631.11ms
+step:498/500 train_time:1808.261s step_avg:3631.05ms
+step:499/500 train_time:1811.872s step_avg:3631.01ms
+step:500/500 train_time:1815.473s step_avg:3630.95ms
+step:500/500 val_loss:3.74983 train_time:1815.473s step_avg:3601.85ms
+{
+  "cache_volume": "nanogpt-speedrun-cache",
+  "data_volume": "nanogpt-speedrun-fineweb10b",
+  "gpu": "H100",
+  "returncode": 0,
+  "runner": "tools/run_track3_locoprop_m.sh",
+  "tail": "59.775s step_avg:3635.84ms\nstep:430/500 train_time:1563.371s step_avg:3635.75ms\nstep:431/500 train_time:1566.966s step_avg:3635.65ms\nstep:432/500 train_time:1570.564s step_avg:3635.57ms\nstep:433/500 train_time:1574.162s step_avg:3635.48ms\nstep:434/500 train_time:1577.762s step_avg:3635.40ms\nstep:435/500 train_time:1581.362s step_avg:3635.31ms\nstep:436/500 train_time:1584.960s step_avg:3635.23ms\nstep:437/500 train_time:1588.564s step_avg:3635.16ms\nstep:438/500 train_time:1592.163s step_avg:3635.08ms\nstep:439/500 train_time:1595.760s step_avg:3634.99ms\nstep:440/500 train_time:1599.359s step_avg:3634.91ms\nstep:441/500 train_time:1602.957s step_avg:3634.82ms\nstep:442/500 train_time:1606.565s step_avg:3634.76ms\nstep:443/500 train_time:1610.165s step_avg:3634.68ms\nstep:444/500 train_time:1613.763s step_avg:3634.60ms\nstep:445/500 train_time:1617.360s step_avg:3634.52ms\nstep:446/500 train_time:1620.957s step_avg:3634.43ms\nstep:447/500 train_time:1624.554s step_avg:3634.35ms\nstep:448/500 train_time:1628.152s step_avg:3634.27ms\nstep:449/500 train_time:1631.752s step_avg:3634.19ms\nstep:450/500 train_time:1635.349s step_avg:3634.11ms\nstep:450/500 val_loss:3.77511 train_time:1635.349s step_avg:3602.97ms\nstep:451/500 train_time:1638.955s step_avg:3634.05ms\nstep:452/500 train_time:1642.548s step_avg:3633.96ms\nstep:453/500 train_time:1646.154s step_avg:3633.89ms\nstep:454/500 train_time:1649.763s step_avg:3633.84ms\nstep:455/500 train_time:1653.362s step_avg:3633.76ms\nstep:456/500 train_time:1656.959s step_avg:3633.68ms\nstep:457/500 train_time:1660.560s step_avg:3633.61ms\nstep:458/500 train_time:1664.171s step_avg:3633.56ms\nstep:459/500 train_time:1667.770s step_avg:3633.49ms\nstep:460/500 train_time:1671.367s step_avg:3633.41ms\nstep:461/500 train_time:1674.969s step_avg:3633.34ms\nstep:462/500 train_time:1678.568s step_avg:3633.26ms\nstep:463/500 train_time:1682.176s step_avg:3633.21ms\nstep:464/500 train_time:1685.776s step_avg:3633.14ms\nstep:465/500 train_time:1689.375s step_avg:3633.06ms\nstep:466/500 train_time:1692.987s step_avg:3633.02ms\nstep:467/500 train_time:1696.587s step_avg:3632.95ms\nstep:468/500 train_time:1700.192s step_avg:3632.89ms\nstep:469/500 train_time:1703.791s step_avg:3632.82ms\nstep:470/500 train_time:1707.401s step_avg:3632.77ms\nstep:471/500 train_time:1711.008s step_avg:3632.71ms\nstep:472/500 train_time:1714.615s step_avg:3632.66ms\nstep:473/500 train_time:1718.212s step_avg:3632.58ms\nstep:474/500 train_time:1721.819s step_avg:3632.53ms\nstep:475/500 train_time:1725.427s step_avg:3632.48ms\nstep:475/500 val_loss:3.75808 train_time:1725.427s step_avg:3603.10ms\nstep:476/500 train_time:1729.026s step_avg:3632.41ms\nstep:477/500 train_time:1732.624s step_avg:3632.34ms\nstep:478/500 train_time:1736.233s step_avg:3632.29ms\nstep:479/500 train_time:1739.842s step_avg:3632.24ms\nstep:480/500 train_time:1743.441s step_avg:3632.17ms\nstep:481/500 train_time:1747.041s step_avg:3632.10ms\nstep:482/500 train_time:1750.642s step_avg:3632.04ms\nstep:483/500 train_time:1754.243s step_avg:3631.97ms\nstep:484/500 train_time:1757.844s step_avg:3631.91ms\nstep:485/500 train_time:1761.443s step_avg:3631.84ms\nstep:486/500 train_time:1765.051s step_avg:3631.79ms\nstep:487/500 train_time:1768.651s step_avg:3631.73ms\nstep:488/500 train_time:1772.255s step_avg:3631.67ms\nstep:489/500 train_time:1775.854s step_avg:3631.60ms\nstep:490/500 train_time:1779.462s step_avg:3631.55ms\nstep:491/500 train_time:1783.061s step_avg:3631.49ms\nstep:492/500 train_time:1786.662s step_avg:3631.43ms\nstep:493/500 train_time:1790.259s step_avg:3631.36ms\nstep:494/500 train_time:1793.858s step_avg:3631.29ms\nstep:495/500 train_time:1797.468s step_avg:3631.25ms\nstep:496/500 train_time:1801.064s step_avg:3631.18ms\nstep:497/500 train_time:1804.662s step_avg:3631.11ms\nstep:498/500 train_time:1808.261s step_avg:3631.05ms\nstep:499/500 train_time:1811.872s step_avg:3631.01ms\nstep:500/500 train_time:1815.473s step_avg:3630.95ms\nstep:500/500 val_loss:3.74983 train_time:1815.473s step_avg:3601.85ms\n",
+  "training_summary": {
+    "step": 500,
+    "step_avg_ms": 3601.85,
+    "total_steps": 500,
+    "train_time_s": 1815.473,
+    "val_loss": 3.74983
+  },
+  "wall_time_s": 2016.084
+}
+Stopping app - local entrypoint completed.
+✓ App completed. View run at 
+https://modal.com/apps/nipsdwip/main/ap-ls756LDL1iUPDbUPFRY0mI

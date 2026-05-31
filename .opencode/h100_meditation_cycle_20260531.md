@@ -796,3 +796,58 @@ LOCO_SOFT_POLAR_WINDOWS=48-64
 LOCO_DIAG_MLP_LAYERS=0-1
 LOCO_DIAG_ATTN_LAYERS=0-1
 ```
+
+## Cycle I Result
+
+Broad PR291 all_l01 200-step promotion:
+
+```text
+App: ap-25Oswlrs4ybWc7PlBqJCRZ
+GPU block end: 2026-05-31T07:40:57Z / 2026-05-31 13:10:57 IST
+
+Artifacts:
+  .opencode/modal_softmuon_pr291_all_l01_200_h100_20260531.launch.log
+  .opencode/modal_softmuon_pr291_all_l01_200_h100_20260531.summary.md
+  .opencode/modal_softmuon_pr291_all_l01_200_h100_20260531.parsed.md
+  .opencode/modal_softmuon_pr291_all_l01_200_h100_20260531.diagnostics.md
+  .opencode/modal_softmuon_pr291_all_l01_200_h100_20260531.loss.svg
+```
+
+Result:
+
+| step | active | noop1 | noop2 | noop mean | delta vs mean | read |
+| ---: | ---: | ---: | ---: | ---: | ---: | --- |
+| 40 | `5.8676` | `5.8558` | `5.8586` | `5.8572` | `+0.0104` | early worse |
+| 80 | `5.1044` | `5.1250` | `5.0984` | `5.1117` | `-0.0073` | mixed but strong vs noop1 |
+| 120 | `4.3914` | `4.3891` | `4.3919` | `4.3905` | `+0.0009` | near parity/slightly worse |
+| 160 | `4.0519` | `4.0531` | `4.0504` | `4.0518` | `+0.0001` | parity |
+| 200 | `3.8836` | `3.8874` | `3.8844` | `3.8859` | `-0.0023` | beats both |
+
+Read:
+
+```text
+This is the first PR291-style polynomial no-C result that both passes an
+80-step screen and survives to 200. The curve shape is not monotonic: active
+is worse at step 40, wins strongly around step 80, fades around 120/160, then
+finishes ahead at 200.
+
+The final margin is real but not huge:
+  active - noop_mean = -0.0023
+  active - best_noop = -0.0008
+
+Because the margin against best noop is small, the immediately necessary
+control is broad schedule-only at 200. That tests whether the split
+Nesterov/polar_from_operand path itself can explain the final improvement.
+```
+
+Launched schedule-only broad 200-step control:
+
+```text
+App: ap-qhLZuekDwpSwLXrI33TPbV
+SCREEN_STEPS=200
+LOCO_SOFT_POLAR_IMPL=pr291
+LOCO_SOFT_POLAR_SCHEDULE_ONLY=1
+LOCO_SOFT_POLAR_SURFACES=qk,v,o,mlp_fc
+LOCO_DIAG_MLP_LAYERS=0-1
+LOCO_DIAG_ATTN_LAYERS=0-1
+```
