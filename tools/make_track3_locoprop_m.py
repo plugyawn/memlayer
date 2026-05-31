@@ -67,6 +67,10 @@ LOCOM_MLP = r'''class MLP(nn.Module):
         self.layer_idx = layer_idx
         self.fc = Linear(dim, hdim)
         self.proj = Linear(hdim, dim)
+        self.register_buffer("fc_xtx", torch.zeros(dim, dim, dtype=torch.float32), persistent=False)
+        self.register_buffer("fc_count", torch.zeros((), dtype=torch.float32), persistent=False)
+        self.register_buffer("proj_xtx", torch.zeros(4, dim, dim, dtype=torch.float32), persistent=False)
+        self.register_buffer("proj_count", torch.zeros((), dtype=torch.float32), persistent=False)
         self._loco_x = None
         self._loco_post = None
         self._loco_dpre = None
