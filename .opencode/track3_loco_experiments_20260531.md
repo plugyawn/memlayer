@@ -372,3 +372,27 @@ Read: this was stopped after the provenance mismatch audit. It used the official
 - Status: stopped during the provenance mismatch audit. LocoProp-M hooks fired at steps 0, 1, and 2; step 2 applied nonzero capped corrections. Step 125 validation was `4.50059` at `4164.89ms/step`, which is basically in the PR291 baseline band rather than a clear early LocoProp-M win.
 - Latest diagnostics: step 50 hooks are active on all owned MLP `fc` surfaces. Corrections are nonzero and capped; several early raw local solves are unstable, but by step 50 the observed first-layer correction scale is around `1.17e-02` and the first four logged `cos_desc` values are small/negative (`-0.034`, `-0.075`, `-0.035`, `-0.023`), so the first validation screen is the real decision point.
 - Log: `.opencode/modal_track3_pr291_locom_m_k4_mbs16_500_h100_r1b_20260531.launch.log`.
+
+## Modal Simple Track 3 Base + LocoProp-M Target Runs
+
+`track3-simple-locom-target328-1xh100-laneA-2trials-20260531`
+
+- Provider: Modal, H100.
+- App: `ap-vSvCYOO6msUHj4RiSBqw2m`.
+- Source: simple Track 3 base, `records/track_3_optimization/train_gpt_simple.py`.
+- Setting: 1x H100, two sequential trials, `SCREEN_STEPS=3350`, `TRACK3_TARGET_LOSS=3.28`, `TRACK3_MBS=16`, `K=4`, `sample_tokens=1024`, all MLP `fc` surfaces, cap `0.20`.
+- Seeds: trial seeds `0` and `1` via `TRACK3_SEED_BASE=0`, `TRACK3_SEED_OFFSET=0`.
+- Status: detached and running. Early log confirms `track3_trial_seed=0 trial=0`, LocoProp-M owner hooks on all 12 MLP `fc` layers, and active capped corrections by step 2. Last launch-log observation reached step 42 with `step_avg=3885.28ms`.
+- Log: `.opencode/modal_track3_simple_locom_target328_1xh100_laneA_2trials_20260531.launch.log`.
+
+`track3-simple-locom-target328-1xh100-laneB-2trials-20260531`
+
+- Provider: Modal, H100.
+- App: `ap-Kinp6sRK1ecuB2dTABJERC`.
+- Source: simple Track 3 base, `records/track_3_optimization/train_gpt_simple.py`.
+- Setting: same as lane A.
+- Seeds: trial seeds `100` and `101` via `TRACK3_SEED_BASE=0`, `TRACK3_SEED_OFFSET=100`.
+- Status: detached and running. Early log confirms `track3_trial_seed=100 trial=0`, LocoProp-M owner hooks on all 12 MLP `fc` layers, and active capped corrections by step 2. Last launch-log observation reached step 41 with `step_avg=3756.26ms`.
+- Log: `.opencode/modal_track3_simple_locom_target328_1xh100_laneB_2trials_20260531.launch.log`.
+
+Read: this is the apples-to-apples follow-up to the simple Track 3 base lane where LocoProp-M materialized. It intentionally does not use the official Newton-Muon or PR291 sources. The two lanes provide four 1x-H100 seeds total while keeping each lane detached and isolated.
