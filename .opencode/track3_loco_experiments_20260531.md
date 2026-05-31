@@ -7,6 +7,17 @@ Context:
 - Torch: `2.11`.
 - cuDNN SDPA disabled in generated script after Modal/Torch 2.11 cuDNN frontend plan failures.
 
+## Provenance Audit
+
+The apparent contradiction between the reproduced `3.85202` 1x LocoProp-M screen and the stopped Prime official-NM+LocoProp-M lane was not an apples-to-apples algorithm comparison:
+
+- The reproduced `3.85202` run used `records/track_3_optimization/train_gpt_simple.py`, generated with `train_steps=500`.
+- The previous "official NM reference" table below used the official Newton-Muon source, generated with `train_steps=3000`.
+- The stopped Prime official-NM+LocoProp-M lane used the official Newton-Muon source, generated with `train_steps=3300`.
+- The PR291 side lane used the PR291 logged source, generated with `train_steps=500`.
+
+Therefore the earlier cross-run deltas against "official NM reference" should be treated as rough orientation only, not as evidence of fading or persistence. Future GPU launches must match at least `(source script, generated train_steps, mbs, nproc, LocoProp-M settings)` before comparing losses. The runner now prints source, generated script, steps, nproc, mbs, and trial-arg mode before launch, and generated scripts print the source path plus train_steps.
+
 ## Active Reference
 
 `track3-nm-3000-h100-20260531-r3`
