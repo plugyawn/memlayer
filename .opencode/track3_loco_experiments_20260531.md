@@ -310,8 +310,9 @@ Observed validation so far:
 | Step | Val loss |
 | ---: | ---: |
 | 125 | 4.56482 |
+| 250 | 4.09889 |
 
-Read: first screen is strong enough to continue the 1x gate. It is also slightly ahead of the killed 4x Prime run at the same step (`4.56972`), while avoiding the later distributed mismatch seen at step 375.
+Read: the 1x lane remains ahead of the official Newton-Muon reference at step 250 (`4.11564`) by about `0.0168`, but it is still slow at about `6.84s/step`. The correction diagnostics continue to show some raw local solves exploding and then being made tolerable only by the norm cap, so this is evidence of an algorithmic effect, not an efficient WR-ready implementation.
 
 ## Modal Track 3 Current-Lowest PR291 + LocoProp-M
 
@@ -330,4 +331,5 @@ Read: first screen is strong enough to continue the 1x gate. It is also slightly
 - App: `ap-pyWiiZoCpXa1JdwaVhjKOy`.
 - Same source/settings as above, with `TRACK3_PASS_TRIAL_ARG=0`.
 - Status: running. LocoProp-M hooks fired at steps 0, 1, and 2; step 2 applied nonzero capped corrections.
+- Latest diagnostics: step 50 hooks are active on all owned MLP `fc` surfaces. Corrections are nonzero and capped; several early raw local solves are unstable, but by step 50 the observed first-layer correction scale is around `1.17e-02` and the first four logged `cos_desc` values are small/negative (`-0.034`, `-0.075`, `-0.035`, `-0.023`), so the first validation screen is the real decision point.
 - Log: `.opencode/modal_track3_pr291_locom_m_k4_mbs16_500_h100_r1b_20260531.launch.log`.
