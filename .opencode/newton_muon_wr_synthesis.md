@@ -2699,3 +2699,46 @@ Next diagnostic priority:
   short-horizon nudges. If it remains positive but loss fades, the issue is
   likely scale/schedule/coupling rather than direction.
 ```
+
+PR291 / Nilin Soft-Muon comparison:
+
+```text
+PR291 Soft-Muon is not right-feature preconditioning. It does not use
+C = X_features^T X_features. It changes the singular-value transfer of the
+Muon update itself.
+
+The blog/PR formulation is approximately:
+  X = momentum update
+  X = U diag(sigma) V^T
+  SoftMuon_p(X) ~= U diag(sigma^p) V^T
+
+PR291 uses p=0.1 and implements it through linear combinations of
+Newton-Schulz iterates. It also combines this with SOAP-like MLP+V
+preconditioning, trust gates, norm-preserving blends, and a long schedule.
+
+Our existing no-C soft-polar probe is:
+  T_alpha(X) = X (X^T X + eps I)^(-alpha/2)
+  sigma -> sigma^(1-alpha)
+
+Therefore:
+  PR291 p=0.1 ~= our alpha=0.9
+
+The previous no-C soft-polar MLP c_fc screen used alpha=0.5, i.e. p=0.5.
+That is much less Muon-like and does not falsify PR291-style Soft-Muon.
+
+Next control:
+  run no-C, no-feature-Gram, no-right-precondition Soft-Muon with
+  LOCO_SOFT_POLAR_ALPHA=0.9 and paired noops. Start with MLP c_fc because it
+  directly controls the latest natural-cap20 MLP c_fc feature-Gram result.
+
+Interpretation:
+  If alpha=0.9 wins, the useful lever may be Muon's singular-value transfer,
+  not feature-Gram C.
+
+  If alpha=0.9 is neutral but harmless, broaden the no-C control to V/O/QK or
+  all Muon surfaces before returning to C.
+
+  If alpha=0.9 is bad, it only falsifies this early local pulse; PR291 still
+  differs by using a late schedule, broader surfaces, SOAP, and polynomial
+  Soft-Muon rather than the exact eig screen.
+```
