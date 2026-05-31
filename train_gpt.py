@@ -140,9 +140,12 @@ LOCO_SOFT_POLAR = os.environ.get("LOCO_SOFT_POLAR", "0") == "1"
 LOCO_SOFT_POLAR_SURFACES = frozenset(
     s.strip() for s in os.environ.get("LOCO_SOFT_POLAR_SURFACES", "mlp_fc").split(",") if s.strip()
 )
-LOCO_SOFT_POLAR_SUPPORTED_SURFACES = frozenset({"mlp_fc"})
+LOCO_SOFT_POLAR_SUPPORTED_SURFACES = frozenset({"qk", "v", "o", "mlp_fc"})
 if LOCO_SOFT_POLAR and not LOCO_SOFT_POLAR_SURFACES <= LOCO_SOFT_POLAR_SUPPORTED_SURFACES:
     raise ValueError(f"unsupported LOCO_SOFT_POLAR_SURFACES={sorted(LOCO_SOFT_POLAR_SURFACES)}")
+LOCO_SOFT_POLAR_QK = LOCO_SOFT_POLAR and "qk" in LOCO_SOFT_POLAR_SURFACES
+LOCO_SOFT_POLAR_V = LOCO_SOFT_POLAR and "v" in LOCO_SOFT_POLAR_SURFACES
+LOCO_SOFT_POLAR_O = LOCO_SOFT_POLAR and "o" in LOCO_SOFT_POLAR_SURFACES
 LOCO_SOFT_POLAR_MLP_FC = LOCO_SOFT_POLAR and "mlp_fc" in LOCO_SOFT_POLAR_SURFACES
 LOCO_SOFT_POLAR_ALPHA = float(os.environ.get("LOCO_SOFT_POLAR_ALPHA", "0.5"))
 LOCO_SOFT_POLAR_EPS = float(os.environ.get("LOCO_SOFT_POLAR_EPS", "1e-6"))
@@ -1821,6 +1824,98 @@ class NorMuonAndAdam:
                     record_postpolar_ref=False,
                 )
 
+    def _soft_polar_vo_update_inplace(
+        self,
+        operand_chunk: Tensor,
+        v_chunk: Tensor,
+        p_cfg: ParamConfig,
+        rank: int,
+    ):
+        """Blend no-C Soft-Muon into V/O hard-polar updates."""
+        start_idx = rank * p_cfg.chunk_size
+        num_vo_real = self.loco_diag_model._num_attn_layers * 2
+        blend = float(self._soft_polar_blend_t.item())
+        for mat_idx in range(p_cfg.chunk_size):
+            global_idx = start_idx + mat_idx
+            if global_idx >= num_vo_real:
+                v_chunk[mat_idx].zero_()
+                continue
+            is_o = global_idx % 2 == 1
+            if is_o:
+                if not LOCO_SOFT_POLAR_O:
+                    continue
+            elif not LOCO_SOFT_POLAR_V:
+                continue
+            layer_idx = global_idx // 2
+            model_layer = layer_idx + (layer_idx >= 6)
+            if not _loco_diag_layer_active(model_layer, LOCO_DIAG_ATTN_LAYER_SET):
+                continue
+            baseline = v_chunk[mat_idx].float()
+            soft_update = soft_polar_from_operand(
+                operand_chunk[mat_idx],
+                self._soft_polar_alpha_t,
+                self._soft_polar_eps_t,
+            ).float()
+            if LOCO_SOFT_POLAR_NORM_RESTORE:
+                soft_update = soft_update.mul(
+                    baseline.norm().div(soft_update.norm().clamp_min(1e-12))
+                )
+            before_update = baseline.clone() if self._loco_full_log_step else None
+            v_chunk[mat_idx].copy_(baseline + blend * (soft_update - baseline))
+            if before_update is not None:
+                self._record_loco_full_precond_stats(
+                    "soft_o" if is_o else "soft_v",
+                    layer_idx,
+                    global_idx,
+                    before_update,
+                    v_chunk[mat_idx],
+                    blend,
+                    record_postpolar_ref=False,
+                )
+
+    def _soft_polar_qk_update_inplace(
+        self,
+        operand_chunk: Tensor,
+        v_chunk: Tensor,
+        p_cfg: ParamConfig,
+        rank: int,
+    ):
+        """Blend no-C Soft-Muon into Q/K hard-polar updates."""
+        start_idx = rank * p_cfg.chunk_size
+        qk_groups_per_layer = 2 * (self.loco_diag_model.num_heads // 2)
+        blend = float(self._soft_polar_blend_t.item())
+        for mat_idx in range(p_cfg.chunk_size):
+            global_idx = start_idx + mat_idx
+            if global_idx >= self.loco_diag_model._num_qk_groups:
+                v_chunk[mat_idx].zero_()
+                continue
+            layer_idx = global_idx // qk_groups_per_layer
+            model_layer = layer_idx + (layer_idx >= 6)
+            if not _loco_diag_layer_active(model_layer, LOCO_DIAG_ATTN_LAYER_SET):
+                continue
+            baseline = v_chunk[mat_idx].float()
+            soft_update = soft_polar_from_operand(
+                operand_chunk[mat_idx],
+                self._soft_polar_alpha_t,
+                self._soft_polar_eps_t,
+            ).float()
+            if LOCO_SOFT_POLAR_NORM_RESTORE:
+                soft_update = soft_update.mul(
+                    baseline.norm().div(soft_update.norm().clamp_min(1e-12))
+                )
+            before_update = baseline.clone() if self._loco_full_log_step else None
+            v_chunk[mat_idx].copy_(baseline + blend * (soft_update - baseline))
+            if before_update is not None:
+                self._record_loco_full_precond_stats(
+                    "soft_qk",
+                    layer_idx,
+                    global_idx,
+                    before_update,
+                    v_chunk[mat_idx],
+                    blend,
+                    record_postpolar_ref=False,
+                )
+
     # -----------------------------------
     # NorMuon update
 
@@ -1853,6 +1948,17 @@ class NorMuonAndAdam:
             and p_cfg.label == "mlp_bank"
             and LOCO_SOFT_POLAR_MLP_FC
         )
+        use_soft_polar_vo = (
+            self._soft_polar_optimizer_active
+            and p_cfg.label == "vo_bank"
+            and (LOCO_SOFT_POLAR_V or LOCO_SOFT_POLAR_O)
+        )
+        use_soft_polar_qk = (
+            self._soft_polar_optimizer_active
+            and p_cfg.label == "qk_bank"
+            and LOCO_SOFT_POLAR_QK
+        )
+        use_soft_polar_bank = use_soft_polar_mlp_fc or use_soft_polar_vo or use_soft_polar_qk
 
         p_state = self.param_states[param]
         grad_chunk = grad_chunk.float()  # FP32 for momentum
@@ -1880,10 +1986,15 @@ class NorMuonAndAdam:
 
         # Fused Nesterov momentum + Polar Express orthogonalization
         is_large_matrix = chunk_shape[-2] > 1024
-        if use_soft_polar_mlp_fc:
+        if use_soft_polar_bank:
             nesterov_momentum_operand_inplace(grad_chunk, p_state["momentum_buffer"], self._momentum_t)
             v_chunk = polar_express_from_operand(grad_chunk, split_baddbmm=is_large_matrix)
-            self._soft_polar_mlp_fc_update_inplace(grad_chunk, v_chunk, p_cfg, rank)
+            if use_soft_polar_qk:
+                self._soft_polar_qk_update_inplace(grad_chunk, v_chunk, p_cfg, rank)
+            elif use_soft_polar_vo:
+                self._soft_polar_vo_update_inplace(grad_chunk, v_chunk, p_cfg, rank)
+            else:
+                self._soft_polar_mlp_fc_update_inplace(grad_chunk, v_chunk, p_cfg, rank)
         elif use_loco_full_after_momentum:
             nesterov_momentum_operand_inplace(grad_chunk, p_state["momentum_buffer"], self._momentum_t)
             if LOCO_FULL_METRIC_POLAR and not LOCO_FULL_SCHEDULE_ONLY:
