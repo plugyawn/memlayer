@@ -18,6 +18,34 @@ The apparent contradiction between the reproduced `3.85202` 1x LocoProp-M screen
 
 Therefore the earlier cross-run deltas against "official NM reference" should be treated as rough orientation only, not as evidence of fading or persistence. Future GPU launches must match at least `(source script, generated train_steps, mbs, nproc, LocoProp-M settings)` before comparing losses. The runner now prints source, generated script, steps, nproc, mbs, and trial-arg mode before launch, and generated scripts print the source path plus train_steps.
 
+Matched audit after the tooling fix:
+
+`track3-nm500-locom-m-k4-mbs16-active-h100-audit-20260531`
+
+- Provider: Modal, H100.
+- App: `ap-n0OpQ93S21q6DKLGYsbN45`.
+- Source: official Newton-Muon, `records/track_3_optimization/results/20260505_newton_muon/train_gpt_simple_newton_muon.py`.
+- Generated schedule: `train_steps=500`, `TRACK3_MBS=16`, `K=4`, `sample_tokens=1024`, cap `0.20`, `TRACK3_LOCOM_ALPHA=1.0`.
+- Log: `.opencode/modal_track3_nm500_locom_m_k4_mbs16_active_h100_audit_20260531.launch.log`.
+- Status: stopped after step 250.
+
+`track3-nm500-locom-m-k4-mbs16-alpha0-h100-audit-20260531`
+
+- Provider: Modal, H100.
+- App: `ap-ModsFRV41FgbJ7hcQPFC0b`.
+- Same source/schedule/settings, except `TRACK3_LOCOM_ALPHA=0.0`.
+- Log: `.opencode/modal_track3_nm500_locom_m_k4_mbs16_alpha0_h100_audit_20260531.launch.log`.
+- Status: stopped after step 250.
+
+Observed validation:
+
+| Step | Active LocoProp-M | Alpha-zero control | Active delta |
+| ---: | ---: | ---: | ---: |
+| 125 | 4.56776 | 4.60917 | -0.04141 |
+| 250 | 4.08164 | 4.05400 | +0.02764 |
+
+Read: matched provenance restores a real early step-125 LocoProp-M effect, but the current sampled local solve/cap setup flips negative by step 250 under official Newton-Muon. At step 250 one logged active layer has `lossK=1.232e+04`, `corr_norm=6.911e+03`, and `cos_desc=-0.952`, so the local solver is sometimes producing a strongly anti-descent correction that only survives through a tiny norm-cap scale. This points to a solver/correction-quality problem, not a disappearance caused by cross-run schedule mismatch.
+
 ## Active Reference
 
 `track3-nm-3000-h100-20260531-r3`
