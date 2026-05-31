@@ -277,3 +277,57 @@ Queued accumulated-sample diagnostic:
 - Source: `records/track_3_optimization/results/20260505_newton_muon/train_gpt_simple_newton_muon.py`.
 - Setting: official Track 3 Newton-Muon script plus sampled LocoProp-M over all MLP `fc` surfaces, 1x H100, 500 steps, `TRACK3_MBS=16`, `K=4`, `sample_tokens=1024`, cap `0.20`.
 - Status: launched/created, no training values yet.
+
+## Prime Track 3 Newton-Muon + LocoProp-M
+
+`track3_nm_locom_k4_mbs16_4xh100_target328_pair_r2_20260531`
+
+- Provider: Prime Intellect.
+- Pod: `d60c61dbd5284331b6467023e35acf9c`, `4x H100 PCIe`, `$9.40/hr`.
+- Source: official Track 3 Newton-Muon script, `records/track_3_optimization/results/20260505_newton_muon/train_gpt_simple_newton_muon.py`.
+- Setting: `NPROC_PER_NODE=4`, two trials to target `3.28`, `TRACK3_MBS=16`, `K=4`, `sample_tokens=1024`, gathered samples, cap `0.20`.
+- Status: terminated after the step-375 screen because the distributed curve still did not match the reproduced 1x LocoProp-M signal.
+
+Observed validation:
+
+| Step | Val loss |
+| ---: | ---: |
+| 125 | 4.56972 |
+| 250 | 4.09108 |
+| 375 | 3.90836 |
+
+Read: early step 125 was strong, but by 375 it lagged the reproduced corrected 1x LocoProp-M screen (`3.85202`) by about `0.056`. Per user instruction, the 4x lane was killed rather than spending into a distributed mismatch.
+
+`track3_nm_locom_k4_mbs16_1xh100_target328_pair_r2_20260531`
+
+- Provider: Prime Intellect.
+- Pod: `b45df3092c7640cf9f7b112cb54534f0`, `1x H100 PCIe`, `$2.35/hr`.
+- Same source/settings as above, except `NPROC_PER_NODE=1`.
+- Status: still running toward the requested 1x benchmark/target-loss evidence.
+
+Observed validation so far:
+
+| Step | Val loss |
+| ---: | ---: |
+| 125 | 4.56482 |
+
+Read: first screen is strong enough to continue the 1x gate. It is also slightly ahead of the killed 4x Prime run at the same step (`4.56972`), while avoiding the later distributed mismatch seen at step 375.
+
+## Modal Track 3 Current-Lowest PR291 + LocoProp-M
+
+`track3-pr291-locom-m-k4-mbs16-500-h100-r1-20260531`
+
+- Provider: Modal, H100.
+- App: `ap-j27eGyVv18nPJLmFGBRnjb`.
+- Source: current lowest-steps Track 3 path, `records/track_3_optimization/results/20260509_contra_soft_muon/f6d6db35-7565-42da-a4d5-57f3b032a90b.txt`.
+- Setting: generated LocoProp-M over all MLP `fc` surfaces, `TRACK3_MBS=16`, `K=4`, `sample_tokens=1024`, cap `0.20`, 500-step screen.
+- Status: failed before training because PR291 uses argparse and rejects the old positional trial argument.
+- Log: `.opencode/modal_track3_pr291_locom_m_k4_mbs16_500_h100_r1_20260531.launch.log`.
+
+`track3-pr291-locom-m-k4-mbs16-500-h100-r1b-20260531`
+
+- Provider: Modal, H100.
+- App: `ap-pyWiiZoCpXa1JdwaVhjKOy`.
+- Same source/settings as above, with `TRACK3_PASS_TRIAL_ARG=0`.
+- Status: running. LocoProp-M hooks fired at steps 0, 1, and 2; step 2 applied nonzero capped corrections.
+- Log: `.opencode/modal_track3_pr291_locom_m_k4_mbs16_500_h100_r1b_20260531.launch.log`.

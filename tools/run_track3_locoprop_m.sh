@@ -19,4 +19,8 @@ if [[ "${TRACK3_DRY_RUN:-0}" == "1" ]]; then
   exit 0
 fi
 
-torchrun --standalone --nproc_per_node="${nproc}" "${generated_script}" "${trials}"
+if [[ "${TRACK3_PASS_TRIAL_ARG:-1}" == "1" ]]; then
+  torchrun --standalone --nproc_per_node="${nproc}" "${generated_script}" "${trials}"
+else
+  torchrun --standalone --nproc_per_node="${nproc}" "${generated_script}"
+fi

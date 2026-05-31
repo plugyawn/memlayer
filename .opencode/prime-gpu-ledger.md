@@ -66,5 +66,5 @@
   price_per_hour: $9.40
   created_at: 2026-05-31T11:46:00Z
   expected_stop: after the two-seed 4x target-loss run completes, fails, or user redirects
-  status: running-track3-locom-4x
+  status: terminated-after-step375-distributed-mismatch
   termination_policy: keep while actively training or gathering requested benchmark evidence; do not touch unrelated pods
