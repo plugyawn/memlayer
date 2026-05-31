@@ -2742,3 +2742,51 @@ Interpretation:
   differs by using a late schedule, broader surfaces, SOAP, and polynomial
   Soft-Muon rather than the exact eig screen.
 ```
+
+No-C alpha0.9 MLP c_fc result:
+
+```text
+Artifacts:
+  .opencode/modal_softmuon_noc_mlpfc_a09_200_h100_20260531.launch.log
+  .opencode/modal_softmuon_noc_mlpfc_a09_200_h100_20260531.summary.md
+  .opencode/modal_softmuon_noc_mlpfc_a09_200_h100_20260531.parsed.md
+  .opencode/modal_softmuon_noc_mlpfc_a09_200_h100_20260531.diagnostics.md
+
+No-C Soft-Muon, MLP c_fc layers 0-1, window 48-64,
+alpha=0.9, eps=1e-6, norm-restore on, paired noop/active/noop2:
+
+  step40  active=5.8661, noops=5.8724 / 5.8851, noop_mean=5.8788, delta=-0.0126
+  step80  active=5.0898, noops=5.1156 / 5.1175, noop_mean=5.1166, delta=-0.0268
+  step120 active=4.3825, noops=4.3911 / 4.3843, noop_mean=4.3877, delta=-0.0052
+  step160 active=4.0497, noops=4.0510 / 4.0501, noop_mean=4.0506, delta=-0.0008
+  step200 active=3.8840, noops=3.8854 / 3.8859, noop_mean=3.8857, delta=-0.0017
+
+  step64 perturbation:
+    delta=0.1842
+    cos=0.982980
+```
+
+Updated synthesis:
+
+```text
+The no-C alpha0.9 MLP c_fc control beat both noops at 200, with a large 80-step
+gain and a small surviving 200-step gain. This is not feature-Gram evidence:
+there is no C collection, no right-feature preconditioner, and no local Gram
+plumbing in the active path.
+
+This result changes the branch priority. The fastest live hypothesis is now:
+  Muon's singular-value transfer is a cleaner lever than feature-Gram C for the
+  current speedrun stack.
+
+The result is not WR-ready because the 200-step margin is only 0.0017 against
+noop mean, but it is the cleanest positive 200-step paired result in the recent
+cycle and costs essentially no C overhead.
+
+The next experiment should adapt PR291 more closely before spending more H100
+time on C:
+  - broaden surfaces beyond MLP c_fc;
+  - keep alpha near 0.9 / p near 0.1;
+  - later replace exact eig soft-polar with a PR291-style polynomial if the
+    surface-broadened exact control remains positive;
+  - only then reconsider whether feature C adds anything on top.
+```

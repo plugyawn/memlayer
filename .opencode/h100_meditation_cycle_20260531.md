@@ -616,3 +616,79 @@ control for the latest cap20 MLP c_fc feature-Gram result. If MLP-only is
 neutral rather than bad, the next no-C run should broaden surfaces before
 returning to C.
 ```
+
+## Cycle G Result
+
+No-C Soft-Muon MLP c_fc alpha0.9 200-step paired control:
+
+```text
+App: ap-1toEjKsdSXk81T8gxlRyio
+GPU block end: 2026-05-31T06:27:39Z / 2026-05-31 11:57:39 IST
+Next H100 allowed after meditation: 2026-05-31 12:57:39 IST
+
+Contract:
+  LOCO_SOFT_POLAR_SURFACES=mlp_fc
+  LOCO_SOFT_POLAR_ALPHA=0.9
+  LOCO_SOFT_POLAR_EPS=1e-6
+  LOCO_SOFT_POLAR_WINDOWS=48-64
+  LOCO_SOFT_POLAR_BLEND_MAX=1.0
+  LOCO_SOFT_POLAR_BLEND_STEPS=16
+  LOCO_SOFT_POLAR_NORM_RESTORE=1
+  LOCO_DIAG_MLP_LAYERS=0-1
+  no LOCO_FULL / no LOCO_DIAG / no feature-Gram C
+  paired cases: noop, active, noop2
+```
+
+Result:
+
+| step | active | noop1 | noop2 | noop mean | active delta vs mean | read |
+| ---: | ---: | ---: | ---: | ---: | ---: | --- |
+| 40 | `5.8661` | `5.8724` | `5.8851` | `5.8788` | `-0.0126` | active better |
+| 80 | `5.0898` | `5.1156` | `5.1175` | `5.1166` | `-0.0268` | active much better |
+| 120 | `4.3825` | `4.3911` | `4.3843` | `4.3877` | `-0.0052` | active better |
+| 160 | `4.0497` | `4.0510` | `4.0501` | `4.0506` | `-0.0008` | active slightly better |
+| 200 | `3.8840` | `3.8854` | `3.8859` | `3.8857` | `-0.0017` | active beats both |
+
+Diagnostics:
+
+```text
+step 50: blend=0.125, delta=0.0229, target_delta=0.1829, cos=0.999739
+step 56: blend=0.500, delta=0.0906, target_delta=0.1813, cos=0.995868
+step 64: blend=1.000, delta=0.1842, target_delta=0.1842, cos=0.982980
+```
+
+Timing:
+
+```text
+paired_noop:  step_avg=547.36ms, contaminated by a large one-off spike.
+paired_active: step_avg=448.01ms.
+paired_noop2: step_avg=447.55ms.
+
+The loss comparison is clean. The first noop timing is not.
+```
+
+Interpretation:
+
+```text
+This is the first clean 200-step paired win in the immediate control family,
+and it uses no feature Gram. The active effect is large at 80, remains visible
+at 120, then fades to a small but still positive 200-step margin.
+
+The full-blend perturbation is mild: cos ~= 0.983 and delta ~= 0.184 versus
+hard Muon. This is much closer to PR291's p=0.1 / alpha=0.9 Soft-Muon idea
+than the earlier alpha=0.5 no-C probe, which was a far stronger singular-value
+change.
+
+Do not claim right-feature preconditioning from this result. The immediate
+lesson is narrower:
+  no-C Muon singular-value transfer can reproduce the same early-persistent
+  pattern we were trying to extract from C, with essentially no C plumbing.
+
+Next GPU priority after the one-hour meditation should be to broaden no-C
+alpha0.9 surfaces before returning to feature C:
+  1. qk,v,o,mlp_fc alpha0.9 80-step paired screen, or
+  2. v,mlp_fc alpha0.9 200-step paired screen if we want a lower-risk promote.
+
+The alpha0.9 MLP-only result is not large enough by itself for a WR claim, but
+it is strong enough to make PR291-style no-C Soft-Muon the top immediate branch.
+```
