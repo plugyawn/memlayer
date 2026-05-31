@@ -544,3 +544,62 @@ be spent reasoning about why 80-step wins are not 200-step-persistent and what
 diagnostic would distinguish a real right-metric benefit from an early
 trajectory nudge.
 ```
+
+## Cycle G Plan
+
+```text
+Current local time when plan was recorded: 2026-05-31 10:58 IST
+Last H100 block ended: 2026-05-31 10:48:16 IST
+Next H100 allowed: 2026-05-31 11:48:16 IST
+```
+
+User correction:
+
+```text
+Before spending more time on C / feature-Gram variants, gather a no-C control:
+drop feature covariance collection and right preconditioning, and adapt/test
+Soft-Muon from PR291 / Nilin's note.
+```
+
+Interpretation:
+
+```text
+PR291 Soft-Muon is not feature-Gram right-preconditioning. It changes the
+singular-value transfer of the Muon update itself. The PR291 value p=0.1 is
+roughly equivalent to our exact spectral-transfer parameter alpha=0.9 because:
+
+  T_alpha(X) = X (X^T X + eps I)^(-alpha/2)
+  sigma -> sigma^(1-alpha)
+
+so p = 1 - alpha.
+
+Our previous no-C soft-polar screen used alpha=0.5, i.e. p=0.5. That was much
+softer and does not falsify PR291-style Soft-Muon. The next no-C screen should
+therefore use alpha=0.9, p~=0.1, and should not enable LOCO_FULL/LOCO_DIAG.
+```
+
+Prepared next H100 command:
+
+```bash
+NANOGPT_MODAL_GPU='H100!' MODAL_GPU='H100!' MODAL_DETACH=1 \
+MODAL_RUN_NAME='softmuon-noc-mlpfc-a09-200-20260531' \
+MODAL_RUNNER='tools/run_softpolar_mlpfc_gate.sh' \
+SCREEN_STEPS=200 SCREEN_VAL_EVERY=40 \
+MODAL_EXTRA_ENV_JSON='{"TRAIN_SYNC_BOS_INDEX":"1","NEWTONV_PAIRED_CASES":"noop,active,noop2","LOCO_SOFT_POLAR_SURFACES":"mlp_fc","LOCO_SOFT_POLAR_ALPHA":"0.9","LOCO_SOFT_POLAR_EPS":"1e-6","LOCO_SOFT_POLAR_WINDOWS":"48-64","LOCO_SOFT_POLAR_BLEND_MAX":"1.0","LOCO_SOFT_POLAR_BLEND_STEPS":"16","LOCO_SOFT_POLAR_NORM_RESTORE":"1","LOCO_DIAG_MLP_LAYERS":"0-1","LOCO_FULL_LOG_PRECOND":"1","LOCO_FULL_LOG_PRECOND_DETAIL":"0","LOCO_DIAG_LOG_STEPS":"48,50,56,64,80,120,160,200"}' \
+tools/run_modal_newtonv_raw_gate.sh 2>&1 | tee .opencode/modal_softmuon_noc_mlpfc_a09_200_h100_20260531.launch.log
+```
+
+Readout:
+
+```text
+If alpha=0.9 MLP c_fc clears paired noops at 200, the immediate lesson is that
+the useful lever may be no-C Muon spectral transfer, not feature-Gram C.
+
+If it fails but is harmless, broaden/no-C test later to V or all Muon surfaces
+before returning to C.
+
+If it is bad, PR291-style Soft-Muon cannot be inferred from this one early
+MLP-only pulse, because PR291 uses a late schedule and all/selected Muon
+matrices; but it would say our current local alpha=0.9 pulse is not the missing
+control.
+```
