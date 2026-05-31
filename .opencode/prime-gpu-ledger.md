@@ -76,7 +76,7 @@
   price_per_hour: $2.35
   created_at: 2026-05-31T22:31:00+05:30
   expected_stop: after the one-run 1x target-loss run completes, fails, or user redirects
-  status: active-training-running-step125-val-4.65727-6922ms
+  status: active-training-running-step250-val-4.11026-6842ms
   termination_policy: keep while actively training or gathering requested benchmark evidence; terminate after completion/failure
 - pod_id: b3ebfcf259094999b5a363fcd749e07d
   name: track3-simple-locom-prime-b-1xh100-20260531
@@ -86,5 +86,5 @@
   price_per_hour: $2.35
   created_at: 2026-05-31T22:31:00+05:30
   expected_stop: after the one-run 1x target-loss run completes, fails, or user redirects
-  status: active-training-running-step125-val-4.63836-6928ms
+  status: active-training-running-step250-val-4.10626-6843ms
   termination_policy: keep while actively training or gathering requested benchmark evidence; terminate after completion/failure
