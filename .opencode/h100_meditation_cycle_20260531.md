@@ -722,13 +722,18 @@ When the H100 meditation window opens at 12:57:39 IST, run a short broad no-C
 surface screen with the polynomial path before returning to feature C.
 
 Preferred command:
+  MODAL_RUNNER=tools/run_softpolar_pr291_two_screen.sh
   LOCO_SOFT_POLAR_IMPL=pr291
   LOCO_SOFT_POLAR_ALPHA=0.9
   LOCO_SOFT_POLAR_POWER=0.1
-  LOCO_SOFT_POLAR_SURFACES=qk,v,o,mlp_fc
   LOCO_SOFT_POLAR_WINDOWS=48-64
   SCREEN_STEPS=80
   paired cases noop,active,noop2
+
+This compound runner executes two screens in one Modal container:
+  1. mlp_fc only, to check whether the PR291 polynomial preserves the exact
+     alpha0.9 MLP c_fc hit;
+  2. qk,v,o,mlp_fc on layers 0-1, to test broader surface coverage.
 
 If broad all-surface polynomial is bad or too noisy, rerun a lower-risk
 v,mlp_fc polynomial screen. If broad is positive at 80, promote to 200.
