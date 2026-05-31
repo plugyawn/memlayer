@@ -731,9 +731,11 @@ Preferred command:
   paired cases noop,active,noop2
 
 This compound runner executes two screens in one Modal container:
-  1. mlp_fc only, to check whether the PR291 polynomial preserves the exact
+  1. mlp_fc schedule-only, to measure the split momentum / polar_from_operand
+     path with zero soft update;
+  2. mlp_fc active, to check whether the PR291 polynomial preserves the exact
      alpha0.9 MLP c_fc hit;
-  2. qk,v,o,mlp_fc on layers 0-1, to test broader surface coverage.
+  3. qk,v,o,mlp_fc active on layers 0-1, to test broader surface coverage.
 
 If broad all-surface polynomial is bad or too noisy, rerun a lower-risk
 v,mlp_fc polynomial screen. If broad is positive at 80, promote to 200.

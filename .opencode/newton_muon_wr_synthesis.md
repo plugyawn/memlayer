@@ -2819,6 +2819,13 @@ container. The paired-case parsers were updated to respect the outer
 SOFTPOLAR_PR291_CASE_START marker so repeated paired_noop/active/noop2 blocks
 do not overwrite each other.
 
+A schedule-only Soft-Muon flag was added as well:
+  LOCO_SOFT_POLAR_SCHEDULE_ONLY=1
+
+That keeps the active case on the split momentum / polar_from_operand path but
+sets the soft blend to zero. The compound PR291 screen now runs this first for
+MLP c_fc so a polynomial hit can be separated from a path artifact.
+
 The earlier C-family diagnostic recommendation still stands if we return to
 feature-Gram work: log future alignment between an applied C-derived correction
 and future raw gradients / future base NorMuon updates. The recent no-C hit

@@ -14,8 +14,9 @@ mkdir -p "${log_dir}"
 run_case() {
   local name="$1"
   local surfaces="$2"
+  local schedule_only="${3:-0}"
   local log_path="${log_dir}/${prefix}_${name}_screen${steps}.log"
-  echo "===== SOFTPOLAR_PR291_CASE_START ${name} surfaces=${surfaces} log=${log_path} ====="
+  echo "===== SOFTPOLAR_PR291_CASE_START ${name} surfaces=${surfaces} schedule_only=${schedule_only} log=${log_path} ====="
   LOG_PATH="${log_path}" \
   SCREEN_STEPS="${steps}" \
   SCREEN_VAL_EVERY="${val_every}" \
@@ -24,11 +25,13 @@ run_case() {
   LOCO_SOFT_POLAR_POWER="${LOCO_SOFT_POLAR_POWER:-0.1}" \
   LOCO_SOFT_POLAR_SURFACES="${surfaces}" \
   LOCO_SOFT_POLAR_WINDOWS="${windows}" \
+  LOCO_SOFT_POLAR_SCHEDULE_ONLY="${schedule_only}" \
   LOCO_DIAG_MLP_LAYERS="${layers}" \
   LOCO_DIAG_ATTN_LAYERS="${attn_layers}" \
   bash tools/run_softpolar_mlpfc_gate.sh
   echo "===== SOFTPOLAR_PR291_CASE_END ${name} ====="
 }
 
-run_case "mlpfc" "mlp_fc"
-run_case "all_l01" "qk,v,o,mlp_fc"
+run_case "mlpfc_sched" "mlp_fc" "1"
+run_case "mlpfc" "mlp_fc" "0"
+run_case "all_l01" "qk,v,o,mlp_fc" "0"

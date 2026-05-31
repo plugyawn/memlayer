@@ -155,6 +155,7 @@ LOCO_SOFT_POLAR_POWER = float(os.environ.get("LOCO_SOFT_POLAR_POWER", str(max(0.
 LOCO_SOFT_POLAR_EPS = float(os.environ.get("LOCO_SOFT_POLAR_EPS", "1e-6"))
 LOCO_SOFT_POLAR_BLEND_STEPS = int(os.environ.get("LOCO_SOFT_POLAR_BLEND_STEPS", "16"))
 LOCO_SOFT_POLAR_BLEND_MAX = float(os.environ.get("LOCO_SOFT_POLAR_BLEND_MAX", "1.0"))
+LOCO_SOFT_POLAR_SCHEDULE_ONLY = os.environ.get("LOCO_SOFT_POLAR_SCHEDULE_ONLY", "0") == "1"
 LOCO_SOFT_POLAR_END_STEP = int(os.environ.get("LOCO_SOFT_POLAR_END_STEP", "-1"))
 LOCO_SOFT_POLAR_WINDOWS_SPEC = os.environ.get("LOCO_SOFT_POLAR_WINDOWS", "").strip()
 LOCO_SOFT_POLAR_NORM_RESTORE = os.environ.get("LOCO_SOFT_POLAR_NORM_RESTORE", "1") == "1"
@@ -989,7 +990,7 @@ class NorMuonAndAdam:
             full_blend_step = _loco_full_blend_step(step)
             full_blend = min(LOCO_FULL_BLEND_MAX, max(0.0, full_blend_step / LOCO_FULL_BLEND_STEPS) * LOCO_FULL_BLEND_MAX)
         soft_active_now = _soft_polar_active_at_step(step)
-        if self._loco_full_runtime_noop or not soft_active_now:
+        if self._loco_full_runtime_noop or not soft_active_now or LOCO_SOFT_POLAR_SCHEDULE_ONLY:
             soft_blend = 0.0
         elif LOCO_SOFT_POLAR_BLEND_STEPS <= 0:
             soft_blend = LOCO_SOFT_POLAR_BLEND_MAX
@@ -1011,7 +1012,12 @@ class NorMuonAndAdam:
             and (LOCO_FULL_NOOP or self._loco_full_runtime_noop or full_blend != 0.0)
         )
         self._loco_full_additive_active = self._loco_full_optimizer_active and LOCO_FULL_ADDITIVE
-        self._soft_polar_optimizer_active = self.soft_polar_active and soft_blend != 0.0
+        self._soft_polar_optimizer_active = (
+            self.soft_polar_active
+            and soft_active_now
+            and not self._loco_full_runtime_noop
+            and (soft_blend != 0.0 or LOCO_SOFT_POLAR_SCHEDULE_ONLY)
+        )
         self._loco_log_step = globals().get("master_process", False) and step in LOCO_DIAG_LOG_STEP_SET
         self._loco_full_log_step = self._loco_log_step and LOCO_FULL_LOG_PRECOND
         self._loco_grad_ratio_stats.clear()
@@ -1842,6 +1848,8 @@ class NorMuonAndAdam:
         start_idx = rank * p_cfg.chunk_size
         num_mlp_real = 22
         blend = float(self._soft_polar_blend_t.item())
+        if blend == 0.0:
+            return
         for mat_idx in range(p_cfg.chunk_size):
             global_idx = start_idx + mat_idx
             if global_idx >= num_mlp_real:
@@ -1886,6 +1894,8 @@ class NorMuonAndAdam:
         start_idx = rank * p_cfg.chunk_size
         num_vo_real = self.loco_diag_model._num_attn_layers * 2
         blend = float(self._soft_polar_blend_t.item())
+        if blend == 0.0:
+            return
         for mat_idx in range(p_cfg.chunk_size):
             global_idx = start_idx + mat_idx
             if global_idx >= num_vo_real:
@@ -1935,6 +1945,8 @@ class NorMuonAndAdam:
         start_idx = rank * p_cfg.chunk_size
         qk_groups_per_layer = 2 * (self.loco_diag_model.num_heads // 2)
         blend = float(self._soft_polar_blend_t.item())
+        if blend == 0.0:
+            return
         for mat_idx in range(p_cfg.chunk_size):
             global_idx = start_idx + mat_idx
             if global_idx >= self.loco_diag_model._num_qk_groups:
@@ -4362,7 +4374,8 @@ class TrainingManager():
                 f"power={LOCO_SOFT_POLAR_POWER} eps={LOCO_SOFT_POLAR_EPS} "
                 f"blend_max={LOCO_SOFT_POLAR_BLEND_MAX} blend_steps={LOCO_SOFT_POLAR_BLEND_STEPS} "
                 f"windows={LOCO_SOFT_POLAR_WINDOWS or 'end'} "
-                f"norm_restore={int(LOCO_SOFT_POLAR_NORM_RESTORE)}",
+                f"norm_restore={int(LOCO_SOFT_POLAR_NORM_RESTORE)} "
+                f"schedule_only={int(LOCO_SOFT_POLAR_SCHEDULE_ONLY)}",
                 console=True,
             )
 
