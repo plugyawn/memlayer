@@ -2810,3 +2810,17 @@ This is the right next control because it answers:
 If the polynomial path keeps the 80-step alpha0.9 gain and survives to 200,
 feature-Gram C becomes a second-order add-on rather than the main branch.
 ```
+
+Parser / diagnostic hygiene update:
+
+```text
+The next PR291 run is compound: MLP-only then broad surfaces in one Modal
+container. The paired-case parsers were updated to respect the outer
+SOFTPOLAR_PR291_CASE_START marker so repeated paired_noop/active/noop2 blocks
+do not overwrite each other.
+
+The earlier C-family diagnostic recommendation still stands if we return to
+feature-Gram work: log future alignment between an applied C-derived correction
+and future raw gradients / future base NorMuon updates. The recent no-C hit
+does not answer that question; it only moves the immediate branch priority.
+```

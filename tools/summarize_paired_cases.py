@@ -7,6 +7,7 @@ from pathlib import Path
 
 CASE_START_RE = re.compile(r"^===== NEWTONV_CASE_START\s+(\S+)")
 CASE_END_RE = re.compile(r"^===== NEWTONV_CASE_END\s+(\S+)")
+OUTER_CASE_START_RE = re.compile(r"^===== SOFTPOLAR_PR291_CASE_START\s+(\S+)")
 STEP_RE = re.compile(
     r"step:(?P<step>\d+)/(?P<total>\d+)"
     r"(?: val_loss:(?P<val_loss>[0-9.]+))?"
@@ -30,6 +31,10 @@ def parse_logs(paths: list[Path]) -> list[dict]:
 
         for line in path.read_text(errors="replace").splitlines():
             if line.lstrip().startswith('"tail":'):
+                continue
+            if m := OUTER_CASE_START_RE.match(line):
+                flush()
+                group = m.group(1)
                 continue
             if m := CASE_START_RE.match(line):
                 name = m.group(1)

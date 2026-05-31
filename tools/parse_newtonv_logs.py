@@ -7,6 +7,7 @@ from pathlib import Path
 
 CASE_START_RE = re.compile(r"^===== NEWTONV_CASE_START\s+(\S+)")
 CASE_END_RE = re.compile(r"^===== NEWTONV_CASE_END\s+(\S+)")
+OUTER_CASE_START_RE = re.compile(r"^===== SOFTPOLAR_PR291_CASE_START\s+(\S+)")
 STEP_RE = re.compile(
     r"step:(?P<step>\d+)/(?P<total>\d+)"
     r"(?: val_loss:(?P<val_loss>[0-9.]+))?"
@@ -42,6 +43,7 @@ def finish_step_ms(case: dict, refresh_values: list[float], nonrefresh_values: l
 
 def parse_log(path: Path) -> list[dict]:
     cases: list[dict] = []
+    current_group = path.stem
     current = empty_case(path.stem)
     current["log"] = str(path)
     refresh_values: list[float] = []
@@ -64,12 +66,23 @@ def parse_log(path: Path) -> list[dict]:
         # of recent training lines. Those are summaries, not live case output.
         if line.lstrip().startswith('"tail":'):
             continue
+        if m := OUTER_CASE_START_RE.match(line):
+            if saw_markers:
+                flush()
+            current_group = m.group(1)
+            current = empty_case(current_group)
+            current["log"] = str(path)
+            refresh_values = []
+            nonrefresh_values = []
+            saw_markers = False
+            active = True
+            continue
         if m := CASE_START_RE.match(line):
             if saw_markers:
                 flush()
             saw_markers = True
             active = True
-            current = empty_case(m.group(1))
+            current = empty_case(f"{current_group}/{m.group(1)}")
             current["log"] = str(path)
             refresh_values = []
             nonrefresh_values = []

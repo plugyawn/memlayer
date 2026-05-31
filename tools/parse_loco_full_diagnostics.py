@@ -6,6 +6,7 @@ from pathlib import Path
 
 
 CASE_START_RE = re.compile(r"^===== NEWTONV_CASE_START\s+(\S+)")
+OUTER_CASE_START_RE = re.compile(r"^===== SOFTPOLAR_PR291_CASE_START\s+(\S+)")
 PRECOND_RE = re.compile(r"loco_full_precond step=(?P<step>\d+) (?P<body>.*)$")
 PRECOND_SEG_RE = re.compile(
     r"(?P<name>\w+):n=(?P<n>\d+) layers=(?P<layers>[^ ]+) "
@@ -67,9 +68,14 @@ def number(value: str | None):
 def parse(path: Path) -> dict[str, list[dict]]:
     rows = {"precond": [], "spectrum": [], "eigen_energy": [], "postpolar": []}
     current_case = path.stem
+    current_group = path.stem
     for line in path.read_text(errors="replace").splitlines():
+        if m := OUTER_CASE_START_RE.match(line):
+            current_group = m.group(1)
+            current_case = current_group
+            continue
         if m := CASE_START_RE.match(line):
-            current_case = m.group(1)
+            current_case = f"{current_group}/{m.group(1)}"
             continue
         if m := PRECOND_RE.search(line):
             step = int(m.group("step"))
