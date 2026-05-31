@@ -1,0 +1,60 @@
+✓ Initialized. View run at 
+https://modal.com/apps/nipsdwip/main/ap-pyWiiZoCpXa1JdwaVhjKOy
+Building image im-1HJXqaldsh2EmicwUX6Egx
+
+=> Step 0: FROM base
+
+=> Step 1: COPY . /
+Saving image...
+Image saved, took 1.83s
+
+Built image im-1HJXqaldsh2EmicwUX6Egx in 4.21s
+
+
+Building image im-Uo1ozY4aKoZqDE5wKfaoO4
+
+=> Step 0: FROM base
+
+=> Step 1: WORKDIR /root/speedrun
+Saving image...
+Image saved, took 599.42ms
+
+Built image im-Uo1ozY4aKoZqDE5wKfaoO4 in 2.50s
+
+
+✓ Created objects.
+├── 🔨 Created mount 
+│   /Users/progyan/speedrun/wr-fresh-20260526/tools/modal_nanogpt_runner.py
+├── 🔨 Created mount /Users/progyan/speedrun/wr-fresh-20260526
+├── 🔨 Created function prepare_data.
+└── 🔨 Created function run_screen.
+
+==========
+== CUDA ==
+==========
+
+CUDA Version 12.8.0
+
+Container image Copyright (c) 2016-2023, NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+
+This container image and its contents are governed by the NVIDIA Deep Learning Container License.
+By pulling and using the container, you accept the terms and conditions of this license:
+https://developer.nvidia.com/ngc/nvidia-deep-learning-container-license
+
+A copy of this license is made available in this container at /NGC-DL-CONTAINER-LICENSE for your convenience.
+
+experiment-logs/all-runs/2026-05-09/validation-ceil-0.8/f45f8f7d-4cf9-45e3-b18b-66843c2331de.txt
+locoprop_m_owner rank=0 world=1 owned_layers=[0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11] sample_tokens=1024 gather_samples=True accum_samples=False micro_sample_tokens=32
+locoprop_m_prepare step=0 l0:loss0=1.465e-06,lossK=1.571e-01,corr_norm=1.790e+01,grad_norm=0.000e+00,cos_desc=0.000,tokens=1024 | l1:loss0=1.452e-06,lossK=1.313e-01,corr_norm=1.684e+01,grad_norm=0.000e+00,cos_desc=0.000,tokens=1024 | l2:loss0=1.471e-06,lossK=1.195e-01,corr_norm=1.577e+01,grad_norm=0.000e+00,cos_desc=0.000,tokens=1024 | l3:loss0=1.461e-06,lossK=1.190e+00,corr_norm=5.263e+01,grad_norm=0.000e+00,cos_desc=0.000,tokens=1024
+locoprop_m_apply step=0 shape=(3072, 768):base_step=0.000e+00,corr_norm=1.790e+01,scale=0.000e+00 | shape=(3072, 768):base_step=0.000e+00,corr_norm=1.684e+01,scale=0.000e+00 | shape=(3072, 768):base_step=0.000e+00,corr_norm=1.577e+01,scale=0.000e+00 | shape=(3072, 768):base_step=0.000e+00,corr_norm=5.263e+01,scale=0.000e+00 | shape=(3072, 768):base_step=0.000e+00,corr_norm=1.299e+01,scale=0.000e+00 | shape=(3072, 768):base_step=0.000e+00,corr_norm=6.033e+01,scale=0.000e+00 | shape=(3072, 768):base_step=0.000e+00,corr_norm=1.928e+01,scale=0.000e+00 | shape=(3072, 768):base_step=0.000e+00,corr_norm=1.752e+01,scale=0.000e+00
+locoprop_m_prepare step=1 l0:loss0=1.474e-06,lossK=9.384e-02,corr_norm=1.313e+01,grad_norm=0.000e+00,cos_desc=0.000,tokens=1024 | l1:loss0=1.467e-06,lossK=6.674e-02,corr_norm=1.133e+01,grad_norm=0.000e+00,cos_desc=0.000,tokens=1024 | l2:loss0=1.472e-06,lossK=7.876e-02,corr_norm=1.175e+01,grad_norm=0.000e+00,cos_desc=0.000,tokens=1024 | l3:loss0=1.468e-06,lossK=8.367e-01,corr_norm=4.232e+01,grad_norm=0.000e+00,cos_desc=0.000,tokens=1024
+locoprop_m_apply step=1 shape=(3072, 768):base_step=0.000e+00,corr_norm=1.313e+01,scale=0.000e+00 | shape=(3072, 768):base_step=0.000e+00,corr_norm=1.133e+01,scale=0.000e+00 | shape=(3072, 768):base_step=0.000e+00,corr_norm=1.175e+01,scale=0.000e+00 | shape=(3072, 768):base_step=0.000e+00,corr_norm=4.232e+01,scale=0.000e+00 | shape=(3072, 768):base_step=0.000e+00,corr_norm=8.659e+00,scale=0.000e+00 | shape=(3072, 768):base_step=0.000e+00,corr_norm=4.799e+01,scale=0.000e+00 | shape=(3072, 768):base_step=0.000e+00,corr_norm=1.280e+01,scale=0.000e+00 | shape=(3072, 768):base_step=0.000e+00,corr_norm=1.162e+01,scale=0.000e+00
+locoprop_m_prepare step=2 l0:loss0=1.433e-06,lossK=2.995e-02,corr_norm=8.288e+00,grad_norm=1.182e+03,cos_desc=-0.057,tokens=1024 | l1:loss0=1.475e-06,lossK=5.095e-02,corr_norm=1.132e+01,grad_norm=1.320e+03,cos_desc=-0.078,tokens=1024 | l2:loss0=1.447e-06,lossK=3.506e-01,corr_norm=3.331e+01,grad_norm=1.459e+03,cos_desc=-0.084,tokens=1024 | l3:loss0=1.499e-06,lossK=5.181e-01,corr_norm=5.205e+01,grad_norm=1.645e+03,cos_desc=-0.134,tokens=1024
+locoprop_m_apply step=2 shape=(3072, 768):base_step=1.950e+00,corr_norm=8.288e+00,scale=4.706e-02 | shape=(3072, 768):base_step=1.828e+00,corr_norm=1.132e+01,scale=3.230e-02 | shape=(3072, 768):base_step=1.630e+00,corr_norm=3.331e+01,scale=9.787e-03 | shape=(3072, 768):base_step=1.340e+00,corr_norm=5.205e+01,scale=5.150e-03 | shape=(3072, 768):base_step=9.228e-01,corr_norm=2.559e+02,scale=7.212e-04 | shape=(3072, 768):base_step=6.562e-01,corr_norm=2.037e+02,scale=6.444e-04 | shape=(3072, 768):base_step=5.403e-01,corr_norm=2.459e+02,scale=4.395e-04 | shape=(3072, 768):base_step=4.593e-01,corr_norm=9.123e+02,scale=1.007e-04
+locoprop_m_prepare step=10 l0:loss0=4.087e-06,lossK=2.980e+08,corr_norm=1.547e+06,grad_norm=1.141e+04,cos_desc=0.139,tokens=1024 | l1:loss0=2.281e-06,lossK=6.915e+02,corr_norm=1.301e+03,grad_norm=1.150e+04,cos_desc=-0.092,tokens=1024 | l2:loss0=1.933e-06,lossK=5.434e+01,corr_norm=7.115e+02,grad_norm=1.105e+04,cos_desc=-0.095,tokens=1024 | l3:loss0=1.817e-06,lossK=9.547e+01,corr_norm=6.947e+02,grad_norm=1.054e+04,cos_desc=-0.130,tokens=1024
+locoprop_m_apply step=10 shape=(3072, 768):base_step=2.064e+00,corr_norm=1.547e+06,scale=2.668e-07 | shape=(3072, 768):base_step=2.061e+00,corr_norm=1.301e+03,scale=3.168e-04 | shape=(3072, 768):base_step=2.058e+00,corr_norm=7.115e+02,scale=5.785e-04 | shape=(3072, 768):base_step=2.053e+00,corr_norm=6.947e+02,scale=5.910e-04 | shape=(3072, 768):base_step=2.049e+00,corr_norm=9.348e+02,scale=4.383e-04 | shape=(3072, 768):base_step=2.044e+00,corr_norm=9.076e+02,scale=4.505e-04 | shape=(3072, 768):base_step=2.038e+00,corr_norm=4.674e+03,scale=8.720e-05 | shape=(3072, 768):base_step=2.031e+00,corr_norm=1.407e+03,scale=2.887e-04
+locoprop_m_prepare step=50 l0:loss0=1.445e-05,lossK=5.174e-01,corr_norm=3.534e+01,grad_norm=3.368e+04,cos_desc=-0.034,tokens=1024 | l1:loss0=9.638e-06,lossK=2.154e-01,corr_norm=2.117e+01,grad_norm=2.210e+04,cos_desc=-0.075,tokens=1024 | l2:loss0=7.446e-06,lossK=1.124e-01,corr_norm=1.924e+01,grad_norm=1.573e+04,cos_desc=-0.035,tokens=1024 | l3:loss0=6.427e-06,lossK=1.857e-01,corr_norm=2.765e+01,grad_norm=1.243e+04,cos_desc=-0.023,tokens=1024
+locoprop_m_apply step=50 shape=(3072, 768):base_step=2.072e+00,corr_norm=3.534e+01,scale=1.173e-02 | shape=(3072, 768):base_step=2.071e+00,corr_norm=2.117e+01,scale=1.957e-02 | shape=(3072, 768):base_step=2.071e+00,corr_norm=1.924e+01,scale=2.153e-02 | shape=(3072, 768):base_step=2.072e+00,corr_norm=2.765e+01,scale=1.499e-02 | shape=(3072, 768):base_step=2.073e+00,corr_norm=2.364e+01,scale=1.754e-02 | shape=(3072, 768):base_step=2.074e+00,corr_norm=2.303e+01,scale=1.801e-02 | shape=(3072, 768):base_step=2.073e+00,corr_norm=9.853e+00,scale=4.208e-02 | shape=(3072, 768):base_step=2.074e+00,corr_norm=1.842e+01,scale=2.251e-02
+step:125/500 val_loss:4.50059 train_time:520.611s step_avg:4164.89ms
+locoprop_m_prepare step=125 l0:loss0=5.126e-05,lossK=2.069e+00,corr_norm=7.414e+01,grad_norm=2.766e+04,cos_desc=-0.031,tokens=1024 | l1:loss0=2.448e-05,lossK=1.171e-01,corr_norm=9.864e+00,grad_norm=1.274e+04,cos_desc=0.047,tokens=1024 | l2:loss0=1.871e-05,lossK=7.324e-01,corr_norm=6.984e+01,grad_norm=8.683e+03,cos_desc=-0.043,tokens=1024 | l3:loss0=2.087e-05,lossK=9.916e-01,corr_norm=6.658e+01,grad_norm=7.134e+03,cos_desc=0.029,tokens=1024
+locoprop_m_apply step=125 shape=(3072, 768):base_step=2.075e+00,corr_norm=7.414e+01,scale=5.598e-03 | shape=(3072, 768):base_step=2.073e+00,corr_norm=9.864e+00,scale=4.203e-02 | shape=(3072, 768):base_step=2.072e+00,corr_norm=6.984e+01,scale=5.933e-03 | shape=(3072, 768):base_step=2.073e+00,corr_norm=6.658e+01,scale=6.226e-03 | shape=(3072, 768):base_step=2.072e+00,corr_norm=7.425e+00,scale=5.582e-02 | shape=(3072, 768):base_step=2.073e+00,corr_norm=2.401e+01,scale=1.727e-02 | shape=(3072, 768):base_step=2.074e+00,corr_norm=1.330e+01,scale=3.118e-02 | shape=(3072, 768):base_step=2.074e+00,corr_norm=1.482e+01,scale=2.798e-02
