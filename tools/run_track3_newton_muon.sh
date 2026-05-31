@@ -32,12 +32,111 @@ text = text.replace(
     "# Modal's CUDA image can route compiled SDPA through cuDNN plans that are\n"
     "# unavailable for this shape. Keep the Track 3 model unchanged, but force\n"
     "# PyTorch to use the flash/math SDPA backends instead.\n"
-    "torch.backends.cuda.enable_cudnn_sdp(False)\n",
+    "torch.backends.cuda.enable_cudnn_sdp(False)\n\n"
+    "TRACK3_NM_MODE = os.environ.get('TRACK3_NM_MODE', 'inverse')\n"
+    "TRACK3_NM_FINITE_T = float(os.environ.get('TRACK3_NM_FINITE_T', '2.0'))\n"
+    "TRACK3_NM_FINITE_CLIP = float(os.environ.get('TRACK3_NM_FINITE_CLIP', '4.0'))\n"
+    "TRACK3_NM_ADDITIVE_ALPHA = float(os.environ.get('TRACK3_NM_ADDITIVE_ALPHA', '0.05'))\n"
+    "if TRACK3_NM_MODE not in {'inverse', 'finite', 'additive'}:\n"
+    "    raise ValueError(f'unsupported TRACK3_NM_MODE={TRACK3_NM_MODE!r}')\n",
 )
 text = text.replace(
     'print0(f"Running PyTorch {torch.version.__version__} compiled for CUDA {torch.version.cuda}"',
     'print0("Track3 Newton-Muon generated run: train_steps=' + steps + '")\n'
+    'print0(f"Track3 NM mode={TRACK3_NM_MODE} finite_t={TRACK3_NM_FINITE_T} finite_clip={TRACK3_NM_FINITE_CLIP} additive_alpha={TRACK3_NM_ADDITIVE_ALPHA}")\n'
     'print0(f"Running PyTorch {torch.version.__version__} compiled for CUDA {torch.version.cuda}"',
+)
+text = text.replace(
+    """@torch.compile
+def muon_update(grad, momentum, mu=0.95, nesterov=True):
+    momentum.lerp_(grad, 1 - mu)
+    update = grad.lerp_(momentum, mu) if nesterov else momentum
+    update = zeropower_via_newtonschulz5(update)
+    update *= max(1, grad.size(-2) / grad.size(-1))**0.5
+    return update
+""",
+    """@torch.compile
+def muon_update(grad, momentum, mu=0.95, nesterov=True):
+    momentum.lerp_(grad, 1 - mu)
+    update = grad.lerp_(momentum, mu) if nesterov else momentum
+    update = zeropower_via_newtonschulz5(update)
+    update *= max(1, grad.size(-2) / grad.size(-1))**0.5
+    return update
+
+@torch.no_grad()
+def finite_loco_filter_from_cov(cov: Tensor, out: Tensor):
+    d = cov.size(-1)
+    cov = 0.5 * (cov + cov.mT)
+    evals, evecs = torch.linalg.eigh(cov)
+    mean = cov.diagonal(dim1=-2, dim2=-1).mean(-1).clamp_min(1e-12)
+    lam = (evals / mean.unsqueeze(-1)).clamp_min(1e-8)
+    t = TRACK3_NM_FINITE_T
+    denom = 1 - torch.exp(torch.tensor(-t, device=cov.device, dtype=torch.float32))
+    response = (1 - torch.exp(-t * lam)) / (lam * denom)
+    clip = TRACK3_NM_FINITE_CLIP
+    if clip > 0:
+        response = response.clamp(min=1 / clip, max=clip)
+    out.copy_(torch.bmm(evecs * response.unsqueeze(-2), evecs.mT))
+
+@torch.no_grad()
+def right_precondition_grad(grad: Tensor, precond: Tensor) -> Tensor:
+    grad = grad.float()
+    if precond.ndim == 3:
+        d = precond.size(-1)
+        g = grad.view(grad.size(0), 4, d).permute(1, 0, 2)
+        return torch.bmm(g, precond).permute(1, 0, 2).reshape_as(grad)
+    return grad @ precond
+""",
+)
+text = text.replace(
+    """        diag = self._precond_cov.diagonal(dim1=-2, dim2=-1)
+        reg = (diag.sum(-1) / d * 0.2 + 1e-8).unsqueeze(-1)
+        diag.add_(reg)
+        L, info = torch.linalg.cholesky_ex(self._precond_cov, upper=False, check_errors=False)
+        diag.sub_(reg)
+        torch.cholesky_inverse(L, upper=False, out=K)
+        if info.any():
+            self._eye_(K[info != 0], 1.0)
+""",
+    """        diag = self._precond_cov.diagonal(dim1=-2, dim2=-1)
+        reg = (diag.sum(-1) / d * 0.2 + 1e-8).unsqueeze(-1)
+        diag.add_(reg)
+        if TRACK3_NM_MODE in {"finite", "additive"}:
+            finite_loco_filter_from_cov(self._precond_cov, K)
+        else:
+            L, info = torch.linalg.cholesky_ex(self._precond_cov, upper=False, check_errors=False)
+            torch.cholesky_inverse(L, upper=False, out=K)
+            if info.any():
+                self._eye_(K[info != 0], 1.0)
+        diag.sub_(reg)
+""",
+)
+text = text.replace(
+    """        if self._precond_attached and self.precond_flag_for_step(self.global_step):
+            self._refresh_preconditioner()
+        if self._precond_attached:
+            self._precondition_grads()
+""",
+    """        if self._precond_attached and self.precond_flag_for_step(self.global_step):
+            self._refresh_preconditioner()
+        if self._precond_attached and TRACK3_NM_MODE != "additive":
+            self._precondition_grads()
+""",
+)
+text = text.replace(
+    """                    update = muon_update(p.grad, state["momentum"], mu=group["mu"])
+                    p.mul_(1 - group["lr"] * group["weight_decay"])
+                    p.add_(update, alpha=-group["lr"])
+""",
+    """                    raw_grad = p.grad
+                    update = muon_update(p.grad, state["momentum"], mu=group["mu"])
+                    p.mul_(1 - group["lr"] * group["weight_decay"])
+                    p.add_(update, alpha=-group["lr"])
+                    if TRACK3_NM_MODE == "additive" and self._precond_has_inv:
+                        correction = right_precondition_grad(raw_grad, self.state[p]["precond"]["inv"])
+                        correction.mul_(update.float().norm() / correction.norm().clamp_min(1e-12))
+                        p.add_(correction.to(p.dtype), alpha=-group["lr"] * TRACK3_NM_ADDITIVE_ALPHA)
+""",
 )
 dst.write_text(text)
 PY
