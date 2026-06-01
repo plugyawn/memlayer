@@ -1673,3 +1673,36 @@ Tenth live poll update, 2026-06-02 04:43 IST:
   - Keep the exact resume through `3000`.
   - Keep the 3040 re-on lane through finish because it is close to done and gives a clean late-window read.
   - Monitor the corrected `3030/power0.50/cap0.20` suffix aggressively; if it is promising by `2750/2800`, launch the next suffix lane when a slot opens.
+
+Eleventh live poll update, 2026-06-02 04:55 IST:
+
+- 3040 re-on-at-2800 diagnostic `ap-oJt8hUqjcUqyJINytpVyPR` finished:
+  - `3.29369 @3025`, `3.29295 @3040`.
+  - It recovered relative slope after re-on, but still missed target and remained worse than the old lead tail. This is not the fix by itself.
+- Exact seed2900 checkpoint resume `ap-JEcaEpGSkzOEhSWKb2w1Az` remains essentially identical to the old lead:
+  - `3.30816 @2800`, `3.30597 @2825`, `3.30383 @2850`.
+  - These are within a few `1e-4` of the old seed2900 reference, so the checkpoint is faithful and does not itself explain the late miss.
+- Suffix experiments from the step-2500 checkpoint:
+  - `3030/power0.50/cap0.20` (`ap-BCrV8VVvIMHYXPAJL8XvDC`) was stopped after immediate regression: `3.38188 @2525`, `3.38922 @2550`, about `+0.05` worse than exact. Warm power LR is too aggressive from the checkpoint.
+  - `3030/pr287-switch/cap0.20` (`ap-tfE8KUbBnUcSQJQY9qhBW1`, container `ta-01KT2QMPMJPGQHH2KAK81PRYM7`) loaded correctly and is near exact so far: `3.34328 @2525`, `3.33948 @2550`, only about `+0.0003` worse than exact.
+  - `3030/pr287-switch/cap0.50` (`ap-bKtqswLl39GZd9xN0d9Svn`) was stopped after early regression: `3.34941 @2525`, about `+0.0064` worse than exact.
+  - Read: late LocoProp with the original LR semantics and `cap=0.20` is not dead yet; higher cap and warmer LR are both too disruptive immediately.
+- Full 3000 confirmation wave:
+  - The useful full lanes reached the `1250` region with modestly positive deltas:
+    - seed3500: `3.57012 @1250`, `-0.00122` vs old lead.
+    - seed3501: `3.57009 @1250`, `-0.00125` vs old lead.
+    - seed3502: `3.56828 @1250`, `-0.00306` vs old lead.
+    - seed3503: `3.56822 @1250`, `-0.00312` vs old lead.
+    - seed3505: `3.57015 @1250`, `-0.00119` vs old lead.
+    - seed3508/3509 lag in wall time but were also ahead at `1125`.
+  - This is still not enough to claim below-3000, but it is positive enough to restore the eighth confirmation lane.
+- Replacement full confirmation seed launched:
+  - App: `ap-mv6wxDA8lYcaw602sMgPWr`.
+  - Function call: `fc-01KT2R14M1N7NGJJBRJX27M3HF`.
+  - Container: `ta-01KT2R15R94K2AH8P0ZQG95PNW`.
+  - Launch log: `.opencode/modal_track3-simple-locom-3000-nolate1600-pr2873065-full-h100-seed3512-20260601232404.launch.log`.
+  - Intended role: replacement for stopped slow seed3504, restoring n=8 full-run confirmation if it logs `seed=3512` cleanly.
+- Current active high-value set:
+  - Full 3000 confirmation lanes: seeds `3500,3501,3502,3503,3505,3508,3509`, plus replacement seed `3512` pending seed-line confirmation.
+  - Exact resume: `ap-JEcaEpGSkzOEhSWKb2w1Az`, keep to final `3000`.
+  - One remaining suffix: `ap-tfE8KUbBnUcSQJQY9qhBW1` (`3030/pr287-switch/cap0.20`), keep at least through `2750/2800` unless it starts diverging.
