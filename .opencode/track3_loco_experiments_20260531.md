@@ -580,5 +580,7 @@ Early checkpoints:
 | 750 | 3.71236 | 3.71164 | +0.00072 | Slightly worse; effectively parity. |
 | 875 | 3.67128 | 3.67246 | -0.00118 | Small lead. |
 | 1000 | 3.63810 | 3.63901 | -0.00091 | Small lead. |
+| 1125 | 3.60779 | 3.61304 | -0.00525 | Lead reappears. |
+| 1250 | 3.57779 | 3.58139 | -0.00360 | Still ahead. |
 
-Read: despite a weak first 375 steps, the 3250 schedule recovered by step 500, returned to parity by steps 625-750, and regained a tiny lead by steps 875-1000. Keep it alive through late cooldown; do not fan out yet. The comparison target remains whether it crosses `3.28` before or near 3250 and whether the late lead exceeds the completed Prime 3350 seed-200/seed-300 mean path.
+Read: despite a weak first 375 steps, the 3250 schedule recovered by step 500, returned to parity by steps 625-750, regained a tiny lead by steps 875-1000, and opened a few-millipoint lead by 1125-1250. Keep it alive through late cooldown; do not fan out yet. The comparison target remains whether it crosses `3.28` before or near 3250 and whether the late lead exceeds the completed Prime 3350 seed-200/seed-300 mean path.
