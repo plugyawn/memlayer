@@ -1432,3 +1432,15 @@ Current live status after this correction:
   - `ap-aMJg05trVXsT8rfFsRkQne`: 3000 seed2900 checkpoint replay, latest `4.63593 @125`.
 - Stopped:
   - `ap-BM0MMyEr1SjCgCYugjmQfJ`: 3045 checkpoint replay, stopped by request.
+
+Live poll update:
+
+- Modal app list still shows exactly the four intended active detached Track 3 jobs: `ap-UFX7iAhRQvOQ5NmqWCkWlc`, `ap-oJt8hUqjcUqyJINytpVyPR`, `ap-82jZGAorIouGJ2H084NIT8`, and `ap-aMJg05trVXsT8rfFsRkQne`.
+- The dropped 3045 replay `ap-BM0MMyEr1SjCgCYugjmQfJ` is stopped with zero tasks.
+- Latest validation gates:
+  - 3040/no-reon seed3400: `4.63536 @125`, `4.11290 @250`, `3.92771 @375`, `3.82789 @500`.
+  - 3040/reon2800 seed3401: `4.63290 @125`, `4.10694 @250`.
+  - 3100 seed2900 checkpoint replay: `4.63302 @125`; raw tail around step `214/3100`.
+  - 3000 seed2900 checkpoint replay: `4.63593 @125`; raw tail around step `209/3000`.
+- Modal volume `nanogpt-speedrun-cache` currently contains only the older seed400 checkpoint files: `track3_checkpoints/modal3100_locom_seed400_step2400.pt` and `track3_checkpoints/modal3100_locom_seed400_step2800.pt`. The two expected seed2900 step-2500 checkpoint files have not landed yet.
+- Decision: no new fanout yet. The seed2900 replays are still too early, and the checkpoint array should wait for `track3_checkpoint_saved step:2500` plus volume-file verification.
