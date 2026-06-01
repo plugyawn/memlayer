@@ -808,3 +808,35 @@ Replay tracking refresh 3 and suffix-array prep:
 - Added `tools/launch_modal_track3_locom_resume_suffix_array.sh` to launch the checkpoint suffix grid immediately after the Modal-volume checkpoint appears.
 - Also widened `tools/launch_modal_track3_locom_3000_seed.sh` env passthrough so suffix lanes can vary LocoProp cap/alpha/steps/logging and source/mbs/seed settings without hand-building JSON.
 - Planned suffix lanes from `modal3100_locom_seed400_step2800.pt`: exact 3100 fidelity, 3030 power tails (`power=0.50/0.35`, cap `0.20/0.50`), 3030 PR287-style tails (`schedule_steps=3065`, cap `0.20/0.50`), 3100 power fallbacks, and 3100 no-late-LocoProp control.
+
+## 2026-06-01 Step-2800 Suffix Results and LR-Floor Probe
+
+The replay checkpoint landed and was saved in Modal volume `nanogpt-speedrun-cache`:
+
+- Checkpoint: `/root/.cache/track3_checkpoints/modal3100_locom_seed400_step2800.pt`.
+- Replay value: `3.32043 @2800`; original 3100 seed400 value was `3.31815 @2800`, so the replay checkpoint is about `+0.00228` worse but close enough for suffix-search purposes.
+- Resume lanes load this checkpoint with optimizer state plus CPU/CUDA RNG state and advance the deterministic data loader by the saved step.
+
+Initial suffix-array outcomes:
+
+- Exact 3100 fidelity (`ap-QcBdtzR3EUpRzXV7GqbHnh`): final `3.29279 @3100`, miss by `0.01279`.
+- 3100 no-late-LocoProp (`ap-0wXGZcfvVOjT6HM7SNZZZo`): final `3.29267 @3100`, miss by `0.01267`; slightly better than fidelity but not enough.
+- 3030 linear cap0.20 (`ap-mlYvGiAAXPeRD0HomuoSTy`): final `3.29696 @3030`, miss by `0.01696`.
+- 3030 linear cap0.50 (`ap-2yxnsm1GC3AGkvEVbAupsz`): final `3.29714 @3030`, miss by `0.01714`.
+- 3030 PR287 schedule_steps=3065 cap0.20 (`ap-ESCBCX09CLtifBrkufpDT5`): stopped after `3.29725 @3025`; could not plausibly reach target by `3030`.
+- 3030 PR287 schedule_steps=3065 cap0.50 (`ap-cCqNWnVkhHjj4PQLo5PAAG`): stopped after `3.29737 @3025`; could not plausibly reach target by `3030`.
+- Power-tail lanes (`power=0.50/0.35`) spiked early validation and were stopped; they were too hot from the checkpoint.
+
+Read: the suffix is consistently flattening well above target. This is not a working <=3030 or <=3100 PR-confirmation path, and it does not justify n=8 fanout.
+
+To test whether the taper is simply too-cold LR, added `TRACK3_LR_MIN_ETA` to the generator/launcher and pushed commit `1d0eba8` (`Add Track 3 suffix LR floor`). This floors only the linear/power cooldown multiplier and leaves PR287 unchanged. Smoke check: generated 3030 script compiled and prints/logs `lr_min_eta`.
+
+LR-floor probe launches:
+
+- `ap-U80DH4VfTAfsH8a3JcB6f4`: `s3030-linear-floor008-cap020`, stopped after `3.30477 @2925`; worse than plain linear cap0.20 at the same step (`3.30337 @2925`).
+- `ap-KtxcN0v55IqDAxkvYD4q1c`: `s3030-linear-floor012-cap020`, stopped after `3.31271 @2875`; floor `0.12` was clearly too hot.
+- `ap-qjxBh8oWe5sv5ciC8Is66I`: `s3030-pr2873100-cap020`, stopped after `3.30866 @2875`; later PR287 endpoint was behind the earlier `schedule_steps=3065` PR287 lane (`3.30783 @2875`).
+- `ap-IO90Av4ImKhO8l6Azni83w`: `s3030-linear-floor008-nolate`, still active; latest pulled `3.30906 @2875`.
+- `ap-EqVhA57Tnyy6CYcOZDB40j`: `s3100-linear-floor008-nolate`, still active; latest pulled `3.30901 @2900`.
+
+Interpretation so far: "higher LR for some time" is not rescuing the active-LocoProp tail. Aggressive floor/power variants degrade quickly. A mild floor remains worth watching only when late LocoProp is disabled, because that isolates whether the schedule alone is too cold.
