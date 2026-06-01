@@ -668,3 +668,20 @@ Rationale: existing 3000-step lanes are not yet strong enough to fan out to n=8.
 - Status at launch verification: alive, generated `/tmp/train_gpt_simple_locoprop_m_3000.py`, seed `2200`, all 12 MLP layers owned, no traceback.
 
 Decision gate: do not fan this out until it is clearly ahead by the 1000-1500 window. A weak sub-`0.003` lead at 1000 is not enough; the previous `power05` lane already showed that level without being promotion-ready.
+
+Stop decision: user asked to keep this last probe down and finish the already-running lanes first. Stopped with `modal app stop -y ap-2Y3C3pJk7djppdrNgen7YH` after the first validation point.
+
+- Last validation: `4.63808 @125`, with step-average around `3745ms`.
+- Final log tail: app stopped from CLI at step `152`; runner terminated after step `153`.
+- Read: first point was better than the other live 3000-step lanes at `125`, but it was too early to justify keeping an extra GPU lane alive under the current run-budget priority.
+
+## 2026-06-01 Active Modal Lane Snapshot After PR287 Stop
+
+Remaining live lanes are the checkpoint replay plus existing 3250/3000 probes:
+
+- `ap-F3KIzgPAIMjbomKRzGjiex`: 3100 seed400 checkpoint replay, latest `3.67397 @875`; purpose is to save the step-2800 checkpoint, not score this as a new independent result.
+- `ap-bZt9QGoCCHUKXrMwvsB5Se`: 3250 seed500, latest `3.32254 @2875`; healthy, modestly positive, still needs target confirmation.
+- `ap-xKEhewuPirnhyhepFuBAqn`: 3250 seed1600, latest `3.48054 @1750`; healthy and similar to the prior good 3250 lane.
+- `ap-Pa4SuttnZdY9vCG8r6q20I`: 3250 seed1700, latest `3.48163 @1750`; healthy, nearly tied with seed1600.
+- `ap-eIPcDkgAqaJf8OjnBkZ7DW`: 3000 cooldown-frac-0.5 seed1800, latest `3.57887 @1375`; not hot versus the 3350 reference trajectory.
+- `ap-sgmLmoef9czMVD4rzk82xK`: 3000 naive power05 seed1900, latest `3.58265 @1250`; mild/neutral, not promotion-ready.
