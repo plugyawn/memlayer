@@ -13,6 +13,9 @@ seed_offset = "${seed_offset}"
 cooldown_frac = "${TRACK3_COOLDOWN_FRAC:-0.7}"
 lr_schedule = "${TRACK3_LR_SCHEDULE:-linear}"
 lr_power = "${TRACK3_LR_POWER:-1.0}"
+soft_muon = "${TRACK3_SOFT_MUON:-0}"
+soft_muon_blend = "${TRACK3_SOFT_MUON_BLEND:-1.0}"
+soft_muon_norm_restore = "${TRACK3_SOFT_MUON_NORM_RESTORE:-1}"
 extra = {
     "TRACK3_TRAIN_STEPS": steps,
     "TRACK3_NUM_TRIALS": "1",
@@ -24,6 +27,9 @@ extra = {
     "TRACK3_COOLDOWN_FRAC": cooldown_frac,
     "TRACK3_LR_SCHEDULE": lr_schedule,
     "TRACK3_LR_POWER": lr_power,
+    "TRACK3_SOFT_MUON": soft_muon,
+    "TRACK3_SOFT_MUON_BLEND": soft_muon_blend,
+    "TRACK3_SOFT_MUON_NORM_RESTORE": soft_muon_norm_restore,
     "TRACK3_LOCOM_ENABLED": "1",
     "TRACK3_LOCOM_LAYERS": "all",
     "TRACK3_LOCOM_STEPS": "4",

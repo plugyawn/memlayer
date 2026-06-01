@@ -63,6 +63,9 @@ TRACK3_LR_SCHEDULE = os.environ.get("TRACK3_LR_SCHEDULE", "linear").lower()
 TRACK3_LR_POWER = float(os.environ.get("TRACK3_LR_POWER", "1.0"))
 if TRACK3_LR_SCHEDULE not in {"linear", "power"}:
     raise ValueError("TRACK3_LR_SCHEDULE must be 'linear' or 'power'")
+TRACK3_SOFT_MUON = _env_flag("TRACK3_SOFT_MUON", "0")
+TRACK3_SOFT_MUON_BLEND = float(os.environ.get("TRACK3_SOFT_MUON_BLEND", "1.0"))
+TRACK3_SOFT_MUON_NORM_RESTORE = _env_flag("TRACK3_SOFT_MUON_NORM_RESTORE", "1")
 LOCO_M_LOG_STEPS = {
     int(x)
     for x in os.environ.get("TRACK3_LOCOM_LOG_STEPS", "0,1,2,10,50,125,250,500").split(",")
@@ -414,12 +417,53 @@ def muon_update(grad, momentum, mu=0.95, nesterov=True):
     if simple_muon_update in text:
         text = text.replace(
             simple_muon_update,
-            """@torch.compile
+            """def _track3_gram_frobenius_norm_estimate(x: torch.Tensor, keepdim: bool = False, eps: float = 1e-7):
+    gram = x.mT @ x if x.size(-2) > x.size(-1) else x @ x.mT
+    return gram.norm(dim=(-2, -1), keepdim=keepdim).sqrt().clamp_min(eps)
+
+def _track3_soft_muon_pr291_from_operand(g: torch.Tensor):
+    x = g.bfloat16()
+    transposed = x.size(-2) > x.size(-1)
+    if transposed:
+        x = x.mT
+    x = x / _track3_gram_frobenius_norm_estimate(x, keepdim=True, eps=1e-7).to(x.dtype)
+    coeffs = (
+        0.1091613623,
+        0.07085664498,
+        0.05210528973,
+        0.05457295795,
+        0.05011334061,
+        0.03334622198,
+        0.05022104481,
+        0.1053727358,
+        0.1187323776,
+        0.1185061091,
+        0.1185059576,
+        0.1185059576,
+    )
+    a, b, c = 2.0, -1.5, 0.5
+    out = torch.zeros_like(x)
+    for coeff in coeffs:
+        out = out + coeff * x
+        gram = x @ x.mT
+        basis = b * gram + c * (gram @ gram)
+        x = a * x + basis @ x
+    if transposed:
+        out = out.mT
+    return out
+
+@torch.compile
 def muon_update(grad, momentum, mu=0.95, nesterov=True):
     momentum.lerp_(grad, 1 - mu)
-    update = grad.lerp_(momentum, mu) if nesterov else momentum
-    update = zeropower_via_newtonschulz5(update)
+    operand = grad.lerp_(momentum, mu) if nesterov else momentum
+    update = zeropower_via_newtonschulz5(operand)
     update *= max(1, grad.size(-2) / grad.size(-1))**0.5
+    if TRACK3_SOFT_MUON:
+        soft_update = _track3_soft_muon_pr291_from_operand(operand)
+        soft_update *= max(1, grad.size(-2) / grad.size(-1))**0.5
+        if TRACK3_SOFT_MUON_NORM_RESTORE:
+            soft_update = soft_update * update.float().norm().div(soft_update.float().norm().clamp_min(1e-12))
+        update = update + TRACK3_SOFT_MUON_BLEND * (soft_update - update)
     return update
 """ + LOCOM_HELPERS,
             1,
@@ -479,7 +523,7 @@ def muon_update(grad, momentum, mu=0.95, nesterov=True):
         text,
         'print0(f"Running PyTorch {torch.version.__version__} compiled for CUDA {torch.version.cuda}"',
         f'print0("Track3 LocoProp-M generated run: source={source_label} train_steps={train_steps}")\n'
-        'print0(f"LocoM enabled={LOCO_M_ENABLED} layers={LOCO_M_LAYERS_SPEC} steps={LOCO_M_LOCAL_STEPS} sample_tokens={LOCO_M_SAMPLE_TOKENS} gather={LOCO_M_GATHER_SAMPLES} accum={LOCO_M_ACCUM_SAMPLES} micro_sample_tokens={LOCO_M_MICRO_SAMPLE_TOKENS} local_opt={LOCO_M_LOCAL_OPT} lr_decay={LOCO_M_LOCAL_LR_DECAY} rms_beta1={LOCO_M_RMS_BETA1} rms_beta2={LOCO_M_RMS_BETA2} rms_eps={LOCO_M_RMS_EPS} inner_lr={LOCO_M_INNER_LR} target_gamma={LOCO_M_TARGET_GAMMA} prox={LOCO_M_PROX} alpha={LOCO_M_ALPHA} norm_to_base={LOCO_M_NORM_TO_BASE} norm_cap={LOCO_M_NORM_CAP} start_step={LOCO_M_START_STEP} end_step={LOCO_M_END_STEP} interval={LOCO_M_INTERVAL} target_loss={TRACK3_TARGET_LOSS} seed_base={TRACK3_SEED_BASE} seed_offset={TRACK3_SEED_OFFSET} cooldown_frac={TRACK3_COOLDOWN_FRAC} lr_schedule={TRACK3_LR_SCHEDULE} lr_power={TRACK3_LR_POWER}")\n'
+        'print0(f"LocoM enabled={LOCO_M_ENABLED} layers={LOCO_M_LAYERS_SPEC} steps={LOCO_M_LOCAL_STEPS} sample_tokens={LOCO_M_SAMPLE_TOKENS} gather={LOCO_M_GATHER_SAMPLES} accum={LOCO_M_ACCUM_SAMPLES} micro_sample_tokens={LOCO_M_MICRO_SAMPLE_TOKENS} local_opt={LOCO_M_LOCAL_OPT} lr_decay={LOCO_M_LOCAL_LR_DECAY} rms_beta1={LOCO_M_RMS_BETA1} rms_beta2={LOCO_M_RMS_BETA2} rms_eps={LOCO_M_RMS_EPS} inner_lr={LOCO_M_INNER_LR} target_gamma={LOCO_M_TARGET_GAMMA} prox={LOCO_M_PROX} alpha={LOCO_M_ALPHA} norm_to_base={LOCO_M_NORM_TO_BASE} norm_cap={LOCO_M_NORM_CAP} start_step={LOCO_M_START_STEP} end_step={LOCO_M_END_STEP} interval={LOCO_M_INTERVAL} target_loss={TRACK3_TARGET_LOSS} seed_base={TRACK3_SEED_BASE} seed_offset={TRACK3_SEED_OFFSET} cooldown_frac={TRACK3_COOLDOWN_FRAC} lr_schedule={TRACK3_LR_SCHEDULE} lr_power={TRACK3_LR_POWER} soft_muon={TRACK3_SOFT_MUON} soft_blend={TRACK3_SOFT_MUON_BLEND} soft_norm_restore={TRACK3_SOFT_MUON_NORM_RESTORE}")\n'
         'print0(f"Running PyTorch {torch.version.__version__} compiled for CUDA {torch.version.cuda}"',
     )
     text = replace_exact(
