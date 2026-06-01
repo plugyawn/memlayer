@@ -11,6 +11,8 @@ import json
 steps = "${steps}"
 seed_offset = "${seed_offset}"
 cooldown_frac = "${TRACK3_COOLDOWN_FRAC:-0.7}"
+lr_schedule = "${TRACK3_LR_SCHEDULE:-linear}"
+lr_power = "${TRACK3_LR_POWER:-1.0}"
 extra = {
     "TRACK3_TRAIN_STEPS": steps,
     "TRACK3_NUM_TRIALS": "1",
@@ -20,6 +22,8 @@ extra = {
     "TRACK3_SEED_BASE": "0",
     "TRACK3_SEED_OFFSET": seed_offset,
     "TRACK3_COOLDOWN_FRAC": cooldown_frac,
+    "TRACK3_LR_SCHEDULE": lr_schedule,
+    "TRACK3_LR_POWER": lr_power,
     "TRACK3_LOCOM_ENABLED": "1",
     "TRACK3_LOCOM_LAYERS": "all",
     "TRACK3_LOCOM_STEPS": "4",
