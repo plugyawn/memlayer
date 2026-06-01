@@ -451,10 +451,10 @@ Read: this is the clean long Modal lane requested after the Prime runs showed sc
 - Source: simple Track 3 base, `records/track_3_optimization/train_gpt_simple.py`.
 - Setting: 1x H100, one trial, `TRACK3_TRAIN_STEPS=3100`, `TRACK3_TARGET_LOSS=3.28`, `TRACK3_MBS=16`, `K=4`, `sample_tokens=1024`, all MLP `fc` surfaces, cap `0.20`.
 - Seed: `400` via `TRACK3_SEED_BASE=0`, `TRACK3_SEED_OFFSET=400`.
-- Status: active detached Modal run. Verified from Modal logs: generated `/tmp/train_gpt_simple_locoprop_m_3100.py`, `steps=3100`, `mbs=16`, `track3_trial_seed=400`, owned layers `[0..11]`, step 0 validation finite at `10.82580`; latest validation reached step `2250/3100`, loss `3.39504`, with train step average near `3.65s/step`.
+- Status: active detached Modal run. Verified from Modal logs: generated `/tmp/train_gpt_simple_locoprop_m_3100.py`, `steps=3100`, `mbs=16`, `track3_trial_seed=400`, owned layers `[0..11]`, step 0 validation finite at `10.82580`; latest validation reached step `2625/3100`, loss `3.34224`, with train step average near `3.66s/step`.
 - Local launch log: `.opencode/modal_track3-simple-locom-3100-h100-r1-20260601.launch.log`.
 
-Read: this is the direct 3100-step schedule variant requested after the 3350-step Prime lanes showed a slow late-cooldown slope. LocoProp-M is active from step 0 with the same K4/cap0.20 settings as the Prime lanes. At step `2000`, it is ahead of the completed Prime 3350-step seed-200/seed-300 mean (`3.44638`) by about `0.01335`. At step `2250`, it is ahead of the same Prime mean (`3.41077`) by about `0.01573`.
+Read: this is the direct 3100-step schedule variant requested after the 3350-step Prime lanes showed a slow late-cooldown slope. LocoProp-M is active from step 0 with the same K4/cap0.20 settings as the Prime lanes. At step `2000`, it is ahead of the completed Prime 3350-step seed-200/seed-300 mean (`3.44638`) by about `0.01335`. At step `2250`, it is ahead of the same Prime mean (`3.41077`) by about `0.01573`. At step `2625`, it is ahead of the same Prime mean (`3.36076`) by about `0.01851`.
 
 `track3-simple-locom-3000-h100-r2-20260601`
 
@@ -481,7 +481,7 @@ Read: this is the clean 3000-step probe after the first 3000 launch OOMed and th
 - Seed `1400`: app `ap-U7JyicIiWA0qsl1qt5oPSW`, function call `fc-01KT09S6MNG93MRP4VDG258MHP`, launch log `.opencode/modal_track3-simple-locom-3000-h100-seed1400-20260601.launch.log`, verified `track3_trial_seed=1400` and entered training.
 - Seed `1500`: app `ap-jQiJEaTjXEYRf7YpKr1bWp`, function call `fc-01KT09S6FMW53ZPKTDDMHXYNAJ`, launch log `.opencode/modal_track3-simple-locom-3000-h100-seed1500-20260601.launch.log`, verified `track3_trial_seed=1500` and entered training.
 
-Read: the active 3000-step Modal confirmation set is now eight one-run apps when combined with seed 800: seeds `800, 900, 1000, 1100, 1200, 1300, 1400, 1500`. Treat final promotion as pending until the fanout reaches the first few validation checkpoints and at least several runs reach the target window.
+Read: the 3000-step Modal confirmation set reached enough early checkpoints to reject it as a full n=8 continuation and was stopped to save GPU time. The eight-seed step-125 mean was `4.64664`, only about `0.00118` ahead of the completed 3350-step Prime mean (`4.64782`). The eight-seed step-250 mean was `4.11148`, about `0.00322` worse than the Prime mean (`4.10826`). Seed 800 reached step 500 at `3.82732`, effectively parity with the Prime mean (`3.82739`). All eight 3000 apps were stopped with `modal app stop -y`; `modal app list` confirmed they were `stopped` with zero tasks. The still-active Track 3 Modal lane is the 3100-step run, which reached step `2625/3100` at `3.34224`, about `0.01851` ahead of the completed Prime 3350-step mean (`3.36076`) at the same step.
 
 `track3-simple-locom-rmsprop-k10-start50-cap20-500-h100-r1-20260601`
 
