@@ -1413,3 +1413,22 @@ Launch verification:
 - `modal app list` showed both corrected apps alive as detached apps with one task each.
 - Remote logs for both corrected apps confirmed `track3_trial_seed=2900`, generated train steps `3100` / `3000`, and all 12 LocoProp MLP `fc` layers owned.
 - Next verification: wait for `track3_checkpoint_saved step:2500` in each app, then verify the two checkpoint files are present in Modal volume `nanogpt-speedrun-cache`.
+
+Short follow-up:
+
+- User asked whether a `3045` checkpoint-at-2500 replay was also running. It was not, so one was launched:
+  - App: `ap-BM0MMyEr1SjCgCYugjmQfJ`.
+  - Function call: `fc-01KT2D3ZT44KW0D5EATA41S363`.
+  - Launch log: `.opencode/modal_track3-simple-locom-3045-nolate1600-pr287-ckpt2500-h100-seed2900-20260601201323.launch.log`.
+  - Setting: seed `2900`, `TRACK3_TRAIN_STEPS=3045`, `TRACK3_LOCOM_END_STEP=1600`, PR287-after-1600, checkpoint at `2500`.
+- User then clarified that the existing `3000` checkpoint replay is enough, so the `3045` app was stopped immediately. Remote logs confirmed seed `2900`, finite `10.82580 @0`, and stop around step `5`. Do not count the `3045` app as an active checkpoint lane or result.
+
+Current live status after this correction:
+
+- Active:
+  - `ap-UFX7iAhRQvOQ5NmqWCkWlc`: 3040/no-reon seed3400, latest `3.82789 @500`.
+  - `ap-oJt8hUqjcUqyJINytpVyPR`: 3040/reon2800 seed3401, latest `4.63290 @125`.
+  - `ap-82jZGAorIouGJ2H084NIT8`: 3100 seed2900 checkpoint replay, latest `4.63302 @125`.
+  - `ap-aMJg05trVXsT8rfFsRkQne`: 3000 seed2900 checkpoint replay, latest `4.63593 @125`.
+- Stopped:
+  - `ap-BM0MMyEr1SjCgCYugjmQfJ`: 3045 checkpoint replay, stopped by request.
