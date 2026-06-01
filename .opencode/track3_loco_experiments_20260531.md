@@ -1444,3 +1444,10 @@ Live poll update:
   - 3000 seed2900 checkpoint replay: `4.63593 @125`; raw tail around step `209/3000`.
 - Modal volume `nanogpt-speedrun-cache` currently contains only the older seed400 checkpoint files: `track3_checkpoints/modal3100_locom_seed400_step2400.pt` and `track3_checkpoints/modal3100_locom_seed400_step2800.pt`. The two expected seed2900 step-2500 checkpoint files have not landed yet.
 - Decision: no new fanout yet. The seed2900 replays are still too early, and the checkpoint array should wait for `track3_checkpoint_saved step:2500` plus volume-file verification.
+
+Second live poll update:
+
+- 3040/no-reon seed3400 reached `3.75703 @625`; this is not a breakout versus the old lead seed trajectory (`3.82259 @500`, `3.34646 @2500`, `3.29374 @3000`).
+- 3100 seed2900 checkpoint replay reached `4.10655 @250`, better than the old lead's `4.11183 @250`.
+- 3000 seed2900 checkpoint replay reached `4.10562 @250`, also better than the old lead's `4.11183 @250`.
+- Decision: keep both seed2900 checkpoint lanes running. The `@250` screens are healthy enough to continue, but not enough to launch n=8 below-3000, since earlier 3000 schedules looked plausible early and then failed by the persistence gates. Next decision gates are `500/625` and then the actual `2500` checkpoint saves.
