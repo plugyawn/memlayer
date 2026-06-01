@@ -7,6 +7,7 @@ run_name="${MODAL_RUN_NAME:-track3-simple-locom-${steps}-h100-seed${seed_offset}
 
 extra_env_json="$(python3 - <<PY
 import json
+import os
 
 steps = "${steps}"
 seed_offset = "${seed_offset}"
@@ -42,6 +43,23 @@ extra = {
     "TRACK3_LOCOM_INTERVAL": "1",
     "TRACK3_LOCOM_LOG_STEPS": "0,1,2,10,50,125,250,500,750,875,1000,1125,1250,1500,1750,2000,2250,2500,2750,2875,3000,3125,3250",
 }
+for key in (
+    "TRACK3_CHECKPOINT_STEPS",
+    "TRACK3_CHECKPOINT_DIR",
+    "TRACK3_CHECKPOINT_PREFIX",
+    "TRACK3_CHECKPOINT_EXIT_AFTER",
+    "TRACK3_TARGET_LOSS",
+    "TRACK3_LOCOM_START_STEP",
+    "TRACK3_LOCOM_END_STEP",
+    "TRACK3_LOCOM_NORM_TO_BASE",
+    "TRACK3_LOCOM_LOCAL_OPT",
+    "TRACK3_LOCOM_LOCAL_LR_DECAY",
+    "TRACK3_LOCOM_RMS_BETA1",
+    "TRACK3_LOCOM_RMS_BETA2",
+    "TRACK3_LOCOM_RMS_EPS",
+):
+    if key in os.environ:
+        extra[key] = os.environ[key]
 print(json.dumps(extra, separators=(",", ":")))
 PY
 )"

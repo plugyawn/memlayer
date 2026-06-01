@@ -66,6 +66,14 @@ if TRACK3_LR_SCHEDULE not in {"linear", "power"}:
 TRACK3_SOFT_MUON = _env_flag("TRACK3_SOFT_MUON", "0")
 TRACK3_SOFT_MUON_BLEND = float(os.environ.get("TRACK3_SOFT_MUON_BLEND", "1.0"))
 TRACK3_SOFT_MUON_NORM_RESTORE = _env_flag("TRACK3_SOFT_MUON_NORM_RESTORE", "1")
+TRACK3_CHECKPOINT_STEPS = {
+    int(x)
+    for x in os.environ.get("TRACK3_CHECKPOINT_STEPS", "").split(",")
+    if x.strip()
+}
+TRACK3_CHECKPOINT_DIR = os.environ.get("TRACK3_CHECKPOINT_DIR", "")
+TRACK3_CHECKPOINT_PREFIX = os.environ.get("TRACK3_CHECKPOINT_PREFIX", "track3_locom")
+TRACK3_CHECKPOINT_EXIT_AFTER = _env_flag("TRACK3_CHECKPOINT_EXIT_AFTER", "0")
 LOCO_M_LOG_STEPS = {
     int(x)
     for x in os.environ.get("TRACK3_LOCOM_LOG_STEPS", "0,1,2,10,50,125,250,500").split(",")
@@ -327,6 +335,58 @@ def flush_locoprop_m_apply_stats(step: int):
     if step in LOCO_M_LOG_STEPS and LOCO_M_APPLY_STATS:
         print0("locoprop_m_apply step=" + str(step) + " " + " | ".join(LOCO_M_APPLY_STATS[:8]), console=True)
     LOCO_M_APPLY_STATS.clear()
+
+@torch.no_grad()
+def maybe_save_track3_checkpoint(model: nn.Module, optimizers: list[torch.optim.Optimizer], step: int, train_steps: int, trial_idx: int, val_loss: Tensor | None):
+    if step not in TRACK3_CHECKPOINT_STEPS:
+        return False
+    if not TRACK3_CHECKPOINT_DIR:
+        raise ValueError("TRACK3_CHECKPOINT_STEPS is set but TRACK3_CHECKPOINT_DIR is empty")
+    rank = dist.get_rank() if dist.is_initialized() else 0
+    if rank == 0:
+        checkpoint_dir = Path(TRACK3_CHECKPOINT_DIR)
+        checkpoint_dir.mkdir(parents=True, exist_ok=True)
+        seed = TRACK3_SEED_BASE + TRACK3_SEED_OFFSET + trial_idx
+        path = checkpoint_dir / f"{TRACK3_CHECKPOINT_PREFIX}_seed{seed}_step{step}.pt"
+        tmp_path = path.with_suffix(path.suffix + ".tmp")
+        payload = {
+            "step": step,
+            "train_steps": train_steps,
+            "trial_idx": trial_idx,
+            "seed": seed,
+            "val_loss": None if val_loss is None else float(val_loss),
+            "model": model.state_dict(),
+            "optimizers": [opt.state_dict() for opt in optimizers],
+            "rng_cpu": torch.get_rng_state(),
+            "rng_cuda": torch.cuda.get_rng_state_all(),
+            "config": {
+                "source": "track3_locom_generated",
+                "loco_m_enabled": LOCO_M_ENABLED,
+                "loco_m_layers": LOCO_M_LAYERS_SPEC,
+                "loco_m_steps": LOCO_M_LOCAL_STEPS,
+                "loco_m_sample_tokens": LOCO_M_SAMPLE_TOKENS,
+                "loco_m_inner_lr": LOCO_M_INNER_LR,
+                "loco_m_target_gamma": LOCO_M_TARGET_GAMMA,
+                "loco_m_prox": LOCO_M_PROX,
+                "loco_m_alpha": LOCO_M_ALPHA,
+                "loco_m_norm_to_base": LOCO_M_NORM_TO_BASE,
+                "loco_m_norm_cap": LOCO_M_NORM_CAP,
+                "loco_m_start_step": LOCO_M_START_STEP,
+                "loco_m_end_step": LOCO_M_END_STEP,
+                "loco_m_interval": LOCO_M_INTERVAL,
+                "loco_m_gather_samples": LOCO_M_GATHER_SAMPLES,
+                "loco_m_accum_samples": LOCO_M_ACCUM_SAMPLES,
+                "track3_cooldown_frac": TRACK3_COOLDOWN_FRAC,
+                "track3_lr_schedule": TRACK3_LR_SCHEDULE,
+                "track3_lr_power": TRACK3_LR_POWER,
+            },
+        }
+        torch.save(payload, tmp_path)
+        os.replace(tmp_path, path)
+        print0(f"track3_checkpoint_saved step:{step} path:{path} val_loss:{payload['val_loss']}", console=True)
+    if dist.is_initialized():
+        dist.barrier()
+    return TRACK3_CHECKPOINT_EXIT_AFTER
 '''
 
 
@@ -598,6 +658,8 @@ def muon_update(grad, momentum, mu=0.95, nesterov=True):
         if old in text:
             text = text.replace(
                 old,
+                f"{indent}if maybe_save_track3_checkpoint(model, optimizers, step, train_steps, trial_idx, val_loss):\n"
+                f"{indent}    break\n"
                 f"{indent}if TRACK3_TARGET_LOSS > 0 and float(val_loss) <= TRACK3_TARGET_LOSS:\n"
                 f"{indent}    print0(f\"target_loss_reached step:{{step}} val_loss:{{val_loss:.5f}} target:{{TRACK3_TARGET_LOSS:.5f}}\", console=True)\n"
                 f"{indent}    break\n"
