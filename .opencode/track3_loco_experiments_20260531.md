@@ -1307,3 +1307,13 @@ Lead late checkpoint and first replica batch `375`:
   - seed `3202`: `3.92899 @375`.
   - seed `3203`: `3.92758 @375`.
 - Read: replicas remain broadly normal through `375`, with seed `3201` slightly weaker. Continue to the `500` gate; do not stop anything yet.
+
+Lead `2875/2900` and partial first-replica `500` gate:
+
+- Lead `ap-OEZ4y8NHM65HsYpn54m1hs`: `3.30185 @2875`, `3.29978 @2900`, latest train step `2902`.
+- This is still ahead of old 3100 baselines, but not on pace for `3.28 @3000`; it is currently more plausible as a `3100` candidate than a sub-3000 candidate.
+- First replica batch:
+  - seed `3201`: `3.82576 @500`.
+  - seed `3202`: `3.82843 @500`.
+  - seeds `3200` and `3203` were right at the `500` boundary and had not printed the `500` val in this poll.
+- Decision: keep all active lanes. Do not start more; n=8 is already in flight for the 3100 schedule, and the key question is now whether enough seeds hit `3.28` by `3100`.
