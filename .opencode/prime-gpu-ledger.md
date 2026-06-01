@@ -76,7 +76,8 @@
   price_per_hour: $2.35
   created_at: 2026-05-31T22:31:00+05:30
   expected_stop: after the one-run 1x target-loss run completes, fails, or user redirects
-  status: active-training-running-step250-val-4.11026-6842ms
+  status: terminated-after-final-artifacts-step3350-val-3.28038-missed-target-by-0.00038
+  artifacts: .opencode/prime_run_snapshots_20260601/final_track3_simple_locom_seed200/seed200_final_artifacts.tgz
   termination_policy: keep while actively training or gathering requested benchmark evidence; terminate after completion/failure
 - pod_id: b3ebfcf259094999b5a363fcd749e07d
   name: track3-simple-locom-prime-b-1xh100-20260531
@@ -86,5 +87,6 @@
   price_per_hour: $2.35
   created_at: 2026-05-31T22:31:00+05:30
   expected_stop: after the one-run 1x target-loss run completes, fails, or user redirects
-  status: active-training-running-step250-val-4.10626-6843ms
+  status: terminated-after-final-artifacts-target-step3325-val-3.27973
+  artifacts: .opencode/prime_run_snapshots_20260601/final_track3_simple_locom_seed300/seed300_final_artifacts.tgz
   termination_policy: keep while actively training or gathering requested benchmark evidence; terminate after completion/failure

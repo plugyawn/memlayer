@@ -1,0 +1,61 @@
+Note that running a local entrypoint in detached mode only keeps the last triggered Modal function alive after the parent process has been killed or disconnected.
+✓ Initialized. View run at 
+https://modal.com/apps/nipsdwip/main/ap-yYfl4iXtLy5D4w8Aq9AnMU
+Building image im-iqXqNxLhz9xuTZxHau7QQ4
+
+=> Step 0: FROM base
+
+=> Step 1: COPY . /
+Saving image...
+Image saved, took 1.68s
+
+Built image im-iqXqNxLhz9xuTZxHau7QQ4 in 3.92s
+
+
+Building image im-hsk3q65PZWhc3hLwrfJsG4
+
+=> Step 0: FROM base
+
+=> Step 1: WORKDIR /root/speedrun
+Saving image...
+Image saved, took 880.50ms
+
+Built image im-hsk3q65PZWhc3hLwrfJsG4 in 2.97s
+
+
+✓ Created objects.
+├── 🔨 Created mount 
+│   /Users/progyan/speedrun/wr-fresh-20260526/tools/modal_nanogpt_runner.py
+├── 🔨 Created mount /Users/progyan/speedrun/wr-fresh-20260526
+├── 🔨 Created function prepare_data.
+└── 🔨 Created function run_screen.
+{
+  "dashboard_url": "https://modal.com/id/fc-01KSZYKG83ZS530KMDTKPNRZ8Q",
+  "data_chunks": 20,
+  "function_call_id": "fc-01KSZYKG83ZS530KMDTKPNRZ8Q",
+  "gpu": "H100",
+  "mode": "spawn",
+  "nproc": 1,
+  "runner": "tools/run_track3_locoprop_m.sh",
+  "steps": 500,
+  "val_every": 125
+}
+
+==========
+== CUDA ==
+==========
+
+CUDA Version 12.8.0
+
+Container image Copyright (c) 2016-2023, NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+
+This container image and its contents are governed by the NVIDIA Deep Learning Container License.
+By pulling and using the container, you accept the terms and conditions of this license:
+https://developer.nvidia.com/ngc/nvidia-deep-learning-container-license
+
+A copy of this license is made available in this container at /NGC-DL-CONTAINER-LICENSE for your convenience.
+
+track3_locom_runner source=records/track_3_optimization/train_gpt_simple.py generated=/tmp/train_gpt_simple_locoprop_m_500.py steps=500 trials=1 nproc=1 mbs=16 pass_trial_arg=1
+[modal-client] 2026-06-01T02:51:36+0530 Timed out waiting for final app logs.
+✓ App completed. View run at 
+https://modal.com/apps/nipsdwip/main/ap-yYfl4iXtLy5D4w8Aq9AnMU

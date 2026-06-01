@@ -50,6 +50,11 @@ LOCO_M_INTERVAL = int(os.environ.get("TRACK3_LOCOM_INTERVAL", "1"))
 LOCO_M_GATHER_SAMPLES = _env_flag("TRACK3_LOCOM_GATHER_SAMPLES", "1")
 LOCO_M_ACCUM_SAMPLES = _env_flag("TRACK3_LOCOM_ACCUM_SAMPLES", "0")
 LOCO_M_MICRO_SAMPLE_TOKENS = int(os.environ.get("TRACK3_LOCOM_MICRO_SAMPLE_TOKENS", "32"))
+LOCO_M_LOCAL_OPT = os.environ.get("TRACK3_LOCOM_LOCAL_OPT", "sgd").lower()
+LOCO_M_LOCAL_LR_DECAY = _env_flag("TRACK3_LOCOM_LOCAL_LR_DECAY", "0")
+LOCO_M_RMS_BETA1 = float(os.environ.get("TRACK3_LOCOM_RMS_BETA1", "0.999"))
+LOCO_M_RMS_BETA2 = float(os.environ.get("TRACK3_LOCOM_RMS_BETA2", "0.9"))
+LOCO_M_RMS_EPS = float(os.environ.get("TRACK3_LOCOM_RMS_EPS", "1e-5"))
 TRACK3_TARGET_LOSS = float(os.environ.get("TRACK3_TARGET_LOSS", "0"))
 TRACK3_SEED_BASE = int(os.environ.get("TRACK3_SEED_BASE", "0"))
 TRACK3_SEED_OFFSET = int(os.environ.get("TRACK3_SEED_OFFSET", "0"))
@@ -61,6 +66,7 @@ LOCO_M_LOG_STEPS = {
 LOCO_M_OWNED_LAYER_SET: set[int] = set()
 LOCO_M_APPLY_STATS: list[str] = []
 LOCO_M_CURRENT_STEP = -1
+LOCO_M_CAPTURE_THIS_MICRO = True
 '''
 
 
@@ -83,6 +89,8 @@ LOCOM_MLP = r'''class MLP(nn.Module):
         self._loco_dpre_chunks = []
         self._loco_corr = None
         self._loco_diag = None
+        self.register_buffer("_loco_rms_avg", torch.zeros(hdim, dim, dtype=torch.float32), persistent=False)
+        self.register_buffer("_loco_rms_mom", torch.zeros(hdim, dim, dtype=torch.float32), persistent=False)
 
     def _loco_sample(self, x: Tensor, sample_tokens: int | None = None) -> Tensor:
         flat = x.reshape(-1, x.size(-1))
@@ -103,9 +111,12 @@ LOCOM_MLP = r'''class MLP(nn.Module):
             setattr(self, name, self._loco_sample(value).to(torch.bfloat16))
 
     def _capture_locom(self, x: Tensor, pre: Tensor, post: Tensor):
+        if torch.compiler.is_compiling():
+            return
         if not (
             LOCO_M_ENABLED
             and self.training
+            and LOCO_M_CAPTURE_THIS_MICRO
             and self.layer_idx in LOCO_M_LAYER_SET
             and _locom_active(LOCO_M_CURRENT_STEP)
         ):
@@ -146,6 +157,11 @@ def _locom_active(step: int) -> bool:
 def set_locoprop_m_current_step(step: int):
     global LOCO_M_CURRENT_STEP
     LOCO_M_CURRENT_STEP = step
+
+@torch.no_grad()
+def set_locoprop_m_capture_this_micro(enabled: bool):
+    global LOCO_M_CAPTURE_THIS_MICRO
+    LOCO_M_CAPTURE_THIS_MICRO = enabled
 
 @torch.no_grad()
 def attach_locoprop_m_optimizer(model: nn.Module, optimizer: torch.optim.Optimizer):
@@ -221,7 +237,10 @@ def prepare_locoprop_m(model: nn.Module, step: int):
         loss0 = None
         loss_k = None
 
-        for _ in range(LOCO_M_LOCAL_STEPS):
+        rms_avg = mlp._loco_rms_avg
+        rms_mom = mlp._loco_rms_mom
+
+        for local_step in range(LOCO_M_LOCAL_STEPS):
             pred = x @ W.mT
             pred = pred + mlp.fc.bias.detach().float()
             post = pred.relu().square()
@@ -236,7 +255,16 @@ def prepare_locoprop_m(model: nn.Module, step: int):
             grad_w.mul_(inv_n)
             if LOCO_M_PROX != 0:
                 grad_w.add_(W - W0, alpha=LOCO_M_PROX)
-            W.add_(grad_w, alpha=-LOCO_M_INNER_LR)
+            local_lr = LOCO_M_INNER_LR
+            if LOCO_M_LOCAL_LR_DECAY:
+                local_lr *= max(1.0 - float(local_step) / max(LOCO_M_LOCAL_STEPS, 1), 0.25)
+            if LOCO_M_LOCAL_OPT == "rmsprop":
+                rms_avg.mul_(LOCO_M_RMS_BETA2).addcmul_(grad_w, grad_w, value=1.0 - LOCO_M_RMS_BETA2)
+                denom = rms_avg.sqrt().add_(LOCO_M_RMS_EPS)
+                rms_mom.mul_(LOCO_M_RMS_BETA1).addcdiv_(grad_w, denom, value=local_lr)
+                W.add_(rms_mom, alpha=-1.0)
+            else:
+                W.add_(grad_w, alpha=-local_lr)
 
         corr = (W - W0).to(mlp.fc.weight.dtype)
         mlp._loco_corr = corr
@@ -256,6 +284,7 @@ def prepare_locoprop_m(model: nn.Module, step: int):
                 f",grad_norm={float(raw_grad.norm()):.3e}"
                 f",cos_desc={float(cosine):.3f}"
                 f",tokens={x.size(0)}"
+                f",opt={LOCO_M_LOCAL_OPT}"
             )
 
     if step in LOCO_M_LOG_STEPS and stats:
@@ -429,7 +458,8 @@ def muon_update(grad, momentum, mu=0.95, nesterov=True):
             "model = GPT(vocab_size=50304, num_layers=12, model_dim=768).cuda()\n"
             "attach_precond_stats(model)\n"
             "if not LOCO_M_ENABLED or _env_flag(\"TRACK3_LOCOM_COMPILE\", \"0\"):\n"
-            "    model.compile(dynamic=False)\n",
+            "    model.compile(dynamic=False)\n"
+            "compiled_model = model\n",
         )
     else:
         text = replace_exact(
@@ -437,13 +467,14 @@ def muon_update(grad, momentum, mu=0.95, nesterov=True):
             "model = GPT(vocab_size=50304, num_layers=12, model_dim=768).cuda()\nmodel.compile(dynamic=False)\n",
             "model = GPT(vocab_size=50304, num_layers=12, model_dim=768).cuda()\n"
             "if not LOCO_M_ENABLED or _env_flag(\"TRACK3_LOCOM_COMPILE\", \"0\"):\n"
-            "    model.compile(dynamic=False)\n",
+            "    model.compile(dynamic=False)\n"
+            "compiled_model = model\n",
         )
     text = replace_exact(
         text,
         'print0(f"Running PyTorch {torch.version.__version__} compiled for CUDA {torch.version.cuda}"',
         f'print0("Track3 LocoProp-M generated run: source={source_label} train_steps={train_steps}")\n'
-        'print0(f"LocoM enabled={LOCO_M_ENABLED} layers={LOCO_M_LAYERS_SPEC} steps={LOCO_M_LOCAL_STEPS} sample_tokens={LOCO_M_SAMPLE_TOKENS} gather={LOCO_M_GATHER_SAMPLES} accum={LOCO_M_ACCUM_SAMPLES} micro_sample_tokens={LOCO_M_MICRO_SAMPLE_TOKENS} inner_lr={LOCO_M_INNER_LR} target_gamma={LOCO_M_TARGET_GAMMA} prox={LOCO_M_PROX} alpha={LOCO_M_ALPHA} norm_to_base={LOCO_M_NORM_TO_BASE} norm_cap={LOCO_M_NORM_CAP} start_step={LOCO_M_START_STEP} end_step={LOCO_M_END_STEP} interval={LOCO_M_INTERVAL} target_loss={TRACK3_TARGET_LOSS} seed_base={TRACK3_SEED_BASE} seed_offset={TRACK3_SEED_OFFSET}")\n'
+        'print0(f"LocoM enabled={LOCO_M_ENABLED} layers={LOCO_M_LAYERS_SPEC} steps={LOCO_M_LOCAL_STEPS} sample_tokens={LOCO_M_SAMPLE_TOKENS} gather={LOCO_M_GATHER_SAMPLES} accum={LOCO_M_ACCUM_SAMPLES} micro_sample_tokens={LOCO_M_MICRO_SAMPLE_TOKENS} local_opt={LOCO_M_LOCAL_OPT} lr_decay={LOCO_M_LOCAL_LR_DECAY} rms_beta1={LOCO_M_RMS_BETA1} rms_beta2={LOCO_M_RMS_BETA2} rms_eps={LOCO_M_RMS_EPS} inner_lr={LOCO_M_INNER_LR} target_gamma={LOCO_M_TARGET_GAMMA} prox={LOCO_M_PROX} alpha={LOCO_M_ALPHA} norm_to_base={LOCO_M_NORM_TO_BASE} norm_cap={LOCO_M_NORM_CAP} start_step={LOCO_M_START_STEP} end_step={LOCO_M_END_STEP} interval={LOCO_M_INTERVAL} target_loss={TRACK3_TARGET_LOSS} seed_base={TRACK3_SEED_BASE} seed_offset={TRACK3_SEED_OFFSET}")\n'
         'print0(f"Running PyTorch {torch.version.__version__} compiled for CUDA {torch.version.cuda}"',
     )
     text = replace_exact(
@@ -521,6 +552,23 @@ def muon_update(grad, momentum, mu=0.95, nesterov=True):
         "        # --------------- TRAINING SECTION -----------------\n"
         "        set_locoprop_m_current_step(step)\n"
         "        inputs, targets = next(train_loader)\n",
+    )
+    text = replace_exact(
+        text,
+        "                    val_loss += model(val_inputs[i*mbs:(i+1)*mbs], val_targets[i*mbs:(i+1)*mbs])\n",
+        "                    val_loss += compiled_model(val_inputs[i*mbs:(i+1)*mbs], val_targets[i*mbs:(i+1)*mbs])\n",
+    )
+    text = replace_exact(
+        text,
+        "        for i in range(len(inputs) // mbs):\n"
+        "            model(inputs[i*mbs:(i+1)*mbs], targets[i*mbs:(i+1)*mbs]).backward()\n",
+        "        num_microbatches = len(inputs) // mbs\n"
+        "        for i in range(num_microbatches):\n"
+        "            capture_this_micro = LOCO_M_ACCUM_SAMPLES or i == num_microbatches - 1\n"
+        "            set_locoprop_m_capture_this_micro(capture_this_micro)\n"
+        "            active_model = model if (LOCO_M_ENABLED and _locom_active(step) and capture_this_micro) else compiled_model\n"
+        "            active_model(inputs[i*mbs:(i+1)*mbs], targets[i*mbs:(i+1)*mbs]).backward()\n"
+        "        set_locoprop_m_capture_this_micro(False)\n",
     )
     step_block_inserted = False
     for indent in ("        ", "    "):
