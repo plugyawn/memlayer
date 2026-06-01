@@ -704,6 +704,11 @@ def muon_update(grad, momentum, mu=0.95, nesterov=True):
             "val_regular_interval = 125\n",
             "val_regular_interval = int(os.environ.get(\"SCREEN_VAL_EVERY\", \"125\"))\n",
         )
+    text = text.replace(
+        "            step_avg = time_since_last_val / (step - last_val_step) if step > 0 else float(\"nan\")\n",
+        "            step_avg = time_since_last_val / (step - last_val_step) if step > last_val_step else float(\"nan\")\n",
+        1,
+    )
     text = replace_exact(
         text,
         "    train_loader = distributed_data_generator(\"data/fineweb10B/fineweb_train_*.bin\", batch_size)\n",
