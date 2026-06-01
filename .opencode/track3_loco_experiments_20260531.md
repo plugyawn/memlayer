@@ -863,4 +863,18 @@ Relaunched same seed/settings with checkpoint save at step 2400 and exit:
 - Validation cadence: `SCREEN_VAL_EVERY=120` so step `2400` is definitely a validation/checkpoint step. Default 125-step validation would skip 2400 in a 3030-step run.
 - Launch verification: app active/detached on H100; generated `/tmp/train_gpt_simple_locoprop_m_3030.py`, `track3_trial_seed=2400`, all 12 LocoProp layers owned, initial validation `10.82580 @0`.
 
-Next action: poll for `track3_checkpoint_saved step:2400 path:/root/.cache/track3_checkpoints/modal3030_locom_end2400_seed2400_step2400.pt`, then confirm the file appears in Modal volume before using it for suffix experiments.
+Superseded next action: this run was aborted after the seed/trajectory mismatch was noticed. Do not poll or use `modal3030_locom_end2400_seed2400_step2400.pt`.
+
+Correction: the `ap-dlp4N4VBafETgu7QOcHVWM` step-2400 replay above was the wrong trajectory for the user's requested paired state. It used seed offset `2400` and a `3030`/`end2400` schedule, not the same `3100`/seed400 LocoProp trajectory as the saved step-2800 checkpoint. It was aborted after initial validation and should not be used as the matching step-2400 image.
+
+Corrected step-2400 checkpoint replay launch:
+
+- App: `ap-JFKJK9m9uwGDSU85IiidwP`.
+- Function call: `fc-01KT1A54DG0385HT1TDF3VSGPD`.
+- Run: `track3-simple-locom-3100-ckpt2400-h100-seed400-20260601100220`.
+- Setting: `TRACK3_TRAIN_STEPS=3100`, `TRACK3_SEED_OFFSET=400`, simple Track 3 source, `TRACK3_MBS=16`, LocoProp-M SGD all layers, `K=4`, `sample_tokens=1024`, `inner_lr=0.1`, `prox=0.1`, `norm_cap=0.20`, no `TRACK3_LOCOM_END_STEP`.
+- Checkpoint controls: `TRACK3_CHECKPOINT_STEPS=2400`, `TRACK3_CHECKPOINT_DIR=/root/.cache/track3_checkpoints`, `TRACK3_CHECKPOINT_PREFIX=modal3100_locom`, `TRACK3_CHECKPOINT_EXIT_AFTER=1`, `TRACK3_TARGET_LOSS=0`.
+- Validation cadence: `SCREEN_VAL_EVERY=120`, because the checkpoint hook runs inside validation and `2400` is not on the default 125-step cadence.
+- Launch verification: app active/detached on H100; generated `/tmp/train_gpt_simple_locoprop_m_3100.py`, `track3_trial_seed=400`, all 12 LocoProp layers owned.
+- Expected checkpoint: `/root/.cache/track3_checkpoints/modal3100_locom_seed400_step2400.pt` in Modal volume `nanogpt-speedrun-cache`.
+- Local launch log: `.opencode/modal_track3-simple-locom-3100-ckpt2400-h100-seed400-20260601100220.launch.log`.

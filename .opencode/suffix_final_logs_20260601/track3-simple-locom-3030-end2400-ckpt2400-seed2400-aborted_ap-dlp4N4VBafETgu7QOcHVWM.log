@@ -1,0 +1,73 @@
+
+==========
+== CUDA ==
+==========
+
+CUDA Version 12.8.0
+
+Container image Copyright (c) 2016-2023, NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+
+This container image and its contents are governed by the NVIDIA Deep Learning Container License.
+By pulling and using the container, you accept the terms and conditions of this license:
+https://developer.nvidia.com/ngc/nvidia-deep-learning-container-license
+
+A copy of this license is made available in this container at /NGC-DL-CONTAINER-LICENSE for your convenience.
+
+track3_locom_runner source=records/track_3_optimization/train_gpt_simple.py generated=/tmp/train_gpt_simple_locoprop_m_3030.py steps=3030 trials=1 nproc=1 mbs=16 pass_trial_arg=1
+logs/b0dedfb0-8db9-4b06-bdec-7cd1546d2990.txt
+track3_trial_seed=2400 trial=0
+locoprop_m_owner rank=0 world=1 owned_layers=[0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11] sample_tokens=1024 gather_samples=True accum_samples=False micro_sample_tokens=32
+step:0/3030 val_loss:10.82580 train_time:0.000s step_avg:nanms
+locoprop_m_prepare step=0 l0:loss0=1.401e-06,lossK=1.448e-01,corr_norm=1.781e+01,grad_norm=0.000e+00,cos_desc=0.000,tokens=1024,opt=sgd | l1:loss0=1.423e-06,lossK=1.065e+00,corr_norm=4.977e+01,grad_norm=0.000e+00,cos_desc=0.000,tokens=1024,opt=sgd | l2:loss0=1.412e-06,lossK=4.797e-01,corr_norm=3.322e+01,grad_norm=0.000e+00,cos_desc=0.000,tokens=1024,opt=sgd | l3:loss0=1.413e-06,lossK=1.180e-01,corr_norm=1.602e+01,grad_norm=0.000e+00,cos_desc=0.000,tokens=1024,opt=sgd
+locoprop_m_apply step=0 shape=(3072, 768):base_step=0.000e+00,corr_norm=1.781e+01,scale=0.000e+00 | shape=(3072, 768):base_step=0.000e+00,corr_norm=4.977e+01,scale=0.000e+00 | shape=(3072, 768):base_step=0.000e+00,corr_norm=3.322e+01,scale=0.000e+00 | shape=(3072, 768):base_step=0.000e+00,corr_norm=1.602e+01,scale=0.000e+00 | shape=(3072, 768):base_step=0.000e+00,corr_norm=5.892e+01,scale=0.000e+00 | shape=(3072, 768):base_step=0.000e+00,corr_norm=3.008e+01,scale=0.000e+00 | shape=(3072, 768):base_step=0.000e+00,corr_norm=2.163e+01,scale=0.000e+00 | shape=(3072, 768):base_step=0.000e+00,corr_norm=5.149e+01,scale=0.000e+00
+step:1/3030 train_time:6.933s step_avg:6932.87ms
+locoprop_m_prepare step=1 l0:loss0=1.386e-06,lossK=7.565e-02,corr_norm=1.223e+01,grad_norm=0.000e+00,cos_desc=0.000,tokens=1024,opt=sgd | l1:loss0=1.422e-06,lossK=6.753e-01,corr_norm=3.796e+01,grad_norm=0.000e+00,cos_desc=0.000,tokens=1024,opt=sgd | l2:loss0=1.411e-06,lossK=4.638e-01,corr_norm=3.133e+01,grad_norm=0.000e+00,cos_desc=0.000,tokens=1024,opt=sgd | l3:loss0=1.423e-06,lossK=1.238e-01,corr_norm=1.564e+01,grad_norm=0.000e+00,cos_desc=0.000,tokens=1024,opt=sgd
+locoprop_m_apply step=1 shape=(3072, 768):base_step=0.000e+00,corr_norm=1.223e+01,scale=0.000e+00 | shape=(3072, 768):base_step=0.000e+00,corr_norm=3.796e+01,scale=0.000e+00 | shape=(3072, 768):base_step=0.000e+00,corr_norm=3.133e+01,scale=0.000e+00 | shape=(3072, 768):base_step=0.000e+00,corr_norm=1.564e+01,scale=0.000e+00 | shape=(3072, 768):base_step=0.000e+00,corr_norm=4.700e+01,scale=0.000e+00 | shape=(3072, 768):base_step=0.000e+00,corr_norm=1.222e+01,scale=0.000e+00 | shape=(3072, 768):base_step=0.000e+00,corr_norm=1.261e+01,scale=0.000e+00 | shape=(3072, 768):base_step=0.000e+00,corr_norm=1.489e+01,scale=0.000e+00
+step:2/3030 train_time:10.547s step_avg:5273.62ms
+locoprop_m_prepare step=2 l0:loss0=1.421e-06,lossK=3.524e-02,corr_norm=8.722e+00,grad_norm=2.621e+03,cos_desc=-0.117,tokens=1024,opt=sgd | l1:loss0=1.429e-06,lossK=6.225e-02,corr_norm=1.363e+01,grad_norm=2.880e+03,cos_desc=-0.120,tokens=1024,opt=sgd | l2:loss0=1.416e-06,lossK=2.482e-01,corr_norm=3.145e+01,grad_norm=3.107e+03,cos_desc=-0.086,tokens=1024,opt=sgd | l3:loss0=1.398e-06,lossK=8.318e-01,corr_norm=6.682e+01,grad_norm=3.351e+03,cos_desc=-0.112,tokens=1024,opt=sgd
+locoprop_m_apply step=2 shape=(3072, 768):base_step=1.939e+00,corr_norm=8.722e+00,scale=4.446e-02 | shape=(3072, 768):base_step=1.940e+00,corr_norm=1.363e+01,scale=2.846e-02 | shape=(3072, 768):base_step=1.939e+00,corr_norm=3.145e+01,scale=1.233e-02 | shape=(3072, 768):base_step=1.938e+00,corr_norm=6.682e+01,scale=5.802e-03 | shape=(3072, 768):base_step=1.942e+00,corr_norm=9.137e+01,scale=4.250e-03 | shape=(3072, 768):base_step=1.941e+00,corr_norm=2.714e+02,scale=1.430e-03 | shape=(3072, 768):base_step=1.942e+00,corr_norm=7.000e+02,scale=5.549e-04 | shape=(3072, 768):base_step=1.942e+00,corr_norm=1.258e+03,scale=3.086e-04
+step:3/3030 train_time:14.171s step_avg:4723.67ms
+step:4/3030 train_time:17.801s step_avg:4450.29ms
+step:5/3030 train_time:21.433s step_avg:4286.56ms
+step:6/3030 train_time:25.048s step_avg:4174.62ms
+step:7/3030 train_time:28.667s step_avg:4095.24ms
+step:8/3030 train_time:32.280s step_avg:4035.01ms
+step:9/3030 train_time:35.908s step_avg:3989.74ms
+step:10/3030 train_time:39.524s step_avg:3952.38ms
+locoprop_m_prepare step=10 l0:loss0=7.664e-06,lossK=2.729e+10,corr_norm=1.372e+07,grad_norm=2.164e+04,cos_desc=0.043,tokens=1024,opt=sgd | l1:loss0=1.851e-05,lossK=5.961e+09,corr_norm=7.151e+06,grad_norm=2.703e+04,cos_desc=0.579,tokens=1024,opt=sgd | l2:loss0=3.742e-06,lossK=1.602e+06,corr_norm=1.313e+05,grad_norm=1.703e+04,cos_desc=0.023,tokens=1024,opt=sgd | l3:loss0=2.749e-06,lossK=1.218e+03,corr_norm=3.302e+03,grad_norm=1.470e+04,cos_desc=0.168,tokens=1024,opt=sgd
+locoprop_m_apply step=10 shape=(3072, 768):base_step=1.942e+00,corr_norm=1.372e+07,scale=2.830e-08 | shape=(3072, 768):base_step=1.922e+00,corr_norm=7.151e+06,scale=5.375e-08 | shape=(3072, 768):base_step=1.940e+00,corr_norm=1.313e+05,scale=2.954e-06 | shape=(3072, 768):base_step=1.939e+00,corr_norm=3.302e+03,scale=1.174e-04 | shape=(3072, 768):base_step=1.927e+00,corr_norm=1.121e+04,scale=3.440e-05 | shape=(3072, 768):base_step=1.930e+00,corr_norm=3.687e+03,scale=1.047e-04 | shape=(3072, 768):base_step=1.913e+00,corr_norm=1.511e+04,scale=2.532e-05 | shape=(3072, 768):base_step=1.907e+00,corr_norm=5.640e+03,scale=6.764e-05
+step:11/3030 train_time:43.142s step_avg:3922.01ms
+step:12/3030 train_time:46.756s step_avg:3896.36ms
+step:13/3030 train_time:50.379s step_avg:3875.31ms
+step:14/3030 train_time:53.992s step_avg:3856.60ms
+step:15/3030 train_time:57.625s step_avg:3841.65ms
+step:16/3030 train_time:61.237s step_avg:3827.33ms
+step:17/3030 train_time:64.862s step_avg:3815.44ms
+step:18/3030 train_time:68.482s step_avg:3804.55ms
+step:19/3030 train_time:72.100s step_avg:3794.73ms
+step:20/3030 train_time:75.714s step_avg:3785.69ms
+step:21/3030 train_time:79.327s step_avg:3777.50ms
+step:22/3030 train_time:82.956s step_avg:3770.74ms
+step:23/3030 train_time:86.581s step_avg:3764.38ms
+step:24/3030 train_time:90.207s step_avg:3758.64ms
+step:25/3030 train_time:93.830s step_avg:3753.22ms
+step:26/3030 train_time:97.441s step_avg:3747.74ms
+step:27/3030 train_time:101.049s step_avg:3742.57ms
+step:28/3030 train_time:104.662s step_avg:3737.91ms
+step:29/3030 train_time:108.271s step_avg:3733.50ms
+step:30/3030 train_time:111.883s step_avg:3729.45ms
+step:31/3030 train_time:115.495s step_avg:3725.63ms
+step:32/3030 train_time:119.122s step_avg:3722.55ms
+step:33/3030 train_time:122.738s step_avg:3719.32ms
+step:34/3030 train_time:126.346s step_avg:3716.05ms
+step:35/3030 train_time:129.971s step_avg:3713.47ms
+step:36/3030 train_time:133.602s step_avg:3711.17ms
+step:37/3030 train_time:137.231s step_avg:3708.95ms
+step:38/3030 train_time:140.847s step_avg:3706.50ms
+step:39/3030 train_time:144.460s step_avg:3704.09ms
+step:40/3030 train_time:148.070s step_avg:3701.75ms
+step:41/3030 train_time:151.695s step_avg:3699.89ms
+step:42/3030 train_time:155.304s step_avg:3697.70ms
+step:43/3030 train_time:158.914s step_avg:3695.68ms
+step:44/3030 train_time:162.527s step_avg:3693.79ms
+step:45/3030 train_time:166.139s step_avg:3691.97ms
