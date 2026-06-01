@@ -1004,7 +1004,7 @@ Correction/recovery: `ap-DRieR7b1nuvh9QeZzA91P3` was a standalone 3100 cap-windo
 - Setting: `TRACK3_TRAIN_STEPS=3100`, `TRACK3_SEED_OFFSET=400`, simple Track 3 source, `TRACK3_MBS=16`, LocoProp-M SGD all layers, `K=4`, `sample_tokens=1024`, base `norm_cap=0.20`, `TRACK3_LOCOM_NORM_CAP_WINDOWS=1600:2400:0.40`, `SCREEN_VAL_EVERY=125`.
 - Local launch log: `.opencode/modal_track3-simple-locom-3100-capwin040-1600-2400-h100-seed400-retry-20260601133820.launch.log`.
 - Launch verification: app active/detached on H100; generated `/tmp/train_gpt_simple_locoprop_m_3100.py`, `track3_trial_seed=400`, all 12 LocoProp layers owned. Next gate: verify `locoprop_m_apply step=1600` logs `cap=0.400`, then compare final `3000/3100` values against the missed suffix-family endpoints.
-- Early retry checks: `4.64153 @125`, `4.11050 @250`, `3.93290 @375`, and `3.82742 @500`, all before the `1600-2400` window with effective `cap=0.200`. This is slightly better than the stopped cap-window run at steps 125/250 (`4.65580`, `4.11730`) and the original 3100 cap0.20 run at step 250 (`4.11702`), but this is still early variance; the real test is the mid-run cap-window transition and the `2800/3000/3100` slope.
+- Early retry checks: `4.64153 @125`, `4.11050 @250`, `3.93290 @375`, `3.82742 @500`, and `3.75811 @625`, all before the `1600-2400` window with effective `cap=0.200`. This is slightly better than the stopped cap-window run at steps 125/250 (`4.65580`, `4.11730`) and the original 3100 cap0.20 run at steps 250/625 (`4.11702`, `3.76108`), but this is still early variance; the real test is the mid-run cap-window transition and the `2800/3000/3100` slope.
 
 ## 2026-06-01 What Went Off Around Step 2400/2800
 
