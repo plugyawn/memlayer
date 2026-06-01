@@ -1004,7 +1004,7 @@ Correction/recovery: `ap-DRieR7b1nuvh9QeZzA91P3` was a standalone 3100 cap-windo
 - Setting: `TRACK3_TRAIN_STEPS=3100`, `TRACK3_SEED_OFFSET=400`, simple Track 3 source, `TRACK3_MBS=16`, LocoProp-M SGD all layers, `K=4`, `sample_tokens=1024`, base `norm_cap=0.20`, `TRACK3_LOCOM_NORM_CAP_WINDOWS=1600:2400:0.40`, `SCREEN_VAL_EVERY=125`.
 - Local launch log: `.opencode/modal_track3-simple-locom-3100-capwin040-1600-2400-h100-seed400-retry-20260601133820.launch.log`.
 - Launch verification: app active/detached on H100; generated `/tmp/train_gpt_simple_locoprop_m_3100.py`, `track3_trial_seed=400`, all 12 LocoProp layers owned. Next gate: verify `locoprop_m_apply step=1600` logs `cap=0.400`, then compare final `3000/3100` values against the missed suffix-family endpoints.
-- Early retry checks: `4.64153 @125`, `4.11050 @250`, `3.93290 @375`, `3.82742 @500`, `3.75811 @625`, `3.71351 @750`, and `3.67328 @875`, all before the `1600-2400` window with effective `cap=0.200`. This is essentially the original 3100 cap0.20 trajectory with small noise: better at steps 250/625 (`4.11702`, `3.76108` original) but slightly worse by steps 750/875 (`3.71211`, `3.67229` original). The real test is the mid-run cap-window transition and the `2800/3000/3100` slope.
+- Retry checks before the cap window: `4.64153 @125`, `4.11050 @250`, `3.93290 @375`, `3.82742 @500`, `3.75811 @625`, `3.71351 @750`, `3.67328 @875`, `3.63508 @1000`, `3.60727 @1125`, and `3.57265 @1250`, all with effective `cap=0.200`. This is essentially the original 3100 cap0.20 trajectory with small noise: slightly worse at `875`, slightly better at `1250` (`3.57351` original). The real test is the mid-run cap-window transition and the `2800/3000/3100` slope.
 
 ## 2026-06-01 What Went Off Around Step 2400/2800
 
@@ -1046,7 +1046,7 @@ Launched two H100 Modal suffixes from the matched step-2400 checkpoint:
 
 | Variant | App | Function call | Switch | Latest | Read |
 | --- | --- | --- | ---: | ---: | --- |
-| PR287 -> linear3100 | `ap-tnTIbbdQSW4kj4IGHP9cQy` | `fc-01KT1S5DWTW9GT8EJA71V8WAFQ` | `2800` | `3.34866 @2525` | Loaded `modal3100_locom_seed400_step2400.pt`; not at switch yet. |
-| PR287 -> linear3100 | `ap-P1kAN6Y7xAKoMerGsF1lmn` | `fc-01KT1S9JEAHE1K6ZY78WG24CYY` | `2750` | `3.35202 @2500` | Loaded same checkpoint; not at switch yet. |
+| PR287 -> linear3100 | `ap-tnTIbbdQSW4kj4IGHP9cQy` | `fc-01KT1S5DWTW9GT8EJA71V8WAFQ` | `2800` | stopped after `3.31246 @2850` | Reached PR287-quality `3.31175 @2800`, then immediately bumped to `3.31331 @2825` and collapsed to original-3100 parity by `2850`. |
+| PR287 -> linear3100 | `ap-P1kAN6Y7xAKoMerGsF1lmn` | `fc-01KT1S9JEAHE1K6ZY78WG24CYY` | `2750` | stopped after `3.31557 @2825` | Switching earlier erased the PR287 advantage even faster: `3.31751 @2750`, `3.31736 @2800`, roughly original-3100 parity. |
 
-Both use `TRACK3_LOCOM_NORM_CAP=0.20` and no LocoProp cap window. Decision gate is after the switch: compare `2800/2875/2925/3000/3100` against PR287 cap0.20 (`3.31178 @2800`, `3.29683 @3000`) and original 3100 cap0.20 (`3.31815 @2800`, `3.29672 @3000`, `3.29066 @3100`).
+Both used `TRACK3_LOCOM_NORM_CAP=0.20` and no LocoProp cap window. Decision: stopped both hybrid suffix apps. The direct "PR287 into original-linear tail" idea does not preserve the PR287 state; the switch creates a discontinuity / loss bump and returns the run to original-3100 pace within 25-50 steps. This says the lost terminal slope is not recovered by a hard schedule handoff.
