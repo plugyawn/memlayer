@@ -1572,3 +1572,36 @@ Next gates:
 - Full confirmation wave: first screens at `25/50/.../125`; compare early distribution against the seed2900 lead but do not overreact until at least `500/750`.
 - Active seed2900 3000 checkpoint replay: wait for `1625`, then `2500` checkpoint save and volume verification.
 - Re-on lane: verify no `locoprop_m_apply` from `1600` to `2799`, then verify `locoprop_m_apply step=2800` and compare `2800+` against old lead and the full confirmation wave.
+
+Eighth live poll update, 2026-06-02 03:35 IST:
+
+- Active app list still shows ten live H100 tasks:
+  - eight full 3000 confirmation lanes: seeds `3500,3501,3502,3503,3504,3505,3508,3509`;
+  - `ap-aMJg05trVXsT8rfFsRkQne`: seed2900 3000 checkpoint replay;
+  - `ap-oJt8hUqjcUqyJINytpVyPR`: seed3401 3040 re-on-at-2800 diagnostic.
+- Seed2900 3000 checkpoint replay update:
+  - `3.49637 @1625` versus old lead `3.49718 @1625`, only `0.00081` better.
+  - `3.47226 @1750` versus old lead `3.47255 @1750`, only `0.00029` better.
+  - `3.44804 @1875` versus old lead `3.44775 @1875`, worse by `0.00029`.
+  - Read: the strong `1500` advantage mostly faded by `1625-1875`; treat the n=8 wave as a real variance/confirmation run, not as confirmed breakout.
+- Re-on diagnostic:
+  - `3.50081 @1625` versus old lead `3.49718 @1625`, worse by `0.00363`.
+  - `3.47756 @1750` versus old lead `3.47255 @1750`, worse by `0.00501`.
+  - The intended final re-on window remains untested until step `2800`.
+- Full 3000 confirmation wave early gates:
+
+| Seed | App | `@125` | `@250` | Delta vs old lead `@250=4.11183` |
+| --- | --- | ---: | ---: | ---: |
+| 3500 | `ap-j32hnOwCnt9M9uKKB72dlP` | `4.65734` | `4.11251` | `+0.00068` worse |
+| 3501 | `ap-NmxP7sV2WOjKj5hkG6t9A2` | `4.64204` | `4.10815` | `-0.00368` better |
+| 3502 | `ap-GtJaJUQEKBK10mRwU2Fsws` | `4.64994` | `4.10913` | `-0.00270` better |
+| 3503 | `ap-muw1RIwCDZ6Zs12YqyCv97` | `4.62907` | `4.10466` | `-0.00717` better |
+| 3504 | `ap-yFayRAOAoYZYIhZJtCuJDx` | `4.63536` | pending | pending |
+| 3505 | `ap-oUdImgIQ5ybJoA00wfgcHN` | `4.64289` | `4.10938` | `-0.00245` better |
+| 3508 | `ap-8hxb2L2CCcwndbsz2kdhcX` | `4.64961` | pending | pending |
+| 3509 | `ap-uJtJvlUqQjK0e6S198WFhq` | `4.65898` | pending | pending |
+
+- Read:
+  - Fast-subset `@250` is mildly encouraging: 4 of 5 reported seeds beat the old lead at `250`, with best seed3503 ahead by about `0.0072`.
+  - This is not sufficient for PR confirmation because the exact seed2900 replay just faded from a `0.0066` lead at `1500` to parity by `1875`.
+  - Next meaningful gates: wait for complete `@250`, then `@500/@750`; prune only if the distribution clearly falls behind.
