@@ -1253,3 +1253,13 @@ Decision: launch a small 3100 replication fanout, not full n=8 yet. Rationale: t
 | `3203` | `ap-vH5zZgiIoWiqvCPMSOsL1m` | `fc-01KT28J40D7EEQPJ7G5HVTGJEH` | same | `.opencode/modal_track3-simple-locom-3100-nolate1600-pr2871600-h100-seed3203-20260601185343.launch.log` |
 
 Active owned Modal H100s after this fanout: 3100 lead `2900`, compressed `3000/3030`, and 3100 replicas `3200-3203` (`7` total tasks). Next action: gate replicas at `125/250/500`, continue lead seed to `2500/2750/3000`, and only launch the remaining n=8 replicas if the first replica batch tracks.
+
+Status after user asked what the current 3100 run is:
+
+- Lead `ap-OEZ4y8NHM65HsYpn54m1hs`: `3.34646 @2500`, latest train step `2526`.
+- This run is not plain simple Muon + LocoProp-M through the whole schedule. It is simple Track 3 plus LocoProp-M only until `1600`, then `TRACK3_LR_AFTER_SWITCH=pr287` with `TRACK3_LR_AFTER_SWITCH_POWER=1.2`.
+- Compressed probes:
+  - 3000 `ap-QNwyCxb4P3PyxhCfUtvAYU`: `3.71154 @750`, latest train step `855`.
+  - 3030 `ap-XbZFPuvUtrs8Ug3NKCL9Rp`: `3.75738 @625`, latest train step `649`.
+- 3100 replicas `3200-3203` were alive but had not hit first validation yet; latest train steps were roughly `102-114`.
+- Decision: keep waiting for replica `125/250/500` gates. Do not launch additional H100s before the replica batch produces real validation points.
