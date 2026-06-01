@@ -62,6 +62,7 @@ TRACK3_COOLDOWN_FRAC = float(os.environ.get("TRACK3_COOLDOWN_FRAC", "0.7"))
 TRACK3_LR_SCHEDULE = os.environ.get("TRACK3_LR_SCHEDULE", "linear").lower()
 TRACK3_LR_POWER = float(os.environ.get("TRACK3_LR_POWER", "1.0"))
 TRACK3_LR_SCHEDULE_STEPS = int(os.environ.get("TRACK3_LR_SCHEDULE_STEPS", "0"))
+TRACK3_LR_MIN_ETA = float(os.environ.get("TRACK3_LR_MIN_ETA", "0.0"))
 TRACK3_ADAM_EMBED_POWER_C = float(os.environ.get("TRACK3_ADAM_EMBED_POWER_C", "4.976805410800738e-05"))
 TRACK3_ADAM_PROJ_POWER_C = float(os.environ.get("TRACK3_ADAM_PROJ_POWER_C", "5.184172302917436e-07"))
 TRACK3_ADAM_OTHER_POWER_C = float(os.environ.get("TRACK3_ADAM_OTHER_POWER_C", "1.6589351369335795e-06"))
@@ -388,6 +389,7 @@ def maybe_save_track3_checkpoint(model: nn.Module, optimizers: list[torch.optim.
                 "track3_lr_schedule": TRACK3_LR_SCHEDULE,
                 "track3_lr_power": TRACK3_LR_POWER,
                 "track3_lr_schedule_steps": TRACK3_LR_SCHEDULE_STEPS,
+                "track3_lr_min_eta": TRACK3_LR_MIN_ETA,
             },
         }
         torch.save(payload, tmp_path)
@@ -626,7 +628,7 @@ def muon_update(grad, momentum, mu=0.95, nesterov=True):
         text,
         'print0(f"Running PyTorch {torch.version.__version__} compiled for CUDA {torch.version.cuda}"',
         f'print0("Track3 LocoProp-M generated run: source={source_label} train_steps={train_steps}")\n'
-        'print0(f"LocoM enabled={LOCO_M_ENABLED} layers={LOCO_M_LAYERS_SPEC} steps={LOCO_M_LOCAL_STEPS} sample_tokens={LOCO_M_SAMPLE_TOKENS} gather={LOCO_M_GATHER_SAMPLES} accum={LOCO_M_ACCUM_SAMPLES} micro_sample_tokens={LOCO_M_MICRO_SAMPLE_TOKENS} local_opt={LOCO_M_LOCAL_OPT} lr_decay={LOCO_M_LOCAL_LR_DECAY} rms_beta1={LOCO_M_RMS_BETA1} rms_beta2={LOCO_M_RMS_BETA2} rms_eps={LOCO_M_RMS_EPS} inner_lr={LOCO_M_INNER_LR} target_gamma={LOCO_M_TARGET_GAMMA} prox={LOCO_M_PROX} alpha={LOCO_M_ALPHA} norm_to_base={LOCO_M_NORM_TO_BASE} norm_cap={LOCO_M_NORM_CAP} start_step={LOCO_M_START_STEP} end_step={LOCO_M_END_STEP} interval={LOCO_M_INTERVAL} target_loss={TRACK3_TARGET_LOSS} seed_base={TRACK3_SEED_BASE} seed_offset={TRACK3_SEED_OFFSET} cooldown_frac={TRACK3_COOLDOWN_FRAC} lr_schedule={TRACK3_LR_SCHEDULE} lr_power={TRACK3_LR_POWER} lr_schedule_steps={TRACK3_LR_SCHEDULE_STEPS} soft_muon={TRACK3_SOFT_MUON} soft_blend={TRACK3_SOFT_MUON_BLEND} soft_norm_restore={TRACK3_SOFT_MUON_NORM_RESTORE} resume_checkpoint={TRACK3_RESUME_CHECKPOINT}")\n'
+        'print0(f"LocoM enabled={LOCO_M_ENABLED} layers={LOCO_M_LAYERS_SPEC} steps={LOCO_M_LOCAL_STEPS} sample_tokens={LOCO_M_SAMPLE_TOKENS} gather={LOCO_M_GATHER_SAMPLES} accum={LOCO_M_ACCUM_SAMPLES} micro_sample_tokens={LOCO_M_MICRO_SAMPLE_TOKENS} local_opt={LOCO_M_LOCAL_OPT} lr_decay={LOCO_M_LOCAL_LR_DECAY} rms_beta1={LOCO_M_RMS_BETA1} rms_beta2={LOCO_M_RMS_BETA2} rms_eps={LOCO_M_RMS_EPS} inner_lr={LOCO_M_INNER_LR} target_gamma={LOCO_M_TARGET_GAMMA} prox={LOCO_M_PROX} alpha={LOCO_M_ALPHA} norm_to_base={LOCO_M_NORM_TO_BASE} norm_cap={LOCO_M_NORM_CAP} start_step={LOCO_M_START_STEP} end_step={LOCO_M_END_STEP} interval={LOCO_M_INTERVAL} target_loss={TRACK3_TARGET_LOSS} seed_base={TRACK3_SEED_BASE} seed_offset={TRACK3_SEED_OFFSET} cooldown_frac={TRACK3_COOLDOWN_FRAC} lr_schedule={TRACK3_LR_SCHEDULE} lr_power={TRACK3_LR_POWER} lr_schedule_steps={TRACK3_LR_SCHEDULE_STEPS} lr_min_eta={TRACK3_LR_MIN_ETA} soft_muon={TRACK3_SOFT_MUON} soft_blend={TRACK3_SOFT_MUON_BLEND} soft_norm_restore={TRACK3_SOFT_MUON_NORM_RESTORE} resume_checkpoint={TRACK3_RESUME_CHECKPOINT}")\n'
         'print0(f"Running PyTorch {torch.version.__version__} compiled for CUDA {torch.version.cuda}"',
     )
     text = replace_exact(
@@ -695,7 +697,8 @@ def muon_update(grad, momentum, mu=0.95, nesterov=True):
         "        else:\n"
         "            eta = (1 - progress) / cooldown_frac\n"
         "            if TRACK3_LR_SCHEDULE == \"power\":\n"
-        "                eta = eta ** TRACK3_LR_POWER\n",
+        "                eta = eta ** TRACK3_LR_POWER\n"
+        "            eta = max(eta, TRACK3_LR_MIN_ETA)\n",
     )
     if "        val_step_freq = 125 if step / train_steps < 0.9 else 25\n" in text:
         text = replace_exact(

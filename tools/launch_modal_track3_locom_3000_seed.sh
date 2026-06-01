@@ -15,6 +15,7 @@ cooldown_frac = "${TRACK3_COOLDOWN_FRAC:-0.7}"
 lr_schedule = "${TRACK3_LR_SCHEDULE:-linear}"
 lr_power = "${TRACK3_LR_POWER:-1.0}"
 lr_schedule_steps = "${TRACK3_LR_SCHEDULE_STEPS:-0}"
+lr_min_eta = "${TRACK3_LR_MIN_ETA:-0.0}"
 soft_muon = "${TRACK3_SOFT_MUON:-0}"
 soft_muon_blend = "${TRACK3_SOFT_MUON_BLEND:-1.0}"
 soft_muon_norm_restore = "${TRACK3_SOFT_MUON_NORM_RESTORE:-1}"
@@ -30,6 +31,7 @@ extra = {
     "TRACK3_LR_SCHEDULE": lr_schedule,
     "TRACK3_LR_POWER": lr_power,
     "TRACK3_LR_SCHEDULE_STEPS": lr_schedule_steps,
+    "TRACK3_LR_MIN_ETA": lr_min_eta,
     "TRACK3_SOFT_MUON": soft_muon,
     "TRACK3_SOFT_MUON_BLEND": soft_muon_blend,
     "TRACK3_SOFT_MUON_NORM_RESTORE": soft_muon_norm_restore,
@@ -82,6 +84,7 @@ for key in (
     "TRACK3_ADAM_PROJ_POWER_C",
     "TRACK3_ADAM_OTHER_POWER_C",
     "TRACK3_MUON_POWER_C",
+    "TRACK3_LR_MIN_ETA",
 ):
     if key in os.environ:
         extra[key] = os.environ[key]
