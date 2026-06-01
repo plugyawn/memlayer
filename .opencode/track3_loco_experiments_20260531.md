@@ -916,3 +916,41 @@ Launched a separate H100 Modal run requested by the user, with the LocoProp norm
 - Launch verification: app active/detached on H100; generated `/tmp/train_gpt_simple_locoprop_m_3100.py`, `track3_trial_seed=400`, all 12 LocoProp layers owned.
 - Early diagnostic verification: `locoprop_m_apply` at steps `0`, `1`, and `2` shows effective `cap=0.200`, as expected before the `1600-2400` window.
 - Next check: at step `1600`, verify `locoprop_m_apply step=1600` logs `cap=0.400`; compare validation against the original seed400 3100 trajectory and the checkpoint replay.
+
+## 2026-06-01 Step-2400 Checkpoint and Pre-3000 Suffix Array
+
+The corrected step-2400 checkpoint replay completed exactly as intended:
+
+- App: `ap-JFKJK9m9uwGDSU85IiidwP`.
+- Final checkpoint validation: `3.37491 @2400`.
+- Save log: `track3_checkpoint_saved step:2400 path:/root/.cache/track3_checkpoints/modal3100_locom_seed400_step2400.pt val_loss:3.3749122619628906`.
+- Modal-volume verification: `modal volume ls nanogpt-speedrun-cache /track3_checkpoints` shows `track3_checkpoints/modal3100_locom_seed400_step2400.pt` and the earlier `modal3100_locom_seed400_step2800.pt`.
+
+Because the checkpoint replay used `TRACK3_CHECKPOINT_EXIT_AFTER=1`, it stopped after save. A direct same-settings continuation was launched from the saved checkpoint:
+
+- App: `ap-dFrT1wOrSJtpVNdU6fhvtS`.
+- Function call: `fc-01KT1K98KR4AZYFM416VWJJFM4`.
+- Run: `track3-simple-locom-3100-resume2400-toend-h100-seed400-20260601124152`.
+- Setting: same seed400/simple-Track3/LocoProp-M K4/cap0.20 path, `TRACK3_RESUME_CHECKPOINT=/root/.cache/track3_checkpoints/modal3100_locom_seed400_step2400.pt`, `TRACK3_RESUME_ADVANCE_DATA=1`, `TRACK3_RESUME_RESTORE_RNG=1`, `TRACK3_TRAIN_STEPS=3100`, `TRACK3_TARGET_LOSS=0`.
+- Launch verification: remote log printed `track3_checkpoint_loaded path:/root/.cache/track3_checkpoints/modal3100_locom_seed400_step2400.pt step:2400 seed:400 val_loss:3.3749122619628906`.
+- Local launch log: `.opencode/modal_track3-simple-locom-3100-resume2400-toend-h100-seed400-20260601124152.launch.log`.
+
+User then requested multiple suffixes that must reach target before 3000. Added `tools/launch_modal_track3_locom_resume2400_pre3000_array.sh` and launched the pre-3000 array from the step-2400 checkpoint:
+
+- Code commit: `21e2f1a` (`Add Track 3 pre-3000 resume suffix grid`).
+- Wrapper launch log: `.opencode/modal_track3-s2400-pre3000-array-20260601124348.launch.log`.
+- Common resume settings: `TRACK3_RESUME_CHECKPOINT=/root/.cache/track3_checkpoints/modal3100_locom_seed400_step2400.pt`, `TRACK3_SEED_OFFSET=400`, `TRACK3_RESUME_ADVANCE_DATA=1`, `TRACK3_RESUME_RESTORE_RNG=1`, `TRACK3_TARGET_LOSS=3.28`, `SCREEN_VAL_EVERY=25`, H100.
+- All lanes have `TRACK3_TRAIN_STEPS=3000`, so any target crossing is at or before step 3000.
+
+Pre-3000 lane roster:
+
+- `ap-BoBw1WtxypXNBUxBdY7XsO`: `fid3000-linear-cap020`, exact linear/cap0.20 continuation to 3000. First suffix validation: `3.36810 @2425`.
+- `ap-4au2IK8zcJNStwy4edfPwt`: `s3000-linear-nolate`, no LocoProp after the saved step via `TRACK3_LOCOM_END_STEP=2400`. This is the explicit no-LocoProp-post-2400 control the user asked about. It is active but had not yet emitted container logs at the last check, so keep watching it and relaunch only if it stays silent or fails.
+- `ap-nyNB5ezTrYdpeRPdIYdi0u`: `s3000-power050-cap020`, power-0.50 LR tail, cap0.20. First suffix validation: `3.39932 @2425`, already worse than fidelity at the same point.
+- `ap-p2YpByjsy6QM2A4yR5CgGu`: `s3000-power050-cap040`, power-0.50 LR tail, cap0.40. Active, pending first parsed validation at last check.
+- `ap-dm9efGOnbYSrs3Zr12H7qR`: `s3000-power035-cap040`, power-0.35 LR tail, cap0.40. Loaded checkpoint and printed `3.37491 @2400`.
+- `ap-71kmMnKYH9SkULGzSRIjBq`: `s3000-pr2873065-cap020`, PR287-style LR with schedule steps 3065, cap0.20. Loaded checkpoint and printed `3.37491 @2400`.
+- `ap-Ud1Jbwluq0wrdNV2HStcVW`: `s3000-pr2873065-cap040`, PR287-style LR with schedule steps 3065, cap0.40. Verified active correction at step 2400 with `cap=0.400`.
+- `ap-EY4AwEODxLRRStI4t4IN60`: `s3000-linear-capwin040-2400-3000`, linear LR with base cap0.20 and `TRACK3_LOCOM_NORM_CAP_WINDOWS=2400:3000:0.40`. Verified active correction at step 2400 with `cap=0.400`.
+
+Current read: the 2400 checkpoint is earlier and higher-loss than the 2800 checkpoint, so the suffixes need to make up about `0.095` loss by step 3000. The fidelity lane's first step-2425 value (`3.36810`) is the early reference. The power-0.50 cap0.20 lane is immediately worse (`3.39932 @2425`) and should be killed early unless it sharply recovers.
