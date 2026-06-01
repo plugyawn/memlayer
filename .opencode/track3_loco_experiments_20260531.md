@@ -743,3 +743,18 @@ Replay/checkpoint status:
 Current Modal Track 3 ownership state: only the 3100 seed400 checkpoint replay remains active. The active `dw-pr` app is unrelated and was not touched.
 
 Decision: no n=8 fanout. The 3000 schedule attempts were weak and both 3250 replicas missed target. Continue only to preserve the step-2800 replay checkpoint for suffix experiments.
+
+## 2026-06-01 Relaunched 3000 PR287 Probe
+
+After the weak active lanes were stopped and seed500 finished, the only simple-base + LocoProp-M 3000 schedule that had not received a meaningful run was the PR287-style schedule. The previous PR287 probe was stopped at step `153` by request, after only `4.63808 @125`.
+
+Launched exactly one new PR287 probe, gated to 1000-1500 before any fanout:
+
+- App: `ap-WFwx1F0kuxLQqKc80wDXt3`.
+- Function call: `fc-01KT10RDMVHB0RHGXZF71C7FSR`.
+- Run: `track3-simple-locom-3000-pr287-h100-seed2300-20260601071741`.
+- Launch log: `.opencode/modal_track3-simple-locom-3000-pr287-h100-seed2300-20260601071741.launch.log`.
+- Setting: `TRACK3_TRAIN_STEPS=3000`, `TRACK3_SEED_OFFSET=2300`, `TRACK3_LR_SCHEDULE=pr287`, `TRACK3_LR_POWER=1.2`, `TRACK3_LR_SCHEDULE_STEPS=3065`, simple Track 3 base + LocoProp-M K4/cap0.20, H100, nproc=1, target `3.28`.
+- Launch verification: app is active/detached, generated `/tmp/train_gpt_simple_locoprop_m_3000.py`, `track3_trial_seed=2300`, all 12 LocoProp layers owned.
+
+Decision gate: if this does not show a clear lead by `1000-1500`, stop it. Do not launch n=8 until a 3000 schedule is clearly hot.
