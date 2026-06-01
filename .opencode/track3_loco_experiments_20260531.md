@@ -836,7 +836,7 @@ LR-floor probe launches:
 - `ap-U80DH4VfTAfsH8a3JcB6f4`: `s3030-linear-floor008-cap020`, stopped after `3.30477 @2925`; worse than plain linear cap0.20 at the same step (`3.30337 @2925`).
 - `ap-KtxcN0v55IqDAxkvYD4q1c`: `s3030-linear-floor012-cap020`, stopped after `3.31271 @2875`; floor `0.12` was clearly too hot.
 - `ap-qjxBh8oWe5sv5ciC8Is66I`: `s3030-pr2873100-cap020`, stopped after `3.30866 @2875`; later PR287 endpoint was behind the earlier `schedule_steps=3065` PR287 lane (`3.30783 @2875`).
-- `ap-IO90Av4ImKhO8l6Azni83w`: `s3030-linear-floor008-nolate`, still active; latest pulled `3.30906 @2875`.
-- `ap-EqVhA57Tnyy6CYcOZDB40j`: `s3100-linear-floor008-nolate`, still active; latest pulled `3.30901 @2900`.
+- `ap-IO90Av4ImKhO8l6Azni83w`: `s3030-linear-floor008-nolate`, stopped after `3.30675 @2900`; not on pace.
+- `ap-EqVhA57Tnyy6CYcOZDB40j`: `s3100-linear-floor008-nolate`, stopped after `3.30368 @2950`; this was worse than old 3100 no-late at the same step (`3.30337 @2950`).
 
-Interpretation so far: "higher LR for some time" is not rescuing the active-LocoProp tail. Aggressive floor/power variants degrade quickly. A mild floor remains worth watching only when late LocoProp is disabled, because that isolates whether the schedule alone is too cold.
+Interpretation: "higher LR for some time" did not rescue the checkpoint. Aggressive floor/power variants degrade quickly. Mild floor with active LocoProp also underperformed. Mild floor with late LocoProp disabled was no better than the old no-late 3100 control by the first post-floor checkpoints. This argues the taper is not merely too-cold LR; the step-2800 checkpoint appears to be on a trajectory that flattens above target under these suffix knobs.
