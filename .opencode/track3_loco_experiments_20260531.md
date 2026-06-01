@@ -1296,3 +1296,14 @@ The first replica batch remains tight and normal through `250`. Because the lead
 | `3302` | `ap-oVsGiCijivr3kzcFlziFdM` | `fc-01KT29RSWZ40W3S02XWH0R9M2A` | same | `.opencode/modal_track3-simple-locom-3100-nolate1600-pr2871600-h100-seed3302-20260601191450.launch.log` |
 
 Active owned Modal H100s after launch: ten tasks total: eight 3100 schedule seeds (`2900`, `3200-3203`, `3300-3302`) plus 3000/3030 probes (`3100`, `3101`). Next gate: first batch `500`, second batch `125/250`, and lead seed `2750/2875/3000`.
+
+Lead late checkpoint and first replica batch `375`:
+
+- Lead `ap-OEZ4y8NHM65HsYpn54m1hs`: `3.31391 @2750`, `3.30849 @2800`, latest train step `2824`.
+- This remains ahead of the old original full-LocoProp 3100 cap0.20 reference (`3.32528 @2750`, `3.31815 @2800`), but it still needs roughly `0.0285` improvement over the next 200 steps to hit `3.28 @3000`.
+- First replica batch:
+  - seed `3200`: `3.92715 @375`.
+  - seed `3201`: `3.93429 @375`.
+  - seed `3202`: `3.92899 @375`.
+  - seed `3203`: `3.92758 @375`.
+- Read: replicas remain broadly normal through `375`, with seed `3201` slightly weaker. Continue to the `500` gate; do not stop anything yet.
