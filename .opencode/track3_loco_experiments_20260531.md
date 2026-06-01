@@ -1177,3 +1177,37 @@ Active owned H100 set after cleanup/fanout: simple conditional 3100 (`ap-OEZ4y8N
   - seed3007: `4.61623 @125`.
 - Stopped all five 3000 Skylight probes after this 500 gate: `ap-iJqNtIaMH3U3og8enGykdS`, `ap-JyuQA5cyxmoa1ikZ0V1Db1`, `ap-Fabx46LTrIpepEMsJQT9j0`, `ap-D4hTs8CYlcuvhPgElF9RSO`, `ap-RRhQ6HgNpP3Ojmm0DOo75e`.
 - Current active owned H100 set after cleanup: only `ap-OEZ4y8NHM65HsYpn54m1hs`, the simple no-LocoProp-after-1600 plus PR287-after-1600 conditional run. It has reached `3.63361 @1000`; next meaningful gate is the `1600` switch and following `1625/1750` behavior.
+
+Interim poll for the active conditional lane:
+
+- `ap-OEZ4y8NHM65HsYpn54m1hs`: `3.57134 @1250`, latest train step `1263`, step average about `3633ms`.
+- This is still slightly ahead of the earlier 3100 seed-400 trajectory around `1250`, so the run remains worth carrying to the switch.
+- No new fanout yet. The actual decision gate is the post-switch `1625/1750` behavior after LocoProp stops at `1600` and the PR287-style schedule takes over.
+
+Switch-gate follow-up:
+
+- Same app: `3.54476 @1375`, `3.51805 @1500`, `3.49718 @1625`; latest train step after the poll was `1641`.
+- No `locoprop_m_apply step=1600` line was present in the polled logs, consistent with `TRACK3_LOCOM_END_STEP=1600` using `step < end_step`.
+- The `1625` read is better than the old 8x LocoProp-M target run (`3.50672 @1625`) and better than the cap-window retry (`3.50194 @1625`), so it clears the "encouraging 3100" gate.
+
+Launched one compressed schedule probe with the same primitive:
+
+| Variant | App | Function call | Setting | Launch log |
+| --- | --- | --- | --- | --- |
+| simple LocoProp-M to 1600, PR287-after-1600, 3000 steps | `ap-QNwyCxb4P3PyxhCfUtvAYU` | `fc-01KT25SH951PZBZX74MJSGCR9K` | `TRACK3_TRAIN_STEPS=3000`, seed `3100`, `TRACK3_LOCOM_END_STEP=1600`, `TRACK3_LR_SWITCH_STEP=1600`, `TRACK3_LR_AFTER_SWITCH=pr287`, `TRACK3_LR_AFTER_SWITCH_POWER=1.2`, `TRACK3_LR_AFTER_SWITCH_STEPS=3065` | `.opencode/modal_track3-simple-locom-3000-nolate1600-pr2871600-h100-seed3100-20260601180518.launch.log` |
+
+Next gates: keep the 3100 lane to at least `1750`; use the 3000 lane's `125/250/500` reads only as early sanity checks, and do not fan out until the compressed schedule preserves the mid-run/late-run advantage.
+
+Follow-up:
+
+- `ap-OEZ4y8NHM65HsYpn54m1hs` reached `3.47255 @1750`; latest train step was `1811`.
+- This is better than the old 8x LocoProp-M target run (`3.48503 @1750`) and the cap-window retry (`3.47640 @1750`), so the no-LocoProp-after-1600 / PR287-after-1600 handoff remains hot through the first two post-switch validations.
+- `ap-QNwyCxb4P3PyxhCfUtvAYU` 3000-step probe reached `4.63156 @125`; launch/config is clean and early loss is not an immediate rejection, but the real gate remains `500+`.
+
+Launched one 3030 companion to test the preferred sub-3100 window without a broad fanout yet:
+
+| Variant | App | Function call | Setting | Launch log |
+| --- | --- | --- | --- | --- |
+| simple LocoProp-M to 1600, PR287-after-1600, 3030 steps | `ap-XbZFPuvUtrs8Ug3NKCL9Rp` | `fc-01KT26CGRAQMJZM6YZDZBTNC8E` | `TRACK3_TRAIN_STEPS=3030`, seed `3101`, `TRACK3_LOCOM_END_STEP=1600`, `TRACK3_LR_SWITCH_STEP=1600`, `TRACK3_LR_AFTER_SWITCH=pr287`, `TRACK3_LR_AFTER_SWITCH_POWER=1.2`, `TRACK3_LR_AFTER_SWITCH_STEPS=3065` | `.opencode/modal_track3-simple-locom-3030-nolate1600-pr2871600-h100-seed3101-20260601181542.launch.log` |
+
+Active owned Modal H100s after this launch: `ap-OEZ4y8NHM65HsYpn54m1hs` (3100), `ap-QNwyCxb4P3PyxhCfUtvAYU` (3000), `ap-XbZFPuvUtrs8Ug3NKCL9Rp` (3030). Do not start n=8 until 3000/3030 preserve the signal at least through the `500` gate.
