@@ -945,7 +945,7 @@ User then requested multiple suffixes that must reach target before 3000. Added 
 Pre-3000 lane roster:
 
 - `ap-BoBw1WtxypXNBUxBdY7XsO`: `fid3000-linear-cap020`, exact linear/cap0.20 continuation to 3000. First suffix validation: `3.36810 @2425`.
-- `ap-4au2IK8zcJNStwy4edfPwt`: `s3000-linear-nolate`, no LocoProp after the saved step via `TRACK3_LOCOM_END_STEP=2400`. This is the explicit no-LocoProp-post-2400 control the user asked about. It is active but had not yet emitted container logs at the last check, so keep watching it and relaunch only if it stays silent or fails.
+- `ap-4au2IK8zcJNStwy4edfPwt`: `s3000-linear-nolate`, no LocoProp after the saved step via `TRACK3_LOCOM_END_STEP=2400`. This is the explicit no-LocoProp-post-2400 control the user asked about. It loaded `modal3100_locom_seed400_step2400.pt`; a log search for `locoprop_m_apply` returned no entries, consistent with LocoProp being disabled after resume. Latest sampled values: `3.36770 @2425`, `3.36190 @2450`, `3.35877 @2475`, `3.35466 @2500`, `3.35145 @2525`, `3.34702 @2550`, `3.34287 @2575`, `3.33950 @2600`.
 - `ap-nyNB5ezTrYdpeRPdIYdi0u`: `s3000-power050-cap020`, power-0.50 LR tail, cap0.20. First suffix validation: `3.39932 @2425`, already worse than fidelity at the same point.
 - `ap-p2YpByjsy6QM2A4yR5CgGu`: `s3000-power050-cap040`, power-0.50 LR tail, cap0.40. Active, pending first parsed validation at last check.
 - `ap-dm9efGOnbYSrs3Zr12H7qR`: `s3000-power035-cap040`, power-0.35 LR tail, cap0.40. Loaded checkpoint and printed `3.37491 @2400`.
@@ -954,3 +954,15 @@ Pre-3000 lane roster:
 - `ap-EY4AwEODxLRRStI4t4IN60`: `s3000-linear-capwin040-2400-3000`, linear LR with base cap0.20 and `TRACK3_LOCOM_NORM_CAP_WINDOWS=2400:3000:0.40`. Verified active correction at step 2400 with `cap=0.400`.
 
 Current read: the 2400 checkpoint is earlier and higher-loss than the 2800 checkpoint, so the suffixes need to make up about `0.095` loss by step 3000. The fidelity lane's first step-2425 value (`3.36810`) is the early reference. The power-0.50 cap0.20 lane is immediately worse (`3.39932 @2425`) and should be killed early unless it sharply recovers.
+
+The bad power-plus-LocoProp lanes were stopped to save GPU:
+
+- `ap-nyNB5ezTrYdpeRPdIYdi0u`: `s3000-power050-cap020`, stopped after `3.39932 @2425`, `3.40366 @2450`, `3.40593 @2475`, `3.40505 @2500`.
+- `ap-p2YpByjsy6QM2A4yR5CgGu`: `s3000-power050-cap040`, stopped before useful trajectory.
+- `ap-dm9efGOnbYSrs3Zr12H7qR`: `s3000-power035-cap040`, stopped after `3.41995 @2425`, `3.44000 @2450`, `3.43877 @2475`, `3.44630 @2500`.
+
+Because no-LocoProp-after-2400 was close to the active-LocoProp lanes and avoids the late correction risk, launched three additional no-late rescue suffixes from the same step-2400 checkpoint:
+
+- `ap-dqkxpnQ5w54UhjBDWmwbvF`: `s3000-pr2873065-nolate`, PR287-style LR with schedule steps 3065, `TRACK3_LOCOM_END_STEP=2400`. Launch log: `.opencode/modal_track3-s2400-pre3000-s3000-pr2873065-nolate-seed400-20260601131033.launch.log`. First parsed value: `3.36631 @2425`.
+- `ap-Jx1dqCUlm8IzVHjKi8jzZn`: `s3000-power050-nolate`, power-0.50 LR tail, `TRACK3_LOCOM_END_STEP=2400`. Launch log: `.opencode/modal_track3-s2400-pre3000-s3000-power050-nolate-seed400-20260601131033.launch.log`. It loaded the 2400 checkpoint and is waiting for the first post-resume validation.
+- `ap-TmrkYyIYXZuYswF7A888Dj`: `s3000-linear-floor004-nolate`, linear LR with `TRACK3_LR_MIN_ETA=0.04`, `TRACK3_LOCOM_END_STEP=2400`. Launch log: `.opencode/modal_track3-s2400-pre3000-s3000-linear-floor004-nolate-seed400-20260601131033.launch.log`. App showed zero tasks and no logs at the first post-launch check, so relaunch if it remains empty.
