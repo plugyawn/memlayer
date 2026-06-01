@@ -1323,3 +1323,22 @@ User asked whether a 3000 end-schedule run was launched for this primitive:
 - Yes: `ap-QNwyCxb4P3PyxhCfUtvAYU`, seed `3100`, `TRACK3_TRAIN_STEPS=3000`, same `TRACK3_LOCOM_END_STEP=1600` and `TRACK3_LR_AFTER_SWITCH=pr287` handoff.
 - Latest: `3.56967 @1250/3000`, latest train step `1289`. It is close to the 3100 lead's early curve but not outperforming.
 - The 3100 lead at the same poll was `3.29786 @2925/3100`, latest train step `2939`; still above target, with the decisive `3000/3100` prints pending.
+
+Schedule-horizon note after inspecting WR scripts:
+
+- Older/simple Track 3 scripts tie LR progress to `train_steps`, so they land at zero LR at the run end.
+- The PR287/Soft-Muon-style result decouples run length and LR horizon (`FINAL_TRAIN_STEPS=3040`, `FINAL_SCHEDULE_STEPS=3105`, power `1.2`), so the run ends while LR is still nonzero.
+- Our 3100 switch run used `TRACK3_LR_AFTER_SWITCH_STEPS=3065`, so it begins landing to zero before the `3100` run end; the 3000 probe with the same horizon ends before zero.
+
+Lead `3000` result:
+
+- `ap-OEZ4y8NHM65HsYpn54m1hs`: `3.29374 @3000/3100`, latest train step `3018`.
+- It missed `3.28 @3000` by about `0.0137`, so this is not a sub-3000 hit.
+
+Launched one PR287-style horizon diagnostic, not a 3500 run:
+
+| Variant | App | Function call | Setting | Launch log |
+| --- | --- | --- | --- | --- |
+| simple LocoProp-M to 1600, PR287-after-1600, 3040 steps with 3105 LR horizon | `ap-UFX7iAhRQvOQ5NmqWCkWlc` | `fc-01KT2AX88FEW73NTE94575FCK6` | `TRACK3_TRAIN_STEPS=3040`, seed `3400`, `TRACK3_LOCOM_END_STEP=1600`, `TRACK3_LR_SWITCH_STEP=1600`, `TRACK3_LR_AFTER_SWITCH=pr287`, `TRACK3_LR_AFTER_SWITCH_POWER=1.2`, `TRACK3_LR_AFTER_SWITCH_STEPS=3105` | `.opencode/modal_track3-simple-locom-3040-nolate1600-pr2873105-h100-seed3400-20260601193442.launch.log` |
+
+Read: 3500 would be a slow upper-bound diagnostic, not the next speedrun move. The useful schedule question is whether PR287's nonzero-LR-at-end horizon fixes the last `0.014` without extending all the way to 3500.
