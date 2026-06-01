@@ -412,9 +412,12 @@ def maybe_load_track3_checkpoint(model: nn.Module, optimizers: list[torch.optim.
         optimizer.load_state_dict(optimizer_state)
     if TRACK3_RESUME_RESTORE_RNG:
         if "rng_cpu" in checkpoint:
-            torch.set_rng_state(checkpoint["rng_cpu"].cpu())
+            torch.set_rng_state(checkpoint["rng_cpu"].detach().cpu().to(torch.uint8))
         if "rng_cuda" in checkpoint:
-            torch.cuda.set_rng_state_all(checkpoint["rng_cuda"])
+            torch.cuda.set_rng_state_all([
+                state.detach().cpu().to(torch.uint8)
+                for state in checkpoint["rng_cuda"]
+            ])
     step = int(checkpoint["step"])
     print0(
         f"track3_checkpoint_loaded path:{TRACK3_RESUME_CHECKPOINT} step:{step} "
