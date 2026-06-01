@@ -1050,3 +1050,40 @@ Launched two H100 Modal suffixes from the matched step-2400 checkpoint:
 | PR287 -> linear3100 | `ap-P1kAN6Y7xAKoMerGsF1lmn` | `fc-01KT1S9JEAHE1K6ZY78WG24CYY` | `2750` | stopped after `3.31557 @2825` | Switching earlier erased the PR287 advantage even faster: `3.31751 @2750`, `3.31736 @2800`, roughly original-3100 parity. |
 
 Both used `TRACK3_LOCOM_NORM_CAP=0.20` and no LocoProp cap window. Decision: stopped both hybrid suffix apps. The direct "PR287 into original-linear tail" idea does not preserve the PR287 state; the switch creates a discontinuity / loss bump and returns the run to original-3100 pace within 25-50 steps. This says the lost terminal slope is not recovered by a hard schedule handoff.
+
+## 2026-06-01 K5 500-Step Screens
+
+User question: the earlier paper-faithful RMSProp path used `K=10`; try `K=5`, and check whether SGD LocoProp-M had ever been tested with `K=5`.
+
+Local audit before launch:
+
+- No completed/simple Track 3 SGD LocoProp-M `K=5` run found in the launch logs or experiment ledger.
+- Confirmed simple Track 3 SGD LocoProp-M evidence was `K=4`; confirmed paper-faithful RMSProp probes were `K=10`.
+- Added and pushed commit `cd3c730` (`Add Track 3 LocoProp-M local solve guards`) before launching:
+  - `TRACK3_LOCOM_NORM_TARGET`
+  - `TRACK3_LOCOM_RMS_RESET_EACH_STEP`
+  - `TRACK3_LOCOM_REQUIRE_LOSS_DECREASE`
+  - `TRACK3_LOCOM_MIN_COS_DESC`
+  - diagnostics now log `accepted=`.
+
+Launched two Modal H100 500-step screens:
+
+| Variant | App | Function call | Setting | Early read |
+| --- | --- | --- | --- | --- |
+| SGD `K=5` | `ap-Y1Ojg5JPG0Pf5l4KWynP3H` | `fc-01KT1W7SV5ZFF6F6PCWAYN8XVG` | simple Track 3, seed `2600`, `TRACK3_LOCOM_LOCAL_OPT=sgd`, `TRACK3_LOCOM_STEPS=5`, `inner_lr=0.1`, cap `0.20`, `SCREEN_VAL_EVERY=25` | `5.99019 @25`, `5.43137 @50`, `5.06952 @75`, `4.82865 @100`, `4.62684 @125`, `4.45742 @150`, `4.31892 @175`. Raw local solve is very large: at step 50 one logged layer has `lossK=2.685e+07`, `corr_norm=1.020e+05`, and cap scale `3.803e-06`; at step 100 one logged layer still has `lossK=2.100e+07`, `corr_norm=5.977e+04`. This is still a direction-preserving cap, but not a faithful local-solve magnitude. |
+| RMSProp `K=5` gated/norm target | `ap-tGnZ4d65st5DLoldkt1OhI` | `fc-01KT1W7SY5KGTJS11J2QC33H28` | simple Track 3, seed `2700`, `TRACK3_LOCOM_LOCAL_OPT=rmsprop`, `TRACK3_LOCOM_STEPS=5`, start step `50`, `inner_lr=1e-5`, reset RMS state each step, require local loss decrease and `cos_desc >= 0`, norm target/cap `0.20`, `SCREEN_VAL_EVERY=25` | `6.01006 @25`, `5.45453 @50`, `5.08487 @75`, `4.86343 @100`, `4.68219 @125` (stopped after this; worse than SGD K5 and worse than the useful K4 SGD band). At step 50, local updates are sane but sparse under guards: logged layers `accepted=1/4`; by steps 75/100 this improved to `accepted=3/4`. Accepted corrections remain weakly aligned (`cos_desc` around `0.004-0.007`) and are normalized up to the `0.20` target when below scale. |
+
+Active alongside this:
+
+- The standalone 3100 cap-window retry `ap-2jVszraxi9ZJJG8r0sKWZD` crossed the intended window; `locoprop_m_apply step=1600` logs `cap=0.400`.
+- Latest observed values: `3.51614 @1500`, `3.50194 @1625`, `3.47640 @1750`; latest train step in the last poll was `1853`.
+
+
+Follow-up launch after the gated RMSProp result underperformed:
+
+- Stopped `ap-tGnZ4d65st5DLoldkt1OhI` at `4.68219 @125`.
+- Launched ungated RMSProp K5 with the same reset/norm-target settings but without local-loss/cosine rejection:
+  - App: `ap-RdIBDBTFfllEfRYqv8otW1`.
+  - Function call: `fc-01KT1X00SWH8KZ31KK990XDARC`.
+  - Run: `track3-simple-locom-rmsprop-k5-nogate-norm-500-h100-seed2800-20260601153132`.
+  - Latest poll had only reached warmup (`latest_step 25`) with no validation beyond step 0 yet.
