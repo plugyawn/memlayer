@@ -758,3 +758,14 @@ Launched exactly one new PR287 probe, gated to 1000-1500 before any fanout:
 - Launch verification: app is active/detached, generated `/tmp/train_gpt_simple_locoprop_m_3000.py`, `track3_trial_seed=2300`, all 12 LocoProp layers owned.
 
 Decision gate: if this does not show a clear lead by `1000-1500`, stop it. Do not launch n=8 until a 3000 schedule is clearly hot.
+
+First validation:
+
+- PR287 seed2300: `4.64980 @125`, step average `3688.86ms`.
+- Read: not encouraging. It is worse than Prime 3350 mean `4.64781 @125` and worse than the stopped PR287 seed2200 first point `4.63808 @125`.
+- Action: keep running only to the next screens because the real gate is `1000-1500`; no fanout.
+
+Checkpoint replay side status at the same refresh:
+
+- `ap-F3KIzgPAIMjbomKRzGjiex`: replay reached `3.51878 @1500`; still healthy, not yet near step-2800 checkpoint.
+- Modal volume still has no `track3_checkpoints` entry.
