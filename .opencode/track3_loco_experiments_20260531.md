@@ -878,3 +878,12 @@ Corrected step-2400 checkpoint replay launch:
 - Launch verification: app active/detached on H100; generated `/tmp/train_gpt_simple_locoprop_m_3100.py`, `track3_trial_seed=400`, all 12 LocoProp layers owned.
 - Expected checkpoint: `/root/.cache/track3_checkpoints/modal3100_locom_seed400_step2400.pt` in Modal volume `nanogpt-speedrun-cache`.
 - Local launch log: `.opencode/modal_track3-simple-locom-3100-ckpt2400-h100-seed400-20260601100220.launch.log`.
+
+Status refresh:
+
+- App still active: `ap-JFKJK9m9uwGDSU85IiidwP`.
+- Latest validation observed: `3.50705 @1560`.
+- Step average: about `3679.7ms/step`; validation step average around `3675.7ms/step`.
+- No `track3_checkpoint_saved` line yet; target checkpoint remains step `2400`.
+- Approximate ETA from step `1560` to checkpoint: 51-52 minutes at current cadence.
+- No `Traceback`, `Error`, `Exception`, or runner termination observed in the inspected log tail.
