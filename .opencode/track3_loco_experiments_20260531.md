@@ -790,3 +790,11 @@ Replay tracking refresh:
 - Original 3100 seed400 was `3.47400 @1750`, so replay is `+0.00222` worse at this checkpoint.
 - Read: still tracking close enough to trust for the step-2800 checkpoint replay purpose.
 - Action: keep the replay running to step `2800`; no other Track 3 owned app is active.
+
+Replay tracking refresh 2:
+
+- `ap-F3KIzgPAIMjbomKRzGjiex` reached `3.45489 @1875` and `3.43471 @2000`.
+- Original 3100 seed400 was `3.45382 @1875` and `3.43303 @2000`, so replay is `+0.00107` and `+0.00168` worse at those matched checkpoints.
+- Current train speed remains stable around `3627ms/step`; from step `2000`, the step-2800 checkpoint is roughly 48-50 minutes away.
+- Modal volume `nanogpt-speedrun-cache` still has no `track3_checkpoints` entry, expected because the replay has not reached step `2800`.
+- Decision: no n=8 fanout and no new 3000 launch. All 3000 schedule probes so far failed the gate, and this replay is only to materialize the strong step-2800 state for suffix experiments.
