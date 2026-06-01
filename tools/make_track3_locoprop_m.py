@@ -694,15 +694,27 @@ def muon_update(grad, momentum, mu=0.95, nesterov=True):
         'print0(f"LocoM enabled={LOCO_M_ENABLED} layers={LOCO_M_LAYERS_SPEC} steps={LOCO_M_LOCAL_STEPS} sample_tokens={LOCO_M_SAMPLE_TOKENS} gather={LOCO_M_GATHER_SAMPLES} accum={LOCO_M_ACCUM_SAMPLES} micro_sample_tokens={LOCO_M_MICRO_SAMPLE_TOKENS} local_opt={LOCO_M_LOCAL_OPT} lr_decay={LOCO_M_LOCAL_LR_DECAY} rms_beta1={LOCO_M_RMS_BETA1} rms_beta2={LOCO_M_RMS_BETA2} rms_eps={LOCO_M_RMS_EPS} rms_reset_each_step={LOCO_M_RMS_RESET_EACH_STEP} require_loss_decrease={LOCO_M_REQUIRE_LOSS_DECREASE} min_cos_desc={LOCO_M_MIN_COS_DESC} inner_lr={LOCO_M_INNER_LR} target_gamma={LOCO_M_TARGET_GAMMA} prox={LOCO_M_PROX} alpha={LOCO_M_ALPHA} norm_to_base={LOCO_M_NORM_TO_BASE} norm_target={LOCO_M_NORM_TARGET} norm_cap={LOCO_M_NORM_CAP} norm_cap_windows={LOCO_M_NORM_CAP_WINDOWS_SPEC} start_step={LOCO_M_START_STEP} end_step={LOCO_M_END_STEP} interval={LOCO_M_INTERVAL} target_loss={TRACK3_TARGET_LOSS} seed_base={TRACK3_SEED_BASE} seed_offset={TRACK3_SEED_OFFSET} cooldown_frac={TRACK3_COOLDOWN_FRAC} lr_schedule={TRACK3_LR_SCHEDULE} lr_power={TRACK3_LR_POWER} lr_schedule_steps={TRACK3_LR_SCHEDULE_STEPS} lr_min_eta={TRACK3_LR_MIN_ETA} lr_switch_step={TRACK3_LR_SWITCH_STEP} lr_after_switch={TRACK3_LR_AFTER_SWITCH} lr_after_switch_power={TRACK3_LR_AFTER_SWITCH_POWER} lr_after_switch_steps={TRACK3_LR_AFTER_SWITCH_STEPS} soft_muon={TRACK3_SOFT_MUON} soft_blend={TRACK3_SOFT_MUON_BLEND} soft_norm_restore={TRACK3_SOFT_MUON_NORM_RESTORE} resume_checkpoint={TRACK3_RESUME_CHECKPOINT}")\n'
         'print0(f"Running PyTorch {torch.version.__version__} compiled for CUDA {torch.version.cuda}"',
     )
-    text = replace_exact(
-        text,
-        "for _ in range(num_trials):\n",
-        "for trial_idx in range(num_trials):\n"
-        "    track3_trial_seed = TRACK3_SEED_BASE + TRACK3_SEED_OFFSET + trial_idx\n"
-        "    torch.manual_seed(track3_trial_seed)\n"
-        "    torch.cuda.manual_seed_all(track3_trial_seed)\n"
-        "    print0(f\"track3_trial_seed={track3_trial_seed} trial={trial_idx}\", console=True)\n",
-    )
+    if "for _ in range(num_trials):\n" in text:
+        text = replace_exact(
+            text,
+            "for _ in range(num_trials):\n",
+            "for trial_idx in range(num_trials):\n"
+            "    track3_trial_seed = TRACK3_SEED_BASE + TRACK3_SEED_OFFSET + trial_idx\n"
+            "    torch.manual_seed(track3_trial_seed)\n"
+            "    torch.cuda.manual_seed_all(track3_trial_seed)\n"
+            "    print0(f\"track3_trial_seed={track3_trial_seed} trial={trial_idx}\", console=True)\n",
+        )
+    else:
+        text = replace_exact(
+            text,
+            "model = GPT(vocab_size=50304, num_layers=12, model_dim=768).cuda()\n",
+            "trial_idx = 0\n"
+            "track3_trial_seed = TRACK3_SEED_BASE + TRACK3_SEED_OFFSET + trial_idx\n"
+            "torch.manual_seed(track3_trial_seed)\n"
+            "torch.cuda.manual_seed_all(track3_trial_seed)\n"
+            "print0(f\"track3_trial_seed={track3_trial_seed} trial={trial_idx}\", console=True)\n"
+            "model = GPT(vocab_size=50304, num_layers=12, model_dim=768).cuda()\n",
+        )
     if "    train_steps = 3350\n" in text:
         text = replace_exact(
             text,
@@ -735,39 +747,46 @@ def muon_update(grad, momentum, mu=0.95, nesterov=True):
         "mbs = 64\n",
         "mbs = int(os.environ.get(\"TRACK3_MBS\", \"64\"))\n",
     )
+    if "    def set_hparams(step, cooldown_frac=0.7):\n" in text:
+        fn_indent = "    "
+    elif "def set_hparams(step, cooldown_frac=0.7):\n" in text:
+        fn_indent = ""
+    else:
+        raise RuntimeError("set_hparams pattern not found")
+    body_indent = fn_indent + "    "
     text = replace_exact(
         text,
-        "    def set_hparams(step, cooldown_frac=0.7):\n",
-        "    def _track3_active_lr_schedule(step):\n"
-        "        if TRACK3_LR_SWITCH_STEP >= 0 and step >= TRACK3_LR_SWITCH_STEP and TRACK3_LR_AFTER_SWITCH:\n"
-        "            return TRACK3_LR_AFTER_SWITCH, TRACK3_LR_AFTER_SWITCH_STEPS, TRACK3_LR_AFTER_SWITCH_POWER\n"
-        "        return TRACK3_LR_SCHEDULE, TRACK3_LR_SCHEDULE_STEPS, TRACK3_LR_POWER\n\n"
-        "    def _track3_pr287_lr(step, initial_lr, power_c, schedule_steps, lr_power):\n"
-        "        schedule_steps = schedule_steps if schedule_steps > 0 else train_steps\n"
-        "        downward_lr = power_c * max(0.0, schedule_steps - step) ** lr_power\n"
-        "        return min(initial_lr, downward_lr)\n\n"
-        "    def set_hparams(step, cooldown_frac=TRACK3_COOLDOWN_FRAC):\n",
+        f"{fn_indent}def set_hparams(step, cooldown_frac=0.7):\n",
+        f"{fn_indent}def _track3_active_lr_schedule(step):\n"
+        f"{body_indent}if TRACK3_LR_SWITCH_STEP >= 0 and step >= TRACK3_LR_SWITCH_STEP and TRACK3_LR_AFTER_SWITCH:\n"
+        f"{body_indent}    return TRACK3_LR_AFTER_SWITCH, TRACK3_LR_AFTER_SWITCH_STEPS, TRACK3_LR_AFTER_SWITCH_POWER\n"
+        f"{body_indent}return TRACK3_LR_SCHEDULE, TRACK3_LR_SCHEDULE_STEPS, TRACK3_LR_POWER\n\n"
+        f"{fn_indent}def _track3_pr287_lr(step, initial_lr, power_c, schedule_steps, lr_power):\n"
+        f"{body_indent}schedule_steps = schedule_steps if schedule_steps > 0 else train_steps\n"
+        f"{body_indent}downward_lr = power_c * max(0.0, schedule_steps - step) ** lr_power\n"
+        f"{body_indent}return min(initial_lr, downward_lr)\n\n"
+        f"{fn_indent}def set_hparams(step, cooldown_frac=TRACK3_COOLDOWN_FRAC):\n",
     )
     text = replace_exact(
         text,
-        "        progress = step / train_steps\n",
-        "        lr_schedule, lr_schedule_steps, lr_power = _track3_active_lr_schedule(step)\n"
-        "        if lr_schedule == \"pr287\":\n"
-        "            for opt in optimizers:\n"
-        "                for group in opt.param_groups:\n"
-        "                    group[\"lr\"] = _track3_pr287_lr(step, group[\"initial_lr\"], group[\"power_c\"], lr_schedule_steps, lr_power)\n"
-        "            return\n"
-        "        schedule_steps = lr_schedule_steps if lr_schedule_steps > 0 else train_steps\n"
-        "        progress = step / schedule_steps\n",
+        f"{body_indent}progress = step / train_steps\n",
+        f"{body_indent}lr_schedule, lr_schedule_steps, lr_power = _track3_active_lr_schedule(step)\n"
+        f"{body_indent}if lr_schedule == \"pr287\":\n"
+        f"{body_indent}    for opt in optimizers:\n"
+        f"{body_indent}        for group in opt.param_groups:\n"
+        f"{body_indent}            group[\"lr\"] = _track3_pr287_lr(step, group[\"initial_lr\"], group[\"power_c\"], lr_schedule_steps, lr_power)\n"
+        f"{body_indent}    return\n"
+        f"{body_indent}schedule_steps = lr_schedule_steps if lr_schedule_steps > 0 else train_steps\n"
+        f"{body_indent}progress = step / schedule_steps\n",
     )
     text = replace_exact(
         text,
-        "        else:\n            eta = (1 - progress) / cooldown_frac\n",
-        "        else:\n"
-        "            eta = (1 - progress) / cooldown_frac\n"
-        "            if lr_schedule == \"power\":\n"
-        "                eta = eta ** lr_power\n"
-        "            eta = max(eta, TRACK3_LR_MIN_ETA)\n",
+        f"{body_indent}else:\n{body_indent}    eta = (1 - progress) / cooldown_frac\n",
+        f"{body_indent}else:\n"
+        f"{body_indent}    eta = (1 - progress) / cooldown_frac\n"
+        f"{body_indent}    if lr_schedule == \"power\":\n"
+        f"{body_indent}        eta = eta ** lr_power\n"
+        f"{body_indent}    eta = max(eta, TRACK3_LR_MIN_ETA)\n",
     )
     if "        val_step_freq = 125 if step / train_steps < 0.9 else 25\n" in text:
         text = replace_exact(
@@ -775,36 +794,63 @@ def muon_update(grad, momentum, mu=0.95, nesterov=True):
             "        val_step_freq = 125 if step / train_steps < 0.9 else 25\n",
             "        val_step_freq = int(os.environ.get(\"SCREEN_VAL_EVERY\", \"125\")) if step / train_steps < 0.9 else 25\n",
         )
-    else:
+    elif "val_regular_interval = 125\n" in text:
         text = replace_exact(
             text,
             "val_regular_interval = 125\n",
             "val_regular_interval = int(os.environ.get(\"SCREEN_VAL_EVERY\", \"125\"))\n",
         )
+    elif "if step == train_steps or step % 125 == 0:\n" in text:
+        text = replace_exact(
+            text,
+            "if step == train_steps or step % 125 == 0:\n",
+            "if step == train_steps or step % int(os.environ.get(\"SCREEN_VAL_EVERY\", \"125\")) == 0:\n",
+        )
+    else:
+        raise RuntimeError("validation interval pattern not found")
     text = text.replace(
         "            step_avg = time_since_last_val / (step - last_val_step) if step > 0 else float(\"nan\")\n",
         "            step_avg = time_since_last_val / (step - last_val_step) if step > last_val_step else float(\"nan\")\n",
         1,
     )
+    if "    train_loader = distributed_data_generator(\"data/fineweb10B/fineweb_train_*.bin\", batch_size)\n" in text:
+        run_indent = "    "
+    elif "train_loader = distributed_data_generator(\"data/fineweb10B/fineweb_train_*.bin\", batch_size)\n" in text:
+        run_indent = ""
+    else:
+        raise RuntimeError("train_loader pattern not found")
+    if run_indent:
+        text = replace_exact(
+            text,
+            f"{run_indent}train_loader = distributed_data_generator(\"data/fineweb10B/fineweb_train_*.bin\", batch_size)\n",
+            f"{run_indent}train_loader = distributed_data_generator(\"data/fineweb10B/fineweb_train_*.bin\", batch_size)\n"
+            f"{run_indent}start_step = maybe_load_track3_checkpoint(model, optimizers)\n"
+            f"{run_indent}if start_step > 0 and TRACK3_RESUME_ADVANCE_DATA:\n"
+            f"{run_indent}    for _ in range(start_step):\n"
+            f"{run_indent}        next(train_loader)\n"
+            f"{run_indent}    print0(f\"track3_resume_advanced_data steps:{{start_step}}\", console=True)\n",
+        )
+    else:
+        text = replace_exact(
+            text,
+            'for opt in optimizers:\n    for group in opt.param_groups:\n        group["initial_lr"] = group["lr"]\n',
+            'for opt in optimizers:\n    for group in opt.param_groups:\n        group["initial_lr"] = group["lr"]\n'
+            'start_step = maybe_load_track3_checkpoint(model, optimizers)\n'
+            'if start_step > 0 and TRACK3_RESUME_ADVANCE_DATA:\n'
+            '    for _ in range(start_step):\n'
+            '        next(train_loader)\n'
+            '    print0(f"track3_resume_advanced_data steps:{start_step}", console=True)\n',
+        )
+    if f"{run_indent}last_val_step = 0\n" in text:
+        text = replace_exact(
+            text,
+            f"{run_indent}last_val_step = 0\n",
+            f"{run_indent}last_val_step = start_step\n",
+        )
     text = replace_exact(
         text,
-        "    train_loader = distributed_data_generator(\"data/fineweb10B/fineweb_train_*.bin\", batch_size)\n",
-        "    train_loader = distributed_data_generator(\"data/fineweb10B/fineweb_train_*.bin\", batch_size)\n"
-        "    start_step = maybe_load_track3_checkpoint(model, optimizers)\n"
-        "    if start_step > 0 and TRACK3_RESUME_ADVANCE_DATA:\n"
-        "        for _ in range(start_step):\n"
-        "            next(train_loader)\n"
-        "        print0(f\"track3_resume_advanced_data steps:{start_step}\", console=True)\n",
-    )
-    text = replace_exact(
-        text,
-        "    last_val_step = 0\n",
-        "    last_val_step = start_step\n",
-    )
-    text = replace_exact(
-        text,
-        "    for step in range(train_steps + 1):\n",
-        "    for step in range(start_step, train_steps + 1):\n",
+        f"{run_indent}for step in range(train_steps + 1):\n",
+        f"{run_indent}for step in range(start_step, train_steps + 1):\n",
     )
     target_inserted = False
     for indent in ("            ", "        "):
@@ -824,30 +870,78 @@ def muon_update(grad, momentum, mu=0.95, nesterov=True):
             break
     if not target_inserted:
         raise RuntimeError("validation target-loss insertion pattern not found")
-    text = replace_exact(
-        text,
-        "        # --------------- TRAINING SECTION -----------------\n        inputs, targets = next(train_loader)\n",
-        "        # --------------- TRAINING SECTION -----------------\n"
-        "        set_locoprop_m_current_step(step)\n"
-        "        inputs, targets = next(train_loader)\n",
-    )
-    text = replace_exact(
-        text,
-        "                    val_loss += model(val_inputs[i*mbs:(i+1)*mbs], val_targets[i*mbs:(i+1)*mbs])\n",
-        "                    val_loss += compiled_model(val_inputs[i*mbs:(i+1)*mbs], val_targets[i*mbs:(i+1)*mbs])\n",
-    )
-    text = replace_exact(
-        text,
+    train_section_inserted = False
+    for indent in ("        ", "    "):
+        old = f"{indent}# --------------- TRAINING SECTION -----------------\n{indent}inputs, targets = next(train_loader)\n"
+        if old in text:
+            text = text.replace(
+                old,
+                f"{indent}# --------------- TRAINING SECTION -----------------\n"
+                f"{indent}set_locoprop_m_current_step(step)\n"
+                f"{indent}inputs, targets = next(train_loader)\n",
+                1,
+            )
+            train_section_inserted = True
+            break
+    if not train_section_inserted:
+        raise RuntimeError("training section insertion pattern not found")
+    val_model_inserted = False
+    for indent in ("                    ", "                "):
+        old = f"{indent}val_loss += model(val_inputs[i*mbs:(i+1)*mbs], val_targets[i*mbs:(i+1)*mbs])\n"
+        if old in text:
+            text = text.replace(
+                old,
+                f"{indent}val_loss += compiled_model(val_inputs[i*mbs:(i+1)*mbs], val_targets[i*mbs:(i+1)*mbs])\n",
+                1,
+            )
+            val_model_inserted = True
+            break
+    if not val_model_inserted:
+        raise RuntimeError("validation model call replacement pattern not found")
+    microbatch_inserted = False
+    simple_microbatch = (
         "        for i in range(len(inputs) // mbs):\n"
-        "            model(inputs[i*mbs:(i+1)*mbs], targets[i*mbs:(i+1)*mbs]).backward()\n",
-        "        num_microbatches = len(inputs) // mbs\n"
-        "        for i in range(num_microbatches):\n"
-        "            capture_this_micro = LOCO_M_ACCUM_SAMPLES or i == num_microbatches - 1\n"
-        "            set_locoprop_m_capture_this_micro(capture_this_micro)\n"
-        "            active_model = model if (LOCO_M_ENABLED and _locom_active(step) and capture_this_micro) else compiled_model\n"
-        "            active_model(inputs[i*mbs:(i+1)*mbs], targets[i*mbs:(i+1)*mbs]).backward()\n"
-        "        set_locoprop_m_capture_this_micro(False)\n",
+        "            model(inputs[i*mbs:(i+1)*mbs], targets[i*mbs:(i+1)*mbs]).backward()\n"
     )
+    guarded_microbatch = (
+        "    for i in range(len(inputs) // mbs):\n"
+        "        loss = model(inputs[i*mbs:(i+1)*mbs], targets[i*mbs:(i+1)*mbs])\n"
+        "        # NaN guard: catch divergence the step it happens, not 750 steps later.\n"
+        "        if not torch.isfinite(loss).all():\n"
+        "            raise RuntimeError(f\"non-finite train loss at step {step} mb {i}: {loss.item()}\")\n"
+        "        loss.backward()\n"
+    )
+    if simple_microbatch in text:
+        text = text.replace(
+            simple_microbatch,
+            "        num_microbatches = len(inputs) // mbs\n"
+            "        for i in range(num_microbatches):\n"
+            "            capture_this_micro = LOCO_M_ACCUM_SAMPLES or i == num_microbatches - 1\n"
+            "            set_locoprop_m_capture_this_micro(capture_this_micro)\n"
+            "            active_model = model if (LOCO_M_ENABLED and _locom_active(step) and capture_this_micro) else compiled_model\n"
+            "            active_model(inputs[i*mbs:(i+1)*mbs], targets[i*mbs:(i+1)*mbs]).backward()\n"
+            "        set_locoprop_m_capture_this_micro(False)\n",
+            1,
+        )
+        microbatch_inserted = True
+    elif guarded_microbatch in text:
+        text = text.replace(
+            guarded_microbatch,
+            "    num_microbatches = len(inputs) // mbs\n"
+            "    for i in range(num_microbatches):\n"
+            "        capture_this_micro = LOCO_M_ACCUM_SAMPLES or i == num_microbatches - 1\n"
+            "        set_locoprop_m_capture_this_micro(capture_this_micro)\n"
+            "        active_model = model if (LOCO_M_ENABLED and _locom_active(step) and capture_this_micro) else compiled_model\n"
+            "        loss = active_model(inputs[i*mbs:(i+1)*mbs], targets[i*mbs:(i+1)*mbs])\n"
+            "        if not torch.isfinite(loss).all():\n"
+            "            raise RuntimeError(f\"non-finite train loss at step {step} mb {i}: {loss.item()}\")\n"
+            "        loss.backward()\n"
+            "    set_locoprop_m_capture_this_micro(False)\n",
+            1,
+        )
+        microbatch_inserted = True
+    if not microbatch_inserted:
+        raise RuntimeError("microbatch backward insertion pattern not found")
     step_block_inserted = False
     for indent in ("        ", "    "):
         old = (
@@ -905,18 +999,28 @@ def muon_update(grad, momentum, mu=0.95, nesterov=True):
         )
     else:
         raise RuntimeError("optimizer2 attach pattern not found")
-    text = replace_exact(
-        text,
-        "    assert set(p for opt in optimizers for group in opt.param_groups\n"
-        "               for p in group[\"params\"]) == set(model.parameters())\n",
-        "    if TRACK3_LR_SCHEDULE == \"pr287\" or TRACK3_LR_AFTER_SWITCH == \"pr287\":\n"
-        "        optimizer1.param_groups[0][\"power_c\"] = TRACK3_ADAM_EMBED_POWER_C\n"
-        "        optimizer1.param_groups[1][\"power_c\"] = TRACK3_ADAM_PROJ_POWER_C\n"
-        "        optimizer1.param_groups[2][\"power_c\"] = TRACK3_ADAM_OTHER_POWER_C\n"
-        "        optimizer2.param_groups[0][\"power_c\"] = TRACK3_MUON_POWER_C\n"
-        "    assert set(p for opt in optimizers for group in opt.param_groups\n"
-        "               for p in group[\"params\"]) == set(model.parameters())\n",
-    )
+    assert_inserted = False
+    for indent in ("    ", ""):
+        old = (
+            f"{indent}assert set(p for opt in optimizers for group in opt.param_groups\n"
+            f"{indent}           for p in group[\"params\"]) == set(model.parameters())\n"
+        )
+        if old in text:
+            text = text.replace(
+                old,
+                f"{indent}if TRACK3_LR_SCHEDULE == \"pr287\" or TRACK3_LR_AFTER_SWITCH == \"pr287\":\n"
+                f"{indent}    optimizer1.param_groups[0][\"power_c\"] = TRACK3_ADAM_EMBED_POWER_C\n"
+                f"{indent}    optimizer1.param_groups[1][\"power_c\"] = TRACK3_ADAM_PROJ_POWER_C\n"
+                f"{indent}    optimizer1.param_groups[2][\"power_c\"] = TRACK3_ADAM_OTHER_POWER_C\n"
+                f"{indent}    optimizer2.param_groups[0][\"power_c\"] = TRACK3_MUON_POWER_C\n"
+                f"{indent}assert set(p for opt in optimizers for group in opt.param_groups\n"
+                f"{indent}           for p in group[\"params\"]) == set(model.parameters())\n",
+                1,
+            )
+            assert_inserted = True
+            break
+    if not assert_inserted:
+        raise RuntimeError("optimizer assert/power_c insertion pattern not found")
     output.parent.mkdir(parents=True, exist_ok=True)
     output.write_text(text)
 

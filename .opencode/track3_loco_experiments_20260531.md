@@ -1087,3 +1087,43 @@ Follow-up launch after the gated RMSProp result underperformed:
   - Function call: `fc-01KT1X00SWH8KZ31KK990XDARC`.
   - Run: `track3-simple-locom-rmsprop-k5-nogate-norm-500-h100-seed2800-20260601153132`.
   - Latest poll: `6.01066 @25`, `5.45736 @50`, `5.09321 @75`; mechanically clean but still slower than SGD K5 and the old K4 screen.
+
+## 2026-06-01 3000-Scale Plot And Better-Base Lanes
+
+Generated benchmark-scale plots for the ongoing 3000-ish Track 3 runs:
+
+- `.opencode/plots/track3_3000ish_benchmark_scale.png`
+- `.opencode/plots/track3_3000ish_benchmark_scale.svg`
+- `.opencode/plots/track3_3000ish_late_zoom.png`
+- `.opencode/plots/track3_3000ish_late_zoom.svg`
+- `.opencode/plots/track3_3000ish_curves.tsv`
+
+The visible failure mode is still the terminal taper: several variants are competitive through `~2800`, then do not keep enough `2800 -> 3000/3100` slope to reach `3.28`.
+
+Conditional run launched after the cap-window lane failed its step-2500 gate:
+
+- App: `ap-OEZ4y8NHM65HsYpn54m1hs`.
+- Function call: `fc-01KT1ZNGB7WGZ13NC4DFZ68ZM2`.
+- Run: `track3-simple-locom-3100-nolate1600-pr2871600-h100-seed2900-20260601161815`.
+- Setting: simple Track 3 source, `TRACK3_TRAIN_STEPS=3100`, `TRACK3_SEED_OFFSET=2900`, LocoProp-M SGD `K=4`, cap `0.20`, `TRACK3_LOCOM_END_STEP=1600`, then `TRACK3_LR_SWITCH_STEP=1600`, `TRACK3_LR_AFTER_SWITCH=pr287`, `TRACK3_LR_AFTER_SWITCH_POWER=1.2`, `TRACK3_LR_AFTER_SWITCH_STEPS=3065`.
+- Early gate: `4.64611 @125`; latest poll in this pass had trained through step `250` and was waiting for the step-250 validation print.
+- Launch log: `.opencode/modal_track3-simple-locom-3100-nolate1600-pr2871600-h100-seed2900-20260601161815.launch.log`.
+
+User asked for the simplest better-base compositions, both on a 3100 schedule. Added generator support for single-run self-contained Track 3 result logs so the #9 Skylight/update-clamp source can be used directly as `TRACK3_SOURCE`.
+
+Launched two H100 Modal lanes using `records/track_3_optimization/results/20260501_skylight001/f78af80a-2ba3-4cf7-b9f7-e6e56ff2c54d.txt` as source:
+
+| Variant | App | Function call | Setting | Initial read |
+| --- | --- | --- | --- | --- |
+| Skylight/update-clamp + LocoProp-M | `ap-E5pEDDsZLAx1VPP6SRcXI5` | `fc-01KT20H1MR3PH5NEQ15ZVNG7BT` | `TRACK3_TRAIN_STEPS=3100`, seed `3001`, `TRACK3_LR_SCHEDULE=linear`, LocoProp-M SGD `K=4`, cap `0.20` | Active. `track3_trial_seed=3001`; all 12 layers owned. At step 10, `base_step` is about `2.08`, confirming this is the Skylight/update-clamp substrate rather than the simple Muon base. |
+| Skylight/update-clamp + LocoProp-M + power LR | `ap-URsRlj7MQpd1CthhhB4286` | `fc-01KT20KJ3BMBXY73F1PHKY603S` | same source/settings, seed `3002`, `TRACK3_LR_SCHEDULE=power`, `TRACK3_LR_POWER=0.5` | Active. Printed initial `10.82580 @0`; waiting for first post-boot gate. |
+
+Local launch logs:
+
+- `.opencode/modal_track3-skylight-locom-3100-linear-h100-seed3001-20260601163308.launch.log`
+- `.opencode/modal_track3-skylight-locom-3100-power05-h100-seed3002-20260601163440.launch.log`
+
+Next gates:
+
+- Stop either Skylight lane early if the step-125/250 band is clearly bad relative to #9 and the simple LocoProp reference.
+- If either Skylight lane remains healthy into the mid-run and fixes the late taper, promote to a 3000/3030 schedule before starting n=8.
