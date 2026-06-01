@@ -558,3 +558,23 @@ Two diagnostic follow-up Modal lanes are active:
 
 - `track3-simple-locom-3000-start0-stable-h100-r1-20260601`: app `ap-ZXkryyc23Dw7xpQTO6MzF3`, seed 600, `inner_lr=0.005`, `prox=1.0`, `cap=0.05`, start step 0. Diagnostics are clean, but step 125 is `4.67998`, so this is too weak to reproduce the early signal.
 - `track3-simple-locom-3000-start0-end900-k4cap20-h100-r1-20260601`: app `ap-Kc1exQhQl2dwJMM9TyFqYx`, function `fc-01KSZV9E25TDB3EKKCXMC2BE1E`, seed 700, original `K=4`, `inner_lr=0.1`, `prox=0.1`, `cap=0.20`, start step 0, end step 900. This is the direct test of the current hypothesis: keep the early cap-limited kick, then turn it off before long-schedule refinement.
+
+## 2026-06-01 Modal 3250-Step Schedule Probe
+
+`track3-simple-locom-3250-h100-seed400-20260601`
+
+- Provider: Modal, H100.
+- App: `ap-CcmF6maCRp612wH0qElVyQ`; function call `fc-01KT0D339CHW4K2HND5D403N4A`.
+- Setting: same simple Track 3 base + LocoProp-M K4/cap0.20 primitive as the 3100/3000 probes, with `TRACK3_TRAIN_STEPS=3250`, `TRACK3_MBS=16`, seed offset `400`, `sample_tokens=1024`, target loss `3.28`.
+- Status at last pull: active, only Track 3 Modal app with one task.
+
+Early checkpoints:
+
+| Step | 3250 seed400 | Prime 3350 mean | Delta vs Prime mean | Read |
+| ---: | ---: | ---: | ---: | --- |
+| 125 | 4.65000 | 4.64782 | +0.00218 | Worse early. |
+| 250 | 4.11689 | 4.10826 | +0.00863 | Worse early. |
+| 375 | 3.93286 | 3.92880 | +0.00406 | Still worse. |
+| 500 | 3.82611 | 3.82739 | -0.00128 | Recovered to slight lead. |
+
+Read: despite a weak first 375 steps, the 3250 schedule recovered by step 500. Keep it alive through late cooldown; do not fan out yet. The comparison target remains whether it crosses `3.28` before or near 3250 and whether the late lead exceeds the completed Prime 3350 seed-200/seed-300 mean path.
