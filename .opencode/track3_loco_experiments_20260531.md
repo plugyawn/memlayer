@@ -1317,3 +1317,9 @@ Lead `2875/2900` and partial first-replica `500` gate:
   - seed `3202`: `3.82843 @500`.
   - seeds `3200` and `3203` were right at the `500` boundary and had not printed the `500` val in this poll.
 - Decision: keep all active lanes. Do not start more; n=8 is already in flight for the 3100 schedule, and the key question is now whether enough seeds hit `3.28` by `3100`.
+
+User asked whether a 3000 end-schedule run was launched for this primitive:
+
+- Yes: `ap-QNwyCxb4P3PyxhCfUtvAYU`, seed `3100`, `TRACK3_TRAIN_STEPS=3000`, same `TRACK3_LOCOM_END_STEP=1600` and `TRACK3_LR_AFTER_SWITCH=pr287` handoff.
+- Latest: `3.56967 @1250/3000`, latest train step `1289`. It is close to the 3100 lead's early curve but not outperforming.
+- The 3100 lead at the same poll was `3.29786 @2925/3100`, latest train step `2939`; still above target, with the decisive `3000/3100` prints pending.
