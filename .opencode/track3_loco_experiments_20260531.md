@@ -769,3 +769,17 @@ Checkpoint replay side status at the same refresh:
 
 - `ap-F3KIzgPAIMjbomKRzGjiex`: replay reached `3.51878 @1500`; still healthy, not yet near step-2800 checkpoint.
 - Modal volume still has no `track3_checkpoints` entry.
+
+User redirected to stop PR287 and keep the 3100 replay as the primary run:
+
+- PR287 app `ap-WFwx1F0kuxLQqKc80wDXt3` was stopped; Modal reported it had already been stopped by the time the stop command ran.
+- Final PR287 tail: stopped around step `231`, with only the first validation available (`4.64980 @125`).
+- App state after confirmation: stopped.
+- Current Track 3 owned active state: only `ap-F3KIzgPAIMjbomKRzGjiex` remains active.
+
+Batch-size clarification:
+
+- Source Track 3 training uses `batch_size = 8 * 64 * 1024 = 524288` tokens per optimizer step.
+- With `seq_len=1024`, that is `512` sequences per optimizer step globally.
+- In these 1x H100 Modal runs, the launcher sets `TRACK3_MBS=16`, so the fixed global batch is accumulated as `32` microbatches of `16` sequences each.
+- LocoProp-M statistics use `TRACK3_LOCOM_SAMPLE_TOKENS=1024`; this is the local correction sample size, not the training batch size.
