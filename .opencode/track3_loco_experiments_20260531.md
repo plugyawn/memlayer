@@ -687,3 +687,11 @@ Remaining live lanes are the checkpoint replay plus existing 3250/3000 probes:
 - `ap-sgmLmoef9czMVD4rzk82xK`: 3000 naive power05 seed1900, latest `3.58265 @1250`; mild/neutral, not promotion-ready.
 
 Clarification: "ahead" for seed500 means ahead of the Prime 3350 mean only. At matched steps, original 3100 seed400 remains materially better: `3.30966 @2875` versus seed500 `3.32254 @2875` (`+0.01288` worse), and `3.30127 @2950` versus seed500 `3.31284 @2950` (`+0.01157` worse). Seed500 is therefore useful as a 3250 replication/variance lane, not evidence that the 3100 hot trajectory replicated.
+
+Update after the next poll:
+
+- Seed500 reached `3.30725 @3000`, still much worse than original 3100 seed400 `3.29672 @3000` (`+0.01053`) and only modestly ahead of the Prime 3350 mean `3.31280 @3000` (`-0.00555`).
+- User asked to stop the two extra 3250 replica lanes because they looked likely to follow the same weak replication pattern.
+- Stopped `ap-xKEhewuPirnhyhepFuBAqn` (seed1600) with `modal app stop -y`; last completed validation was `3.45936 @1875`, final tail terminated around step `1980`.
+- Stopped `ap-Pa4SuttnZdY9vCG8r6q20I` (seed1700) with `modal app stop -y`; last completed validation was `3.46110 @1875`, final tail terminated around step `1964`.
+- Read: the later 3250 replicas were not reproducing the large original 3100 hot curve, so they are not worth paying to finish under the current n=8-below-3000 objective.
