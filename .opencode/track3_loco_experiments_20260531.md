@@ -618,3 +618,12 @@ Small Modal pipeline after seed400 held the late lead and seed500 recovered at 1
 
 - `track3-simple-locom-3250-h100-seed1600-20260601`: app `ap-xKEhewuPirnhyhepFuBAqn`, function call `fc-01KT0R8A6AS3JP37DJJMAKQRVX`, launched with the same 3250 settings.
 - `track3-simple-locom-3250-h100-seed1700-20260601`: app `ap-Pa4SuttnZdY9vCG8r6q20I`, function call `fc-01KT0R962VVMMX6PDRGPC2GFYD`, launched with the same 3250 settings.
+
+Plot artifacts:
+
+- `.opencode/plots/track3_locom_core_curves.png`: Prime seed200/300, Prime mean, Modal 3100 seed400, and active Modal 3250 seeds.
+- `.opencode/plots/track3_locom_delta_vs_prime_mean.png`: same core runs as loss delta versus Prime 3350 two-seed mean.
+- `.opencode/plots/track3_locom_all_seeds.png`: includes the stopped 3000-step Modal fanout seeds as faint lines.
+- `.opencode/plots/track3_locom_seed_points.tsv` and `.opencode/plots/track3_locom_seed_summary.json`: parsed source data.
+
+Plot read: 3250 seed400 held a real mid/late advantage, but the slope softened after roughly step 3000 and it finished at `3.28369`, missing target by `0.00369`. The 3100 seed400 had a much larger lead versus Prime mean at step 3100 (`-0.00947`) but not enough runway. Seed500 recovered by 1000-1250 (`3.57726 @1250`, `-0.00413` vs Prime mean). Seed1600 is the strongest early 3250 lane so far (`4.62203 @125`, `4.10347 @250`), while seed1700 is decent but not exceptional (`4.64194 @125`, `4.11186 @250`).
