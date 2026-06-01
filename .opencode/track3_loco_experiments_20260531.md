@@ -798,3 +798,13 @@ Replay tracking refresh 2:
 - Current train speed remains stable around `3627ms/step`; from step `2000`, the step-2800 checkpoint is roughly 48-50 minutes away.
 - Modal volume `nanogpt-speedrun-cache` still has no `track3_checkpoints` entry, expected because the replay has not reached step `2800`.
 - Decision: no n=8 fanout and no new 3000 launch. All 3000 schedule probes so far failed the gate, and this replay is only to materialize the strong step-2800 state for suffix experiments.
+
+Replay tracking refresh 3 and suffix-array prep:
+
+- Updated goal: once the step-2800 checkpoint lands, launch an array of suffix runs from that state to find a path to `3.28` at `<=3100`, preferably `<=3030`.
+- Replay reached `3.41608 @2125` and `3.39727 @2250`.
+- Original 3100 seed400 was `3.41412 @2125` and `3.39504 @2250`, so replay is `+0.00196` and `+0.00223` worse at those matched checkpoints.
+- Step-2250 LocoProp diagnostics: l0-l2 corrections are small, mildly aligned, and mostly uncapped; l3 has negative `cos_desc` and is heavily capped. This motivates suffix lanes that vary late LocoProp cap, plus a no-late-LocoProp control.
+- Added `tools/launch_modal_track3_locom_resume_suffix_array.sh` to launch the checkpoint suffix grid immediately after the Modal-volume checkpoint appears.
+- Also widened `tools/launch_modal_track3_locom_3000_seed.sh` env passthrough so suffix lanes can vary LocoProp cap/alpha/steps/logging and source/mbs/seed settings without hand-building JSON.
+- Planned suffix lanes from `modal3100_locom_seed400_step2800.pt`: exact 3100 fidelity, 3030 power tails (`power=0.50/0.35`, cap `0.20/0.50`), 3030 PR287-style tails (`schedule_steps=3065`, cap `0.20/0.50`), 3100 power fallbacks, and 3100 no-late-LocoProp control.
