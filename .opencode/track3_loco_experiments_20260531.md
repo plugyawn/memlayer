@@ -840,3 +840,27 @@ LR-floor probe launches:
 - `ap-EqVhA57Tnyy6CYcOZDB40j`: `s3100-linear-floor008-nolate`, stopped after `3.30368 @2950`; this was worse than old 3100 no-late at the same step (`3.30337 @2950`).
 
 Interpretation: "higher LR for some time" did not rescue the checkpoint. Aggressive floor/power variants degrade quickly. Mild floor with active LocoProp also underperformed. Mild floor with late LocoProp disabled was no better than the old no-late 3100 control by the first post-floor checkpoints. This argues the taper is not merely too-cold LR; the step-2800 checkpoint appears to be on a trajectory that flattens above target under these suffix knobs.
+
+## 2026-06-01 Step-2400 LocoProp Checkpoint Replay
+
+User requested saving the step-2400 LocoProp state as well, analogous to the saved step-2800 replay checkpoint.
+
+The already-running `3030-end2400` probe was not launched with checkpoint env, so it could not save a state. It was stopped early:
+
+- App: `ap-DavdVDWbiYpfjF00YNd4Mv`.
+- Run: `track3-simple-locom-3030-end2400-h100-seed2400-20260601094620`.
+- Last validation before stop: `4.64419 @125`.
+- Preserved log: `.opencode/suffix_final_logs_20260601/track3-simple-locom-3030-end2400-seed2400-preckpt_ap-DavdVDWbiYpfjF00YNd4Mv.log`.
+
+Relaunched same seed/settings with checkpoint save at step 2400 and exit:
+
+- App: `ap-dlp4N4VBafETgu7QOcHVWM`.
+- Function call: `fc-01KT19TEF2TWBZPWVZHGZAVSY0`.
+- Run: `track3-simple-locom-3030-end2400-ckpt2400-h100-seed2400-20260601095630`.
+- Setting: `TRACK3_TRAIN_STEPS=3030`, `TRACK3_SEED_OFFSET=2400`, simple Track 3 source, `TRACK3_MBS=16`, LocoProp-M SGD all layers, `K=4`, `sample_tokens=1024`, `inner_lr=0.1`, `prox=0.1`, `norm_cap=0.20`, `TRACK3_LOCOM_END_STEP=2400`.
+- Checkpoint controls: `TRACK3_CHECKPOINT_STEPS=2400`, `TRACK3_CHECKPOINT_DIR=/root/.cache/track3_checkpoints`, `TRACK3_CHECKPOINT_PREFIX=modal3030_locom_end2400`, `TRACK3_CHECKPOINT_EXIT_AFTER=1`, `TRACK3_TARGET_LOSS=0`.
+- Expected checkpoint: `/root/.cache/track3_checkpoints/modal3030_locom_end2400_seed2400_step2400.pt` in Modal volume `nanogpt-speedrun-cache`.
+- Validation cadence: `SCREEN_VAL_EVERY=120` so step `2400` is definitely a validation/checkpoint step. Default 125-step validation would skip 2400 in a 3030-step run.
+- Launch verification: app active/detached on H100; generated `/tmp/train_gpt_simple_locoprop_m_3030.py`, `track3_trial_seed=2400`, all 12 LocoProp layers owned, initial validation `10.82580 @0`.
+
+Next action: poll for `track3_checkpoint_saved step:2400 path:/root/.cache/track3_checkpoints/modal3030_locom_end2400_seed2400_step2400.pt`, then confirm the file appears in Modal volume before using it for suffix experiments.
