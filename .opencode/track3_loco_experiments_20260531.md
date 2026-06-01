@@ -1005,3 +1005,29 @@ Correction/recovery: `ap-DRieR7b1nuvh9QeZzA91P3` was a standalone 3100 cap-windo
 - Local launch log: `.opencode/modal_track3-simple-locom-3100-capwin040-1600-2400-h100-seed400-retry-20260601133820.launch.log`.
 - Launch verification: app active/detached on H100; generated `/tmp/train_gpt_simple_locoprop_m_3100.py`, `track3_trial_seed=400`, all 12 LocoProp layers owned. Next gate: verify `locoprop_m_apply step=1600` logs `cap=0.400`, then compare final `3000/3100` values against the missed suffix-family endpoints.
 - Early retry checks: `4.64153 @125` and `4.11050 @250`, both with effective `cap=0.200` before the `1600-2400` window. This is slightly better than the stopped cap-window run (`4.65580 @125`, `4.11730 @250`) and the original 3100 cap0.20 run at step 250 (`4.11702`), but this is still early variance; the real test is the mid-run cap-window transition and the `2800/3000/3100` slope.
+
+## 2026-06-01 What Went Off Around Step 2400/2800
+
+The key observation is that the step-2400 resumed 3000-step schedules can be better than the original full-LocoProp 3100 run by step 2800, but they still flatten too high by step 3000.
+
+| Variant | 2400 | 2500 | 2600 | 2700 | 2750 | 2800 | 2875 | 2925 | 3000/3100 | Read |
+| --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | --- |
+| Original full LocoProp 3100 cap0.20 | n/a | `3.35990` | n/a | n/a | `3.32528` | `3.31815` | `3.30966` | `3.30379` | `3.29672 @3000`, `3.29066 @3100` | Old reference. Good early state, weak terminal slope. |
+| Replay checkpoint @2800 | n/a | n/a | n/a | n/a | n/a | `3.32043` | n/a | n/a | n/a | `+0.00228` worse than original @2800 before suffixes. |
+| 2400 -> 3100 exact cap0.20 | `3.37491` | n/a | n/a | n/a | n/a | `3.31963` | `3.31132` | `3.30539` | `3.29818 @3000`, `3.29214 @3100` | Faithful resume; slightly worse than original at 2800/3100. |
+| 2400 -> 3000 linear cap0.20 | `3.37491` | `3.35490` | `3.33985` | `3.32592` | `3.31976` | `3.31331` | `3.30578` | `3.30121` | `3.29752 @3000` | Helps @2800 by `-0.00484` vs original, but still flattens. |
+| 2400 -> 3000 PR287 cap0.20 | `3.37491` | `3.35197` | `3.33677` | `3.32336` | `3.31752` | `3.31178` | `3.30510` | `3.30100` | `3.29683 @3000` | Best 3000 suffix. Helps @2800 by `-0.00637`, but final only `-0.00069` vs linear. |
+| 2400 -> 3000 PR287 cap0.40 | `3.37491` | `3.35284` | `3.33715` | `3.32368` | `3.31800` | `3.31209` | `3.30545` | `3.30129` | `3.29711 @3000` | Higher cap is neutral/slightly worse than cap0.20. |
+| 2400 -> 3000 linear cap0.40 window | `3.37491` | `3.35589` | `3.34050` | `3.32717` | `3.32034` | `3.31397` | `3.30637` | `3.30167` | stopped | Late cap boost did not help. |
+| 2400 -> 3000 no-LocoProp post2400 | `3.37491` | `3.35466` | `3.33950` | `3.32564` | `3.31940` | `3.31304` | `3.30554` | n/a | stopped | Competitive through 2800, worse later; active LocoProp still helps a little late. |
+| 2800 ckpt -> 3030 linear cap0.20 | n/a | n/a | n/a | n/a | n/a | `3.32043` | `3.30901` | `3.30337` | `3.29696 @3030` | Starting suffix at 2800 is too late and begins from worse state. |
+| 2800 ckpt -> 3030 PR287 cap0.20 | n/a | n/a | n/a | n/a | n/a | `3.32043` | `3.30783` | `3.30286` | `3.29725 @3025` | PR287 helps slope slightly but still misses. |
+| 2800 ckpt -> 3100 no-late | n/a | n/a | n/a | n/a | n/a | `3.32043` | `3.31192` | `3.30589` | `3.29267 @3100` | No-late at 2800 is not enough. |
+
+Current synthesis:
+
+- What helps: re-scheduling from step 2400 helps the state at 2800. The best evidence is PR287 cap0.20 reaching `3.31178 @2800`, about `0.00637` better than the original full-LocoProp `3.31815 @2800`.
+- What does not help enough: none of the 2400 variants preserve enough terminal slope. The best 3000 endpoint is still only `3.29683`, so the improvement by 2800 mostly gets spent before target.
+- What is actively bad: power tails and aggressive LR floors from the checkpoint; they spike or degrade early. Higher LocoProp cap (`0.40`) is neutral-to-worse in the tested late windows.
+- What is ambiguous: disabling LocoProp after 2400 is competitive through 2800 but loses later; this suggests LocoProp is not simply poison after 2400, but the active correction is too weak/misaligned to solve the final slope problem.
+- Practical implication: the bottleneck is not only "get a better 2800 point." We have a better 2800 point and still miss. The lever needs to improve the post-2800 descent rate, likely by changing the late optimizer/schedule shape rather than increasing LocoProp cap or flooring LR.
