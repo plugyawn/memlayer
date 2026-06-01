@@ -656,3 +656,15 @@ Suffix experiment ladder once the 2800 checkpoint lands:
 3. Resume to 3150/3200/3250 from the strong 2800 state to isolate runway from early trajectory.
 4. Resume with a LocoProp cap floor or normalized correction so local displacement does not vanish with the base LR.
 5. Test the PR287-style landing schedule from the same checkpoint before spending another full replay.
+
+## 2026-06-01 3000-Step PR287 Schedule Probe
+
+Rationale: existing 3000-step lanes are not yet strong enough to fan out to n=8. The `cooldown_frac=0.5` lane is behind by step 1125, and the naive `power05` lane is only mildly positive at step 1000. To test a stronger landing without changing the LocoProp-M primitive or adding Soft-Muon, the generator now supports `TRACK3_LR_SCHEDULE=pr287`.
+
+- Commit: `9bad265` (`Add Track 3 PR287 schedule mode`).
+- App: `ap-2Y3C3pJk7djppdrNgen7YH`; function call `fc-01KT0YF4X0HGN7X9DEJAMS9Y7P`.
+- Launch log: `.opencode/modal_track3-simple-locom-3000-pr287-h100-seed2200-20260601063754.launch.log`.
+- Setting: `TRACK3_TRAIN_STEPS=3000`, `TRACK3_SEED_OFFSET=2200`, `TRACK3_LR_SCHEDULE=pr287`, `TRACK3_LR_POWER=1.2`, `TRACK3_LR_SCHEDULE_STEPS=3065`, target `3.28`, simple Track 3 base + LocoProp-M K4/cap0.20.
+- Status at launch verification: alive, generated `/tmp/train_gpt_simple_locoprop_m_3000.py`, seed `2200`, all 12 MLP layers owned, no traceback.
+
+Decision gate: do not fan this out until it is clearly ahead by the 1000-1500 window. A weak sub-`0.003` lead at 1000 is not enough; the previous `power05` lane already showed that level without being promotion-ready.
