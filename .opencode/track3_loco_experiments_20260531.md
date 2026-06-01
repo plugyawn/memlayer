@@ -1742,3 +1742,43 @@ Twelfth live poll update, 2026-06-02 05:16 IST:
   - Carry all eight full confirmation lanes.
   - Carry `3030/pr287-tail3125/noloco` at least through `2850`.
   - Carry `3030/pr287-switch/cap0.20` late-LocoProp through `2800/2825`; stop it if it remains a flat `+0.0003` tracker after the late region.
+
+Thirteenth live poll update, 2026-06-02 05:24 IST:
+
+- Full 3000 confirmation wave:
+  - The strong `1500` lead faded materially by `1625`.
+  - At `1500`, mature seeds were still good:
+    - seed3500 `3.51487`, `-0.00318` vs old lead.
+    - seed3501 `3.51426`, `-0.00379`.
+    - seed3502 `3.51357`, `-0.00448`.
+    - seed3503 `3.51393`, `-0.00412`.
+    - seed3505 `3.51445`, `-0.00360`.
+    - seed3508 `3.51352`, `-0.00453`.
+    - seed3509 `3.51518`, `-0.00287`.
+  - At `1625`, the lead mostly vanished:
+    - seed3500 `3.49841`, `+0.00123` worse than old lead.
+    - seed3501 `3.49782`, `+0.00064`.
+    - seed3502 `3.49643`, `-0.00075`.
+    - seed3503 `3.49735`, `+0.00017`.
+  - Read: there is a repeated pattern now: healthy mid-run lead around `1500`, then rapid fade by `1625+`. Keep the full wave alive, but this is not yet an n=8 below-3000 confirmation.
+- Suffixes:
+  - `3030/pr287-switch/cap0.20` late-LocoProp suffix (`ap-tfE8KUbBnUcSQJQY9qhBW1`) tracked exact through `2900` without helping:
+    - `3.30847 @2800`, `3.30633 @2825`, `3.30417 @2850`, `3.30200 @2875`, `3.29988 @2900`.
+    - Deltas stayed around exact/parity (`-0.00002` to `+0.00022`), so it was stopped.
+  - `3030/pr287-tail3125/noloco` (`ap-1Lzp2CU3AkUJST7kHDwxHj`) is the active tail-only LR test:
+    - Loaded the checkpoint and matched exact before the switch: `3.34299 @2525`, `3.33919 @2550`, `3.33553 @2575`.
+    - Because it switches only at step `2800`, the real decision gate is `2825/2850+`.
+  - `3030/pr287tail3125+loco2800/cap0.20` combined suffix launched:
+    - App: `ap-El648AhZtBGciwe3cK922S`.
+    - Function call: `fc-01KT2SKP4EPYEGPGVCE86WZSYK`.
+    - Container: `ta-01KT2SNBP826GZHBB4SE2608D7`.
+    - Launch log: `.opencode/modal_track3-suffix-s3030-pr287tail3125-loco2800-cap020-seed2900-20260601235125.launch.log`.
+    - Setting: exact PR287 schedule through `2799`, switch to PR287 horizon `3125` at `2800`, and LocoProp active only in `0:1600,2800:3030`.
+    - Verification: container logs show `track3_checkpoint_loaded ... step:2500 seed:2900 val_loss:3.346419095993042` and `step:2500/3030 val_loss:3.34642`.
+- Cleanup:
+  - A stale/duplicate seed3512 container appeared briefly under app `ap-mv6wxDA8lYcaw602sMgPWr`; Modal reported it was already stopped by the time `modal container stop` was attempted.
+  - The real seed3512 container remained active and had reached `3.98053 @325` in the latest detailed pull.
+- Current decision:
+  - Carry the full wave to `1750/1875` before judging the mid-run-fade pattern.
+  - Carry both active tail suffixes to at least `2825/2850`.
+  - No further launches until one suffix proves useful or frees capacity.
