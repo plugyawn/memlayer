@@ -1706,3 +1706,39 @@ Eleventh live poll update, 2026-06-02 04:55 IST:
   - Full 3000 confirmation lanes: seeds `3500,3501,3502,3503,3505,3508,3509`, plus replacement seed `3512` pending seed-line confirmation.
   - Exact resume: `ap-JEcaEpGSkzOEhSWKb2w1Az`, keep to final `3000`.
   - One remaining suffix: `ap-tfE8KUbBnUcSQJQY9qhBW1` (`3030/pr287-switch/cap0.20`), keep at least through `2750/2800` unless it starts diverging.
+
+Twelfth live poll update, 2026-06-02 05:16 IST:
+
+- Exact seed2900 checkpoint resume finished:
+  - App: `ap-JEcaEpGSkzOEhSWKb2w1Az`.
+  - Final: `3.29350 @3000`.
+  - This is faithful to the old lead tail and slightly better than the remembered `3.29374`, but still far from `3.28`.
+  - Conclusion: the checkpoint itself is good; exact continuation does not solve the late landing.
+- Full 3000 confirmation wave is now materially positive at the `1500` gate:
+  - seed3500: `3.51487 @1500`, `-0.00318` vs old lead.
+  - seed3501: `3.51426 @1500`, `-0.00379` vs old lead.
+  - seed3502: `3.51357 @1500`, `-0.00448` vs old lead.
+  - seed3503: `3.51393 @1500`, `-0.00412` vs old lead.
+  - seed3505 had not reached `1500` in the poll but was near lead at `1375`; seed3508/3509 were `-0.00349/-0.00198` at `1375`.
+  - Replacement seed3512 is live and confirmed clean: `track3_trial_seed=3512`, with early `5.42474 @50` and `4.23843 @200`.
+  - Read: this is the strongest full-wave persistence gate so far. Keep all full lanes through `1625/1750` before deciding whether this is likely sub-3000.
+- Suffix results:
+  - `3030/pr287-switch/cap0.20` late-LocoProp suffix (`ap-tfE8KUbBnUcSQJQY9qhBW1`) continues to track exact but not improve it:
+    - `3.33584 @2575`, `3.32953 @2625`, `3.31418 @2750`, `3.31122 @2775`.
+    - These are consistently about `+0.0003` to `+0.0005` worse than exact/reference.
+    - Decision: keep through `2800+` only to see whether the late window changes slope; it has no evidence of a win yet.
+  - `3030/pr287-switch3125/noloco` suffix (`ap-NNGZBjVn0VVSO00HWfU9wu`) was stopped:
+    - `3.34584 @2525`, `3.34291 @2550`, about `+0.0037` worse by `2550`.
+    - Read: extending the PR287 horizon from `2500` is too disruptive.
+  - New delayed-tail LR suffix launched:
+    - App: `ap-1Lzp2CU3AkUJST7kHDwxHj`.
+    - Function call: `fc-01KT2S1NH32790PJ1ENEDFM98Z`.
+    - Container: `ta-01KT2S1PEAQD0D6990FPM7ZP5F`.
+    - Launch log: `.opencode/modal_track3-suffix-s3030-pr287tail3125-noloco-seed2900-20260601234148.launch.log`.
+    - Setting: resume from step `2500`, train to `3030`, use exact PR287 schedule (`TRACK3_LR_SCHEDULE=pr287`, steps `3065`) until `step=2800`, then switch to PR287 horizon `3125`; `TRACK3_LOCOM_END_STEP=1600` so late LocoProp is off.
+    - Verification: loaded `/root/.cache/track3_checkpoints/modal3000_nolate1600_pr287_locom_seed2900_step2500.pt` and matched exact at `2525`: `3.34299 @2525`.
+    - Read: this is the correct tail-only LR isolation. It should match exact until `2800`; the decision point is `2825/2850+`.
+- Current decision:
+  - Carry all eight full confirmation lanes.
+  - Carry `3030/pr287-tail3125/noloco` at least through `2850`.
+  - Carry `3030/pr287-switch/cap0.20` late-LocoProp through `2800/2825`; stop it if it remains a flat `+0.0003` tracker after the late region.
