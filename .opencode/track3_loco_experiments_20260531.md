@@ -640,3 +640,19 @@ Purpose: materialize a resumable checkpoint at the strong point of the 3100-step
 - Launch log: `.opencode/modal_track3-simple-locom-3100-ckpt2800-h100-seed400-20260601055050.launch.log`.
 
 Resume semantics: the payload saves `model.state_dict()`, both optimizer state dicts, CPU/CUDA RNG state, step, seed, validation loss, and LocoProp/schedule config. Resume uses `TRACK3_RESUME_CHECKPOINT=<path>` and advances the deterministic train loader by the saved step before entering `range(start_step, train_steps + 1)`.
+
+Diagnosis of the late miss:
+
+- `3100 seed400` looked strong at step 2800 (`3.31815`) but still needed `0.03815` loss in the final 300 steps. It actually dropped `0.02749`, finishing `0.01066` above target.
+- The linear 3100 schedule is nearly dead late: LR multiplier is `0.138` at 2800, `0.046` at 3000, and zero at 3100. The final 100 steps only drop `0.00606`.
+- Extending to 3250 adds runway but changes the absolute-step schedule. At 2875, 3250 seed400 is `3.32073` while 3100 seed400 is `3.30966`; the longer run is less cooled down and therefore loses part of the apparent 2800 advantage.
+- The 3250 seed400 lead versus Prime mean shrinks from roughly `0.008` around 2875-3000 to `0.0012` at 3250. So the primitive is mostly a mid-cooldown/trajectory-shaping gain, not a terminal landing gain.
+- Late LocoProp diagnostics show weak descent alignment: printed `cos_desc` values are usually small (`~0.03-0.05`) and sometimes near-zero or negative. Since `TRACK3_LOCOM_NORM_CAP=0.20` is tied to the base Muon step norm, the LocoProp displacement also collapses with LR exactly when the run needs terminal force.
+
+Suffix experiment ladder once the 2800 checkpoint lands:
+
+1. Resume original 3100 tail to verify checkpoint fidelity.
+2. Resume with LocoProp disabled after 2800 to test whether late LocoProp hurts polish.
+3. Resume to 3150/3200/3250 from the strong 2800 state to isolate runway from early trajectory.
+4. Resume with a LocoProp cap floor or normalized correction so local displacement does not vanish with the base LR.
+5. Test the PR287-style landing schedule from the same checkpoint before spending another full replay.
