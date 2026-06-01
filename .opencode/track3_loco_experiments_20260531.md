@@ -591,8 +591,9 @@ Early checkpoints:
 | 2500 | 3.37023 | 3.37834 | -0.00811 | Lead widens further. |
 | 2625 | 3.35301 | 3.36076 | -0.00775 | Lead persists. |
 | 2750 | 3.33674 | 3.34471 | -0.00797 | Best trajectory so far. |
+| 2875 | 3.32073 | 3.32865 | -0.00792 | Late lead holds almost exactly. |
 
-Read: despite a weak first 375 steps, the 3250 schedule recovered by step 500, returned to parity by steps 625-750, regained a tiny lead by steps 875-1000, opened a few-millipoint lead by 1125-1250, still led at 1500, widened at 1750, and reached a `0.00619` lead at 2000. Keep it alive through target and start a second Modal replica.
+Read: despite a weak first 375 steps, the 3250 schedule recovered by step 500, returned to parity by steps 625-750, regained a tiny lead by steps 875-1000, opened a few-millipoint lead by 1125-1250, still led at 1500, widened at 1750, and has held roughly a `0.008` lead from step 2500 through 2875. Keep it alive through target and keep seed500 as confirmation.
 
 Second replica:
 
