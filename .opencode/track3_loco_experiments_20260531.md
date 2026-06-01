@@ -966,3 +966,19 @@ Because no-LocoProp-after-2400 was close to the active-LocoProp lanes and avoids
 - `ap-dqkxpnQ5w54UhjBDWmwbvF`: `s3000-pr2873065-nolate`, PR287-style LR with schedule steps 3065, `TRACK3_LOCOM_END_STEP=2400`. Launch log: `.opencode/modal_track3-s2400-pre3000-s3000-pr2873065-nolate-seed400-20260601131033.launch.log`. First parsed value: `3.36631 @2425`.
 - `ap-Jx1dqCUlm8IzVHjKi8jzZn`: `s3000-power050-nolate`, power-0.50 LR tail, `TRACK3_LOCOM_END_STEP=2400`. Launch log: `.opencode/modal_track3-s2400-pre3000-s3000-power050-nolate-seed400-20260601131033.launch.log`. It loaded the 2400 checkpoint and is waiting for the first post-resume validation.
 - `ap-TmrkYyIYXZuYswF7A888Dj`: `s3000-linear-floor004-nolate`, linear LR with `TRACK3_LR_MIN_ETA=0.04`, `TRACK3_LOCOM_END_STEP=2400`. Launch log: `.opencode/modal_track3-s2400-pre3000-s3000-linear-floor004-nolate-seed400-20260601131033.launch.log`. App showed zero tasks and no logs at the first post-launch check, so relaunch if it remains empty.
+
+2026-06-01 later status pass:
+
+- `ap-Jx1dqCUlm8IzVHjKi8jzZn` was stopped after worsening to `3.40517 @2475` from the `3.37491 @2400` checkpoint.
+- `ap-TmrkYyIYXZuYswF7A888Dj` was stopped because it stayed at zero tasks/no logs.
+- Relaunched the linear floor no-late rescue as `ap-2rie7tf5m8Dd90XGk6h90U` with the same step-2400 checkpoint, `TRACK3_LOCOM_END_STEP=2400`, and `TRACK3_LR_MIN_ETA=0.04`. Launch log: `.opencode/modal_track3-s2400-pre3000-s3000-linear-floor004-nolate-retry-seed400-20260601132050.launch.log`.
+- Latest leading status at this pass:
+  - `ap-dFrT1wOrSJtpVNdU6fhvtS` (`3100 resume2400 exact cap0.20`): `3.30043 @2975`; not on pace for a pre-3000 hit.
+  - `ap-BoBw1WtxypXNBUxBdY7XsO` (`3000 fid linear cap0.20`): `3.30578 @2875`; leading 3000-deadline lane, but still needs a large late bend.
+  - `ap-71kmMnKYH9SkULGzSRIjBq` (`3000 PR287 cap0.20`): `3.30726 @2850`.
+  - `ap-Ud1Jbwluq0wrdNV2HStcVW` (`3000 PR287 cap0.40`): `3.30756 @2850`.
+  - `ap-EY4AwEODxLRRStI4t4IN60` (`3000 linear capwin040 2400-3000`): `3.31710 @2775`.
+  - `ap-4au2IK8zcJNStwy4edfPwt` (`3000 linear no-LocoProp post2400`): `3.32564 @2700`.
+  - `ap-dqkxpnQ5w54UhjBDWmwbvF` (`3000 PR287 no-LocoProp post2400`): `3.34847 @2525`.
+  - `ap-2rie7tf5m8Dd90XGk6h90U` (`3000 linear floor0.04 no-LocoProp post2400 retry`): loaded at `3.37491 @2400`, waiting for post-resume validations.
+  - `ap-DRieR7b1nuvh9QeZzA91P3` (`3100 cap-window full run`): `3.63504 @1000`.
