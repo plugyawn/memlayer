@@ -783,3 +783,10 @@ Batch-size clarification:
 - With `seq_len=1024`, that is `512` sequences per optimizer step globally.
 - In these 1x H100 Modal runs, the launcher sets `TRACK3_MBS=16`, so the fixed global batch is accumulated as `32` microbatches of `16` sequences each.
 - LocoProp-M statistics use `TRACK3_LOCOM_SAMPLE_TOKENS=1024`; this is the local correction sample size, not the training batch size.
+
+Replay tracking refresh:
+
+- `ap-F3KIzgPAIMjbomKRzGjiex` reached `3.47622 @1750`.
+- Original 3100 seed400 was `3.47400 @1750`, so replay is `+0.00222` worse at this checkpoint.
+- Read: still tracking close enough to trust for the step-2800 checkpoint replay purpose.
+- Action: keep the replay running to step `2800`; no other Track 3 owned app is active.
