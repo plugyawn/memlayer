@@ -680,8 +680,10 @@ Stop decision: user asked to keep this last probe down and finish the already-ru
 Remaining live lanes are the checkpoint replay plus existing 3250/3000 probes:
 
 - `ap-F3KIzgPAIMjbomKRzGjiex`: 3100 seed400 checkpoint replay, latest `3.67397 @875`; purpose is to save the step-2800 checkpoint, not score this as a new independent result.
-- `ap-bZt9QGoCCHUKXrMwvsB5Se`: 3250 seed500, latest `3.32254 @2875`; healthy, modestly positive, still needs target confirmation.
+- `ap-bZt9QGoCCHUKXrMwvsB5Se`: 3250 seed500, latest `3.32254 @2875` at this pull; healthy and modestly positive versus the Prime 3350 mean, but not ahead of the original 3100 seed400 hot curve.
 - `ap-xKEhewuPirnhyhepFuBAqn`: 3250 seed1600, latest `3.48054 @1750`; healthy and similar to the prior good 3250 lane.
 - `ap-Pa4SuttnZdY9vCG8r6q20I`: 3250 seed1700, latest `3.48163 @1750`; healthy, nearly tied with seed1600.
 - `ap-eIPcDkgAqaJf8OjnBkZ7DW`: 3000 cooldown-frac-0.5 seed1800, latest `3.57887 @1375`; not hot versus the 3350 reference trajectory.
 - `ap-sgmLmoef9czMVD4rzk82xK`: 3000 naive power05 seed1900, latest `3.58265 @1250`; mild/neutral, not promotion-ready.
+
+Clarification: "ahead" for seed500 means ahead of the Prime 3350 mean only. At matched steps, original 3100 seed400 remains materially better: `3.30966 @2875` versus seed500 `3.32254 @2875` (`+0.01288` worse), and `3.30127 @2950` versus seed500 `3.31284 @2950` (`+0.01157` worse). Seed500 is therefore useful as a 3250 replication/variance lane, not evidence that the 3100 hot trajectory replicated.
