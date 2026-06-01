@@ -1211,3 +1211,45 @@ Launched one 3030 companion to test the preferred sub-3100 window without a broa
 | simple LocoProp-M to 1600, PR287-after-1600, 3030 steps | `ap-XbZFPuvUtrs8Ug3NKCL9Rp` | `fc-01KT26CGRAQMJZM6YZDZBTNC8E` | `TRACK3_TRAIN_STEPS=3030`, seed `3101`, `TRACK3_LOCOM_END_STEP=1600`, `TRACK3_LR_SWITCH_STEP=1600`, `TRACK3_LR_AFTER_SWITCH=pr287`, `TRACK3_LR_AFTER_SWITCH_POWER=1.2`, `TRACK3_LR_AFTER_SWITCH_STEPS=3065` | `.opencode/modal_track3-simple-locom-3030-nolate1600-pr2871600-h100-seed3101-20260601181542.launch.log` |
 
 Active owned Modal H100s after this launch: `ap-OEZ4y8NHM65HsYpn54m1hs` (3100), `ap-QNwyCxb4P3PyxhCfUtvAYU` (3000), `ap-XbZFPuvUtrs8Ug3NKCL9Rp` (3030). Do not start n=8 until 3000/3030 preserve the signal at least through the `500` gate.
+
+Next poll:
+
+- `ap-OEZ4y8NHM65HsYpn54m1hs` (3100): `3.44775 @1875`, latest train step `1990`. This remains stronger than the cap-window retry at the same region (`3.45552 @1875`) and continues to support the handoff hypothesis.
+- `ap-QNwyCxb4P3PyxhCfUtvAYU` (3000): `4.63156 @125`, `4.10962 @250`, latest train step `316`. This is sane enough to continue, but still only an early screen.
+- `ap-XbZFPuvUtrs8Ug3NKCL9Rp` (3030): `4.64947 @125`, latest train step `141`. Weak first point versus the 3000 probe but not enough to reject.
+- Decision: no broad fanout yet. Wait for the 3000 `500` gate and the 3030 `250/500` gates.
+
+Next poll:
+
+- `ap-OEZ4y8NHM65HsYpn54m1hs` (3100): `3.42485 @2000`, latest train step `2123`; still ahead of the prior 3100/cap-window family in this region.
+- `ap-QNwyCxb4P3PyxhCfUtvAYU` (3000): `4.63156 @125`, `4.10962 @250`, `3.93135 @375`, latest train step `448`. Slightly behind the active 3100 lane at the same early point but still plausible.
+- `ap-XbZFPuvUtrs8Ug3NKCL9Rp` (3030): `4.64947 @125`, `4.12058 @250`, latest train step `265`. This seed remains weaker.
+- Decision unchanged: wait for the 3000 `500` gate before any broad fanout.
+
+500 gate check:
+
+- `ap-OEZ4y8NHM65HsYpn54m1hs` (3100): `3.40419 @2125`, latest train step `2225`. This is materially ahead of the earlier original-3100/replay family around this region, so the 3100 schedule remains the lead diagnostic.
+- `ap-QNwyCxb4P3PyxhCfUtvAYU` (3000): `3.82744 @500`, latest train step `549`. This does not clear the fanout gate: it is slightly worse than the same active 3100 lane at `500` (`3.82259`) and only roughly comparable to older cap0.20 3100 screens.
+- `ap-XbZFPuvUtrs8Ug3NKCL9Rp` (3030): still only `4.64947 @125`, `4.12058 @250`, latest train step `368`; continue to `500` before judging.
+- Decision: no n=8 fanout yet. Keep all three running; use the 3100 lane as the hot schedule diagnostic, and wait for compressed lanes to prove late/mid-run persistence before expanding.
+
+The 3100 lane continued to strengthen:
+
+- `ap-OEZ4y8NHM65HsYpn54m1hs` (3100): `3.38332 @2250`, `3.36462 @2375`, latest train step `2383`.
+- This is substantially ahead of the old original-3100/cap0.20 family in the same region and now plausible to reach `3.28` around or before step `3000`.
+
+Compressed lanes at the same poll:
+
+- `ap-QNwyCxb4P3PyxhCfUtvAYU` (3000): `3.75798 @625`, latest train step `713`; still close to but not better than the 3100 lead seed's early curve.
+- `ap-XbZFPuvUtrs8Ug3NKCL9Rp` (3030): `3.92984 @375`, `3.82815 @500`, latest train step `514`; recovered from the weak first point but did not clear a fanout gate.
+
+Decision: launch a small 3100 replication fanout, not full n=8 yet. Rationale: the 3100 schedule is the first variant with a persistent post-switch lead into the `2250-2375` range, while 3000/3030 are only comparable early.
+
+| Seed | App | Function call | Setting | Launch log |
+| ---: | --- | --- | --- | --- |
+| `3200` | `ap-67AzRw0vPZsWuE9TWupFfS` | `fc-01KT28FY8QMPZ514B6KX2QV29H` | `TRACK3_TRAIN_STEPS=3100`, `TRACK3_LOCOM_END_STEP=1600`, `TRACK3_LR_SWITCH_STEP=1600`, `TRACK3_LR_AFTER_SWITCH=pr287`, `TRACK3_LR_AFTER_SWITCH_POWER=1.2`, `TRACK3_LR_AFTER_SWITCH_STEPS=3065` | `.opencode/modal_track3-simple-locom-3100-nolate1600-pr2871600-h100-seed3200-20260601185228.launch.log` |
+| `3201` | `ap-cdEz3MSGQZs2V3nFTfFHRh` | `fc-01KT28GP71K3W750Y9QMYJM325` | same | `.opencode/modal_track3-simple-locom-3100-nolate1600-pr2871600-h100-seed3201-20260601185254.launch.log` |
+| `3202` | `ap-F2xU6KVgg2wA5yMPTIXzkU` | `fc-01KT28HDHW09783ZPVAM2V98YV` | same | `.opencode/modal_track3-simple-locom-3100-nolate1600-pr2871600-h100-seed3202-20260601185319.launch.log` |
+| `3203` | `ap-vH5zZgiIoWiqvCPMSOsL1m` | `fc-01KT28J40D7EEQPJ7G5HVTGJEH` | same | `.opencode/modal_track3-simple-locom-3100-nolate1600-pr2871600-h100-seed3203-20260601185343.launch.log` |
+
+Active owned Modal H100s after this fanout: 3100 lead `2900`, compressed `3000/3030`, and 3100 replicas `3200-3203` (`7` total tasks). Next action: gate replicas at `125/250/500`, continue lead seed to `2500/2750/3000`, and only launch the remaining n=8 replicas if the first replica batch tracks.
