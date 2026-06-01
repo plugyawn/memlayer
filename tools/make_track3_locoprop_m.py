@@ -64,12 +64,18 @@ TRACK3_LR_SCHEDULE = os.environ.get("TRACK3_LR_SCHEDULE", "linear").lower()
 TRACK3_LR_POWER = float(os.environ.get("TRACK3_LR_POWER", "1.0"))
 TRACK3_LR_SCHEDULE_STEPS = int(os.environ.get("TRACK3_LR_SCHEDULE_STEPS", "0"))
 TRACK3_LR_MIN_ETA = float(os.environ.get("TRACK3_LR_MIN_ETA", "0.0"))
+TRACK3_LR_SWITCH_STEP = int(os.environ.get("TRACK3_LR_SWITCH_STEP", "-1"))
+TRACK3_LR_AFTER_SWITCH = os.environ.get("TRACK3_LR_AFTER_SWITCH", "").lower()
+TRACK3_LR_AFTER_SWITCH_POWER = float(os.environ.get("TRACK3_LR_AFTER_SWITCH_POWER", str(TRACK3_LR_POWER)))
+TRACK3_LR_AFTER_SWITCH_STEPS = int(os.environ.get("TRACK3_LR_AFTER_SWITCH_STEPS", "0"))
 TRACK3_ADAM_EMBED_POWER_C = float(os.environ.get("TRACK3_ADAM_EMBED_POWER_C", "4.976805410800738e-05"))
 TRACK3_ADAM_PROJ_POWER_C = float(os.environ.get("TRACK3_ADAM_PROJ_POWER_C", "5.184172302917436e-07"))
 TRACK3_ADAM_OTHER_POWER_C = float(os.environ.get("TRACK3_ADAM_OTHER_POWER_C", "1.6589351369335795e-06"))
 TRACK3_MUON_POWER_C = float(os.environ.get("TRACK3_MUON_POWER_C", "3.3169534699576625e-06"))
 if TRACK3_LR_SCHEDULE not in {"linear", "power", "pr287"}:
     raise ValueError("TRACK3_LR_SCHEDULE must be 'linear', 'power', or 'pr287'")
+if TRACK3_LR_AFTER_SWITCH and TRACK3_LR_AFTER_SWITCH not in {"linear", "power", "pr287"}:
+    raise ValueError("TRACK3_LR_AFTER_SWITCH must be empty, 'linear', 'power', or 'pr287'")
 TRACK3_SOFT_MUON = _env_flag("TRACK3_SOFT_MUON", "0")
 TRACK3_SOFT_MUON_BLEND = float(os.environ.get("TRACK3_SOFT_MUON_BLEND", "1.0"))
 TRACK3_SOFT_MUON_NORM_RESTORE = _env_flag("TRACK3_SOFT_MUON_NORM_RESTORE", "1")
@@ -439,7 +445,7 @@ def maybe_load_track3_checkpoint(model: nn.Module, optimizers: list[torch.optim.
         )
     for optimizer, optimizer_state in zip(optimizers, saved_optimizers):
         optimizer.load_state_dict(optimizer_state)
-    if TRACK3_LR_SCHEDULE == "pr287":
+    if TRACK3_LR_SCHEDULE == "pr287" or TRACK3_LR_AFTER_SWITCH == "pr287":
         optimizers[0].param_groups[0]["power_c"] = TRACK3_ADAM_EMBED_POWER_C
         optimizers[0].param_groups[1]["power_c"] = TRACK3_ADAM_PROJ_POWER_C
         optimizers[0].param_groups[2]["power_c"] = TRACK3_ADAM_OTHER_POWER_C
@@ -655,7 +661,7 @@ def muon_update(grad, momentum, mu=0.95, nesterov=True):
         text,
         'print0(f"Running PyTorch {torch.version.__version__} compiled for CUDA {torch.version.cuda}"',
         f'print0("Track3 LocoProp-M generated run: source={source_label} train_steps={train_steps}")\n'
-        'print0(f"LocoM enabled={LOCO_M_ENABLED} layers={LOCO_M_LAYERS_SPEC} steps={LOCO_M_LOCAL_STEPS} sample_tokens={LOCO_M_SAMPLE_TOKENS} gather={LOCO_M_GATHER_SAMPLES} accum={LOCO_M_ACCUM_SAMPLES} micro_sample_tokens={LOCO_M_MICRO_SAMPLE_TOKENS} local_opt={LOCO_M_LOCAL_OPT} lr_decay={LOCO_M_LOCAL_LR_DECAY} rms_beta1={LOCO_M_RMS_BETA1} rms_beta2={LOCO_M_RMS_BETA2} rms_eps={LOCO_M_RMS_EPS} inner_lr={LOCO_M_INNER_LR} target_gamma={LOCO_M_TARGET_GAMMA} prox={LOCO_M_PROX} alpha={LOCO_M_ALPHA} norm_to_base={LOCO_M_NORM_TO_BASE} norm_cap={LOCO_M_NORM_CAP} norm_cap_windows={LOCO_M_NORM_CAP_WINDOWS_SPEC} start_step={LOCO_M_START_STEP} end_step={LOCO_M_END_STEP} interval={LOCO_M_INTERVAL} target_loss={TRACK3_TARGET_LOSS} seed_base={TRACK3_SEED_BASE} seed_offset={TRACK3_SEED_OFFSET} cooldown_frac={TRACK3_COOLDOWN_FRAC} lr_schedule={TRACK3_LR_SCHEDULE} lr_power={TRACK3_LR_POWER} lr_schedule_steps={TRACK3_LR_SCHEDULE_STEPS} lr_min_eta={TRACK3_LR_MIN_ETA} soft_muon={TRACK3_SOFT_MUON} soft_blend={TRACK3_SOFT_MUON_BLEND} soft_norm_restore={TRACK3_SOFT_MUON_NORM_RESTORE} resume_checkpoint={TRACK3_RESUME_CHECKPOINT}")\n'
+        'print0(f"LocoM enabled={LOCO_M_ENABLED} layers={LOCO_M_LAYERS_SPEC} steps={LOCO_M_LOCAL_STEPS} sample_tokens={LOCO_M_SAMPLE_TOKENS} gather={LOCO_M_GATHER_SAMPLES} accum={LOCO_M_ACCUM_SAMPLES} micro_sample_tokens={LOCO_M_MICRO_SAMPLE_TOKENS} local_opt={LOCO_M_LOCAL_OPT} lr_decay={LOCO_M_LOCAL_LR_DECAY} rms_beta1={LOCO_M_RMS_BETA1} rms_beta2={LOCO_M_RMS_BETA2} rms_eps={LOCO_M_RMS_EPS} inner_lr={LOCO_M_INNER_LR} target_gamma={LOCO_M_TARGET_GAMMA} prox={LOCO_M_PROX} alpha={LOCO_M_ALPHA} norm_to_base={LOCO_M_NORM_TO_BASE} norm_cap={LOCO_M_NORM_CAP} norm_cap_windows={LOCO_M_NORM_CAP_WINDOWS_SPEC} start_step={LOCO_M_START_STEP} end_step={LOCO_M_END_STEP} interval={LOCO_M_INTERVAL} target_loss={TRACK3_TARGET_LOSS} seed_base={TRACK3_SEED_BASE} seed_offset={TRACK3_SEED_OFFSET} cooldown_frac={TRACK3_COOLDOWN_FRAC} lr_schedule={TRACK3_LR_SCHEDULE} lr_power={TRACK3_LR_POWER} lr_schedule_steps={TRACK3_LR_SCHEDULE_STEPS} lr_min_eta={TRACK3_LR_MIN_ETA} lr_switch_step={TRACK3_LR_SWITCH_STEP} lr_after_switch={TRACK3_LR_AFTER_SWITCH} lr_after_switch_power={TRACK3_LR_AFTER_SWITCH_POWER} lr_after_switch_steps={TRACK3_LR_AFTER_SWITCH_STEPS} soft_muon={TRACK3_SOFT_MUON} soft_blend={TRACK3_SOFT_MUON_BLEND} soft_norm_restore={TRACK3_SOFT_MUON_NORM_RESTORE} resume_checkpoint={TRACK3_RESUME_CHECKPOINT}")\n'
         'print0(f"Running PyTorch {torch.version.__version__} compiled for CUDA {torch.version.cuda}"',
     )
     text = replace_exact(
@@ -702,29 +708,35 @@ def muon_update(grad, momentum, mu=0.95, nesterov=True):
     text = replace_exact(
         text,
         "    def set_hparams(step, cooldown_frac=0.7):\n",
-        "    def _track3_pr287_lr(step, initial_lr, power_c):\n"
-        "        schedule_steps = TRACK3_LR_SCHEDULE_STEPS if TRACK3_LR_SCHEDULE_STEPS > 0 else train_steps\n"
-        "        downward_lr = power_c * max(0.0, schedule_steps - step) ** TRACK3_LR_POWER\n"
+        "    def _track3_active_lr_schedule(step):\n"
+        "        if TRACK3_LR_SWITCH_STEP >= 0 and step >= TRACK3_LR_SWITCH_STEP and TRACK3_LR_AFTER_SWITCH:\n"
+        "            return TRACK3_LR_AFTER_SWITCH, TRACK3_LR_AFTER_SWITCH_STEPS, TRACK3_LR_AFTER_SWITCH_POWER\n"
+        "        return TRACK3_LR_SCHEDULE, TRACK3_LR_SCHEDULE_STEPS, TRACK3_LR_POWER\n\n"
+        "    def _track3_pr287_lr(step, initial_lr, power_c, schedule_steps, lr_power):\n"
+        "        schedule_steps = schedule_steps if schedule_steps > 0 else train_steps\n"
+        "        downward_lr = power_c * max(0.0, schedule_steps - step) ** lr_power\n"
         "        return min(initial_lr, downward_lr)\n\n"
         "    def set_hparams(step, cooldown_frac=TRACK3_COOLDOWN_FRAC):\n",
     )
     text = replace_exact(
         text,
         "        progress = step / train_steps\n",
-        "        if TRACK3_LR_SCHEDULE == \"pr287\":\n"
+        "        lr_schedule, lr_schedule_steps, lr_power = _track3_active_lr_schedule(step)\n"
+        "        if lr_schedule == \"pr287\":\n"
         "            for opt in optimizers:\n"
         "                for group in opt.param_groups:\n"
-        "                    group[\"lr\"] = _track3_pr287_lr(step, group[\"initial_lr\"], group[\"power_c\"])\n"
+        "                    group[\"lr\"] = _track3_pr287_lr(step, group[\"initial_lr\"], group[\"power_c\"], lr_schedule_steps, lr_power)\n"
         "            return\n"
-        "        progress = step / train_steps\n",
+        "        schedule_steps = lr_schedule_steps if lr_schedule_steps > 0 else train_steps\n"
+        "        progress = step / schedule_steps\n",
     )
     text = replace_exact(
         text,
         "        else:\n            eta = (1 - progress) / cooldown_frac\n",
         "        else:\n"
         "            eta = (1 - progress) / cooldown_frac\n"
-        "            if TRACK3_LR_SCHEDULE == \"power\":\n"
-        "                eta = eta ** TRACK3_LR_POWER\n"
+        "            if lr_schedule == \"power\":\n"
+        "                eta = eta ** lr_power\n"
         "            eta = max(eta, TRACK3_LR_MIN_ETA)\n",
     )
     if "        val_step_freq = 125 if step / train_steps < 0.9 else 25\n" in text:
@@ -867,7 +879,7 @@ def muon_update(grad, momentum, mu=0.95, nesterov=True):
         text,
         "    assert set(p for opt in optimizers for group in opt.param_groups\n"
         "               for p in group[\"params\"]) == set(model.parameters())\n",
-        "    if TRACK3_LR_SCHEDULE == \"pr287\":\n"
+        "    if TRACK3_LR_SCHEDULE == \"pr287\" or TRACK3_LR_AFTER_SWITCH == \"pr287\":\n"
         "        optimizer1.param_groups[0][\"power_c\"] = TRACK3_ADAM_EMBED_POWER_C\n"
         "        optimizer1.param_groups[1][\"power_c\"] = TRACK3_ADAM_PROJ_POWER_C\n"
         "        optimizer1.param_groups[2][\"power_c\"] = TRACK3_ADAM_OTHER_POWER_C\n"
