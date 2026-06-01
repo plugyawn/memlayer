@@ -1004,7 +1004,7 @@ Correction/recovery: `ap-DRieR7b1nuvh9QeZzA91P3` was a standalone 3100 cap-windo
 - Setting: `TRACK3_TRAIN_STEPS=3100`, `TRACK3_SEED_OFFSET=400`, simple Track 3 source, `TRACK3_MBS=16`, LocoProp-M SGD all layers, `K=4`, `sample_tokens=1024`, base `norm_cap=0.20`, `TRACK3_LOCOM_NORM_CAP_WINDOWS=1600:2400:0.40`, `SCREEN_VAL_EVERY=125`.
 - Local launch log: `.opencode/modal_track3-simple-locom-3100-capwin040-1600-2400-h100-seed400-retry-20260601133820.launch.log`.
 - Launch verification: app active/detached on H100; generated `/tmp/train_gpt_simple_locoprop_m_3100.py`, `track3_trial_seed=400`, all 12 LocoProp layers owned. Next gate: verify `locoprop_m_apply step=1600` logs `cap=0.400`, then compare final `3000/3100` values against the missed suffix-family endpoints.
-- Early retry checks: `4.64153 @125`, `4.11050 @250`, `3.93290 @375`, `3.82742 @500`, and `3.75811 @625`, all before the `1600-2400` window with effective `cap=0.200`. This is slightly better than the stopped cap-window run at steps 125/250 (`4.65580`, `4.11730`) and the original 3100 cap0.20 run at steps 250/625 (`4.11702`, `3.76108`), but this is still early variance; the real test is the mid-run cap-window transition and the `2800/3000/3100` slope.
+- Early retry checks: `4.64153 @125`, `4.11050 @250`, `3.93290 @375`, `3.82742 @500`, `3.75811 @625`, `3.71351 @750`, and `3.67328 @875`, all before the `1600-2400` window with effective `cap=0.200`. This is slightly better than the original 3100 cap0.20 run at steps 250/625/875 (`4.11702`, `3.76108`, `3.67229`) but only by early-noise scale; the real test is the mid-run cap-window transition and the `2800/3000/3100` slope.
 
 ## 2026-06-01 What Went Off Around Step 2400/2800
 
@@ -1031,3 +1031,22 @@ Current synthesis:
 - What is actively bad: power tails and aggressive LR floors from the checkpoint; they spike or degrade early. Higher LocoProp cap (`0.40`) is neutral-to-worse in the tested late windows.
 - What is ambiguous: disabling LocoProp after 2400 is competitive through 2800 but loses later; this suggests LocoProp is not simply poison after 2400, but the active correction is too weak/misaligned to solve the final slope problem.
 - Practical implication: the bottleneck is not only "get a better 2800 point." We have a better 2800 point and still miss. The lever needs to improve the post-2800 descent rate, likely by changing the late optimizer/schedule shape rather than increasing LocoProp cap or flooring LR.
+
+## 2026-06-01 PR287-to-Linear Hybrid Suffixes
+
+Hypothesis: the PR287 cap0.20 suffix bought the best `2400 -> 2800` state (`3.31178 @2800`) but had weak `2800 -> 3000` descent. Test whether we can keep PR287's mid-run state and switch back to the original linear-3100 landing shape before the terminal segment.
+
+Added a narrow LR schedule-switch knob:
+
+- Commit: `cb707b1` (`Add Track 3 LR schedule switch`).
+- Env: `TRACK3_LR_SWITCH_STEP`, `TRACK3_LR_AFTER_SWITCH`, `TRACK3_LR_AFTER_SWITCH_POWER`, `TRACK3_LR_AFTER_SWITCH_STEPS`.
+- Smoke: generated and compiled a script with `TRACK3_LR_SCHEDULE=pr287`, `TRACK3_LR_SCHEDULE_STEPS=3065`, `TRACK3_LR_SWITCH_STEP=2800`, `TRACK3_LR_AFTER_SWITCH=linear`, `TRACK3_LR_AFTER_SWITCH_STEPS=3100`. The generated `set_hparams` uses PR287 before the switch and linear progress against `schedule_steps=3100` after the switch.
+
+Launched two H100 Modal suffixes from the matched step-2400 checkpoint:
+
+| Variant | App | Function call | Switch | Latest | Read |
+| --- | --- | --- | ---: | ---: | --- |
+| PR287 -> linear3100 | `ap-tnTIbbdQSW4kj4IGHP9cQy` | `fc-01KT1S5DWTW9GT8EJA71V8WAFQ` | `2800` | `3.35201 @2500` | Loaded `modal3100_locom_seed400_step2400.pt`; not at switch yet. |
+| PR287 -> linear3100 | `ap-P1kAN6Y7xAKoMerGsF1lmn` | `fc-01KT1S9JEAHE1K6ZY78WG24CYY` | `2750` | `3.35635 @2475` | Loaded same checkpoint; not at switch yet. |
+
+Both use `TRACK3_LOCOM_NORM_CAP=0.20` and no LocoProp cap window. Decision gate is after the switch: compare `2800/2875/2925/3000/3100` against PR287 cap0.20 (`3.31178 @2800`, `3.29683 @3000`) and original 3100 cap0.20 (`3.31815 @2800`, `3.29672 @3000`, `3.29066 @3100`).

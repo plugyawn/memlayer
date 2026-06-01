@@ -1,0 +1,46 @@
+===== launching track3-s2400-hybrid-pr287to-linear3100-sw2800-cap020-seed400-20260601142427 =====
+Note that running a local entrypoint in detached mode only keeps the last triggered Modal function alive after the parent process has been killed or disconnected.
+✓ Initialized. View run at 
+https://modal.com/apps/nipsdwip/main/ap-tnTIbbdQSW4kj4IGHP9cQy
+Building image im-tnqBIyzn7p3Ud2a156vZZT
+
+=> Step 0: FROM base
+
+=> Step 1: COPY . /
+Saving image...
+Image saved, took 1.16s
+
+Built image im-tnqBIyzn7p3Ud2a156vZZT in 4.83s
+
+
+Building image im-KDlVizkjWgtSTIDhrYHRmg
+
+=> Step 0: FROM base
+
+=> Step 1: WORKDIR /root/speedrun
+Saving image...
+Image saved, took 805.93ms
+
+Built image im-KDlVizkjWgtSTIDhrYHRmg in 3.05s
+
+
+✓ Created objects.
+├── 🔨 Created mount 
+│   /Users/progyan/speedrun/wr-fresh-20260526/tools/modal_nanogpt_runner.py
+├── 🔨 Created mount /Users/progyan/speedrun/wr-fresh-20260526
+├── 🔨 Created function prepare_data.
+└── 🔨 Created function run_screen.
+{
+  "dashboard_url": "https://modal.com/id/fc-01KT1S5DWTW9GT8EJA71V8WAFQ",
+  "data_chunks": 20,
+  "function_call_id": "fc-01KT1S5DWTW9GT8EJA71V8WAFQ",
+  "gpu": "H100",
+  "mode": "spawn",
+  "nproc": 1,
+  "runner": "tools/run_track3_locoprop_m.sh",
+  "steps": 3100,
+  "val_every": 25
+}
+[modal-client] 2026-06-01T19:55:01+0530 Timed out waiting for final app logs.
+✓ App completed. View run at 
+https://modal.com/apps/nipsdwip/main/ap-tnTIbbdQSW4kj4IGHP9cQy
