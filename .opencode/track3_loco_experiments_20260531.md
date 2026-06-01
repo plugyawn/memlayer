@@ -608,3 +608,8 @@ Second replica:
 - Early checkpoints: `4.66532 @125`, `4.11745 @250`, `3.93810 @375`, `3.82950 @500`, `3.75979 @625`, `3.71315 @750`, `3.67368 @875`. This is weak versus Prime and weaker than seed400 through 875, but seed400 also recovered after an unimpressive first 375 steps.
 
 Current decision: finish seed400 to target, use seed500 as confirmation. Do not launch larger fanout until at least seed400 crosses `3.28` or misses narrowly with a clearly better step count than the completed 3350-step Prime runs.
+
+Small Modal pipeline after seed400 held the late lead and seed500 recovered at 1000:
+
+- `track3-simple-locom-3250-h100-seed1600-20260601`: app `ap-xKEhewuPirnhyhepFuBAqn`, function call `fc-01KT0R8A6AS3JP37DJJMAKQRVX`, launched with the same 3250 settings.
+- `track3-simple-locom-3250-h100-seed1700-20260601`: app `ap-Pa4SuttnZdY9vCG8r6q20I`, function call `fc-01KT0R962VVMMX6PDRGPC2GFYD`, launched with the same 3250 settings.
