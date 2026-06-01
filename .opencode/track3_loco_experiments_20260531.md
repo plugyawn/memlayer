@@ -995,3 +995,12 @@ Final/cleanup pass for this suffix family:
 - No-LocoProp-after-2400 controls were behind the active suffixes: `ap-4au2IK8zcJNStwy4edfPwt` reached `3.30796 @2850`; `ap-dqkxpnQ5w54UhjBDWmwbvF` reached `3.32588 @2675`; `ap-2rie7tf5m8Dd90XGk6h90U` reached `3.34701 @2550`.
 - Cleanup: stopped the remaining owned Track 3 suffix/full-run apps after they were no longer candidates for `3.28 <=3000/3100`: `ap-DRieR7b1nuvh9QeZzA91P3`, `ap-4au2IK8zcJNStwy4edfPwt`, `ap-Ud1Jbwluq0wrdNV2HStcVW`, `ap-EY4AwEODxLRRStI4t4IN60`, `ap-dqkxpnQ5w54UhjBDWmwbvF`, and `ap-2rie7tf5m8Dd90XGk6h90U`; `ap-71kmMnKYH9SkULGzSRIjBq`, `ap-BoBw1WtxypXNBUxBdY7XsO`, and `ap-dFrT1wOrSJtpVNdU6fhvtS` had already stopped. Did not touch unrelated `dw-pr` Modal apps.
 - Decision: no n=8 fanout. This family beat the saved 2800 checkpoint loss but missed the PR confirmation target by roughly `0.012` at 3100 and `0.017` at 3000.
+
+Correction/recovery: `ap-DRieR7b1nuvh9QeZzA91P3` was a standalone 3100 cap-window run, not just a spent suffix lane. It had reached `3.57186 @1250` when it was stopped, before the intended `1600-2400` `norm_cap=0.40` window. Relaunched the same standalone probe:
+
+- App: `ap-2jVszraxi9ZJJG8r0sKWZD`.
+- Run: `track3-simple-locom-3100-capwin040-1600-2400-h100-seed400-retry-20260601133820`.
+- Function call: `fc-01KT1PGME1JYVDB1NH44HN32GM`.
+- Setting: `TRACK3_TRAIN_STEPS=3100`, `TRACK3_SEED_OFFSET=400`, simple Track 3 source, `TRACK3_MBS=16`, LocoProp-M SGD all layers, `K=4`, `sample_tokens=1024`, base `norm_cap=0.20`, `TRACK3_LOCOM_NORM_CAP_WINDOWS=1600:2400:0.40`, `SCREEN_VAL_EVERY=125`.
+- Local launch log: `.opencode/modal_track3-simple-locom-3100-capwin040-1600-2400-h100-seed400-retry-20260601133820.launch.log`.
+- Launch verification: app active/detached on H100; generated `/tmp/train_gpt_simple_locoprop_m_3100.py`, `track3_trial_seed=400`, all 12 LocoProp layers owned. Next gate: verify `locoprop_m_apply step=1600` logs `cap=0.400`, then compare final `3000/3100` values against the missed suffix-family endpoints.
