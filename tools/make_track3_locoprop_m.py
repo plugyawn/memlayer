@@ -46,6 +46,7 @@ LOCO_M_NORM_TO_BASE = _env_flag("TRACK3_LOCOM_NORM_TO_BASE", "0")
 LOCO_M_NORM_TARGET = float(os.environ.get("TRACK3_LOCOM_NORM_TARGET", "0.0"))
 LOCO_M_NORM_CAP = float(os.environ.get("TRACK3_LOCOM_NORM_CAP", "0.20"))
 LOCO_M_NORM_CAP_WINDOWS_SPEC = os.environ.get("TRACK3_LOCOM_NORM_CAP_WINDOWS", "")
+LOCO_M_ACTIVE_WINDOWS_SPEC = os.environ.get("TRACK3_LOCOM_ACTIVE_WINDOWS", "")
 LOCO_M_START_STEP = int(os.environ.get("TRACK3_LOCOM_START_STEP", "0"))
 LOCO_M_END_STEP = int(os.environ.get("TRACK3_LOCOM_END_STEP", "1000000000"))
 LOCO_M_INTERVAL = int(os.environ.get("TRACK3_LOCOM_INTERVAL", "1"))
@@ -119,7 +120,23 @@ def _parse_step_value_windows(spec: str) -> list[tuple[int, int, float]]:
         windows.append((start, end, value))
     return windows
 
+def _parse_step_windows(spec: str) -> list[tuple[int, int]]:
+    windows: list[tuple[int, int]] = []
+    for part in spec.split(","):
+        part = part.strip()
+        if not part:
+            continue
+        fields = part.split(":")
+        if len(fields) != 2:
+            raise ValueError("TRACK3_LOCOM_ACTIVE_WINDOWS entries must be start:end")
+        start, end = int(fields[0]), int(fields[1])
+        if end < start:
+            raise ValueError("TRACK3_LOCOM_ACTIVE_WINDOWS end must be >= start")
+        windows.append((start, end))
+    return windows
+
 LOCO_M_NORM_CAP_WINDOWS = _parse_step_value_windows(LOCO_M_NORM_CAP_WINDOWS_SPEC)
+LOCO_M_ACTIVE_WINDOWS = _parse_step_windows(LOCO_M_ACTIVE_WINDOWS_SPEC)
 
 def _locom_current_norm_cap(step: int) -> float:
     cap = LOCO_M_NORM_CAP
@@ -205,13 +222,11 @@ LOCOM_MLP = r'''class MLP(nn.Module):
 LOCOM_HELPERS = r'''
 @torch.no_grad()
 def _locom_active(step: int) -> bool:
-    return (
-        LOCO_M_ENABLED
-        and LOCO_M_LOCAL_STEPS > 0
-        and step >= LOCO_M_START_STEP
-        and step < LOCO_M_END_STEP
-        and step % max(LOCO_M_INTERVAL, 1) == 0
-    )
+    if not (LOCO_M_ENABLED and LOCO_M_LOCAL_STEPS > 0 and step % max(LOCO_M_INTERVAL, 1) == 0):
+        return False
+    if LOCO_M_ACTIVE_WINDOWS:
+        return any(start <= step < end for start, end in LOCO_M_ACTIVE_WINDOWS)
+    return step >= LOCO_M_START_STEP and step < LOCO_M_END_STEP
 
 @torch.no_grad()
 def set_locoprop_m_current_step(step: int):
@@ -435,6 +450,7 @@ def maybe_save_track3_checkpoint(model: nn.Module, optimizers: list[torch.optim.
                 "loco_m_norm_target": LOCO_M_NORM_TARGET,
                 "loco_m_norm_cap": LOCO_M_NORM_CAP,
                 "loco_m_norm_cap_windows": LOCO_M_NORM_CAP_WINDOWS_SPEC,
+                "loco_m_active_windows": LOCO_M_ACTIVE_WINDOWS_SPEC,
                 "loco_m_start_step": LOCO_M_START_STEP,
                 "loco_m_end_step": LOCO_M_END_STEP,
                 "loco_m_interval": LOCO_M_INTERVAL,
@@ -691,7 +707,7 @@ def muon_update(grad, momentum, mu=0.95, nesterov=True):
         text,
         'print0(f"Running PyTorch {torch.version.__version__} compiled for CUDA {torch.version.cuda}"',
         f'print0("Track3 LocoProp-M generated run: source={source_label} train_steps={train_steps}")\n'
-        'print0(f"LocoM enabled={LOCO_M_ENABLED} layers={LOCO_M_LAYERS_SPEC} steps={LOCO_M_LOCAL_STEPS} sample_tokens={LOCO_M_SAMPLE_TOKENS} gather={LOCO_M_GATHER_SAMPLES} accum={LOCO_M_ACCUM_SAMPLES} micro_sample_tokens={LOCO_M_MICRO_SAMPLE_TOKENS} local_opt={LOCO_M_LOCAL_OPT} lr_decay={LOCO_M_LOCAL_LR_DECAY} rms_beta1={LOCO_M_RMS_BETA1} rms_beta2={LOCO_M_RMS_BETA2} rms_eps={LOCO_M_RMS_EPS} rms_reset_each_step={LOCO_M_RMS_RESET_EACH_STEP} require_loss_decrease={LOCO_M_REQUIRE_LOSS_DECREASE} min_cos_desc={LOCO_M_MIN_COS_DESC} inner_lr={LOCO_M_INNER_LR} target_gamma={LOCO_M_TARGET_GAMMA} prox={LOCO_M_PROX} alpha={LOCO_M_ALPHA} norm_to_base={LOCO_M_NORM_TO_BASE} norm_target={LOCO_M_NORM_TARGET} norm_cap={LOCO_M_NORM_CAP} norm_cap_windows={LOCO_M_NORM_CAP_WINDOWS_SPEC} start_step={LOCO_M_START_STEP} end_step={LOCO_M_END_STEP} interval={LOCO_M_INTERVAL} target_loss={TRACK3_TARGET_LOSS} seed_base={TRACK3_SEED_BASE} seed_offset={TRACK3_SEED_OFFSET} cooldown_frac={TRACK3_COOLDOWN_FRAC} lr_schedule={TRACK3_LR_SCHEDULE} lr_power={TRACK3_LR_POWER} lr_schedule_steps={TRACK3_LR_SCHEDULE_STEPS} lr_min_eta={TRACK3_LR_MIN_ETA} lr_switch_step={TRACK3_LR_SWITCH_STEP} lr_after_switch={TRACK3_LR_AFTER_SWITCH} lr_after_switch_power={TRACK3_LR_AFTER_SWITCH_POWER} lr_after_switch_steps={TRACK3_LR_AFTER_SWITCH_STEPS} soft_muon={TRACK3_SOFT_MUON} soft_blend={TRACK3_SOFT_MUON_BLEND} soft_norm_restore={TRACK3_SOFT_MUON_NORM_RESTORE} resume_checkpoint={TRACK3_RESUME_CHECKPOINT}")\n'
+        'print0(f"LocoM enabled={LOCO_M_ENABLED} layers={LOCO_M_LAYERS_SPEC} steps={LOCO_M_LOCAL_STEPS} sample_tokens={LOCO_M_SAMPLE_TOKENS} gather={LOCO_M_GATHER_SAMPLES} accum={LOCO_M_ACCUM_SAMPLES} micro_sample_tokens={LOCO_M_MICRO_SAMPLE_TOKENS} local_opt={LOCO_M_LOCAL_OPT} lr_decay={LOCO_M_LOCAL_LR_DECAY} rms_beta1={LOCO_M_RMS_BETA1} rms_beta2={LOCO_M_RMS_BETA2} rms_eps={LOCO_M_RMS_EPS} rms_reset_each_step={LOCO_M_RMS_RESET_EACH_STEP} require_loss_decrease={LOCO_M_REQUIRE_LOSS_DECREASE} min_cos_desc={LOCO_M_MIN_COS_DESC} inner_lr={LOCO_M_INNER_LR} target_gamma={LOCO_M_TARGET_GAMMA} prox={LOCO_M_PROX} alpha={LOCO_M_ALPHA} norm_to_base={LOCO_M_NORM_TO_BASE} norm_target={LOCO_M_NORM_TARGET} norm_cap={LOCO_M_NORM_CAP} norm_cap_windows={LOCO_M_NORM_CAP_WINDOWS_SPEC} active_windows={LOCO_M_ACTIVE_WINDOWS_SPEC} start_step={LOCO_M_START_STEP} end_step={LOCO_M_END_STEP} interval={LOCO_M_INTERVAL} target_loss={TRACK3_TARGET_LOSS} seed_base={TRACK3_SEED_BASE} seed_offset={TRACK3_SEED_OFFSET} cooldown_frac={TRACK3_COOLDOWN_FRAC} lr_schedule={TRACK3_LR_SCHEDULE} lr_power={TRACK3_LR_POWER} lr_schedule_steps={TRACK3_LR_SCHEDULE_STEPS} lr_min_eta={TRACK3_LR_MIN_ETA} lr_switch_step={TRACK3_LR_SWITCH_STEP} lr_after_switch={TRACK3_LR_AFTER_SWITCH} lr_after_switch_power={TRACK3_LR_AFTER_SWITCH_POWER} lr_after_switch_steps={TRACK3_LR_AFTER_SWITCH_STEPS} soft_muon={TRACK3_SOFT_MUON} soft_blend={TRACK3_SOFT_MUON_BLEND} soft_norm_restore={TRACK3_SOFT_MUON_NORM_RESTORE} resume_checkpoint={TRACK3_RESUME_CHECKPOINT}")\n'
         'print0(f"Running PyTorch {torch.version.__version__} compiled for CUDA {torch.version.cuda}"',
     )
     if "for _ in range(num_trials):\n" in text:

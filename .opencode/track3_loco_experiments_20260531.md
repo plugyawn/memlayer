@@ -1342,3 +1342,74 @@ Launched one PR287-style horizon diagnostic, not a 3500 run:
 | simple LocoProp-M to 1600, PR287-after-1600, 3040 steps with 3105 LR horizon | `ap-UFX7iAhRQvOQ5NmqWCkWlc` | `fc-01KT2AX88FEW73NTE94575FCK6` | `TRACK3_TRAIN_STEPS=3040`, seed `3400`, `TRACK3_LOCOM_END_STEP=1600`, `TRACK3_LR_SWITCH_STEP=1600`, `TRACK3_LR_AFTER_SWITCH=pr287`, `TRACK3_LR_AFTER_SWITCH_POWER=1.2`, `TRACK3_LR_AFTER_SWITCH_STEPS=3105` | `.opencode/modal_track3-simple-locom-3040-nolate1600-pr2873105-h100-seed3400-20260601193442.launch.log` |
 
 Read: 3500 would be a slow upper-bound diagnostic, not the next speedrun move. The useful schedule question is whether PR287's nonzero-LR-at-end horizon fixes the last `0.014` without extending all the way to 3500.
+
+## 2026-06-02 Active-Window LocoProp Re-On Probe
+
+Added an explicit active-window knob for sampled LocoProp-M:
+
+- Code: `TRACK3_LOCOM_ACTIVE_WINDOWS=start:end[,start:end...]`.
+- Semantics: when nonempty, this overrides the single contiguous `TRACK3_LOCOM_START_STEP` / `TRACK3_LOCOM_END_STEP` predicate while preserving `TRACK3_LOCOM_INTERVAL`.
+- Local validation: generated `/tmp/train_gpt_reon2800.py` with `TRACK3_LOCOM_ACTIVE_WINDOWS=0:1600,2800:3040`; `py_compile` passed and generated `_locom_active` contains the window predicate.
+
+Launched one H100 Modal probe that turns LocoProp-M back on for the final taper:
+
+| Variant | App | Function call | Setting | Launch log |
+| --- | --- | --- | --- | --- |
+| simple LocoProp-M `0:1600` and `2800:3040`, PR287-after-1600, 3040 steps with 3105 LR horizon | `ap-oJt8hUqjcUqyJINytpVyPR` | `fc-01KT2CE3E82J1C9H37YDNBZPW0` | `TRACK3_TRAIN_STEPS=3040`, seed `3401`, `TRACK3_LOCOM_ACTIVE_WINDOWS=0:1600,2800:3040`, `TRACK3_LR_SWITCH_STEP=1600`, `TRACK3_LR_AFTER_SWITCH=pr287`, `TRACK3_LR_AFTER_SWITCH_POWER=1.2`, `TRACK3_LR_AFTER_SWITCH_STEPS=3105` | `.opencode/modal_track3-simple-locom-3040-reon2800-pr2873105-h100-seed3401-20260601200114.launch.log` |
+
+Launch verification:
+
+- `modal app list` showed `ap-oJt8hUqjcUqyJINytpVyPR` alive as a detached app with one task.
+- Remote logs confirmed `track3_trial_seed=3401`, all 12 LocoProp MLP `fc` layers owned, finite `10.82580 @0`, and nonzero capped corrections at step `2`.
+- The decisive verification points are now:
+  - no `locoprop_m_apply` at/after `1600` until the re-on point,
+  - `locoprop_m_apply step=2800`,
+  - compare `2800/2875/3000/3040` against the no-reon 3040 probe and the old 3100 lead.
+
+Concurrent no-reon 3040 probe status:
+
+- `ap-UFX7iAhRQvOQ5NmqWCkWlc`, seed `3400`, same 3040/3105 schedule but only `TRACK3_LOCOM_END_STEP=1600`, reached `4.11290 @250` with normal early LocoProp corrections.
+
+Skylight/update-clamp plus LocoProp-M recap:
+
+- This was the NorMuon/update-clamp substrate test using `records/track_3_optimization/results/20260501_skylight001/f78af80a-2ba3-4cf7-b9f7-e6e56ff2c54d.txt`.
+- It was promising only at the first two gates:
+  - 3100 linear: `4.63381 @125`, `4.09934 @250`.
+  - 3100 power0.5: `4.63269 @125`, `4.09424 @250`.
+  - Both beat the published #9 reference at those early gates.
+- It faded by step `500`:
+  - 3100 linear: `3.84158 @500`.
+  - 3100 power0.5: `3.84584 @500`.
+  - Simple conditional comparison was `3.82259 @500`.
+- The 3000 Skylight fanout also faded by `500`, so all Skylight/update-clamp + LocoProp-M lanes were stopped. Current read: do not allocate the next runs to this composition unless we first find a schedule or active-window reason it should differ materially.
+
+## 2026-06-02 Seed2900 Step-2500 Checkpoint Replays
+
+User clarification: "the good lead seed" here means the recent best-performing seed from this round, not the older seed400 full-LocoProp run. The target trajectory is:
+
+- seed `2900`,
+- simple Track 3 source,
+- LocoProp-M active only until step `1600`,
+- PR287-style schedule after step `1600`,
+- `TRACK3_LR_AFTER_SWITCH_POWER=1.2`,
+- `TRACK3_LR_AFTER_SWITCH_STEPS=3065`.
+
+Two mistaken seed400 checkpoint attempts were launched first and immediately stopped:
+
+| Mistaken run | App | Function call | State |
+| --- | --- | --- | --- |
+| seed400 3100 checkpoint-at-2500 | `ap-kviZs5MiYPu6icSOdYSL69` | `fc-01KT2CK2ZTNG593CEYAVCAHG1D` | stopped after remote logs confirmed seed400 |
+| seed400 3000 checkpoint-at-2500 | `ap-kWVq7yVtJ9cjET31v9j9ae` | `fc-01KT2CK2TEP7AXHTPHMYT672TM` | stopped after remote logs confirmed seed400 |
+
+Launched the corrected seed2900 checkpoint replays:
+
+| Schedule | App | Function call | Setting | Expected checkpoint | Launch log |
+| --- | --- | --- | --- | --- | --- |
+| 3100 | `ap-82jZGAorIouGJ2H084NIT8` | `fc-01KT2CNWK03RHEHNG8XN5CBPS7` | `TRACK3_TRAIN_STEPS=3100`, `TRACK3_SEED_OFFSET=2900`, `TRACK3_LOCOM_END_STEP=1600`, `TRACK3_LR_SWITCH_STEP=1600`, `TRACK3_LR_AFTER_SWITCH=pr287`, `TRACK3_LR_AFTER_SWITCH_POWER=1.2`, `TRACK3_LR_AFTER_SWITCH_STEPS=3065`, `TRACK3_CHECKPOINT_STEPS=2500`, `TRACK3_CHECKPOINT_EXIT_AFTER=1`, `TRACK3_TARGET_LOSS=0` | `/root/.cache/track3_checkpoints/modal3100_nolate1600_pr287_locom_seed2900_step2500.pt` | `.opencode/modal_track3-simple-locom-3100-nolate1600-pr287-ckpt2500-h100-seed2900-20260601200540.launch.log` |
+| 3000 | `ap-aMJg05trVXsT8rfFsRkQne` | `fc-01KT2CNWJQ30TPFF3WAKZNF6FF` | same, but `TRACK3_TRAIN_STEPS=3000` and checkpoint prefix `modal3000_nolate1600_pr287_locom` | `/root/.cache/track3_checkpoints/modal3000_nolate1600_pr287_locom_seed2900_step2500.pt` | `.opencode/modal_track3-simple-locom-3000-nolate1600-pr287-ckpt2500-h100-seed2900-20260601200540.launch.log` |
+
+Launch verification:
+
+- `modal app list` showed both corrected apps alive as detached apps with one task each.
+- Remote logs for both corrected apps confirmed `track3_trial_seed=2900`, generated train steps `3100` / `3000`, and all 12 LocoProp MLP `fc` layers owned.
+- Next verification: wait for `track3_checkpoint_saved step:2500` in each app, then verify the two checkpoint files are present in Modal volume `nanogpt-speedrun-cache`.
