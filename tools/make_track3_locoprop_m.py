@@ -74,6 +74,9 @@ TRACK3_CHECKPOINT_STEPS = {
 TRACK3_CHECKPOINT_DIR = os.environ.get("TRACK3_CHECKPOINT_DIR", "")
 TRACK3_CHECKPOINT_PREFIX = os.environ.get("TRACK3_CHECKPOINT_PREFIX", "track3_locom")
 TRACK3_CHECKPOINT_EXIT_AFTER = _env_flag("TRACK3_CHECKPOINT_EXIT_AFTER", "0")
+TRACK3_RESUME_CHECKPOINT = os.environ.get("TRACK3_RESUME_CHECKPOINT", "")
+TRACK3_RESUME_ADVANCE_DATA = _env_flag("TRACK3_RESUME_ADVANCE_DATA", "1")
+TRACK3_RESUME_RESTORE_RNG = _env_flag("TRACK3_RESUME_RESTORE_RNG", "1")
 LOCO_M_LOG_STEPS = {
     int(x)
     for x in os.environ.get("TRACK3_LOCOM_LOG_STEPS", "0,1,2,10,50,125,250,500").split(",")
@@ -387,6 +390,32 @@ def maybe_save_track3_checkpoint(model: nn.Module, optimizers: list[torch.optim.
     if dist.is_initialized():
         dist.barrier()
     return TRACK3_CHECKPOINT_EXIT_AFTER
+
+@torch.no_grad()
+def maybe_load_track3_checkpoint(model: nn.Module, optimizers: list[torch.optim.Optimizer]) -> int:
+    if not TRACK3_RESUME_CHECKPOINT:
+        return 0
+    checkpoint = torch.load(TRACK3_RESUME_CHECKPOINT, map_location="cuda")
+    model.load_state_dict(checkpoint["model"], strict=True)
+    saved_optimizers = checkpoint.get("optimizers", [])
+    if len(saved_optimizers) != len(optimizers):
+        raise ValueError(
+            f"checkpoint has {len(saved_optimizers)} optimizer states, expected {len(optimizers)}"
+        )
+    for optimizer, optimizer_state in zip(optimizers, saved_optimizers):
+        optimizer.load_state_dict(optimizer_state)
+    if TRACK3_RESUME_RESTORE_RNG:
+        if "rng_cpu" in checkpoint:
+            torch.set_rng_state(checkpoint["rng_cpu"].cpu())
+        if "rng_cuda" in checkpoint:
+            torch.cuda.set_rng_state_all(checkpoint["rng_cuda"])
+    step = int(checkpoint["step"])
+    print0(
+        f"track3_checkpoint_loaded path:{TRACK3_RESUME_CHECKPOINT} step:{step} "
+        f"seed:{checkpoint.get('seed')} val_loss:{checkpoint.get('val_loss')}",
+        console=True,
+    )
+    return step
 '''
 
 
@@ -583,7 +612,7 @@ def muon_update(grad, momentum, mu=0.95, nesterov=True):
         text,
         'print0(f"Running PyTorch {torch.version.__version__} compiled for CUDA {torch.version.cuda}"',
         f'print0("Track3 LocoProp-M generated run: source={source_label} train_steps={train_steps}")\n'
-        'print0(f"LocoM enabled={LOCO_M_ENABLED} layers={LOCO_M_LAYERS_SPEC} steps={LOCO_M_LOCAL_STEPS} sample_tokens={LOCO_M_SAMPLE_TOKENS} gather={LOCO_M_GATHER_SAMPLES} accum={LOCO_M_ACCUM_SAMPLES} micro_sample_tokens={LOCO_M_MICRO_SAMPLE_TOKENS} local_opt={LOCO_M_LOCAL_OPT} lr_decay={LOCO_M_LOCAL_LR_DECAY} rms_beta1={LOCO_M_RMS_BETA1} rms_beta2={LOCO_M_RMS_BETA2} rms_eps={LOCO_M_RMS_EPS} inner_lr={LOCO_M_INNER_LR} target_gamma={LOCO_M_TARGET_GAMMA} prox={LOCO_M_PROX} alpha={LOCO_M_ALPHA} norm_to_base={LOCO_M_NORM_TO_BASE} norm_cap={LOCO_M_NORM_CAP} start_step={LOCO_M_START_STEP} end_step={LOCO_M_END_STEP} interval={LOCO_M_INTERVAL} target_loss={TRACK3_TARGET_LOSS} seed_base={TRACK3_SEED_BASE} seed_offset={TRACK3_SEED_OFFSET} cooldown_frac={TRACK3_COOLDOWN_FRAC} lr_schedule={TRACK3_LR_SCHEDULE} lr_power={TRACK3_LR_POWER} soft_muon={TRACK3_SOFT_MUON} soft_blend={TRACK3_SOFT_MUON_BLEND} soft_norm_restore={TRACK3_SOFT_MUON_NORM_RESTORE}")\n'
+        'print0(f"LocoM enabled={LOCO_M_ENABLED} layers={LOCO_M_LAYERS_SPEC} steps={LOCO_M_LOCAL_STEPS} sample_tokens={LOCO_M_SAMPLE_TOKENS} gather={LOCO_M_GATHER_SAMPLES} accum={LOCO_M_ACCUM_SAMPLES} micro_sample_tokens={LOCO_M_MICRO_SAMPLE_TOKENS} local_opt={LOCO_M_LOCAL_OPT} lr_decay={LOCO_M_LOCAL_LR_DECAY} rms_beta1={LOCO_M_RMS_BETA1} rms_beta2={LOCO_M_RMS_BETA2} rms_eps={LOCO_M_RMS_EPS} inner_lr={LOCO_M_INNER_LR} target_gamma={LOCO_M_TARGET_GAMMA} prox={LOCO_M_PROX} alpha={LOCO_M_ALPHA} norm_to_base={LOCO_M_NORM_TO_BASE} norm_cap={LOCO_M_NORM_CAP} start_step={LOCO_M_START_STEP} end_step={LOCO_M_END_STEP} interval={LOCO_M_INTERVAL} target_loss={TRACK3_TARGET_LOSS} seed_base={TRACK3_SEED_BASE} seed_offset={TRACK3_SEED_OFFSET} cooldown_frac={TRACK3_COOLDOWN_FRAC} lr_schedule={TRACK3_LR_SCHEDULE} lr_power={TRACK3_LR_POWER} soft_muon={TRACK3_SOFT_MUON} soft_blend={TRACK3_SOFT_MUON_BLEND} soft_norm_restore={TRACK3_SOFT_MUON_NORM_RESTORE} resume_checkpoint={TRACK3_RESUME_CHECKPOINT}")\n'
         'print0(f"Running PyTorch {torch.version.__version__} compiled for CUDA {torch.version.cuda}"',
     )
     text = replace_exact(
@@ -652,6 +681,26 @@ def muon_update(grad, momentum, mu=0.95, nesterov=True):
             "val_regular_interval = 125\n",
             "val_regular_interval = int(os.environ.get(\"SCREEN_VAL_EVERY\", \"125\"))\n",
         )
+    text = replace_exact(
+        text,
+        "    train_loader = distributed_data_generator(\"data/fineweb10B/fineweb_train_*.bin\", batch_size)\n",
+        "    train_loader = distributed_data_generator(\"data/fineweb10B/fineweb_train_*.bin\", batch_size)\n"
+        "    start_step = maybe_load_track3_checkpoint(model, optimizers)\n"
+        "    if start_step > 0 and TRACK3_RESUME_ADVANCE_DATA:\n"
+        "        for _ in range(start_step):\n"
+        "            next(train_loader)\n"
+        "        print0(f\"track3_resume_advanced_data steps:{start_step}\", console=True)\n",
+    )
+    text = replace_exact(
+        text,
+        "    last_val_step = 0\n",
+        "    last_val_step = start_step\n",
+    )
+    text = replace_exact(
+        text,
+        "    for step in range(train_steps + 1):\n",
+        "    for step in range(start_step, train_steps + 1):\n",
+    )
     target_inserted = False
     for indent in ("            ", "        "):
         old = f"{indent}model.train()\n{indent}# start the clock again\n"
