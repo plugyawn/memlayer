@@ -1127,3 +1127,21 @@ Next gates:
 
 - Stop either Skylight lane early if the step-125/250 band is clearly bad relative to #9 and the simple LocoProp reference.
 - If either Skylight lane remains healthy into the mid-run and fixes the late taper, promote to a 3000/3030 schedule before starting n=8.
+
+Follow-up after 125/250 gates:
+
+- Existing simple no-late1600/PR2871600 lane: `4.64611 @125`, `4.11183 @250`, `3.92924 @375`, `3.82259 @500`.
+- Skylight/update-clamp + LocoProp-M linear 3100: `4.63381 @125`, `4.09934 @250`. This is materially ahead of both published #9 (`4.65573 @125`, `4.11008 @250`) and the simple-current lane at the same steps.
+- Skylight/update-clamp + LocoProp-M power0.5 3100: `4.63269 @125`, `4.09424 @250`. This is the strongest early lane so far.
+
+Because both better-base lanes cleared the 250 gate, launched matching 3000 schedules:
+
+| Variant | App | Function call | Setting | Launch log |
+| --- | --- | --- | --- | --- |
+| Skylight/update-clamp + LocoProp-M 3000 linear | `ap-iJqNtIaMH3U3og8enGykdS` | `fc-01KT21NNWWSFFE3FR15M901KSW` | `TRACK3_TRAIN_STEPS=3000`, seed `3003`, linear LR, LocoProp-M SGD `K=4`, cap `0.20` | `.opencode/modal_track3-skylight-locom-3000-linear-h100-seed3003-20260601165232.launch.log` |
+| Skylight/update-clamp + LocoProp-M 3000 power0.5 | `ap-JyuQA5cyxmoa1ikZ0V1Db1` | `fc-01KT21QT8Q583TM48J88T0CNVP` | `TRACK3_TRAIN_STEPS=3000`, seed `3004`, `TRACK3_LR_SCHEDULE=power`, `TRACK3_LR_POWER=0.5`, LocoProp-M SGD `K=4`, cap `0.20` | `.opencode/modal_track3-skylight-locom-3000-power05-h100-seed3004-20260601165428.launch.log` |
+
+Next decision gates:
+
+- Keep the 3100 Skylight lanes through at least `500`; if they keep the advantage, monitor to cooldown and final taper.
+- Check 3000 lanes at `125/250`; if they match the 3100 early advantage, continue them and consider additional seeds only after mid-run evidence, not just the first 250 steps.
