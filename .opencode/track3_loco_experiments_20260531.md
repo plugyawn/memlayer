@@ -982,3 +982,16 @@ Because no-LocoProp-after-2400 was close to the active-LocoProp lanes and avoids
   - `ap-dqkxpnQ5w54UhjBDWmwbvF` (`3000 PR287 no-LocoProp post2400`): `3.34847 @2525`.
   - `ap-2rie7tf5m8Dd90XGk6h90U` (`3000 linear floor0.04 no-LocoProp post2400 retry`): loaded at `3.37491 @2400`, waiting for post-resume validations.
   - `ap-DRieR7b1nuvh9QeZzA91P3` (`3100 cap-window full run`): `3.63504 @1000`.
+
+Final/cleanup pass for this suffix family:
+
+- The saved step-2800 checkpoint is present in Modal volume `nanogpt-speedrun-cache` at `track3_checkpoints/modal3100_locom_seed400_step2800.pt`; its validation loss was `3.320429563522339 @2800`.
+- Direct continuation from the matched step-2400 checkpoint improved beyond the step-2800 checkpoint but did not hit target: `ap-dFrT1wOrSJtpVNdU6fhvtS` finished at `3.29214 @3100` (`3.29818 @3000`).
+- Best 3000-deadline active-LocoProp suffixes also missed target:
+  - `ap-BoBw1WtxypXNBUxBdY7XsO` (`fid3000-linear-cap020`): `3.29752 @3000`.
+  - `ap-71kmMnKYH9SkULGzSRIjBq` (`s3000-pr2873065-cap020`): `3.29683 @3000`.
+  - `ap-Ud1Jbwluq0wrdNV2HStcVW` (`s3000-pr2873065-cap040`): `3.29711 @3000`.
+- Late cap window did not rescue the run: `ap-EY4AwEODxLRRStI4t4IN60` reached only `3.30167 @2925` before cleanup.
+- No-LocoProp-after-2400 controls were behind the active suffixes: `ap-4au2IK8zcJNStwy4edfPwt` reached `3.30796 @2850`; `ap-dqkxpnQ5w54UhjBDWmwbvF` reached `3.32588 @2675`; `ap-2rie7tf5m8Dd90XGk6h90U` reached `3.34701 @2550`.
+- Cleanup: stopped the remaining owned Track 3 suffix/full-run apps after they were no longer candidates for `3.28 <=3000/3100`: `ap-DRieR7b1nuvh9QeZzA91P3`, `ap-4au2IK8zcJNStwy4edfPwt`, `ap-Ud1Jbwluq0wrdNV2HStcVW`, `ap-EY4AwEODxLRRStI4t4IN60`, `ap-dqkxpnQ5w54UhjBDWmwbvF`, and `ap-2rie7tf5m8Dd90XGk6h90U`; `ap-71kmMnKYH9SkULGzSRIjBq`, `ap-BoBw1WtxypXNBUxBdY7XsO`, and `ap-dFrT1wOrSJtpVNdU6fhvtS` had already stopped. Did not touch unrelated `dw-pr` Modal apps.
+- Decision: no n=8 fanout. This family beat the saved 2800 checkpoint loss but missed the PR confirmation target by roughly `0.012` at 3100 and `0.017` at 3000.
