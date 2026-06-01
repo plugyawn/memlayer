@@ -1507,3 +1507,68 @@ Sixth live poll update, 2026-06-02 03:03 IST:
   - `track3_checkpoints/modal3100_locom_seed400_step2400.pt`
   - `track3_checkpoints/modal3100_locom_seed400_step2800.pt`
 - Decision: no fanout yet. The current lanes are healthy but not materially ahead enough to launch n=8 below-3000. Keep monitoring for the 3000 replay's `1500/1625` gates and for seed2900 step-2500 checkpoint files.
+
+Seventh live poll and fanout update, 2026-06-02 03:21 IST:
+
+- The 3000 seed2900 checkpoint replay produced the first persistence gate strong enough to promote:
+  - 3000 replay `ap-aMJg05trVXsT8rfFsRkQne`: `3.51147 @1500`.
+  - Old seed2900 lead at `1500`: `3.51805`.
+  - Delta: replay is better by `0.00658`.
+- The same poll showed:
+  - 3100 seed2900 checkpoint replay: `3.51599 @1500`, better than old lead by `0.00206`, but weaker than the 3000 replay.
+  - 3040/re-on-at-2800 seed3401: `3.51455 @1500`, better than old lead by `0.00350`; its actual re-on-at-2800 hypothesis is not tested until late.
+  - 3040/no-reon seed3400: `3.45426 @1875`; old lead was `3.44775 @1875`, so this lane was worse by `0.00651`.
+- Decision: launch the full below-3000 confirmation wave. Important: the promising seed2900 3000 lane is a checkpoint replay with `TRACK3_CHECKPOINT_EXIT_AFTER=1`, so it will exit at step `2500` and cannot itself count as a full 3000 confirmation run.
+
+Full 3000-step confirmation wave:
+
+Common setting for all full confirmation seeds:
+
+```text
+TRACK3_TRAIN_STEPS=3000
+TRACK3_LOCOM_END_STEP=1600
+TRACK3_LR_SWITCH_STEP=1600
+TRACK3_LR_AFTER_SWITCH=pr287
+TRACK3_LR_AFTER_SWITCH_POWER=1.2
+TRACK3_LR_AFTER_SWITCH_STEPS=3065
+TRACK3_TARGET_LOSS=3.28
+SCREEN_VAL_EVERY=25
+NANOGPT_MODAL_GPU=H100
+```
+
+Confirmed active full 3000 lanes:
+
+| Seed | App | Function call | Launch log |
+| --- | --- | --- | --- |
+| 3500 | `ap-j32hnOwCnt9M9uKKB72dlP` | `fc-01KT2J912RMQ26CEMWT4ZSJ8HY` | `.opencode/modal_track3-simple-locom-3000-nolate1600-pr2873065-full-h100-seed3500-20260601214329.launch.log` |
+| 3501 | `ap-NmxP7sV2WOjKj5hkG6t9A2` | `fc-01KT2J9QCTV14WG4MX7AM3ZYYS` | `.opencode/modal_track3-simple-locom-3000-nolate1600-pr2873065-full-h100-seed3501-20260601214329.launch.log` |
+| 3502 | `ap-GtJaJUQEKBK10mRwU2Fsws` | `fc-01KT2JADANTMMBWQCHM3G9JNZJ` | `.opencode/modal_track3-simple-locom-3000-nolate1600-pr2873065-full-h100-seed3502-20260601214329.launch.log` |
+| 3503 | `ap-muw1RIwCDZ6Zs12YqyCv97` | `fc-01KT2JB4P7NNEHD512KBAWDXWS` | `.opencode/modal_track3-simple-locom-3000-nolate1600-pr2873065-full-h100-seed3503-20260601214329.launch.log` |
+| 3504 | `ap-yFayRAOAoYZYIhZJtCuJDx` | `fc-01KT2JBVGVQSD85YXTER7FCFTM` | `.opencode/modal_track3-simple-locom-3000-nolate1600-pr2873065-full-h100-seed3504-20260601214329.launch.log` |
+| 3505 | `ap-oUdImgIQ5ybJoA00wfgcHN` | `fc-01KT2JCJZ4DB9DT6CGQVFNWXQ4` | `.opencode/modal_track3-simple-locom-3000-nolate1600-pr2873065-full-h100-seed3505-20260601214329.launch.log` |
+| 3508 | `ap-8hxb2L2CCcwndbsz2kdhcX` | `fc-01KT2JH4PY49SR0752K8YXATDW` | `.opencode/modal_track3-simple-locom-3000-nolate1600-pr2873065-full-h100-seed3508-20260601214756.launch.log` |
+| 3509 | `ap-uJtJvlUqQjK0e6S198WFhq` | `fc-01KT2JHVDV4MHZ8PZA1W5VQJSV` | `.opencode/modal_track3-simple-locom-3000-nolate1600-pr2873065-full-h100-seed3509-20260601214756.launch.log` |
+
+Verification:
+
+- `modal app list` showed all eight full confirmation apps alive as detached apps with one task each.
+- Logs confirmed seed IDs and finite `step:0/3000 val_loss:10.82580` for all eight full confirmation lanes.
+- Modal appears effectively capped at ten live H100 tasks in this account/session. The first launch wave started six full lanes, while seed `3506` (`ap-ugRDej21Ml4vdugWDHuMPQ`) and seed `3507` (`ap-EMYwrk3lfa8FgHWphcjOv5`) came up as zero-task app shells.
+- After stopping two lower-priority diagnostic/checkpoint lanes, replacement seed apps `3508` and `3509` attached workers and became the seventh/eighth full confirmation lanes.
+
+Stopped to free Modal H100 task slots:
+
+- `ap-UFX7iAhRQvOQ5NmqWCkWlc`: 3040/no-reon seed3400. Stopped after it was behind the old lead at both `1750` and `1875`.
+- `ap-82jZGAorIouGJ2H084NIT8`: 3100 seed2900 checkpoint replay. Stopped because the 3000 replay is the relevant below-3000 path and the active task slots were needed for n=8 full confirmation.
+- Zero-task failed shells stopped for cleanliness: `ap-ugRDej21Ml4vdugWDHuMPQ`, `ap-EMYwrk3lfa8FgHWphcjOv5`, `ap-151e6LrITcWoC2WEdOG3Ka`, `ap-KtoeNBPtciTSjbxUkNOeVe`.
+
+Still active besides the eight full confirmation lanes:
+
+- `ap-oJt8hUqjcUqyJINytpVyPR`: 3040/re-on-at-2800 seed3401, one task.
+- `ap-aMJg05trVXsT8rfFsRkQne`: 3000 seed2900 checkpoint replay, one task; expected to save/exit at step `2500`.
+
+Next gates:
+
+- Full confirmation wave: first screens at `25/50/.../125`; compare early distribution against the seed2900 lead but do not overreact until at least `500/750`.
+- Active seed2900 3000 checkpoint replay: wait for `1625`, then `2500` checkpoint save and volume verification.
+- Re-on lane: verify no `locoprop_m_apply` from `1600` to `2799`, then verify `locoprop_m_apply step=2800` and compare `2800+` against old lead and the full confirmation wave.
