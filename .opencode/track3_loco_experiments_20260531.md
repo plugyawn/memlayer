@@ -695,3 +695,16 @@ Update after the next poll:
 - Stopped `ap-xKEhewuPirnhyhepFuBAqn` (seed1600) with `modal app stop -y`; last completed validation was `3.45936 @1875`, final tail terminated around step `1980`.
 - Stopped `ap-Pa4SuttnZdY9vCG8r6q20I` (seed1700) with `modal app stop -y`; last completed validation was `3.46110 @1875`, final tail terminated around step `1964`.
 - Read: the later 3250 replicas were not reproducing the large original 3100 hot curve, so they are not worth paying to finish under the current n=8-below-3000 objective.
+
+## 2026-06-01 Remaining Lane Refresh
+
+Active Modal Track 3 apps after stopping PR287/seed1600/seed1700:
+
+- `ap-bZt9QGoCCHUKXrMwvsB5Se`: 3250 seed500 still active, latest `3.30366 @3025`. This is ahead of the Prime 3350 mean but still behind original 3100 seed400 by about `0.00921` at matched step `3025` (`3.29445` vs `3.30366`).
+- `ap-eIPcDkgAqaJf8OjnBkZ7DW`: 3000 cooldown-frac-0.5 seed1800 still active, latest `3.55969 @1500`; behind the Prime mean `3.52689 @1500`, so not a fanout candidate.
+- `ap-sgmLmoef9czMVD4rzk82xK`: 3000 naive power05 seed1900 still active, latest `3.56142 @1375`; roughly `+0.00697` worse than Prime mean at `1375`, so not a fanout candidate.
+- `ap-F3KIzgPAIMjbomKRzGjiex`: 3100 seed400 checkpoint replay still active, latest `3.63443 @1000`; no checkpoint artifact yet.
+
+Modal volume check: root of `nanogpt-speedrun-cache` does not yet show `track3_checkpoints`, which is expected because the replay has not reached step `2800`.
+
+Action: hold launches. No current 3000 lane has the strength needed to justify n=8 fanout. Let seed500 finish for a clean endpoint and keep waiting for the step-2800 checkpoint replay.
