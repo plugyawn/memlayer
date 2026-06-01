@@ -1641,3 +1641,35 @@ Ninth live poll update, 2026-06-02 04:26 IST:
   - The original 3000 checkpoint replay and the n=8 fanout both look like parity/noise, not a clean below-3000 PR signal.
   - Keep the exact resume to 3000, because it directly answers the seed2900 finish from the saved checkpoint.
   - Keep the n=8 fanout to `1000` unless it clearly falls behind; if it remains parity/slightly worse at `1000`, start pruning and use freed slots for suffix variants from the checkpoint.
+
+Tenth live poll update, 2026-06-02 04:43 IST:
+
+- Pruned one bad hardware/throughput lane:
+  - `ap-yFayRAOAoYZYIhZJtCuJDx` / seed3504 was stopped with `modal app stop --yes`.
+  - Reason: it was both weak and very slow. It had only reached `3.82594 @500` while running around `7078ms/step`, and logs emitted a DCGM warning (`temp_c=90 (> 89C)`).
+  - This leaves seven useful full 3000 confirmation lanes active for the moment: seeds `3500,3501,3502,3503,3505,3508,3509`.
+- Full 3000 fanout around the `1000-1125` gate:
+  - seed3500: `3.63450 @1000`, `3.60354 @1125`; delta vs old lead at `1125` is `-0.00058`.
+  - seed3501: `3.63186 @1000`, `3.60239 @1125`; delta vs old lead at `1125` is `-0.00173`.
+  - seed3502: `3.63077 @1000`, `3.60465 @1125`; delta vs old lead at `1125` is `+0.00053`.
+  - seed3503: `3.63341 @1000`, `3.60570 @1125`; delta vs old lead at `1125` is `+0.00158`.
+  - seed3505: `3.63312 @1000`, `3.60014 @1125`; delta vs old lead at `1125` is `-0.00398`.
+  - seed3508: `3.62833 @1000`; delta vs old lead at `1000` is `-0.00528`.
+  - seed3509: `3.63359 @1000`; delta vs old lead at `1000` is `-0.00002`.
+  - Read: still live/encouraging enough to continue, but this is not yet a broad below-3000 signal. Wait for `1250/1500`.
+- Late diagnostics:
+  - 3040 re-on-at-2800 lane `ap-oJt8hUqjcUqyJINytpVyPR` reached `3.29843 @2950` and `3.29674 @2975`.
+  - Relative to the old lead, those are `+0.00218` at `2950` and `+0.00186` at `2975`. It improved its relative slope after re-on but remains behind, so it is unlikely to be the 3030 fix by itself.
+  - Exact checkpoint resume `ap-JEcaEpGSkzOEhSWKb2w1Az` reached `3.32224 @2675` and `3.31980 @2700`, matching the old seed2900 trajectory closely.
+- Suffix experiment from the seed2900 step-2500 checkpoint:
+  - First attempt `ap-hBQPEKyThRiHbDmqtA3bSF` failed immediately because `TRACK3_RESUME_CHECKPOINT` was passed as the Modal-volume-relative path `track3_checkpoints/modal3000_nolate1600_pr287_locom_seed2900_step2500.pt`.
+  - The training code resolves the path inside the container, so it needs the mounted absolute path `/root/.cache/track3_checkpoints/modal3000_nolate1600_pr287_locom_seed2900_step2500.pt`.
+  - Corrected suffix app: `ap-BCrV8VVvIMHYXPAJL8XvDC`; function call `fc-01KT2Q7AJN0GZMFWHRAKYH0GA5`; active container `ta-01KT2Q82JAMTH7F5C5QG46CYN4`.
+  - Setting: resume seed2900 from step `2500`, `TRACK3_TRAIN_STEPS=3030`, `TRACK3_LR_SCHEDULE=power`, `TRACK3_LR_POWER=0.50`, `TRACK3_LOCOM_END_STEP=1000000000`, `TRACK3_LOCOM_NORM_CAP=0.20`, `SCREEN_VAL_EVERY=25`.
+  - Verification: logs show `track3_checkpoint_loaded path:/root/.cache/track3_checkpoints/modal3000_nolate1600_pr287_locom_seed2900_step2500.pt step:2500 seed:2900 val_loss:3.346419095993042` and `track3_resume_advanced_data steps:2500`.
+  - First active LocoProp log at `2500` shows a much larger late base step (`base_step` about `0.97`) than the cold exact replay tail, so this directly tests whether warmer late LR plus active LocoProp fixes the slope collapse.
+- Current decision:
+  - Keep the seven useful full 3000 lanes alive through at least `1250/1500`.
+  - Keep the exact resume through `3000`.
+  - Keep the 3040 re-on lane through finish because it is close to done and gives a clean late-window read.
+  - Monitor the corrected `3030/power0.50/cap0.20` suffix aggressively; if it is promising by `2750/2800`, launch the next suffix lane when a slot opens.
