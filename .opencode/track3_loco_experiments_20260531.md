@@ -451,10 +451,22 @@ Read: this is the clean long Modal lane requested after the Prime runs showed sc
 - Source: simple Track 3 base, `records/track_3_optimization/train_gpt_simple.py`.
 - Setting: 1x H100, one trial, `TRACK3_TRAIN_STEPS=3100`, `TRACK3_TARGET_LOSS=3.28`, `TRACK3_MBS=16`, `K=4`, `sample_tokens=1024`, all MLP `fc` surfaces, cap `0.20`.
 - Seed: `400` via `TRACK3_SEED_BASE=0`, `TRACK3_SEED_OFFSET=400`.
-- Status: active detached Modal run. Verified from Modal logs: generated `/tmp/train_gpt_simple_locoprop_m_3100.py`, `steps=3100`, `mbs=16`, `track3_trial_seed=400`, owned layers `[0..11]`, step 0 validation finite at `10.82580`; latest validation reached step `2625/3100`, loss `3.34224`, with train step average near `3.66s/step`.
+- Status: completed. Verified from Modal logs: generated `/tmp/train_gpt_simple_locoprop_m_3100.py`, `steps=3100`, `mbs=16`, `track3_trial_seed=400`, owned layers `[0..11]`, step 0 validation finite at `10.82580`; final validation reached step `3100/3100`, loss `3.29066`, with train step average near `3.60s/step` on validation and `3.67s/step` in the train loop. `modal app list` confirmed the app was `stopped` with zero tasks.
 - Local launch log: `.opencode/modal_track3-simple-locom-3100-h100-r1-20260601.launch.log`.
 
-Read: this is the direct 3100-step schedule variant requested after the 3350-step Prime lanes showed a slow late-cooldown slope. LocoProp-M is active from step 0 with the same K4/cap0.20 settings as the Prime lanes. At step `2000`, it is ahead of the completed Prime 3350-step seed-200/seed-300 mean (`3.44638`) by about `0.01335`. At step `2250`, it is ahead of the same Prime mean (`3.41077`) by about `0.01573`. At step `2625`, it is ahead of the same Prime mean (`3.36076`) by about `0.01851`.
+Read: this is the direct 3100-step schedule variant requested after the 3350-step Prime lanes showed a slow late-cooldown slope. LocoProp-M is active from step 0 with the same K4/cap0.20 settings as the Prime lanes. At step `2000`, it is ahead of the completed Prime 3350-step seed-200/seed-300 mean (`3.44638`) by about `0.01335`. At step `2250`, it is ahead of the same Prime mean (`3.41077`) by about `0.01573`. At step `2625`, it is ahead of the same Prime mean (`3.36076`) by about `0.01851`. It stayed ahead through step `3000` (`3.29672` versus Prime mean `3.31280`) but missed the `3.28` target at final step `3100` by `0.01066`.
+
+`track3-simple-locom-3250-h100-seed400-20260601`
+
+- Provider: Modal, H100.
+- App: `ap-CcmF6maCRp612wH0qElVyQ`; function call `fc-01KT0D339CHW4K2HND5D403N4A`.
+- Source: simple Track 3 base, `records/track_3_optimization/train_gpt_simple.py`.
+- Setting: 1x H100, one trial, `TRACK3_TRAIN_STEPS=3250`, `TRACK3_TARGET_LOSS=3.28`, `TRACK3_MBS=16`, `K=4`, `sample_tokens=1024`, all MLP `fc` surfaces, cap `0.20`.
+- Seed: `400` via `TRACK3_SEED_BASE=0`, `TRACK3_SEED_OFFSET=400`.
+- Status: active detached Modal run. Verified from Modal logs: generated `/tmp/train_gpt_simple_locoprop_m_3250.py`, `steps=3250`, `mbs=16`, `track3_trial_seed=400`, owned layers `[0..11]`, `sample_tokens=1024`.
+- Local launch log: `.opencode/modal_track3-simple-locom-3250-h100-seed400-20260601.launch.log`.
+
+Read: launched after the 3100 schedule missed target while staying materially ahead of the 3350-step Prime trajectory. The purpose is to test whether the same primitive needs roughly 3250 scheduled steps, rather than 3100, to cross `3.28`.
 
 `track3-simple-locom-3000-h100-r2-20260601`
 
