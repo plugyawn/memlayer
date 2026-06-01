@@ -1263,3 +1263,36 @@ Status after user asked what the current 3100 run is:
   - 3030 `ap-XbZFPuvUtrs8Ug3NKCL9Rp`: `3.75738 @625`, latest train step `649`.
 - 3100 replicas `3200-3203` were alive but had not hit first validation yet; latest train steps were roughly `102-114`.
 - Decision: keep waiting for replica `125/250/500` gates. Do not launch additional H100s before the replica batch produces real validation points.
+
+Replica first gate:
+
+| Seed | App | Latest | Val @125 |
+| ---: | --- | ---: | ---: |
+| `3200` | `ap-67AzRw0vPZsWuE9TWupFfS` | `176` | `4.64016` |
+| `3201` | `ap-cdEz3MSGQZs2V3nFTfFHRh` | `180` | `4.63922` |
+| `3202` | `ap-F2xU6KVgg2wA5yMPTIXzkU` | `175` | `4.63887` |
+| `3203` | `ap-vH5zZgiIoWiqvCPMSOsL1m` | `167` | `4.64363` |
+
+Read: all four replicas are in a tight normal band at `125`, so keep them to `250/500`. Still no final n=8 expansion until the batch clears stronger gates.
+
+Replica second gate and n=8 expansion:
+
+- Lead `ap-OEZ4y8NHM65HsYpn54m1hs`: `3.32907 @2625`, latest train step `2728`.
+- Compressed probes:
+  - 3000 `ap-QNwyCxb4P3PyxhCfUtvAYU`: `3.63195 @1000`, latest train step `1050`.
+  - 3030 `ap-XbZFPuvUtrs8Ug3NKCL9Rp`: `3.71212 @750`, latest train step `839`.
+- First replica batch at `250`:
+  - seed `3200`: `4.11099 @250`.
+  - seed `3201`: `4.10869 @250`.
+  - seed `3202`: `4.10772 @250`.
+  - seed `3203`: `4.11173 @250`.
+
+The first replica batch remains tight and normal through `250`. Because the lead seed is still strongly ahead late and the first replica batch is not showing early instability, launch the remaining three 3100 replicas needed to have `n=8` in flight.
+
+| Seed | App | Function call | Setting | Launch log |
+| ---: | --- | --- | --- | --- |
+| `3300` | `ap-TrGV7ckITWd9UNSZJkYjbM` | `fc-01KT29Q9M4CWV53P8YT7N07RBE` | `TRACK3_TRAIN_STEPS=3100`, `TRACK3_LOCOM_END_STEP=1600`, `TRACK3_LR_SWITCH_STEP=1600`, `TRACK3_LR_AFTER_SWITCH=pr287`, `TRACK3_LR_AFTER_SWITCH_POWER=1.2`, `TRACK3_LR_AFTER_SWITCH_STEPS=3065` | `.opencode/modal_track3-simple-locom-3100-nolate1600-pr2871600-h100-seed3300-20260601191356.launch.log` |
+| `3301` | `ap-YaeWjvWuZJFynKErPXip71` | `fc-01KT29R2ST8HDKDAPXMN77TKF8` | same | `.opencode/modal_track3-simple-locom-3100-nolate1600-pr2871600-h100-seed3301-20260601191424.launch.log` |
+| `3302` | `ap-oVsGiCijivr3kzcFlziFdM` | `fc-01KT29RSWZ40W3S02XWH0R9M2A` | same | `.opencode/modal_track3-simple-locom-3100-nolate1600-pr2871600-h100-seed3302-20260601191450.launch.log` |
+
+Active owned Modal H100s after launch: ten tasks total: eight 3100 schedule seeds (`2900`, `3200-3203`, `3300-3302`) plus 3000/3030 probes (`3100`, `3101`). Next gate: first batch `500`, second batch `125/250`, and lead seed `2750/2875/3000`.
