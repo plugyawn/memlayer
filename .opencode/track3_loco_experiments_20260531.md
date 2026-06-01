@@ -1485,3 +1485,25 @@ Fifth live poll update:
 - Old lead seed2900 reference at `1250` was `3.57134`, so the 3000 replay is about `0.0032` better there while the 3100 replay is effectively identical.
 - Modal volume `nanogpt-speedrun-cache` still contains only the older seed400 checkpoint files; the seed2900 step-2500 checkpoints have not landed.
 - Decision: continue the four runs. The 3000 replay is modestly encouraging but still below the threshold for n=8 below-3000 fanout; wait for `1500/1625` and then the step-2500 checkpoint saves.
+
+Sixth live poll update, 2026-06-02 03:03 IST:
+
+- Modal app list still shows exactly the four intended active detached H100 jobs:
+  - `ap-UFX7iAhRQvOQ5NmqWCkWlc`: 3040/no-reon seed3400.
+  - `ap-oJt8hUqjcUqyJINytpVyPR`: 3040/re-on-at-2800 seed3401.
+  - `ap-82jZGAorIouGJ2H084NIT8`: 3100 seed2900 checkpoint replay.
+  - `ap-aMJg05trVXsT8rfFsRkQne`: 3000 seed2900 checkpoint replay.
+- Latest validation gates:
+  - 3040/no-reon seed3400: `3.47748 @1750`; old seed2900 lead was `3.47255 @1750`, so this is worse by `0.00493`.
+  - 3040/re-on-at-2800 seed3401: `3.54448 @1375`; old lead was `3.54476 @1375`, so this is effectively tied/slightly better by `0.00028`.
+  - 3100 seed2900 checkpoint replay: `3.54403 @1375`; old lead was `3.54476 @1375`, slightly better by `0.00073`.
+  - 3000 seed2900 checkpoint replay: latest validation remains `3.56812 @1250`; old lead was `3.57134 @1250`, better by `0.00322`, but the run has not yet produced the `1500/1625` persistence checks.
+- Raw tails show current progress around:
+  - 3040/no-reon: step `1768/3040`.
+  - 3040/re-on-at-2800: step `1435/3040`.
+  - 3100 replay: step `1375/3100`.
+  - 3000 replay: step `1353/3000`.
+- Modal volume still contains only the older seed400 checkpoints:
+  - `track3_checkpoints/modal3100_locom_seed400_step2400.pt`
+  - `track3_checkpoints/modal3100_locom_seed400_step2800.pt`
+- Decision: no fanout yet. The current lanes are healthy but not materially ahead enough to launch n=8 below-3000. Keep monitoring for the 3000 replay's `1500/1625` gates and for seed2900 step-2500 checkpoint files.
