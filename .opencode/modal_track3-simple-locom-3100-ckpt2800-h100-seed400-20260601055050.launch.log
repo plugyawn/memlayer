@@ -1,0 +1,14 @@
+app_id=ap-F3KIzgPAIMjbomKRzGjiex
+function_call_id=fc-01KT0VS9HS4V9K63A0ZP9F65MT
+dashboard_url=https://modal.com/id/fc-01KT0VS9HS4V9K63A0ZP9F65MT
+run_name=track3-simple-locom-3100-h100-seed400-20260601055050
+steps=3100
+seed_offset=400
+checkpoint_steps=2800
+checkpoint_dir=/root/.cache/track3_checkpoints
+checkpoint_prefix=modal3100_locom
+checkpoint_exit_after=1
+target_loss=0
+source=records/track_3_optimization/train_gpt_simple.py
+schedule=linear
+loco=sgd all layers steps4 sample1024 norm_cap0.20

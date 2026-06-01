@@ -627,3 +627,16 @@ Plot artifacts:
 - `.opencode/plots/track3_locom_seed_points.tsv` and `.opencode/plots/track3_locom_seed_summary.json`: parsed source data.
 
 Plot read: 3250 seed400 held a real mid/late advantage, but the slope softened after roughly step 3000 and it finished at `3.28369`, missing target by `0.00369`. The 3100 seed400 had a much larger lead versus Prime mean at step 3100 (`-0.00947`) but not enough runway. Seed500 recovered by 1000-1250 (`3.57726 @1250`, `-0.00413` vs Prime mean). Seed1600 is the strongest early 3250 lane so far (`4.62203 @125`, `4.10347 @250`), while seed1700 is decent but not exceptional (`4.64194 @125`, `4.11186 @250`).
+
+## 2026-06-01 Modal 3100 Seed400 Step-2800 Checkpoint Replay
+
+Purpose: materialize a resumable checkpoint at the strong point of the 3100-step Modal seed400 trajectory. The original run did not save model/optimizer state, so this replays the exact simple Track 3 base + LocoProp-M setup to step 2800 and exits immediately after checkpoint save.
+
+- App: `ap-F3KIzgPAIMjbomKRzGjiex`; function call `fc-01KT0VS9HS4V9K63A0ZP9F65MT`.
+- Setting: `TRACK3_TRAIN_STEPS=3100`, `TRACK3_SEED_OFFSET=400`, linear LR schedule, simple Track 3 source, `TRACK3_MBS=16`, LocoProp-M SGD all layers, `K=4`, `sample_tokens=1024`, `inner_lr=0.1`, `prox=0.1`, `norm_cap=0.20`.
+- Checkpoint controls: `TRACK3_CHECKPOINT_STEPS=2800`, `TRACK3_CHECKPOINT_DIR=/root/.cache/track3_checkpoints`, `TRACK3_CHECKPOINT_PREFIX=modal3100_locom`, `TRACK3_CHECKPOINT_EXIT_AFTER=1`, `TRACK3_TARGET_LOSS=0`.
+- Expected remote file: `/root/.cache/track3_checkpoints/modal3100_locom_seed400_step2800.pt` in Modal volume `nanogpt-speedrun-cache`.
+- Branch plumbing: `9243387` added checkpoint save; `3ac83bf` added resume loading and deterministic data-iterator advance.
+- Launch log: `.opencode/modal_track3-simple-locom-3100-ckpt2800-h100-seed400-20260601055050.launch.log`.
+
+Resume semantics: the payload saves `model.state_dict()`, both optimizer state dicts, CPU/CUDA RNG state, step, seed, validation loss, and LocoProp/schedule config. Resume uses `TRACK3_RESUME_CHECKPOINT=<path>` and advances the deterministic train loader by the saved step before entering `range(start_step, train_steps + 1)`.
