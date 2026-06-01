@@ -1145,3 +1145,22 @@ Next decision gates:
 
 - Keep the 3100 Skylight lanes through at least `500`; if they keep the advantage, monitor to cooldown and final taper.
 - Check 3000 lanes at `125/250`; if they match the 3100 early advantage, continue them and consider additional seeds only after mid-run evidence, not just the first 250 steps.
+
+Follow-up decisions:
+
+- Stopped the two 3100 Skylight lanes after their early advantage faded by step 500:
+  - `ap-E5pEDDsZLAx1VPP6SRcXI5` linear 3100: `4.63381 @125`, `4.09934 @250`, `3.93439 @375`, `3.84158 @500`.
+  - `ap-URsRlj7MQpd1CthhhB4286` power0.5 3100: `4.63269 @125`, `4.09424 @250`, `3.92877 @375`, `3.84584 @500`.
+  - Comparison lane `ap-OEZ4y8NHM65HsYpn54m1hs` simple no-late1600/PR2871600: `3.82259 @500`, so the Skylight/update-clamp composition was not competitive on the 3100 persistence read.
+- Kept the two 3000 Skylight probes because they cleared the 250 gate:
+  - `ap-iJqNtIaMH3U3og8enGykdS` 3000 linear: `4.59035 @125`, `4.08768 @250`.
+  - `ap-JyuQA5cyxmoa1ikZ0V1Db1` 3000 power0.5: `4.60784 @125`, `4.09095 @250`.
+- Because 3000 linear is the lead, launched three more 3000-linear seeds:
+
+| Seed | App | Function call | Launch log |
+| ---: | --- | --- | --- |
+| `3005` | `ap-Fabx46LTrIpepEMsJQT9j0` | `fc-01KT22V8TVHQV69REVG1107GC3` | `.opencode/modal_track3-skylight-locom-3000-linear-h100-seed3005-20260601171351.launch.log` |
+| `3006` | `ap-D4hTs8CYlcuvhPgElF9RSO` | `fc-01KT22VYX0E4W9C4J0H68JKK9M` | `.opencode/modal_track3-skylight-locom-3000-linear-h100-seed3006-20260601171414.launch.log` |
+| `3007` | `ap-RRhQ6HgNpP3Ojmm0DOo75e` | `fc-01KT22WMV9KT6CVSYGFPGK9ESD` | `.opencode/modal_track3-skylight-locom-3000-linear-h100-seed3007-20260601171437.launch.log` |
+
+Active owned H100 set after cleanup/fanout: simple conditional 3100 (`ap-OEZ4y8NHM65HsYpn54m1hs`), initial 3000 linear (`ap-iJqNtIaMH3U3og8enGykdS`), initial 3000 power0.5 (`ap-JyuQA5cyxmoa1ikZ0V1Db1`), and linear fanout seeds `3005-3007`.
