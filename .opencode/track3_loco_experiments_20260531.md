@@ -1605,3 +1605,39 @@ Eighth live poll update, 2026-06-02 03:35 IST:
   - Fast-subset `@250` is mildly encouraging: 4 of 5 reported seeds beat the old lead at `250`, with best seed3503 ahead by about `0.0072`.
   - This is not sufficient for PR confirmation because the exact seed2900 replay just faded from a `0.0066` lead at `1500` to parity by `1875`.
   - Next meaningful gates: wait for complete `@250`, then `@500/@750`; prune only if the distribution clearly falls behind.
+
+Ninth live poll update, 2026-06-02 04:26 IST:
+
+- The seed2900 3000 checkpoint replay landed the checkpoint:
+  - `3.34642 @2500`.
+  - Old seed2900 lead at `2500`: `3.34646`.
+  - Delta: `0.00004` better, effectively exact parity.
+  - Saved file verified in Modal volume: `track3_checkpoints/modal3000_nolate1600_pr287_locom_seed2900_step2500.pt`.
+- Launched exact continuation from that checkpoint:
+  - App: `ap-JEcaEpGSkzOEhSWKb2w1Az`.
+  - Function call: `fc-01KT2PCRFSBGE6QZEJG7VAABQB`.
+  - Launch log: `.opencode/modal_track3-resume2500-exact3000-nolate1600-pr2873065-seed2900-20260601225527.launch.log`.
+  - Setting: same 3000/no-late-LocoProp/PR287-after-1600 schedule, `TRACK3_RESUME_ADVANCE_DATA=1`, `TRACK3_RESUME_RESTORE_RNG=1`, `SCREEN_VAL_EVERY=25`.
+  - Verification: logs show `track3_checkpoint_loaded ... step:2500 seed:2900 val_loss:3.346419095993042` and `track3_resume_advanced_data steps:2500`.
+- Full n=8 confirmation wave is no longer showing a broad lead:
+  - At `500`, reported seeds were all behind old lead `3.82259`:
+    - seed3500 `3.83074`
+    - seed3501 `3.82585`
+    - seed3502 `3.82431`
+    - seed3503 `3.82543`
+    - seed3505 `3.82595`
+    - seed3508 `3.82703`
+    - seed3509 `3.83045`
+  - At `750`, mixed/near-parity:
+    - seed3500 `3.71505` vs old lead `3.71019`, worse by `0.00486`.
+    - seed3501 `3.71370`, worse by `0.00351`.
+    - seed3502 `3.70957`, better by `0.00062`.
+    - seed3503 `3.71105`, worse by `0.00086`.
+    - seed3505 `3.71454`, worse by `0.00435`.
+    - seed3508 `3.71028`, worse by `0.00009`.
+    - seed3509 `3.71326`, worse by `0.00307`.
+  - seed3504 is live but unusually slow, about `7078ms/step`, with latest raw tail around step `458`; do not use it for fast fanout decisions.
+- Read:
+  - The original 3000 checkpoint replay and the n=8 fanout both look like parity/noise, not a clean below-3000 PR signal.
+  - Keep the exact resume to 3000, because it directly answers the seed2900 finish from the saved checkpoint.
+  - Keep the n=8 fanout to `1000` unless it clearly falls behind; if it remains parity/slightly worse at `1000`, start pruning and use freed slots for suffix variants from the checkpoint.
