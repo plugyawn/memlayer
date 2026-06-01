@@ -708,3 +708,16 @@ Active Modal Track 3 apps after stopping PR287/seed1600/seed1700:
 Modal volume check: root of `nanogpt-speedrun-cache` does not yet show `track3_checkpoints`, which is expected because the replay has not reached step `2800`.
 
 Action: hold launches. No current 3000 lane has the strength needed to justify n=8 fanout. Let seed500 finish for a clean endpoint and keep waiting for the step-2800 checkpoint replay.
+
+## 2026-06-01 Follow-Up Refresh
+
+Active owned Modal apps remain `ap-bZt9QGoCCHUKXrMwvsB5Se`, `ap-eIPcDkgAqaJf8OjnBkZ7DW`, `ap-sgmLmoef9czMVD4rzk82xK`, and `ap-F3KIzgPAIMjbomKRzGjiex`. Unrelated active app `ap-pKCCaFOpuFBJ3mWcPMVW4G` is a `dw-pr` lane and was not touched.
+
+- `ap-bZt9QGoCCHUKXrMwvsB5Se`: 3250 seed500 reached `3.29109 @3150`. This still mirrors the 3250 late-miss profile: useful endpoint data, but not a 3000-step confirmation path.
+- `ap-eIPcDkgAqaJf8OjnBkZ7DW`: 3000 cooldown-frac-0.5 seed1800 reached `3.53635 @1625`; still weak versus the reference trajectory.
+- `ap-sgmLmoef9czMVD4rzk82xK`: 3000 naive power05 seed1900 reached `3.53560 @1500`; also weak versus the reference trajectory and not fanout-worthy.
+- `ap-F3KIzgPAIMjbomKRzGjiex`: 3100 seed400 checkpoint replay reached `3.60429 @1125`; still healthy, but not near the step-2800 checkpoint save yet.
+
+Modal volume check still shows no `track3_checkpoints` entry under `nanogpt-speedrun-cache`, expected at this point.
+
+Decision: no new launches. The only action with value is to let seed500 finish and keep the replay alive until the step-2800 checkpoint lands. The active 3000 lanes do not support an n=8 below-3000 fanout.
