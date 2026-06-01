@@ -887,3 +887,32 @@ Status refresh:
 - No `track3_checkpoint_saved` line yet; target checkpoint remains step `2400`.
 - Approximate ETA from step `1560` to checkpoint: 51-52 minutes at current cadence.
 - No `Traceback`, `Error`, `Exception`, or runner termination observed in the inspected log tail.
+
+Status refresh 2:
+
+- App still active: `ap-JFKJK9m9uwGDSU85IiidwP`.
+- Latest validation observed: `3.44637 @1920`.
+- Step average: about `3679.3ms/step`.
+- No `track3_checkpoint_saved` line yet; target checkpoint remains step `2400`.
+- Approximate ETA from step `1920` to checkpoint: about 30 minutes at current cadence.
+- No `Traceback`, `Error`, `Exception`, or runner termination observed in the inspected log tail.
+
+## 2026-06-01 LocoProp Norm-Cap Window Probe
+
+Added an env-driven cap-window knob for LocoProp-M:
+
+- Code commit: `785dcf3` (`Add Track 3 LocoProp norm cap windows`).
+- Env: `TRACK3_LOCOM_NORM_CAP_WINDOWS=start:end:value`, comma-separated for multiple windows.
+- Default behavior unchanged: if the env var is empty, the static `TRACK3_LOCOM_NORM_CAP` is used.
+- Apply diagnostics now log the effective `cap=...` beside `base_step`, `corr_norm`, and `scale`.
+
+Launched a separate H100 Modal run requested by the user, with the LocoProp norm cap rising from `0.20` to `0.40` for steps `1600-2400`:
+
+- App: `ap-DRieR7b1nuvh9QeZzA91P3`.
+- Function call: `fc-01KT1HGP66ER5C3GDBQRZW9ZA3`.
+- Run: `track3-simple-locom-3100-capwin040-1600-2400-h100-seed400-20260601121047`.
+- Setting: `TRACK3_TRAIN_STEPS=3100`, `TRACK3_SEED_OFFSET=400`, simple Track 3 source, `TRACK3_MBS=16`, LocoProp-M SGD all layers, `K=4`, `sample_tokens=1024`, `inner_lr=0.1`, `prox=0.1`, base `norm_cap=0.20`, `TRACK3_LOCOM_NORM_CAP_WINDOWS=1600:2400:0.40`.
+- Local launch log: `.opencode/modal_track3-simple-locom-3100-capwin040-1600-2400-h100-seed400-20260601121047.launch.log`.
+- Launch verification: app active/detached on H100; generated `/tmp/train_gpt_simple_locoprop_m_3100.py`, `track3_trial_seed=400`, all 12 LocoProp layers owned.
+- Early diagnostic verification: `locoprop_m_apply` at steps `0`, `1`, and `2` shows effective `cap=0.200`, as expected before the `1600-2400` window.
+- Next check: at step `1600`, verify `locoprop_m_apply step=1600` logs `cap=0.400`; compare validation against the original seed400 3100 trajectory and the checkpoint replay.
