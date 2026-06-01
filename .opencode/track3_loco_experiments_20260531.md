@@ -1164,3 +1164,16 @@ Follow-up decisions:
 | `3007` | `ap-RRhQ6HgNpP3Ojmm0DOo75e` | `fc-01KT22WMV9KT6CVSYGFPGK9ESD` | `.opencode/modal_track3-skylight-locom-3000-linear-h100-seed3007-20260601171437.launch.log` |
 
 Active owned H100 set after cleanup/fanout: simple conditional 3100 (`ap-OEZ4y8NHM65HsYpn54m1hs`), initial 3000 linear (`ap-iJqNtIaMH3U3og8enGykdS`), initial 3000 power0.5 (`ap-JyuQA5cyxmoa1ikZ0V1Db1`), and linear fanout seeds `3005-3007`.
+
+500-gate cleanup:
+
+- Initial 3000 probes did not preserve their early advantage:
+  - `ap-iJqNtIaMH3U3og8enGykdS` 3000 linear seed3003: `4.59035 @125`, `4.08768 @250`, `3.92546 @375`, `3.84428 @500`.
+  - `ap-JyuQA5cyxmoa1ikZ0V1Db1` 3000 power0.5 seed3004: `4.60784 @125`, `4.09095 @250`, `3.92932 @375`, `3.84589 @500`.
+  - Simple conditional comparison `ap-OEZ4y8NHM65HsYpn54m1hs`: `3.82259 @500`.
+- Fanout seed 125s were good but not enough to override the failed 500 persistence check:
+  - seed3005: `4.62177 @125`.
+  - seed3006: `4.61294 @125`.
+  - seed3007: `4.61623 @125`.
+- Stopped all five 3000 Skylight probes after this 500 gate: `ap-iJqNtIaMH3U3og8enGykdS`, `ap-JyuQA5cyxmoa1ikZ0V1Db1`, `ap-Fabx46LTrIpepEMsJQT9j0`, `ap-D4hTs8CYlcuvhPgElF9RSO`, `ap-RRhQ6HgNpP3Ojmm0DOo75e`.
+- Current active owned H100 set after cleanup: only `ap-OEZ4y8NHM65HsYpn54m1hs`, the simple no-LocoProp-after-1600 plus PR287-after-1600 conditional run. It has reached `3.63361 @1000`; next meaningful gate is the `1600` switch and following `1625/1750` behavior.
