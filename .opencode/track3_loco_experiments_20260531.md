@@ -585,6 +585,8 @@ Early checkpoints:
 | 1500 | 3.52456 | 3.52689 | -0.00233 | Lead persists. |
 | 1750 | 3.47981 | 3.48498 | -0.00517 | Lead widens. |
 | 2000 | 3.44019 | 3.44638 | -0.00619 | Strong enough to replicate. |
+| 2125 | 3.42299 | n/a | n/a | Between reference points. |
+| 2250 | 3.40453 | 3.41077 | -0.00624 | Lead persists. |
 
 Read: despite a weak first 375 steps, the 3250 schedule recovered by step 500, returned to parity by steps 625-750, regained a tiny lead by steps 875-1000, opened a few-millipoint lead by 1125-1250, still led at 1500, widened at 1750, and reached a `0.00619` lead at 2000. Keep it alive through target and start a second Modal replica.
 
@@ -594,5 +596,6 @@ Second replica:
 - App: `ap-bZt9QGoCCHUKXrMwvsB5Se`; function call `fc-01KT0MFGPGKSMNGWSGSBNBDYX9`.
 - Launch log: `.opencode/modal_track3-simple-locom-3250-h100-seed500-20260601.launch.log`.
 - Verified: generated `/tmp/train_gpt_simple_locoprop_m_3250.py`, `steps=3250`, `track3_trial_seed=500`, `TRACK3_MBS=16`, `sample_tokens=1024`, all 12 MLP layers owned, and entered training.
+- Early checkpoints: `4.66532 @125`, `4.11745 @250`. This is weak versus Prime and slightly weaker than seed400 at 125/250, but seed400 also recovered after an unimpressive first 375 steps.
 
 Current decision: finish seed400 to target, use seed500 as confirmation. Do not launch larger fanout until at least seed400 crosses `3.28` or misses narrowly with a clearly better step count than the completed 3350-step Prime runs.
