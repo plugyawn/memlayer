@@ -721,3 +721,25 @@ Active owned Modal apps remain `ap-bZt9QGoCCHUKXrMwvsB5Se`, `ap-eIPcDkgAqaJf8Ojn
 Modal volume check still shows no `track3_checkpoints` entry under `nanogpt-speedrun-cache`, expected at this point.
 
 Decision: no new launches. The only action with value is to let seed500 finish and keep the replay alive until the step-2800 checkpoint lands. The active 3000 lanes do not support an n=8 below-3000 fanout.
+
+## 2026-06-01 Endpoint And Stop Refresh
+
+Stopped the two remaining 3000-step simple-base + LocoProp-M schedule probes because both were clearly below the fanout gate:
+
+- `ap-eIPcDkgAqaJf8OjnBkZ7DW`: 3000 cooldown-frac-0.5 seed1800. Last validation before stop was `3.53635 @1625`; final tail stopped around step `1750`.
+- `ap-sgmLmoef9czMVD4rzk82xK`: 3000 naive power05 seed1900. Last validation before stop was `3.52127 @1625`; final tail stopped around step `1649`.
+
+Let `ap-bZt9QGoCCHUKXrMwvsB5Se` finish:
+
+- 3250 seed500 final: `3.28566 @3250`, missing target by `0.00566`.
+- Comparison: original 3250 seed400 final was `3.28369 @3250`, so seed500 is worse by `+0.00197`. Both miss target and neither supports a 3000-step PR confirmation.
+- App state after finish: stopped.
+
+Replay/checkpoint status:
+
+- `ap-F3KIzgPAIMjbomKRzGjiex`: still active, latest `3.57335 @1250`.
+- Modal volume `nanogpt-speedrun-cache` still has no `track3_checkpoints` entry, expected because replay is not near step `2800`.
+
+Current Modal Track 3 ownership state: only the 3100 seed400 checkpoint replay remains active. The active `dw-pr` app is unrelated and was not touched.
+
+Decision: no n=8 fanout. The 3000 schedule attempts were weak and both 3250 replicas missed target. Continue only to preserve the step-2800 replay checkpoint for suffix experiments.
