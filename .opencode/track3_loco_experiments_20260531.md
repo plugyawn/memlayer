@@ -1451,3 +1451,15 @@ Second live poll update:
 - 3100 seed2900 checkpoint replay reached `4.10655 @250`, better than the old lead's `4.11183 @250`.
 - 3000 seed2900 checkpoint replay reached `4.10562 @250`, also better than the old lead's `4.11183 @250`.
 - Decision: keep both seed2900 checkpoint lanes running. The `@250` screens are healthy enough to continue, but not enough to launch n=8 below-3000, since earlier 3000 schedules looked plausible early and then failed by the persistence gates. Next decision gates are `500/625` and then the actual `2500` checkpoint saves.
+
+Third live poll update:
+
+- Modal app list still shows exactly the four intended active detached H100 jobs; the dropped 3045 replay remains stopped.
+- 3040/no-reon seed3400 has reached `3.60520 @1125`.
+- 3040/reon2800 seed3401 has reached `3.67273 @875`.
+- 3100 seed2900 checkpoint replay has reached `3.71145 @750`.
+- 3000 seed2900 checkpoint replay has reached `3.71223 @750`.
+- Old lead seed2900 reference was `3.75622 @625`, `3.71019 @750`, `3.63361 @1000`, `3.60412 @1125`, `3.34646 @2500`, and `3.29374 @3000`.
+- Read: the active replays are effectively the same trajectory as the old lead so far, not a materially different or stronger signal. The 3000 checkpoint replay is close, but it is not a below-3000 fanout signal by itself.
+- Modal volume `nanogpt-speedrun-cache` still contains only the older seed400 checkpoint files; the seed2900 step-2500 checkpoint files have not landed yet.
+- Decision: do not launch n=8 or suffix arrays yet. Keep the four jobs alive for the step-2500 checkpoint saves and the late `2800+` re-on/no-reon comparison.
