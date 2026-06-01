@@ -410,6 +410,11 @@ def maybe_load_track3_checkpoint(model: nn.Module, optimizers: list[torch.optim.
         )
     for optimizer, optimizer_state in zip(optimizers, saved_optimizers):
         optimizer.load_state_dict(optimizer_state)
+    if TRACK3_LR_SCHEDULE == "pr287":
+        optimizers[0].param_groups[0]["power_c"] = TRACK3_ADAM_EMBED_POWER_C
+        optimizers[0].param_groups[1]["power_c"] = TRACK3_ADAM_PROJ_POWER_C
+        optimizers[0].param_groups[2]["power_c"] = TRACK3_ADAM_OTHER_POWER_C
+        optimizers[1].param_groups[0]["power_c"] = TRACK3_MUON_POWER_C
     if TRACK3_RESUME_RESTORE_RNG:
         if "rng_cpu" in checkpoint:
             torch.set_rng_state(checkpoint["rng_cpu"].detach().cpu().to(torch.uint8))
