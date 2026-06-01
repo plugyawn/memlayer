@@ -596,8 +596,13 @@ Early checkpoints:
 | 2950 | 3.31106 | n/a | n/a | Extra near-end eval. |
 | 2975 | 3.30791 | n/a | n/a | Extra near-end eval. |
 | 3000 | 3.30525 | 3.31280 | -0.00755 | Still ahead, but not target yet. |
+| 3025 | 3.30175 | n/a | n/a | Extra near-end eval. |
+| 3050 | 3.29884 | n/a | n/a | Extra near-end eval. |
+| 3075 | 3.29634 | n/a | n/a | Slope softening. |
+| 3100 | 3.29373 | n/a | n/a | Tight but still plausible. |
+| 3125 | 3.29152 | n/a | n/a | Needs `0.01152` over final 125 steps. |
 
-Read: despite a weak first 375 steps, the 3250 schedule recovered by step 500, returned to parity by steps 625-750, regained a tiny lead by steps 875-1000, opened a few-millipoint lead by 1125-1250, still led at 1500, widened at 1750, and has held roughly a `0.0075-0.008` lead from step 2500 through 3000. The extra near-end evals suggest a likely target crossing late in the 3250 window, but it has not crossed yet. Keep it alive through target and keep seed500 as confirmation.
+Read: despite a weak first 375 steps, the 3250 schedule recovered by step 500, returned to parity by steps 625-750, regained a tiny lead by steps 875-1000, opened a few-millipoint lead by 1125-1250, still led at 1500, widened at 1750, and held roughly a `0.0075-0.008` lead from step 2500 through 3000. After 3000 the slope started softening; at 3125 it remains close but no longer comfortably on target pace. Keep it alive through final and use the added Modal lanes to measure variance.
 
 Second replica:
 
@@ -605,7 +610,7 @@ Second replica:
 - App: `ap-bZt9QGoCCHUKXrMwvsB5Se`; function call `fc-01KT0MFGPGKSMNGWSGSBNBDYX9`.
 - Launch log: `.opencode/modal_track3-simple-locom-3250-h100-seed500-20260601.launch.log`.
 - Verified: generated `/tmp/train_gpt_simple_locoprop_m_3250.py`, `steps=3250`, `track3_trial_seed=500`, `TRACK3_MBS=16`, `sample_tokens=1024`, all 12 MLP layers owned, and entered training.
-- Early checkpoints: `4.66532 @125`, `4.11745 @250`, `3.93810 @375`, `3.82950 @500`, `3.75979 @625`, `3.71315 @750`, `3.67368 @875`. This is weak versus Prime and weaker than seed400 through 875, but seed400 also recovered after an unimpressive first 375 steps.
+- Early checkpoints: `4.66532 @125`, `4.11745 @250`, `3.93810 @375`, `3.82950 @500`, `3.75979 @625`, `3.71315 @750`, `3.67368 @875`, `3.63804 @1000`, `3.61104 @1125`. This started weak, recovered to a tiny lead at 1000, and was `0.00200` ahead of the Prime 3350 mean at 1125.
 
 Current decision: finish seed400 to target, use seed500 as confirmation. Do not launch larger fanout until at least seed400 crosses `3.28` or misses narrowly with a clearly better step count than the completed 3350-step Prime runs.
 
