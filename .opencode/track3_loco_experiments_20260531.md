@@ -1070,13 +1070,13 @@ Launched two Modal H100 500-step screens:
 
 | Variant | App | Function call | Setting | Early read |
 | --- | --- | --- | --- | --- |
-| SGD `K=5` | `ap-Y1Ojg5JPG0Pf5l4KWynP3H` | `fc-01KT1W7SV5ZFF6F6PCWAYN8XVG` | simple Track 3, seed `2600`, `TRACK3_LOCOM_LOCAL_OPT=sgd`, `TRACK3_LOCOM_STEPS=5`, `inner_lr=0.1`, cap `0.20`, `SCREEN_VAL_EVERY=25` | `5.99019 @25`, `5.43137 @50`, `5.06952 @75`, `4.82865 @100`, `4.62684 @125`, `4.45742 @150`, `4.31892 @175`. Raw local solve is very large: at step 50 one logged layer has `lossK=2.685e+07`, `corr_norm=1.020e+05`, and cap scale `3.803e-06`; at step 100 one logged layer still has `lossK=2.100e+07`, `corr_norm=5.977e+04`. This is still a direction-preserving cap, but not a faithful local-solve magnitude. |
+| SGD `K=5` | `ap-Y1Ojg5JPG0Pf5l4KWynP3H` | `fc-01KT1W7SV5ZFF6F6PCWAYN8XVG` | simple Track 3, seed `2600`, `TRACK3_LOCOM_LOCAL_OPT=sgd`, `TRACK3_LOCOM_STEPS=5`, `inner_lr=0.1`, cap `0.20`, `SCREEN_VAL_EVERY=25` | `5.99019 @25`, `5.43137 @50`, `5.06952 @75`, `4.82865 @100`, `4.62684 @125`, `4.45742 @150`, `4.31892 @175`, `4.22076 @200`, `4.13426 @225`, `4.07291 @250`. Raw local solve is very large: at step 50 one logged layer has `lossK=2.685e+07`, `corr_norm=1.020e+05`, and cap scale `3.803e-06`; at step 100 one logged layer still has `lossK=2.100e+07`, `corr_norm=5.977e+04`. This is still a direction-preserving cap, but not a faithful local-solve magnitude. At the apples-to-apples 250 checkpoint, K5 is essentially tied/slightly worse than K4 (`4.07139`/`4.07186 @250`), so the step-125 edge did not convert into a clear rung. |
 | RMSProp `K=5` gated/norm target | `ap-tGnZ4d65st5DLoldkt1OhI` | `fc-01KT1W7SY5KGTJS11J2QC33H28` | simple Track 3, seed `2700`, `TRACK3_LOCOM_LOCAL_OPT=rmsprop`, `TRACK3_LOCOM_STEPS=5`, start step `50`, `inner_lr=1e-5`, reset RMS state each step, require local loss decrease and `cos_desc >= 0`, norm target/cap `0.20`, `SCREEN_VAL_EVERY=25` | `6.01006 @25`, `5.45453 @50`, `5.08487 @75`, `4.86343 @100`, `4.68219 @125` (stopped after this; worse than SGD K5 and worse than the useful K4 SGD band). At step 50, local updates are sane but sparse under guards: logged layers `accepted=1/4`; by steps 75/100 this improved to `accepted=3/4`. Accepted corrections remain weakly aligned (`cos_desc` around `0.004-0.007`) and are normalized up to the `0.20` target when below scale. |
 
 Active alongside this:
 
 - The standalone 3100 cap-window retry `ap-2jVszraxi9ZJJG8r0sKWZD` crossed the intended window; `locoprop_m_apply step=1600` logs `cap=0.400`.
-- Latest observed values: `3.51614 @1500`, `3.50194 @1625`, `3.47640 @1750`; latest train step in the last poll was `1853`.
+- Latest observed values: `3.51614 @1500`, `3.50194 @1625`, `3.47640 @1750`, `3.45552 @1875`; latest train step in the last poll was `1919`.
 
 
 Follow-up launch after the gated RMSProp result underperformed:
@@ -1086,4 +1086,4 @@ Follow-up launch after the gated RMSProp result underperformed:
   - App: `ap-RdIBDBTFfllEfRYqv8otW1`.
   - Function call: `fc-01KT1X00SWH8KZ31KK990XDARC`.
   - Run: `track3-simple-locom-rmsprop-k5-nogate-norm-500-h100-seed2800-20260601153132`.
-  - Latest poll had only reached warmup (`latest_step 25`) with no validation beyond step 0 yet.
+  - Latest poll: `6.01066 @25`, `5.45736 @50`, `5.09321 @75`; mechanically clean but still slower than SGD K5 and the old K4 screen.
