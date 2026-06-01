@@ -44,6 +44,7 @@ LOCO_M_PROX = float(os.environ.get("TRACK3_LOCOM_PROX", "0.1"))
 LOCO_M_ALPHA = float(os.environ.get("TRACK3_LOCOM_ALPHA", "1.0"))
 LOCO_M_NORM_TO_BASE = _env_flag("TRACK3_LOCOM_NORM_TO_BASE", "0")
 LOCO_M_NORM_CAP = float(os.environ.get("TRACK3_LOCOM_NORM_CAP", "0.20"))
+LOCO_M_NORM_CAP_WINDOWS_SPEC = os.environ.get("TRACK3_LOCOM_NORM_CAP_WINDOWS", "")
 LOCO_M_START_STEP = int(os.environ.get("TRACK3_LOCOM_START_STEP", "0"))
 LOCO_M_END_STEP = int(os.environ.get("TRACK3_LOCOM_END_STEP", "1000000000"))
 LOCO_M_INTERVAL = int(os.environ.get("TRACK3_LOCOM_INTERVAL", "1"))
@@ -92,6 +93,30 @@ LOCO_M_OWNED_LAYER_SET: set[int] = set()
 LOCO_M_APPLY_STATS: list[str] = []
 LOCO_M_CURRENT_STEP = -1
 LOCO_M_CAPTURE_THIS_MICRO = True
+
+def _parse_step_value_windows(spec: str) -> list[tuple[int, int, float]]:
+    windows: list[tuple[int, int, float]] = []
+    for part in spec.split(","):
+        part = part.strip()
+        if not part:
+            continue
+        fields = part.split(":")
+        if len(fields) != 3:
+            raise ValueError("TRACK3_LOCOM_NORM_CAP_WINDOWS entries must be start:end:value")
+        start, end, value = int(fields[0]), int(fields[1]), float(fields[2])
+        if end < start:
+            raise ValueError("TRACK3_LOCOM_NORM_CAP_WINDOWS end must be >= start")
+        windows.append((start, end, value))
+    return windows
+
+LOCO_M_NORM_CAP_WINDOWS = _parse_step_value_windows(LOCO_M_NORM_CAP_WINDOWS_SPEC)
+
+def _locom_current_norm_cap(step: int) -> float:
+    cap = LOCO_M_NORM_CAP
+    for start, end, value in LOCO_M_NORM_CAP_WINDOWS:
+        if start <= step <= end:
+            cap = value
+    return cap
 '''
 
 
@@ -327,15 +352,16 @@ def _locom_apply_owned_param_(p: nn.Parameter, update: Tensor, lr: float):
     scale = torch.ones((), device=corr.device, dtype=torch.float32)
     if LOCO_M_NORM_TO_BASE:
         scale = base_step_norm / corr_norm
-    if LOCO_M_NORM_CAP > 0:
-        max_norm = LOCO_M_NORM_CAP * base_step_norm
+    norm_cap = _locom_current_norm_cap(step)
+    if norm_cap > 0:
+        max_norm = norm_cap * base_step_norm
         scale = torch.minimum(scale, max_norm / corr_norm)
     scale = scale * LOCO_M_ALPHA
     p.add_(corr, alpha=float(scale))
     if step in LOCO_M_LOG_STEPS and len(LOCO_M_APPLY_STATS) < 8:
         LOCO_M_APPLY_STATS.append(
             f"shape={tuple(p.shape)}:base_step={float(base_step_norm):.3e}"
-            f",corr_norm={float(corr_norm):.3e},scale={float(scale):.3e}"
+            f",corr_norm={float(corr_norm):.3e},cap={norm_cap:.3f},scale={float(scale):.3e}"
         )
     p._loco_corr = None
 
@@ -380,6 +406,7 @@ def maybe_save_track3_checkpoint(model: nn.Module, optimizers: list[torch.optim.
                 "loco_m_alpha": LOCO_M_ALPHA,
                 "loco_m_norm_to_base": LOCO_M_NORM_TO_BASE,
                 "loco_m_norm_cap": LOCO_M_NORM_CAP,
+                "loco_m_norm_cap_windows": LOCO_M_NORM_CAP_WINDOWS_SPEC,
                 "loco_m_start_step": LOCO_M_START_STEP,
                 "loco_m_end_step": LOCO_M_END_STEP,
                 "loco_m_interval": LOCO_M_INTERVAL,
@@ -628,7 +655,7 @@ def muon_update(grad, momentum, mu=0.95, nesterov=True):
         text,
         'print0(f"Running PyTorch {torch.version.__version__} compiled for CUDA {torch.version.cuda}"',
         f'print0("Track3 LocoProp-M generated run: source={source_label} train_steps={train_steps}")\n'
-        'print0(f"LocoM enabled={LOCO_M_ENABLED} layers={LOCO_M_LAYERS_SPEC} steps={LOCO_M_LOCAL_STEPS} sample_tokens={LOCO_M_SAMPLE_TOKENS} gather={LOCO_M_GATHER_SAMPLES} accum={LOCO_M_ACCUM_SAMPLES} micro_sample_tokens={LOCO_M_MICRO_SAMPLE_TOKENS} local_opt={LOCO_M_LOCAL_OPT} lr_decay={LOCO_M_LOCAL_LR_DECAY} rms_beta1={LOCO_M_RMS_BETA1} rms_beta2={LOCO_M_RMS_BETA2} rms_eps={LOCO_M_RMS_EPS} inner_lr={LOCO_M_INNER_LR} target_gamma={LOCO_M_TARGET_GAMMA} prox={LOCO_M_PROX} alpha={LOCO_M_ALPHA} norm_to_base={LOCO_M_NORM_TO_BASE} norm_cap={LOCO_M_NORM_CAP} start_step={LOCO_M_START_STEP} end_step={LOCO_M_END_STEP} interval={LOCO_M_INTERVAL} target_loss={TRACK3_TARGET_LOSS} seed_base={TRACK3_SEED_BASE} seed_offset={TRACK3_SEED_OFFSET} cooldown_frac={TRACK3_COOLDOWN_FRAC} lr_schedule={TRACK3_LR_SCHEDULE} lr_power={TRACK3_LR_POWER} lr_schedule_steps={TRACK3_LR_SCHEDULE_STEPS} lr_min_eta={TRACK3_LR_MIN_ETA} soft_muon={TRACK3_SOFT_MUON} soft_blend={TRACK3_SOFT_MUON_BLEND} soft_norm_restore={TRACK3_SOFT_MUON_NORM_RESTORE} resume_checkpoint={TRACK3_RESUME_CHECKPOINT}")\n'
+        'print0(f"LocoM enabled={LOCO_M_ENABLED} layers={LOCO_M_LAYERS_SPEC} steps={LOCO_M_LOCAL_STEPS} sample_tokens={LOCO_M_SAMPLE_TOKENS} gather={LOCO_M_GATHER_SAMPLES} accum={LOCO_M_ACCUM_SAMPLES} micro_sample_tokens={LOCO_M_MICRO_SAMPLE_TOKENS} local_opt={LOCO_M_LOCAL_OPT} lr_decay={LOCO_M_LOCAL_LR_DECAY} rms_beta1={LOCO_M_RMS_BETA1} rms_beta2={LOCO_M_RMS_BETA2} rms_eps={LOCO_M_RMS_EPS} inner_lr={LOCO_M_INNER_LR} target_gamma={LOCO_M_TARGET_GAMMA} prox={LOCO_M_PROX} alpha={LOCO_M_ALPHA} norm_to_base={LOCO_M_NORM_TO_BASE} norm_cap={LOCO_M_NORM_CAP} norm_cap_windows={LOCO_M_NORM_CAP_WINDOWS_SPEC} start_step={LOCO_M_START_STEP} end_step={LOCO_M_END_STEP} interval={LOCO_M_INTERVAL} target_loss={TRACK3_TARGET_LOSS} seed_base={TRACK3_SEED_BASE} seed_offset={TRACK3_SEED_OFFSET} cooldown_frac={TRACK3_COOLDOWN_FRAC} lr_schedule={TRACK3_LR_SCHEDULE} lr_power={TRACK3_LR_POWER} lr_schedule_steps={TRACK3_LR_SCHEDULE_STEPS} lr_min_eta={TRACK3_LR_MIN_ETA} soft_muon={TRACK3_SOFT_MUON} soft_blend={TRACK3_SOFT_MUON_BLEND} soft_norm_restore={TRACK3_SOFT_MUON_NORM_RESTORE} resume_checkpoint={TRACK3_RESUME_CHECKPOINT}")\n'
         'print0(f"Running PyTorch {torch.version.__version__} compiled for CUDA {torch.version.cuda}"',
     )
     text = replace_exact(
