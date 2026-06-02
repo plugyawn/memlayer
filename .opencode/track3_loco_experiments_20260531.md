@@ -1782,3 +1782,31 @@ Thirteenth live poll update, 2026-06-02 05:24 IST:
   - Carry the full wave to `1750/1875` before judging the mid-run-fade pattern.
   - Carry both active tail suffixes to at least `2825/2850`.
   - No further launches until one suffix proves useful or frees capacity.
+
+Fourteenth live poll update, 2026-06-02 05:32 IST:
+
+- Full 3000 confirmation wave was stopped after the `1750` persistence gate failed:
+  - seed3500: `3.47542 @1750`, `+0.00287` worse than old lead.
+  - seed3501: `3.47417 @1750`, `+0.00162` worse.
+  - seed3502: `3.47295 @1750`, `+0.00040` worse.
+  - seed3503: `3.47324 @1750`, `+0.00069` worse.
+  - seed3505: `3.47351 @1750`, `+0.00096` worse.
+  - seed3508/3509 had already lost their `1500` advantage by the `1625/1700` region.
+  - seed3512 was a late replacement only and was stopped with the rest of the wave; it had reached `3.98053 @325`.
+  - Read: the `1500` signal was real but non-persistent. This is not an n=8 below-3000 candidate as currently configured.
+- Apps stopped to save H100 time:
+  - `ap-j32hnOwCnt9M9uKKB72dlP`
+  - `ap-NmxP7sV2WOjKj5hkG6t9A2`
+  - `ap-GtJaJUQEKBK10mRwU2Fsws`
+  - `ap-muw1RIwCDZ6Zs12YqyCv97`
+  - `ap-oUdImgIQ5ybJoA00wfgcHN`
+  - `ap-8hxb2L2CCcwndbsz2kdhcX`
+  - `ap-uJtJvlUqQjK0e6S198WFhq`
+  - `ap-mv6wxDA8lYcaw602sMgPWr`
+- Active containers after cleanup:
+  - `ap-1Lzp2CU3AkUJST7kHDwxHj`: `3030/pr287-tail3125/noloco`, container `ta-01KT2S1PEAQD0D6990FPM7ZP5F`.
+  - `ap-El648AhZtBGciwe3cK922S`: `3030/pr287tail3125+loco2800/cap0.20`, container `ta-01KT2SNBP826GZHBB4SE2608D7`.
+- Tail suffix status before cleanup:
+  - No-Loco tail3125 matched exact through `2700`: `3.31979 @2700`, effectively exact.
+  - Combined tail3125+LocoProp matched exact through `2600`: `3.33259 @2600`, effectively exact.
+  - Decision: only these two remain worth carrying, because they alter the run only after the targeted `2800` tail switch.
