@@ -64,6 +64,7 @@ LOCO_M_MIN_COS_DESC = float(os.environ.get("TRACK3_LOCOM_MIN_COS_DESC", "-inf"))
 TRACK3_TARGET_LOSS = float(os.environ.get("TRACK3_TARGET_LOSS", "0"))
 TRACK3_SEED_BASE = int(os.environ.get("TRACK3_SEED_BASE", "0"))
 TRACK3_SEED_OFFSET = int(os.environ.get("TRACK3_SEED_OFFSET", "0"))
+TRACK3_RESET_TRIAL_SEED = _env_flag("TRACK3_RESET_TRIAL_SEED", "1")
 TRACK3_COOLDOWN_FRAC = float(os.environ.get("TRACK3_COOLDOWN_FRAC", "0.7"))
 TRACK3_LR_SCHEDULE = os.environ.get("TRACK3_LR_SCHEDULE", "linear").lower()
 TRACK3_LR_POWER = float(os.environ.get("TRACK3_LR_POWER", "1.0"))
@@ -469,6 +470,7 @@ def maybe_save_track3_checkpoint(model: nn.Module, optimizers: list[torch.optim.
                 "track3_lr_power": TRACK3_LR_POWER,
                 "track3_lr_schedule_steps": TRACK3_LR_SCHEDULE_STEPS,
                 "track3_lr_min_eta": TRACK3_LR_MIN_ETA,
+                "track3_reset_trial_seed": TRACK3_RESET_TRIAL_SEED,
             },
         }
         torch.save(payload, tmp_path)
@@ -716,8 +718,9 @@ def muon_update(grad, momentum, mu=0.95, nesterov=True):
             "for _ in range(num_trials):\n",
             "for trial_idx in range(num_trials):\n"
             "    track3_trial_seed = TRACK3_SEED_BASE + TRACK3_SEED_OFFSET + trial_idx\n"
-            "    torch.manual_seed(track3_trial_seed)\n"
-            "    torch.cuda.manual_seed_all(track3_trial_seed)\n"
+            "    if TRACK3_RESET_TRIAL_SEED:\n"
+            "        torch.manual_seed(track3_trial_seed)\n"
+            "        torch.cuda.manual_seed_all(track3_trial_seed)\n"
             "    print0(f\"track3_trial_seed={track3_trial_seed} trial={trial_idx}\", console=True)\n",
         )
     else:
@@ -726,8 +729,9 @@ def muon_update(grad, momentum, mu=0.95, nesterov=True):
             "model = GPT(vocab_size=50304, num_layers=12, model_dim=768).cuda()\n",
             "trial_idx = 0\n"
             "track3_trial_seed = TRACK3_SEED_BASE + TRACK3_SEED_OFFSET + trial_idx\n"
-            "torch.manual_seed(track3_trial_seed)\n"
-            "torch.cuda.manual_seed_all(track3_trial_seed)\n"
+            "if TRACK3_RESET_TRIAL_SEED:\n"
+            "    torch.manual_seed(track3_trial_seed)\n"
+            "    torch.cuda.manual_seed_all(track3_trial_seed)\n"
             "print0(f\"track3_trial_seed={track3_trial_seed} trial={trial_idx}\", console=True)\n"
             "model = GPT(vocab_size=50304, num_layers=12, model_dim=768).cuda()\n",
         )
