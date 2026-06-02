@@ -1906,3 +1906,58 @@ Eighteenth follow-up probe, 2026-06-02 06:40 IST:
 - Read:
   - The schedule-compressed no-Loco generated path is slightly worse at the first screen and much slower than the checked-in record logs.
   - Do not promote this generated-wrapper schedule probe to a full run or n=8. If schedule compression is revisited, use a direct extracted-source runner rather than the LocoProp generator wrapper.
+
+Nineteenth follow-up probe, 2026-06-02 07:36 IST:
+
+- Added and pushed a clean direct-record Modal launcher:
+  - Commit: `34a583d` (`Add direct Track 3 record-source Modal launcher`).
+  - Launcher: `tools/launch_modal_track3_record_source_seed.sh`.
+  - It wraps `tools/run_track3_record_source.sh` and sets only `TRACK3_SOURCE`, `TRACK3_SEED`,
+    `TRACK3_TRAIN_STEPS`, `TRACK3_SCHEDULE_STEPS`, `TRACK3_MBS`, and validation cadence.
+  - Dry-run verification for seed8 showed `FINAL_TRAIN_STEPS = 3000`, `FINAL_SCHEDULE_STEPS = 3075`,
+    env-controlled `mbs = int(os.environ.get("TRACK3_MBS", "64"))`, and no LocoProp symbols.
+- Direct clean seed8 sentinel, current-record source:
+  - App: `ap-iCODrSkqbdEjnJNNypIaLe`.
+  - Function call: `fc-01KT2YABX1X3XQV75SCDCWNP5J`.
+  - Source: `records/track_3_optimization/results/20260509_contra_soft_muon/21827b54-ae4d-40ef-94ab-c005af6f825c.txt`.
+  - Setting: `TRACK3_TRAIN_STEPS=3000`, `TRACK3_SCHEDULE_STEPS=3075`, `TRACK3_SEED=8`,
+    `TRACK3_MBS=64`, `NPROC_PER_NODE=1`, `SCREEN_VAL_EVERY=125`, H100.
+  - Against the checked-in seed8 reference, the clean direct run was:
+    - `3.51482 @1625` vs `3.51877`, delta `-0.00395`.
+    - `3.48729 @1750` vs `3.49030`, delta `-0.00301`.
+    - `3.45953 @1875` vs `3.46308`, delta `-0.00355`.
+    - `3.43286 @2000` vs `3.43651`, delta `-0.00365`.
+  - Read: this crosses the hard-seed break-even margin for trying a 3000-step fanout. Seed8 originally lands
+    `3.28269 @3000`, so a persistent `0.003+` gain would move a hard seed below `3.28`.
+- Promoted to a standard seed0-7 fanout with the same direct `t3000/h3075` setup. Active apps:
+
+| Seed | App | Function call | Source file |
+|---:|---|---|---|
+| 0 | `ap-lxsNGTaQiOpXVPAIMtDKNN` | `fc-01KT30RAV63NAACY348EM8RAVK` | `records/track_3_optimization/results/20260509_contra_soft_muon/8634073e-2a35-4cf6-b8c4-c00d441523d8.txt` |
+| 1 | `ap-rQS26IIEukOyP1STnNkXed` | `fc-01KT30S109BPA7174NE0Y9SG4Q` | `records/track_3_optimization/results/20260509_contra_soft_muon/81540d3b-8dc9-4ad3-8d79-10052cca5354.txt` |
+| 2 | `ap-xCWfxU5sMr6eIL7LheZUQ5` | `fc-01KT30SQ2Y4229WVRVX545N531` | `records/track_3_optimization/results/20260509_contra_soft_muon/d8597384-8cdb-40f5-8bfd-bcde460ceea5.txt` |
+| 3 | `ap-yXVBL6tfKGbzrG44HKXKnO` | `fc-01KT30TCHYX04GYGVX4JQFSTGZ` | `records/track_3_optimization/results/20260509_contra_soft_muon/7621883d-366f-49f7-ac0f-e297634b72ed.txt` |
+| 4 | `ap-l16lyEEHNQcrwepsIDva28` | `fc-01KT30V2ZCHF4HWF1MGZ9E2PB7` | `records/track_3_optimization/results/20260509_contra_soft_muon/fc1593ad-ebd9-4a8a-b695-465180d035a4.txt` |
+| 5 | `ap-0YSioDAMSwq9uruzE1u5T2` | `fc-01KT30VSD8TF89WY2X4VF1TKSP` | `records/track_3_optimization/results/20260509_contra_soft_muon/66a8cec3-9bbe-4a29-adef-0f1c2683a749.txt` |
+| 6 | `ap-nFY4pdBviSLJsGXC0KJMNc` | `fc-01KT30WFAGYPYK5NH8M3X0HWKK` | `records/track_3_optimization/results/20260509_contra_soft_muon/c4935f3f-6d44-445c-a52d-d119f9f978c7.txt` |
+| 7 | `ap-3piG3KZ2zDNG8PA0HqqkF0` | `fc-01KT30X5QFSNW96X5Q00NYWSNQ` | `records/track_3_optimization/results/20260509_contra_soft_muon/480f6098-b753-4ea0-b82a-c9f687a2ca95.txt` |
+
+- First fanout screen:
+
+| Seed | Step | Loss | Reference | Delta | Step avg ms |
+|---:|---:|---:|---:|---:|---:|
+| 0 | 250 | 4.04972 | 4.04970 | +0.00002 | 1432.52 |
+| 1 | 250 | 4.05646 | 4.05245 | +0.00401 | 1439.01 |
+| 2 | 250 | 4.06336 | 4.06006 | +0.00330 | 1638.12 |
+| 3 | 250 | 4.05684 | 4.05626 | +0.00058 | 1524.24 |
+| 4 | 250 | 4.05709 | 4.05812 | -0.00103 | 1446.16 |
+| 5 | 250 | 4.06024 | 4.05825 | +0.00199 | 1499.07 |
+| 6 | 125 | 4.51176 | 4.51211 | -0.00035 | 1569.65 |
+| 7 | 125 | 4.51242 | 4.51501 | -0.00259 | 2072.74 |
+
+- Read:
+  - The hard seed8 sentinel remains the strongest reason to continue.
+  - Standard seeds are mixed at `125/250`; this is not yet an n=8 confirmation, but it is also not a stop signal
+    because the candidate mechanism is schedule compression/landing rather than an early-loss optimizer change.
+  - Carry the fanout at least to `500/625`, then reassess whether enough lanes look plausible for a sub-3000
+    target.
