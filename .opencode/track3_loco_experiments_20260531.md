@@ -2214,3 +2214,33 @@ Thirty-first correction, 2026-06-02 11:03 IST:
 - Do not count this wave, or the plot/p-value artifacts from the checked-in current-record source, as evidence
   for the LocoProp-M PR path. They are only source-distribution diagnostics for the existing current-record code.
 
+Thirty-second follow-up, 2026-06-02 11:15 IST:
+
+- Generated LocoProp-M-only artifacts from local logs, excluding the mistaken checked-in current-record no-Loco
+  fanout:
+  - `.opencode/plots/track3_locom_only_runs_20260602.tsv`
+  - `.opencode/plots/track3_locom_only_latest_20260602.tsv`
+  - `.opencode/plots/track3_locom_only_all_20260602.png`
+  - `.opencode/plots/track3_locom_only_late_20260602.png`
+  - matching `.svg` files.
+- Launched exactly one H100 probe, not a fanout:
+  - App: `ap-EaAZVMeh9s3WGcyDF15jAU`.
+  - Function call: `fc-01KT3DHRCJFFXYWQEBGNJKD7KZ`.
+  - Setting: simple Track 3 source, seed `2900`, `TRACK3_TRAIN_STEPS=3000`, `TRACK3_MBS=16`,
+    `TRACK3_LOCOM_END_STEP=1600`, `TRACK3_LR_SWITCH_STEP=1600`,
+    `TRACK3_LR_AFTER_SWITCH=pr287`, `TRACK3_LR_AFTER_SWITCH_POWER=1.2`,
+    `TRACK3_LR_AFTER_SWITCH_STEPS=3065`.
+  - New gating: `TRACK3_LOCOM_REQUIRE_LOSS_DECREASE=1`, `TRACK3_LOCOM_MIN_COS_DESC=0.0`.
+- Result:
+  - Stopped at step `50`, before first validation, because the gate made the correction effectively no-op.
+  - Logged diagnostics showed `accepted=0` for the first four reported layers at steps `0`, `1`, `2`, `10`,
+    and `50`, and no `locoprop_m_apply` lines appeared.
+  - Representative step `50` diagnostics: `lossK` remained far above `loss0` for logged layers, even when
+    `cos_desc` was slightly positive, so the local-loss-decrease gate rejected the corrections.
+  - Modal cleanup verified: app stopped with `0` tasks and `modal container list` reported no active containers.
+- Read:
+  - The strict paper-faithful accept gate is too strict for the current sampled SGD local solve. It prevents
+    the bad cap-governed directions, but it also removes the whole LocoProp-M perturbation.
+  - A future single-lane probe, if any, should separate the two gates: for example `cos_desc >= 0` without
+    `lossK <= loss0`, or a much smaller/decayed local step that can actually reduce the sampled local objective.
+  - This does not justify n=8 spend.

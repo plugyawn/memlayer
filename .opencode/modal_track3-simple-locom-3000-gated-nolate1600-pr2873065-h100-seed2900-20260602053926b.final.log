@@ -1,0 +1,92 @@
+
+==========
+== CUDA ==
+==========
+
+CUDA Version 12.8.0
+
+Container image Copyright (c) 2016-2023, NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+
+This container image and its contents are governed by the NVIDIA Deep Learning Container License.
+By pulling and using the container, you accept the terms and conditions of this license:
+https://developer.nvidia.com/ngc/nvidia-deep-learning-container-license
+
+A copy of this license is made available in this container at /NGC-DL-CONTAINER-LICENSE for your convenience.
+
+track3_locom_runner source=records/track_3_optimization/train_gpt_simple.py generated=/tmp/train_gpt_simple_locoprop_m_3000.py steps=3000 trials=1 nproc=1 mbs=16 trial_arg_mode=positional-count
+logs/5569ca0f-e518-456e-8575-e258c92a4cfb.txt
+track3_trial_seed=2900 trial=0
+locoprop_m_owner rank=0 world=1 owned_layers=[0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11] sample_tokens=1024 gather_samples=True accum_samples=False micro_sample_tokens=32
+step:0/3000 val_loss:10.82580 train_time:0.000s step_avg:nanms
+locoprop_m_prepare step=0 l0:loss0=1.440e-06,lossK=3.913e-01,corr_norm=2.989e+01,grad_norm=0.000e+00,cos_desc=0.000,accepted=0,tokens=1024,opt=sgd | l1:loss0=1.426e-06,lossK=2.135e-01,corr_norm=2.014e+01,grad_norm=0.000e+00,cos_desc=0.000,accepted=0,tokens=1024,opt=sgd | l2:loss0=1.391e-06,lossK=6.086e-02,corr_norm=1.130e+01,grad_norm=0.000e+00,cos_desc=0.000,accepted=0,tokens=1024,opt=sgd | l3:loss0=1.450e-06,lossK=1.157e-01,corr_norm=1.584e+01,grad_norm=0.000e+00,cos_desc=0.000,accepted=0,tokens=1024,opt=sgd
+step:1/3000 train_time:6.523s step_avg:6523.25ms
+locoprop_m_prepare step=1 l0:loss0=1.441e-06,lossK=3.407e-01,corr_norm=2.668e+01,grad_norm=0.000e+00,cos_desc=0.000,accepted=0,tokens=1024,opt=sgd | l1:loss0=1.428e-06,lossK=1.832e-01,corr_norm=1.782e+01,grad_norm=0.000e+00,cos_desc=0.000,accepted=0,tokens=1024,opt=sgd | l2:loss0=1.397e-06,lossK=7.153e-02,corr_norm=1.166e+01,grad_norm=0.000e+00,cos_desc=0.000,accepted=0,tokens=1024,opt=sgd | l3:loss0=1.423e-06,lossK=6.916e-02,corr_norm=1.136e+01,grad_norm=0.000e+00,cos_desc=0.000,accepted=0,tokens=1024,opt=sgd
+step:2/3000 train_time:10.089s step_avg:5044.63ms
+locoprop_m_prepare step=2 l0:loss0=1.424e-06,lossK=2.600e-02,corr_norm=7.473e+00,grad_norm=2.644e+03,cos_desc=-0.073,accepted=0,tokens=1024,opt=sgd | l1:loss0=1.430e-06,lossK=5.358e-01,corr_norm=4.192e+01,grad_norm=2.876e+03,cos_desc=-0.053,accepted=0,tokens=1024,opt=sgd | l2:loss0=1.367e-06,lossK=1.148e-01,corr_norm=2.019e+01,grad_norm=3.092e+03,cos_desc=-0.109,accepted=0,tokens=1024,opt=sgd | l3:loss0=1.433e-06,lossK=6.550e-01,corr_norm=5.815e+01,grad_norm=3.388e+03,cos_desc=-0.108,accepted=0,tokens=1024,opt=sgd
+step:3/3000 train_time:13.662s step_avg:4554.11ms
+step:4/3000 train_time:17.238s step_avg:4309.40ms
+step:5/3000 train_time:20.806s step_avg:4161.16ms
+step:6/3000 train_time:24.379s step_avg:4063.09ms
+step:7/3000 train_time:27.946s step_avg:3992.31ms
+step:8/3000 train_time:31.520s step_avg:3940.06ms
+step:9/3000 train_time:35.091s step_avg:3899.01ms
+step:10/3000 train_time:38.661s step_avg:3866.08ms
+locoprop_m_prepare step=10 l0:loss0=5.338e-06,lossK=1.009e+05,corr_norm=1.691e+04,grad_norm=1.854e+04,cos_desc=-0.015,accepted=0,tokens=1024,opt=sgd | l1:loss0=5.348e-06,lossK=1.555e+07,corr_norm=1.565e+05,grad_norm=1.934e+04,cos_desc=-0.049,accepted=0,tokens=1024,opt=sgd | l2:loss0=4.356e-06,lossK=2.868e+04,corr_norm=1.119e+04,grad_norm=1.635e+04,cos_desc=0.075,accepted=0,tokens=1024,opt=sgd | l3:loss0=4.436e-06,lossK=3.576e+04,corr_norm=1.207e+04,grad_norm=1.590e+04,cos_desc=0.028,accepted=0,tokens=1024,opt=sgd
+step:11/3000 train_time:42.243s step_avg:3840.23ms
+step:12/3000 train_time:45.812s step_avg:3817.70ms
+step:13/3000 train_time:49.391s step_avg:3799.29ms
+step:14/3000 train_time:52.966s step_avg:3783.30ms
+step:15/3000 train_time:56.538s step_avg:3769.23ms
+step:16/3000 train_time:60.121s step_avg:3757.58ms
+step:17/3000 train_time:63.701s step_avg:3747.13ms
+step:18/3000 train_time:67.281s step_avg:3737.84ms
+step:19/3000 train_time:70.858s step_avg:3729.34ms
+step:20/3000 train_time:74.429s step_avg:3721.44ms
+step:21/3000 train_time:78.001s step_avg:3714.31ms
+step:22/3000 train_time:81.571s step_avg:3707.75ms
+step:23/3000 train_time:85.145s step_avg:3701.97ms
+step:24/3000 train_time:88.719s step_avg:3696.65ms
+step:25/3000 train_time:92.291s step_avg:3691.65ms
+step:26/3000 train_time:95.872s step_avg:3687.39ms
+step:27/3000 train_time:99.445s step_avg:3683.15ms
+step:28/3000 train_time:103.022s step_avg:3679.35ms
+step:29/3000 train_time:106.599s step_avg:3675.84ms
+step:30/3000 train_time:110.179s step_avg:3672.62ms
+step:31/3000 train_time:113.753s step_avg:3669.46ms
+step:32/3000 train_time:117.329s step_avg:3666.52ms
+step:33/3000 train_time:120.911s step_avg:3663.97ms
+step:34/3000 train_time:124.492s step_avg:3661.52ms
+step:35/3000 train_time:128.072s step_avg:3659.21ms
+step:36/3000 train_time:131.658s step_avg:3657.16ms
+step:37/3000 train_time:135.231s step_avg:3654.89ms
+step:38/3000 train_time:138.813s step_avg:3652.98ms
+step:39/3000 train_time:142.382s step_avg:3650.82ms
+step:40/3000 train_time:145.955s step_avg:3648.87ms
+step:41/3000 train_time:149.523s step_avg:3646.90ms
+step:42/3000 train_time:153.095s step_avg:3645.11ms
+step:43/3000 train_time:156.680s step_avg:3643.71ms
+step:44/3000 train_time:160.252s step_avg:3642.09ms
+step:45/3000 train_time:163.841s step_avg:3640.91ms
+step:46/3000 train_time:167.417s step_avg:3639.50ms
+step:47/3000 train_time:170.991s step_avg:3638.10ms
+step:48/3000 train_time:174.562s step_avg:3636.70ms
+step:49/3000 train_time:178.145s step_avg:3635.62ms
+step:50/3000 train_time:181.729s step_avg:3634.58ms
+locoprop_m_prepare step=50 l0:loss0=3.337e-05,lossK=1.468e+01,corr_norm=1.779e+02,grad_norm=2.574e+04,cos_desc=-0.020,accepted=0,tokens=1024,opt=sgd | l1:loss0=1.846e-05,lossK=9.582e-01,corr_norm=4.121e+01,grad_norm=1.597e+04,cos_desc=0.009,accepted=0,tokens=1024,opt=sgd | l2:loss0=1.372e-05,lossK=8.098e-01,corr_norm=4.924e+01,grad_norm=1.150e+04,cos_desc=0.025,accepted=0,tokens=1024,opt=sgd | l3:loss0=1.157e-05,lossK=4.070e+00,corr_norm=1.306e+02,grad_norm=9.571e+03,cos_desc=0.016,accepted=0,tokens=1024,opt=sgd
+step:51/3000 train_time:185.311s step_avg:3633.55ms
+step:52/3000 train_time:188.899s step_avg:3632.67ms
+step:53/3000 train_time:192.484s step_avg:3631.78ms
+step:54/3000 train_time:196.063s step_avg:3630.80ms
+step:55/3000 train_time:199.639s step_avg:3629.81ms
+step:56/3000 train_time:203.230s step_avg:3629.10ms
+step:57/3000 train_time:206.811s step_avg:3628.26ms
+step:58/3000 train_time:210.394s step_avg:3627.48ms
+step:59/3000 train_time:213.971s step_avg:3626.63ms
+step:60/3000 train_time:217.558s step_avg:3625.96ms
+step:61/3000 train_time:221.139s step_avg:3625.23ms
+step:62/3000 train_time:224.719s step_avg:3624.50ms
+step:63/3000 train_time:228.315s step_avg:3624.05ms
+Stopping app - user stopped from CLI.
+step:64/3000 train_time:231.898s step_avg:3623.40ms
+step:65/3000 train_time:235.486s step_avg:3622.86ms
+Runner terminated.
