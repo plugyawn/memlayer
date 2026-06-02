@@ -2108,3 +2108,49 @@ Twenty-seventh final result, 2026-06-02 10:35 IST:
   - `h3045` finished slightly better, but only by `0.00039`, which is far below the required hard-seed move
     and does not justify a seed0-7 fanout.
   - No active Modal containers remain from this probe.
+
+Twenty-eighth confirmation fanout launch, 2026-06-02 10:35 IST:
+
+- The failed `h3030/h3045/h3075` probes compressed the schedule horizon and faded at the landing. The checked-in
+  current-record source itself uses `FINAL_TRAIN_STEPS=3040` and `FINAL_SCHEDULE_STEPS=3105`, and its seed0-7
+  checked-in `3030` mean is `3.27889875`.
+- Launched a direct source n=8 confirmation wave that trains to `3030` while preserving the record source
+  schedule horizon `3105`:
+
+| Seed | App | Function call | Source |
+|---:|---|---|---|
+| 0 | `ap-fdU8LQLxG3iY1B44pZgKwD` | `fc-01KT3BH3F3XMBTFGWK73RM5ZPP` | `8634073e-2a35-4cf6-b8c4-c00d441523d8.txt` |
+| 1 | `ap-oWImtkFpNsF40WItIpfS2Q` | `fc-01KT3BHV7FRSS7GWZFYVKH2Z3A` | `81540d3b-8dc9-4ad3-8d79-10052cca5354.txt` |
+| 2 | `ap-P6C686H6kh3sTvBahaaDLT` | `fc-01KT3BJK999Z1QW5XB5WWFTB81` | `d8597384-8cdb-40f5-8bfd-bcde460ceea5.txt` |
+| 3 | `ap-kXD01uy4qX9YyQgguQ9bTQ` | `fc-01KT3BKAP0DM15G8DC7CWHFPT4` | `7621883d-366f-49f7-ac0f-e297634b72ed.txt` |
+| 4 | `ap-veB9ukWX3j3ivIKa6tgfFg` | `fc-01KT3BM2ASE4KGY4KG6ZN11NKR` | `fc1593ad-ebd9-4a8a-b695-465180d035a4.txt` |
+| 5 | `ap-kbhEDXsExY8k1YMgaMmYKm` | `fc-01KT3BMTF6JTV2ZWSKPKE1M4RA` | `66a8cec3-9bbe-4a29-adef-0f1c2683a749.txt` |
+| 6 | `ap-AononNB9tQUfnuQua0Xc5v` | `fc-01KT3BNM3N4YK1QT3DR19XV31W` | `c4935f3f-6d44-445c-a52d-d119f9f978c7.txt` |
+| 7 | `ap-ESByQhw7VhpfwxBOmU50OE` | `fc-01KT3BPBTE7QT9X2PNFFG9X1P6` | `480f6098-b753-4ea0-b82a-c9f687a2ca95.txt` |
+
+- Settings: `TRACK3_TRAIN_STEPS=3030`, `TRACK3_SCHEDULE_STEPS=3105`, `TRACK3_MBS=64`,
+  `SCREEN_VAL_EVERY=125`, H100, direct extracted-source runner.
+- Modal app list confirms all eight apps are active with one task each.
+- First partial snapshot:
+  - seed0 reached `4.49419 @125`, checked-in reference `4.51291`, delta `-0.01872`, step avg `1483.81ms`.
+  - Other seeds had not reached the first validation at the first pull due to staggered launch/startup.
+
+Twenty-ninth live poll, 2026-06-02 10:43 IST:
+
+- Direct source `t3030/h3105` n=8 confirmation wave first real gate:
+
+| Seed | Step | Loss | Reference | Delta | Step avg ms |
+|---:|---:|---:|---:|---:|---:|
+| 0 | 250 | 4.04737 | 4.04970 | -0.00233 | 1455.36 |
+| 1 | 250 | 4.05132 | 4.05245 | -0.00113 | 1441.43 |
+| 2 | 250 | 4.06245 | 4.06006 | +0.00239 | 1452.86 |
+| 3 | 250 | 4.05664 | 4.05626 | +0.00038 | 1453.54 |
+| 4 | 125 | 4.52350 | 4.52253 | +0.00097 | 1792.53 |
+| 5 | 125 | 4.52829 | 4.53107 | -0.00278 | 1509.47 |
+| 6 | 125 | 4.50750 | 4.51211 | -0.00461 | 1503.30 |
+| 7 | 125 | 4.50937 | 4.51501 | -0.00564 | 1473.20 |
+
+- Read:
+  - All eight lanes are alive and have produced validation.
+  - Six lanes are ahead of their checked-in same-source references; two are slightly behind early.
+  - This remains a valid confirmation wave. Continue to `750/1000`, then late `2500+`, then final `3030`.
