@@ -2079,3 +2079,13 @@ Twenty-fifth live poll, 2026-06-02 09:41 IST:
   - This is materially stronger than the h3075 hard seed at the same region.
   - Still not enough for fanout: h3075 also showed a mid-run lead and faded at the landing. Carry both to a
     late gate around `2000/2500`.
+
+Twenty-sixth live poll, 2026-06-02 10:06 IST:
+
+- Aggressive single-seed hard probes at late gate:
+  - `h3030`: `3.40296 @2125`, reference `3.41249`, delta `-0.00953`, step avg `1421.76ms`.
+  - `h3045`: `3.40495 @2125`, reference `3.41249`, delta `-0.00754`, step avg `1446.60ms`.
+- Read:
+  - `h3030` is the stronger candidate.
+  - Both remain worth carrying to final. Do not fan out yet; h3075 showed that schedule-compression gains can
+    fade at the landing.
