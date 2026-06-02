@@ -2054,3 +2054,18 @@ Twenty-third final result, 2026-06-02 09:12 IST:
   - This is not an n=8 confirmation. The mid/late lead faded by the final landing, matching the seed8 warning.
   - Direct h3075 is clean but too weak to move the 3000-step endpoint. A next single-seed probe should use a
     more aggressive schedule horizon, e.g. `h3045` or `h3030`, before spending another n=8 wave.
+
+Twenty-fourth follow-up probe launch, 2026-06-02 09:18 IST:
+
+- Launched two single-seed hard probes after the direct `h3075` miss:
+  - `h3045`: app `ap-qL4KQkmu1jsyDgpFQMbrgW`, function `fc-01KT36SY1GG5C44K49WA4EE1FD`.
+  - `h3030`: app `ap-fwwuk9BmkK760aGdRRRibr`, function `fc-01KT36TKPQW1E1MBFEV8P38XVQ`.
+  - Both use seed8 source `records/track_3_optimization/results/20260509_contra_soft_muon/21827b54-ae4d-40ef-94ab-c005af6f825c.txt`,
+    `TRACK3_TRAIN_STEPS=3000`, `TRACK3_MBS=64`, H100, direct extracted-source runner.
+- First screen:
+  - `h3030`: `4.50817 @125`, reference `4.51582`, delta `-0.00765`, step avg `1469.66ms`.
+  - `h3045`: `4.51225 @125`, reference `4.51582`, delta `-0.00357`, step avg `1509.19ms`.
+- Read:
+  - Both are healthy, with `h3030` stronger early.
+  - First screen is not enough. `h3075` also had an early lead and still finished flat, so carry these to at
+    least a mid/late gate before any fanout.
