@@ -2089,3 +2089,22 @@ Twenty-sixth live poll, 2026-06-02 10:06 IST:
   - `h3030` is the stronger candidate.
   - Both remain worth carrying to final. Do not fan out yet; h3075 showed that schedule-compression gains can
     fade at the landing.
+
+Twenty-seventh final result, 2026-06-02 10:35 IST:
+
+- Aggressive single-seed hard probes completed. Modal cleanup verified:
+  - `modal container list` reports `Active Containers in environment: None`.
+- Final results:
+
+| Horizon | Step | Loss | Reference | Delta | Step avg ms |
+|---:|---:|---:|---:|---:|---:|
+| 3030 | 3000 | 3.28297 | 3.28269 | +0.00028 | 1416.76 |
+| 3045 | 3000 | 3.28230 | 3.28269 | -0.00039 | 1449.07 |
+
+- Read:
+  - Both aggressive horizons repeated the same fade pattern as `h3075`.
+  - `h3030` had the strongest late gate (`-0.00953 @2125`) but finished slightly worse than the checked-in
+    seed8 reference.
+  - `h3045` finished slightly better, but only by `0.00039`, which is far below the required hard-seed move
+    and does not justify a seed0-7 fanout.
+  - No active Modal containers remain from this probe.
