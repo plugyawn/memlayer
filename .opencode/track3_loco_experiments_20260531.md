@@ -1810,3 +1810,38 @@ Fourteenth live poll update, 2026-06-02 05:32 IST:
   - No-Loco tail3125 matched exact through `2700`: `3.31979 @2700`, effectively exact.
   - Combined tail3125+LocoProp matched exact through `2600`: `3.33259 @2600`, effectively exact.
   - Decision: only these two remain worth carrying, because they alter the run only after the targeted `2800` tail switch.
+
+Fifteenth live poll / final cleanup update, 2026-06-02 05:53 IST:
+
+- Exact seed2900 checkpoint replay endpoint:
+  - App: `ap-JEcaEpGSkzOEhSWKb2w1Az`.
+  - Checkpoint: `/root/.cache/track3_checkpoints/modal3000_nolate1600_pr287_locom_seed2900_step2500.pt`.
+  - Final: `3.29350 @3000`.
+  - Read: the step-2500 checkpoint/replay path is faithful and slightly cleaner than the earlier remembered `3.29374 @3000`, but it is still far above the `3.28` target.
+- `3030/pr287-tail3125/noloco` suffix failed after the targeted `2800` LR-horizon switch:
+  - App: `ap-1Lzp2CU3AkUJST7kHDwxHj`.
+  - It matched the exact trajectory through the switch:
+    - `3.31389 @2750`
+    - `3.31092 @2775`
+    - `3.30814 @2800`
+  - After the switch, it became worse:
+    - `3.30765 @2825`, about `+0.0015` worse than exact replay `3.30597 @2825`.
+    - `3.30602 @2850`, about `+0.0022` worse than exact replay `3.30383 @2850`.
+    - `3.30385 @2875`, about `+0.0021` worse than exact replay `3.30170 @2875`.
+  - Stopped by CLI. Read: delaying only the PR287 horizon extension to `2800` does not fix the landing; it hurts the post-switch slope.
+- `3030/pr287tail3125+loco2800/cap0.20` suffix also failed immediately after activation:
+  - App: `ap-El648AhZtBGciwe3cK922S`.
+  - It matched exact before the switch and had the intended LocoProp activation at `2800`.
+  - LocoProp diagnostics at `2800` showed low alignment for the logged layers (`cos_desc` around `0.042`, `0.059`, `0.016`, `-0.013`) and several corrections heavily cap-scaled.
+  - Result:
+    - `3.30814 @2800`
+    - `3.30775 @2825`, about `+0.0018` worse than exact replay `3.30597 @2825`.
+  - Stopped by CLI. Read: adding LocoProp back at `2800` on top of the tail LR switch does not rescue the late slope and likely worsens it immediately.
+- Modal cleanup verification:
+  - `modal app list` shows all owned Track 3 apps stopped with `0` tasks.
+  - `modal container list` reports `Active Containers in environment: None`.
+- Current conclusion:
+  - No n=8 confirmation exists for this Track 3 LocoProp-M PR path.
+  - The full 3000 fanout had a real-looking `1500` lead, but it faded by `1625/1750`.
+  - The exact checkpoint replay landed `3.29350 @3000`, and every suffix tested from the step-2500 checkpoint either tracked exact or worsened after the intended change.
+  - Do not spend another n=8 wave on this exact schedule/primitive without a new mechanism that specifically fixes the late-slope collapse after roughly `2800`.
