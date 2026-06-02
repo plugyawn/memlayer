@@ -763,16 +763,26 @@ def muon_update(grad, momentum, mu=0.95, nesterov=True):
         "mbs = 64\n",
         "mbs = int(os.environ.get(\"TRACK3_MBS\", \"64\"))\n",
     )
+    fixed_power_set_hparams = """def set_hparams(step):
+    progress = step / FINAL_SCHEDULE_STEPS
+    assert 0 <= progress < 1
+    for opt in optimizers:
+        for group in opt.param_groups:
+            group["lr"] = _lr(step, group["initial_lr"], group["power_c"], FINAL_LR_POWER)
+"""
     if "    def set_hparams(step, cooldown_frac=0.7):\n" in text:
         fn_indent = "    "
+        set_hparams_style = "cooldown"
     elif "def set_hparams(step, cooldown_frac=0.7):\n" in text:
         fn_indent = ""
+        set_hparams_style = "cooldown"
+    elif fixed_power_set_hparams in text:
+        fn_indent = ""
+        set_hparams_style = "fixed_power"
     else:
         raise RuntimeError("set_hparams pattern not found")
     body_indent = fn_indent + "    "
-    text = replace_exact(
-        text,
-        f"{fn_indent}def set_hparams(step, cooldown_frac=0.7):\n",
+    schedule_helpers = (
         f"{fn_indent}def _track3_active_lr_schedule(step):\n"
         f"{body_indent}if TRACK3_LR_SWITCH_STEP >= 0 and step >= TRACK3_LR_SWITCH_STEP and TRACK3_LR_AFTER_SWITCH:\n"
         f"{body_indent}    return TRACK3_LR_AFTER_SWITCH, TRACK3_LR_AFTER_SWITCH_STEPS, TRACK3_LR_AFTER_SWITCH_POWER\n"
@@ -781,29 +791,48 @@ def muon_update(grad, momentum, mu=0.95, nesterov=True):
         f"{body_indent}schedule_steps = schedule_steps if schedule_steps > 0 else train_steps\n"
         f"{body_indent}downward_lr = power_c * max(0.0, schedule_steps - step) ** lr_power\n"
         f"{body_indent}return min(initial_lr, downward_lr)\n\n"
-        f"{fn_indent}def set_hparams(step, cooldown_frac=TRACK3_COOLDOWN_FRAC):\n",
     )
-    text = replace_exact(
-        text,
-        f"{body_indent}progress = step / train_steps\n",
-        f"{body_indent}lr_schedule, lr_schedule_steps, lr_power = _track3_active_lr_schedule(step)\n"
-        f"{body_indent}if lr_schedule == \"pr287\":\n"
-        f"{body_indent}    for opt in optimizers:\n"
-        f"{body_indent}        for group in opt.param_groups:\n"
-        f"{body_indent}            group[\"lr\"] = _track3_pr287_lr(step, group[\"initial_lr\"], group[\"power_c\"], lr_schedule_steps, lr_power)\n"
-        f"{body_indent}    return\n"
-        f"{body_indent}schedule_steps = lr_schedule_steps if lr_schedule_steps > 0 else train_steps\n"
-        f"{body_indent}progress = step / schedule_steps\n",
-    )
-    text = replace_exact(
-        text,
-        f"{body_indent}else:\n{body_indent}    eta = (1 - progress) / cooldown_frac\n",
-        f"{body_indent}else:\n"
-        f"{body_indent}    eta = (1 - progress) / cooldown_frac\n"
-        f"{body_indent}    if lr_schedule == \"power\":\n"
-        f"{body_indent}        eta = eta ** lr_power\n"
-        f"{body_indent}    eta = max(eta, TRACK3_LR_MIN_ETA)\n",
-    )
+    if set_hparams_style == "fixed_power":
+        text = replace_exact(
+            text,
+            fixed_power_set_hparams,
+            schedule_helpers
+            + f"{fn_indent}def set_hparams(step):\n"
+            + f"{body_indent}lr_schedule, lr_schedule_steps, lr_power = _track3_active_lr_schedule(step)\n"
+            + f"{body_indent}if lr_schedule not in {{\"pr287\", \"power\"}}:\n"
+            + f"{body_indent}    lr_schedule = \"pr287\"\n"
+            + f"{body_indent}for opt in optimizers:\n"
+            + f"{body_indent}    for group in opt.param_groups:\n"
+            + f"{body_indent}        group[\"lr\"] = _track3_pr287_lr(step, group[\"initial_lr\"], group[\"power_c\"], lr_schedule_steps, lr_power)\n",
+        )
+    else:
+        text = replace_exact(
+            text,
+            f"{fn_indent}def set_hparams(step, cooldown_frac=0.7):\n",
+            schedule_helpers
+            + f"{fn_indent}def set_hparams(step, cooldown_frac=TRACK3_COOLDOWN_FRAC):\n",
+        )
+        text = replace_exact(
+            text,
+            f"{body_indent}progress = step / train_steps\n",
+            f"{body_indent}lr_schedule, lr_schedule_steps, lr_power = _track3_active_lr_schedule(step)\n"
+            f"{body_indent}if lr_schedule == \"pr287\":\n"
+            f"{body_indent}    for opt in optimizers:\n"
+            f"{body_indent}        for group in opt.param_groups:\n"
+            f"{body_indent}            group[\"lr\"] = _track3_pr287_lr(step, group[\"initial_lr\"], group[\"power_c\"], lr_schedule_steps, lr_power)\n"
+            f"{body_indent}    return\n"
+            f"{body_indent}schedule_steps = lr_schedule_steps if lr_schedule_steps > 0 else train_steps\n"
+            f"{body_indent}progress = step / schedule_steps\n",
+        )
+        text = replace_exact(
+            text,
+            f"{body_indent}else:\n{body_indent}    eta = (1 - progress) / cooldown_frac\n",
+            f"{body_indent}else:\n"
+            f"{body_indent}    eta = (1 - progress) / cooldown_frac\n"
+            f"{body_indent}    if lr_schedule == \"power\":\n"
+            f"{body_indent}        eta = eta ** lr_power\n"
+            f"{body_indent}    eta = max(eta, TRACK3_LR_MIN_ETA)\n",
+        )
     if "        val_step_freq = 125 if step / train_steps < 0.9 else 25\n" in text:
         text = replace_exact(
             text,

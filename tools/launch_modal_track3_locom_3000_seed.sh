@@ -57,6 +57,7 @@ extra = {
 }
 for key in (
     "TRACK3_SOURCE",
+    "TRACK3_PASS_TRIAL_ARG",
     "TRACK3_MBS",
     "TRACK3_SEED_BASE",
     "TRACK3_CHECKPOINT_STEPS",
