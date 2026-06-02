@@ -14,15 +14,35 @@ python3 tools/make_track3_locoprop_m.py \
 
 python3 -m py_compile "${generated_script}"
 
-echo "track3_locom_runner source=${source_script} generated=${generated_script} steps=${steps} trials=${trials} nproc=${nproc} mbs=${TRACK3_MBS:-64} pass_trial_arg=${TRACK3_PASS_TRIAL_ARG:-1}"
+trial_arg_mode="${TRACK3_TRIAL_ARG_MODE:-}"
+if [[ -z "${trial_arg_mode}" ]]; then
+  if [[ "${TRACK3_PASS_TRIAL_ARG:-1}" == "1" ]]; then
+    trial_arg_mode="positional-count"
+  else
+    trial_arg_mode="none"
+  fi
+fi
+
+echo "track3_locom_runner source=${source_script} generated=${generated_script} steps=${steps} trials=${trials} nproc=${nproc} mbs=${TRACK3_MBS:-64} trial_arg_mode=${trial_arg_mode}"
 
 if [[ "${TRACK3_DRY_RUN:-0}" == "1" ]]; then
   echo "generated ${generated_script}"
   exit 0
 fi
 
-if [[ "${TRACK3_PASS_TRIAL_ARG:-1}" == "1" ]]; then
-  torchrun --standalone --nproc_per_node="${nproc}" "${generated_script}" "${trials}"
-else
-  torchrun --standalone --nproc_per_node="${nproc}" "${generated_script}"
-fi
+case "${trial_arg_mode}" in
+  positional-count)
+    torchrun --standalone --nproc_per_node="${nproc}" "${generated_script}" "${trials}"
+    ;;
+  none)
+    torchrun --standalone --nproc_per_node="${nproc}" "${generated_script}"
+    ;;
+  optional-seed)
+    seed=$(( ${TRACK3_SEED_BASE:-0} + ${TRACK3_SEED_OFFSET:-0} ))
+    torchrun --standalone --nproc_per_node="${nproc}" "${generated_script}" --seed "${seed}"
+    ;;
+  *)
+    echo "Unsupported TRACK3_TRIAL_ARG_MODE=${trial_arg_mode}; use positional-count, none, or optional-seed" >&2
+    exit 2
+    ;;
+esac
