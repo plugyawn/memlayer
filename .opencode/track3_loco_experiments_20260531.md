@@ -1961,3 +1961,32 @@ Nineteenth follow-up probe, 2026-06-02 07:36 IST:
     because the candidate mechanism is schedule compression/landing rather than an early-loss optimizer change.
   - Carry the fanout at least to `500/625`, then reassess whether enough lanes look plausible for a sub-3000
     target.
+
+Twentieth live poll, 2026-06-02 08:10 IST:
+
+- Seed8 sentinel completed:
+  - Final: `3.28265 @3000`.
+  - Reference: `3.28269 @3000`.
+  - Delta: `-0.00004`.
+  - Read: the clean compressed schedule did not move the hard seed8 below target individually. Its mid-run
+    `0.003+` lead faded almost completely by the landing.
+- Standard seed0-7 fanout remains active:
+  - Modal app list shows only seed0-7 active with one task each; seed8 app `ap-iCODrSkqbdEjnJNNypIaLe` is stopped.
+  - At the latest mixed-depth poll:
+
+| Seed | Step | Loss | Reference | Delta | Step avg ms |
+|---:|---:|---:|---:|---:|---:|
+| 0 | 1375 | 3.56453 | 3.56811 | -0.00358 | 1403.28 |
+| 1 | 1375 | 3.56442 | 3.56633 | -0.00191 | 1416.89 |
+| 2 | 1125 | 3.62756 | 3.63064 | -0.00308 | 1577.22 |
+| 3 | 1250 | 3.59846 | 3.59698 | +0.00148 | 1490.69 |
+| 4 | 1250 | 3.59310 | 3.59749 | -0.00439 | 1418.63 |
+| 5 | 1250 | 3.59323 | 3.59714 | -0.00391 | 1474.97 |
+| 6 | 1250 | 3.59194 | 3.59462 | -0.00268 | 1447.17 |
+| 7 | 875 | 3.69070 | 3.69493 | -0.00423 | 1885.27 |
+
+- Read:
+  - The standard fanout is still alive: six lanes at `>=1250` average delta `-0.00250`, which exceeds the
+    roughly `0.00084` average improvement needed for seeds0-7 to clear `3.28 @3000`.
+  - But the seed8 fade is a warning. Carry to the next `1750/2000` gate and stop if the standard mean collapses
+    the same way.
