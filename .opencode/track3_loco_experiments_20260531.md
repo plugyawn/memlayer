@@ -1990,3 +1990,23 @@ Twentieth live poll, 2026-06-02 08:10 IST:
     roughly `0.00084` average improvement needed for seeds0-7 to clear `3.28 @3000`.
   - But the seed8 fade is a warning. Carry to the next `1750/2000` gate and stop if the standard mean collapses
     the same way.
+
+Twenty-first live poll, 2026-06-02 08:27 IST:
+
+- Standard seed0-7 fanout passed the mid-run persistence gate:
+
+| Seed | Step | Loss | Reference | Delta | Step avg ms |
+|---:|---:|---:|---:|---:|---:|
+| 0 | 1875 | 3.45625 | 3.46059 | -0.00434 | 1400.15 |
+| 1 | 1875 | 3.45692 | 3.46165 | -0.00473 | 1414.31 |
+| 2 | 1625 | 3.51585 | 3.51766 | -0.00181 | 1572.91 |
+| 3 | 1750 | 3.48701 | 3.49067 | -0.00366 | 1486.86 |
+| 4 | 1750 | 3.48541 | 3.48972 | -0.00431 | 1415.62 |
+| 5 | 1750 | 3.48618 | 3.49000 | -0.00382 | 1471.65 |
+| 6 | 1750 | 3.48422 | 3.48761 | -0.00339 | 1443.67 |
+| 7 | 1250 | 3.59148 | 3.59721 | -0.00573 | 1875.35 |
+
+- Mean over the six lanes at `>=1750`: `-0.00404`.
+- Read:
+  - This is a serious n=8 candidate again. The standard fanout has not repeated seed8's mid-run fade yet.
+  - Keep all eight to the late-cooldown gate around `2500+`; do not launch more lanes until the late gate lands.
