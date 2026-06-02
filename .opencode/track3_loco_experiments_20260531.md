@@ -2069,3 +2069,13 @@ Twenty-fourth follow-up probe launch, 2026-06-02 09:18 IST:
   - Both are healthy, with `h3030` stronger early.
   - First screen is not enough. `h3075` also had an early lead and still finished flat, so carry these to at
     least a mid/late gate before any fanout.
+
+Twenty-fifth live poll, 2026-06-02 09:41 IST:
+
+- Aggressive single-seed hard probes at mid-run:
+  - `h3030`: `3.62223 @1125`, reference `3.62990`, delta `-0.00767`, step avg `1408.03ms`.
+  - `h3045`: `3.62215 @1125`, reference `3.62990`, delta `-0.00775`, step avg `1429.24ms`.
+- Read:
+  - This is materially stronger than the h3075 hard seed at the same region.
+  - Still not enough for fanout: h3075 also showed a mid-run lead and faded at the landing. Carry both to a
+    late gate around `2000/2500`.
