@@ -2030,3 +2030,27 @@ Twenty-second live poll, 2026-06-02 08:44 IST:
   - All eight standard lanes are ahead at their latest checkpoints.
   - This clears the practical late gate. Carry to final; still do not call an n=8 confirmation until all eight
     final `3000` losses are available and the seed0-7 mean is below `3.28`.
+
+Twenty-third final result, 2026-06-02 09:12 IST:
+
+- Direct current-record `t3000/h3075` seed0-7 fanout completed. Modal cleanup verified:
+  - `modal app list` shows all owned `track3-record` apps stopped with `0` tasks.
+  - `modal container list` reports `Active Containers in environment: None`.
+- Final results:
+
+| Seed | Step | Loss | Reference | Delta | Step avg ms |
+|---:|---:|---:|---:|---:|---:|
+| 0 | 3000 | 3.27925 | 3.27972 | -0.00047 | 1399.49 |
+| 1 | 3000 | 3.28048 | 3.28047 | +0.00001 | 1411.65 |
+| 2 | 3000 | 3.28198 | 3.28207 | -0.00009 | 1565.81 |
+| 3 | 3000 | 3.28322 | 3.28282 | +0.00040 | 1485.14 |
+| 4 | 3000 | 3.28083 | 3.28069 | +0.00014 | 1413.13 |
+| 5 | 3000 | 3.28163 | 3.28183 | -0.00020 | 1467.23 |
+| 6 | 3000 | 3.27964 | 3.27959 | +0.00005 | 1442.93 |
+| 7 | 3000 | 3.27986 | 3.27951 | +0.00035 | 1863.51 |
+
+- Final seed0-7 mean: `3.28086`, target delta `+0.00086`.
+- Read:
+  - This is not an n=8 confirmation. The mid/late lead faded by the final landing, matching the seed8 warning.
+  - Direct h3075 is clean but too weak to move the 3000-step endpoint. A next single-seed probe should use a
+    more aggressive schedule horizon, e.g. `h3045` or `h3030`, before spending another n=8 wave.
