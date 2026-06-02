@@ -1878,3 +1878,11 @@ Sixteenth follow-up screen, 2026-06-02 06:20 IST:
 - Read on the target:
   - The stronger 2026-05-09 substrate is already close at `3000` but not confirmed there; it is broadly confirmed by `3030`.
   - A useful overlay for sub-3030 has to be low overhead and improve by roughly `0.001` mean at `3000`. The failed every-step LocoProp overlay moves the wrong way by `0.021` at the first screen and is not that overlay.
+
+Seventeenth follow-up probe note, 2026-06-02 06:33 IST:
+
+- Attempted current-record seed8 no-Loco PR287-horizon-3075 probe twice before first screen.
+- Apps: `ap-bVyzUmviqyx0LHMlQu81pI` and `ap-HpY9MrabQ5Sfbq3OhPRTyR`.
+- Both failed at `step 2 mb 0` with `RuntimeError: non-finite train loss ... nan`.
+- First likely issue found/fixed: generator was resetting the model seed after data generation; commit `f08839c` added `TRACK3_RESET_TRIAL_SEED=0` for source-owned seed replay.
+- Remaining likely issue: launcher default `TRACK3_MBS=16` is not apples-to-apples for the current-record source, whose checked-in logs use `mbs=64`. Relaunching with `TRACK3_MBS=64`; treat the failed `mbs=16` attempts as invalid, not schedule evidence.
