@@ -2010,3 +2010,23 @@ Twenty-first live poll, 2026-06-02 08:27 IST:
 - Read:
   - This is a serious n=8 candidate again. The standard fanout has not repeated seed8's mid-run fade yet.
   - Keep all eight to the late-cooldown gate around `2500+`; do not launch more lanes until the late gate lands.
+
+Twenty-second live poll, 2026-06-02 08:44 IST:
+
+- Standard seed0-7 fanout passed the late gate:
+
+| Seed | Step | Loss | Reference | Delta | Step avg ms |
+|---:|---:|---:|---:|---:|---:|
+| 0 | 2500 | 3.33872 | 3.34256 | -0.00384 | 1399.37 |
+| 1 | 2500 | 3.34032 | 3.34301 | -0.00269 | 1412.65 |
+| 2 | 2250 | 3.38495 | 3.38805 | -0.00310 | 1568.24 |
+| 3 | 2375 | 3.36373 | 3.36682 | -0.00309 | 1486.01 |
+| 4 | 2375 | 3.36173 | 3.36489 | -0.00316 | 1413.51 |
+| 5 | 2375 | 3.36235 | 3.36595 | -0.00360 | 1468.73 |
+| 6 | 2375 | 3.36059 | 3.36408 | -0.00349 | 1441.92 |
+| 7 | 1750 | 3.48433 | 3.48758 | -0.00325 | 1869.30 |
+
+- Read:
+  - All eight standard lanes are ahead at their latest checkpoints.
+  - This clears the practical late gate. Carry to final; still do not call an n=8 confirmation until all eight
+    final `3000` losses are available and the seed0-7 mean is below `3.28`.
