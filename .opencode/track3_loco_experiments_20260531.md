@@ -1870,3 +1870,11 @@ Sixteenth follow-up screen, 2026-06-02 06:20 IST:
 - Read:
   - Current-record substrate + every-step capped SGD LocoProp-M is both slower and worse at the first screen.
   - Do not fan this out. If this substrate is revisited, use a stricter accept gate such as local-loss decrease and/or nonnegative `cos_desc`, because the ungated cap-only correction is immediately dominated by overhead and bad local geometry.
+- Existing 2026-05-09 current-record distribution, parsed locally from the checked-in logs:
+  - `2875`: `n=30`, mean `3.29183`, min `3.28966`, `0/30 <= 3.28`.
+  - `3000`: `n=30`, mean `3.28096`, min `3.27879`, `7/30 <= 3.28`.
+  - `3030`: `n=30`, mean `3.27901`, min `3.27685`, `24/30 <= 3.28`.
+  - `3040`: `n=30`, mean `3.27850`, min `3.27633`, `27/30 <= 3.28`.
+- Read on the target:
+  - The stronger 2026-05-09 substrate is already close at `3000` but not confirmed there; it is broadly confirmed by `3030`.
+  - A useful overlay for sub-3030 has to be low overhead and improve by roughly `0.001` mean at `3000`. The failed every-step LocoProp overlay moves the wrong way by `0.021` at the first screen and is not that overlay.
