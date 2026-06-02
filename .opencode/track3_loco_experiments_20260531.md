@@ -1845,3 +1845,28 @@ Fifteenth live poll / final cleanup update, 2026-06-02 05:53 IST:
   - The full 3000 fanout had a real-looking `1500` lead, but it faded by `1625/1750`.
   - The exact checkpoint replay landed `3.29350 @3000`, and every suffix tested from the step-2500 checkpoint either tracked exact or worsened after the intended change.
   - Do not spend another n=8 wave on this exact schedule/primitive without a new mechanism that specifically fixes the late-slope collapse after roughly `2800`.
+
+Sixteenth follow-up screen, 2026-06-02 06:20 IST:
+
+- Tested a materially different substrate before any new fanout: current 2026-05-09 record-source script
+  (`records/track_3_optimization/results/20260509_contra_soft_muon/8634073e-2a35-4cf6-b8c4-c00d441523d8.txt`)
+  plus the existing capped SGD LocoProp-M correction.
+- Code provenance:
+  - Commit: `a227c81` (`Support Track 3 record-source LocoProp runs`).
+  - App: `ap-sM9XYK1PFwjVPmhIBjBC9d`.
+  - Function call: `fc-01KT2WB4EGB3VZ7Q987WV91R6T`.
+  - Setting: `TRACK3_TRAIN_STEPS=3000`, `TRACK3_PASS_TRIAL_ARG=0`, `TRACK3_SEED_OFFSET=0`,
+    `TRACK3_LR_SCHEDULE=pr287`, `TRACK3_LR_POWER=1.2`, `TRACK3_LR_SCHEDULE_STEPS=3105`,
+    `TRACK3_LOCOM_END_STEP=1600`, H100, `NPROC_PER_NODE=1`.
+- Reference seed0 curve from the same source file:
+  - `4.49820 @125`, `4.04970 @250`, `3.82109 @500`, `3.34256 @2500`, `3.27972 @3000`.
+- Result:
+  - `4.51945 @125`, `train_time=520.341s`, `step_avg=4162.73ms`.
+  - Stopped by CLI after first screen. Modal logs confirm `Stopping app - user stopped from CLI` and `Runner terminated`.
+- Diagnostics:
+  - Step 2 logged negative correction alignment for the first four layers (`cos_desc=-0.057`, `-0.078`, `-0.084`, `-0.134`) while accepted remained `1`.
+  - Step 10 still showed negative alignment and very large local objective blow-up (`lossK` much larger than `loss0`) with the norm cap doing the real scaling.
+  - Step 125 remained mixed/weak (`cos_desc=-0.029`, `-0.048`, `0.064`, `0.014`) and was already worse than the source seed0 reference.
+- Read:
+  - Current-record substrate + every-step capped SGD LocoProp-M is both slower and worse at the first screen.
+  - Do not fan this out. If this substrate is revisited, use a stricter accept gate such as local-loss decrease and/or nonnegative `cos_desc`, because the ungated cap-only correction is immediately dominated by overhead and bad local geometry.
