@@ -1886,3 +1886,23 @@ Seventeenth follow-up probe note, 2026-06-02 06:33 IST:
 - Both failed at `step 2 mb 0` with `RuntimeError: non-finite train loss ... nan`.
 - First likely issue found/fixed: generator was resetting the model seed after data generation; commit `f08839c` added `TRACK3_RESET_TRIAL_SEED=0` for source-owned seed replay.
 - Remaining likely issue: launcher default `TRACK3_MBS=16` is not apples-to-apples for the current-record source, whose checked-in logs use `mbs=64`. Relaunching with `TRACK3_MBS=64`; treat the failed `mbs=16` attempts as invalid, not schedule evidence.
+
+Eighteenth follow-up probe, 2026-06-02 06:40 IST:
+
+- Corrected the current-record seed8 no-Loco PR287-horizon-3075 probe to use source-owned seeding and `mbs=64`.
+- App: `ap-Bum40gtqfU4aH7bnSAhZZ9`.
+- Function call: `fc-01KT2XS8RMQMHJ89633T6Z04W2`.
+- Setting: 2026-05-09 current-record source, seed `8`, `TRACK3_TRAIN_STEPS=3000`, `TRACK3_TRIAL_ARG_MODE=optional-seed`,
+  `TRACK3_RESET_TRIAL_SEED=0`, `TRACK3_LOCOM_ENABLED=0`, `TRACK3_MBS=64`, `TRACK3_LR_SCHEDULE=pr287`,
+  `TRACK3_LR_POWER=1.2`, `TRACK3_LR_SCHEDULE_STEPS=3075`.
+- Baseline seed8 from checked-in source logs:
+  - `4.51582 @125`
+  - `3.28269 @3000`
+  - `3.28073 @3030`
+  - `3.28027 @3040`
+- Result:
+  - `4.51727 @125`, `train_time=229.869s`, `step_avg=1838.95ms`.
+  - Stopped by CLI after first screen. Modal logs confirm `Stopping app - user stopped from CLI` and `Runner terminated`.
+- Read:
+  - The schedule-compressed no-Loco generated path is slightly worse at the first screen and much slower than the checked-in record logs.
+  - Do not promote this generated-wrapper schedule probe to a full run or n=8. If schedule compression is revisited, use a direct extracted-source runner rather than the LocoProp generator wrapper.
