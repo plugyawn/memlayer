@@ -2154,3 +2154,63 @@ Twenty-ninth live poll, 2026-06-02 10:43 IST:
   - All eight lanes are alive and have produced validation.
   - Six lanes are ahead of their checked-in same-source references; two are slightly behind early.
   - This remains a valid confirmation wave. Continue to `750/1000`, then late `2500+`, then final `3030`.
+
+Thirtieth live poll and PR-stat artifact update, 2026-06-02 10:58 IST:
+
+- Direct source `t3030/h3105` n=8 confirmation wave mid-early snapshot:
+
+| Seed | Step | Loss | Reference | Delta | Step avg ms |
+|---:|---:|---:|---:|---:|---:|
+| 0 | 875 | 3.69394 | 3.69465 | -0.00071 | 1434.04 |
+| 1 | 875 | 3.69113 | 3.69182 | -0.00069 | 1421.52 |
+| 2 | 875 | 3.69756 | 3.69715 | +0.00041 | 1435.44 |
+| 3 | 750 | 3.73729 | 3.73882 | -0.00153 | 1437.26 |
+| 4 | 750 | 3.73733 | 3.73797 | -0.00064 | 1585.10 |
+| 5 | 750 | 3.73688 | 3.73801 | -0.00113 | 1462.88 |
+| 6 | 750 | 3.73478 | 3.73770 | -0.00292 | 1459.78 |
+| 7 | 750 | 3.73636 | 3.73521 | +0.00115 | 1476.23 |
+
+- Mean latest delta vs same-source checked-in references: `-0.0007575`.
+- All eight Modal apps remain active with one task each.
+- Generated PR-stat plot artifacts from the checked-in current-record source distribution:
+  - `.opencode/plots/track3_record_source_avg_20260602.png`
+  - `.opencode/plots/track3_record_source_late_zoom_20260602.png`
+  - `.opencode/plots/track3_record_source_avg_20260602.svg`
+  - `.opencode/plots/track3_record_source_late_zoom_20260602.svg`
+  - `.opencode/plots/track3_record_source_all30_stats_20260602.tsv`
+  - `.opencode/plots/track3_record_source_seed0_7_stats_20260602.tsv`
+- PR-style one-sided t-test against mean loss `< 3.28`:
+
+| Population | Step | Mean | SD | n <= 3.28 | p-value |
+|---|---:|---:|---:|---:|---:|
+| all checked-in seeds | 3000 | 3.28096200 | 0.00113692 | 7/30 | 0.999965 |
+| all checked-in seeds | 3020 | 3.27959833 | 0.00113780 | 19/30 | 0.0314903 |
+| all checked-in seeds | 3030 | 3.27901467 | 0.00113769 | 24/30 | 2.58461e-05 |
+| all checked-in seeds | 3040 | 3.27850000 | 0.00114119 | 27/30 | 3.16114e-08 |
+| seed0-7 only | 3030 | 3.27889875 | 0.00127606 | 6/8 | 0.0223481 |
+| seed0-7 only | 3040 | 3.27838250 | 0.00127725 | 7/8 | 0.00447669 |
+
+- Read:
+  - The checked-in `n=30` source distribution is already PR-significant by `3030`.
+  - The current live `n=8` confirmation wave is intended to reproduce the `t3030/h3105` source path, but it has
+    not reached final yet. It remains healthy through the latest mixed `750/875` gate.
+
+Thirty-first correction, 2026-06-02 11:03 IST:
+
+- Correction: the `t3030/h3105` n=8 wave above was a mistaken current-record source confirmation wave, not a
+  LocoProp-M + Muon confirmation wave.
+- The source files under `records/track_3_optimization/results/20260509_contra_soft_muon/` contain
+  Contra-Muon + SOAP-Muon + Soft-Muon / PR287-style schedule code and no LocoProp-M code path.
+- Stopped all eight apps with `modal app stop --yes`:
+  - `ap-fdU8LQLxG3iY1B44pZgKwD`
+  - `ap-oWImtkFpNsF40WItIpfS2Q`
+  - `ap-P6C686H6kh3sTvBahaaDLT`
+  - `ap-kXD01uy4qX9YyQgguQ9bTQ`
+  - `ap-veB9ukWX3j3ivIKa6tgfFg`
+  - `ap-kbhEDXsExY8k1YMgaMmYKm`
+  - `ap-AononNB9tQUfnuQua0Xc5v`
+  - `ap-ESByQhw7VhpfwxBOmU50OE`
+- Verified `modal container list` reports no active containers after shutdown.
+- Do not count this wave, or the plot/p-value artifacts from the checked-in current-record source, as evidence
+  for the LocoProp-M PR path. They are only source-distribution diagnostics for the existing current-record code.
+
