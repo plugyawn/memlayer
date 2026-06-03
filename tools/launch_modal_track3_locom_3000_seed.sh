@@ -20,9 +20,17 @@ lr_switch_step = "${TRACK3_LR_SWITCH_STEP:--1}"
 lr_after_switch = "${TRACK3_LR_AFTER_SWITCH:-}"
 lr_after_switch_power = "${TRACK3_LR_AFTER_SWITCH_POWER:-${TRACK3_LR_POWER:-1.0}}"
 lr_after_switch_steps = "${TRACK3_LR_AFTER_SWITCH_STEPS:-0}"
+lr_blend_start = "${TRACK3_LR_BLEND_START:--1}"
+lr_blend_end = "${TRACK3_LR_BLEND_END:--1}"
+lr_blend_target = "${TRACK3_LR_BLEND_TARGET:-}"
+lr_blend_target_power = "${TRACK3_LR_BLEND_TARGET_POWER:-${TRACK3_LR_POWER:-1.0}}"
+lr_blend_target_steps = "${TRACK3_LR_BLEND_TARGET_STEPS:-0}"
 soft_muon = "${TRACK3_SOFT_MUON:-0}"
 soft_muon_blend = "${TRACK3_SOFT_MUON_BLEND:-1.0}"
 soft_muon_norm_restore = "${TRACK3_SOFT_MUON_NORM_RESTORE:-1}"
+soft_muon_start_step = "${TRACK3_SOFT_MUON_START_STEP:--1}"
+soft_muon_end_step = "${TRACK3_SOFT_MUON_END_STEP:--1}"
+soft_muon_ceil = "${TRACK3_SOFT_MUON_CEIL:-1.0}"
 extra = {
     "TRACK3_TRAIN_STEPS": steps,
     "TRACK3_NUM_TRIALS": "1",
@@ -40,9 +48,17 @@ extra = {
     "TRACK3_LR_AFTER_SWITCH": lr_after_switch,
     "TRACK3_LR_AFTER_SWITCH_POWER": lr_after_switch_power,
     "TRACK3_LR_AFTER_SWITCH_STEPS": lr_after_switch_steps,
+    "TRACK3_LR_BLEND_START": lr_blend_start,
+    "TRACK3_LR_BLEND_END": lr_blend_end,
+    "TRACK3_LR_BLEND_TARGET": lr_blend_target,
+    "TRACK3_LR_BLEND_TARGET_POWER": lr_blend_target_power,
+    "TRACK3_LR_BLEND_TARGET_STEPS": lr_blend_target_steps,
     "TRACK3_SOFT_MUON": soft_muon,
     "TRACK3_SOFT_MUON_BLEND": soft_muon_blend,
     "TRACK3_SOFT_MUON_NORM_RESTORE": soft_muon_norm_restore,
+    "TRACK3_SOFT_MUON_START_STEP": soft_muon_start_step,
+    "TRACK3_SOFT_MUON_END_STEP": soft_muon_end_step,
+    "TRACK3_SOFT_MUON_CEIL": soft_muon_ceil,
     "TRACK3_LOCOM_ENABLED": "1",
     "TRACK3_LOCOM_LAYERS": "all",
     "TRACK3_LOCOM_STEPS": "4",
@@ -69,6 +85,7 @@ for key in (
     "TRACK3_RESUME_CHECKPOINT",
     "TRACK3_RESUME_ADVANCE_DATA",
     "TRACK3_RESUME_RESTORE_RNG",
+    "TRACK3_RESUME_LOAD_OPTIMIZERS",
     "TRACK3_TARGET_LOSS",
     "TRACK3_LOCOM_ENABLED",
     "TRACK3_LOCOM_LAYERS",
@@ -107,6 +124,15 @@ for key in (
     "TRACK3_LR_AFTER_SWITCH",
     "TRACK3_LR_AFTER_SWITCH_POWER",
     "TRACK3_LR_AFTER_SWITCH_STEPS",
+    "TRACK3_LR_BLEND_START",
+    "TRACK3_LR_BLEND_END",
+    "TRACK3_LR_BLEND_TARGET",
+    "TRACK3_LR_BLEND_TARGET_POWER",
+    "TRACK3_LR_BLEND_TARGET_STEPS",
+    "TRACK3_LR_BUMP_WINDOWS",
+    "TRACK3_SOFT_MUON_START_STEP",
+    "TRACK3_SOFT_MUON_END_STEP",
+    "TRACK3_SOFT_MUON_CEIL",
 ):
     if key in os.environ:
         extra[key] = os.environ[key]

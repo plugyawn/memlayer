@@ -4,6 +4,11 @@ This repository hosts the *NanoGPT speedrun*, in which we (collaboratively|compe
 
 (Note: Besides the main track, there is also an [optimization track](records/track_3_optimization) where we try to minimize steps subject to fixed arch/data/bsz and with unlimited wallclock budget.)
 
+Experimental Track 3 LocoProp-M instructions for this branch are in
+[docs/track3_locoprop_m_runbook.md](docs/track3_locoprop_m_runbook.md).
+The latest tail comparison plot is
+[`.opencode/plots/track3_oldtail_vs_live_blends_20260603_refresh3_full.png`](.opencode/plots/track3_oldtail_vs_live_blends_20260603_refresh3_full.png).
+
 The target (3.28 validation loss on FineWeb) follows Andrej Karpathy's [GPT-2 replication in llm.c, which attains that loss after running for 45 minutes](https://github.com/karpathy/llm.c/discussions/481#:~:text=By%20the%20end%20of%20the%20optimization%20we%27ll%20get%20to%20about%203.29).
 The speedrun code also descends from llm.c's [PyTorch trainer](https://github.com/karpathy/llm.c/blob/master/train_gpt2.py), which itself descends from NanoGPT, hence the name of the repo.
 Thanks to the efforts of many contributors, this repo now contains a training algorithm which attains the target performance in:
@@ -406,4 +411,3 @@ compared to Shampoo.
 ```
 
 <img src="img/dofa.jpg" alt="itsover_wereback" style="width:100%;">
-

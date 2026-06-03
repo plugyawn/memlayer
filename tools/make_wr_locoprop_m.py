@@ -46,6 +46,8 @@ WR_LOCOM_PROX = float(os.environ.get("WR_LOCOM_PROX", "0.1"))
 WR_LOCOM_ALPHA = float(os.environ.get("WR_LOCOM_ALPHA", "1.0"))
 WR_LOCOM_NORM_TO_BASE = _wr_locom_env_flag("WR_LOCOM_NORM_TO_BASE", "0")
 WR_LOCOM_NORM_CAP = float(os.environ.get("WR_LOCOM_NORM_CAP", "0.20"))
+WR_LOCOM_REQUIRE_LOSS_DECREASE = _wr_locom_env_flag("WR_LOCOM_REQUIRE_LOSS_DECREASE", "0")
+WR_LOCOM_MIN_COS_DESC = float(os.environ.get("WR_LOCOM_MIN_COS_DESC", "-inf"))
 WR_LOCOM_START_STEP = int(os.environ.get("WR_LOCOM_START_STEP", "0"))
 WR_LOCOM_END_STEP = int(os.environ.get("WR_LOCOM_END_STEP", "1000000000"))
 WR_LOCOM_INTERVAL = int(os.environ.get("WR_LOCOM_INTERVAL", "1"))
@@ -178,26 +180,34 @@ def prepare_wr_locoprop_m(loco_model: nn.Module, step: int) -> None:
             W.add_(grad_w, alpha=-WR_LOCOM_INNER_LR)
 
         corr = (W - W0).to(loco_model.mlp_bank.dtype)
-        WR_LOCOM_LAYER_CORR[layer_idx] = corr
+        corr_f = corr.float()
+        raw_grad = loco_model.mlp_bank.grad[layer_idx, 0].float() if loco_model.mlp_bank.grad is not None else None
+        if raw_grad is not None:
+            raw_desc = -raw_grad
+            denom = corr_f.norm().mul(raw_desc.norm()).clamp_min(1e-12)
+            cosine = corr_f.flatten().dot(raw_desc.flatten()) / denom
+            grad_norm = float(raw_grad.norm())
+            cos_desc = float(cosine)
+        else:
+            grad_norm = float("nan")
+            cos_desc = float("nan")
+        loss_decreased = bool(loss_k <= loss0)
+        accepted = True
+        if WR_LOCOM_REQUIRE_LOSS_DECREASE and not loss_decreased:
+            accepted = False
+        if cos_desc < WR_LOCOM_MIN_COS_DESC:
+            accepted = False
+        if accepted:
+            WR_LOCOM_LAYER_CORR[layer_idx] = corr
 
         if step in WR_LOCOM_LOG_STEPS and len(stats) < 6:
-            raw_grad = loco_model.mlp_bank.grad[layer_idx, 0].float() if loco_model.mlp_bank.grad is not None else None
-            corr_f = corr.float()
-            if raw_grad is not None:
-                raw_desc = -raw_grad
-                denom = corr_f.norm().mul(raw_desc.norm()).clamp_min(1e-12)
-                cosine = corr_f.flatten().dot(raw_desc.flatten()) / denom
-                grad_norm = float(raw_grad.norm())
-                cos_desc = float(cosine)
-            else:
-                grad_norm = float("nan")
-                cos_desc = float("nan")
             stats.append(
                 f"l{layer_idx}:loss0={float(loss0):.3e}"
                 f",lossK={float(loss_k):.3e}"
                 f",corr_norm={float(corr_f.norm()):.3e}"
                 f",grad_norm={grad_norm:.3e}"
                 f",cos_desc={cos_desc:.3f}"
+                f",accepted={int(accepted)}"
                 f",tokens={x.size(0)}"
             )
 
@@ -370,7 +380,8 @@ def generate(source: Path, output: Path, train_steps: int) -> None:
         "    f\"enabled={WR_LOCOM_ENABLED} layers={WR_LOCOM_LAYERS_SPEC} steps={WR_LOCOM_LOCAL_STEPS} \"\n"
         "    f\"sample_tokens={WR_LOCOM_SAMPLE_TOKENS} inner_lr={WR_LOCOM_INNER_LR} \"\n"
         "    f\"gamma={WR_LOCOM_TARGET_GAMMA} prox={WR_LOCOM_PROX} alpha={WR_LOCOM_ALPHA} \"\n"
-        "    f\"norm_to_base={WR_LOCOM_NORM_TO_BASE} norm_cap={WR_LOCOM_NORM_CAP}\",\n"
+        "    f\"norm_to_base={WR_LOCOM_NORM_TO_BASE} norm_cap={WR_LOCOM_NORM_CAP} \"\n"
+        "    f\"require_loss_decrease={WR_LOCOM_REQUIRE_LOSS_DECREASE} min_cos_desc={WR_LOCOM_MIN_COS_DESC}\",\n"
         "    console=True,\n"
         ")\n",
     )

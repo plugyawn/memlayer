@@ -1,0 +1,172 @@
+# Track 3 LocoProp-M Runbook
+
+This branch contains the Track 3 LocoProp-M experiment harness used for the
+recent optimizer-schedule sweeps. It is experimental code, not a record claim.
+The latest plotted tail comparison ends with the best new lane at
+`3.30262 @3000`, well outside the current WR/reference band.
+
+Latest plot artifacts:
+
+- `.opencode/plots/track3_oldtail_vs_live_blends_20260603_refresh3_full.png`
+- `.opencode/plots/track3_oldtail_vs_live_blends_20260603_refresh3_midlate.png`
+- `.opencode/plots/track3_oldtail_vs_live_blends_20260603_refresh3_terminal.png`
+- `.opencode/plots/track3_oldtail_vs_live_blends_20260603_refresh3.tsv`
+
+## What The Harness Does
+
+`tools/make_track3_locoprop_m.py` generates a Track 3 training script from
+`train_gpt.py` and adds:
+
+- MLP `c_fc` LocoProp-M local correction probes.
+- Norm-capped additive correction application.
+- checkpoint save/resume with optimizer/RNG restore controls.
+- linear, power, PR287-style, blended, and temporary LR-bump schedules.
+- optional Soft-Muon ramp for late-stage suffix tests.
+- diagnostics for correction norms, loss decrease, and descent cosine.
+
+`tools/run_track3_locoprop_m.sh` is the local runner. It prints source,
+generator, and generated-script SHA256 hashes before training so checkpoint
+provenance can be reconstructed.
+
+## Local 1x Run
+
+Install the normal repo requirements and cache FineWeb as usual:
+
+```bash
+pip install -r requirements.txt
+python data/cached_fineweb10B.py 9
+```
+
+Then run a 1x Track 3 LocoProp-M screen:
+
+```bash
+TRACK3_TRAIN_STEPS=3000 \
+TRACK3_NUM_TRIALS=1 \
+TRACK3_SEED_OFFSET=3710 \
+TRACK3_LOCOM_ENABLED=1 \
+TRACK3_LOCOM_LAYERS=all \
+TRACK3_LOCOM_STEPS=4 \
+TRACK3_LOCOM_NORM_CAP=0.20 \
+SCREEN_VAL_EVERY=25 \
+bash tools/run_track3_locoprop_m.sh
+```
+
+Use `TRACK3_DRY_RUN=1` to only generate and compile-check the script.
+
+## Modal Single-Lane Run
+
+For Modal, use the launcher wrapper. Keep the protobuf env var; it avoids local
+Modal CLI descriptor failures on this machine.
+
+```bash
+PROTOCOL_BUFFERS_PYTHON_IMPLEMENTATION=python \
+MODAL_DETACH=1 \
+NANOGPT_MODAL_GPU=H100 \
+MODAL_RUN_NAME=track3-locom-screen-seed3710 \
+TRACK3_TRAIN_STEPS=3000 \
+TRACK3_SEED_OFFSET=3710 \
+SCREEN_VAL_EVERY=25 \
+bash tools/launch_modal_track3_locom_3000_seed.sh
+```
+
+## Resume From A 1600-Step Checkpoint
+
+The recent suffix tests resumed from a 1600 checkpoint and preserved model,
+optimizer, RNG, and data-stream provenance. The checkpoint path must exist on
+the Modal/remote machine:
+
+```bash
+export TRACK3_RESUME_CHECKPOINT=/root/.cache/track3_checkpoints/track3_cd500red_softmerge_pr2872000_p110_ckpt1600_seed3710_step1600.pt
+export TRACK3_RESUME_ADVANCE_DATA=1
+export TRACK3_RESUME_RESTORE_RNG=1
+export TRACK3_RESUME_LOAD_OPTIMIZERS=1
+export TRACK3_SEED_OFFSET=3710
+export TRACK3_TRAIN_STEPS=3000
+export TRACK3_CHECKPOINT_STEPS=2000,2400
+export TRACK3_CHECKPOINT_DIR=/root/.cache/track3_checkpoints
+export TRACK3_CHECKPOINT_PREFIX=track3_loco2400_h3075ramp2350x150
+
+PROTOCOL_BUFFERS_PYTHON_IMPLEMENTATION=python \
+MODAL_DETACH=1 \
+NANOGPT_MODAL_GPU=H100 \
+MODAL_RUN_NAME=track3-redckpt1600-loco2400-h3075ramp2350x150 \
+TRACK3_LOCOM_ACTIVE_WINDOWS=0:1800,2400:3000 \
+TRACK3_LOCOM_END_STEP=3000 \
+TRACK3_LR_BLEND_START=1800 \
+TRACK3_LR_BLEND_END=2000 \
+TRACK3_LR_BLEND_TARGET=pr287 \
+TRACK3_LR_BLEND_TARGET_POWER=1.10 \
+TRACK3_LR_BLEND_TARGET_STEPS=3075 \
+TRACK3_LR_BUMP_WINDOWS=2350:2600:3000:3000:1.50 \
+bash tools/launch_modal_track3_locom_3000_seed.sh
+```
+
+That exact family is the one plotted in the refresh3 artifacts. It did not land
+near the WR tail, but it is useful as a reproducible negative control.
+
+## Fanout Helpers
+
+The helper scripts below launch small suffix grids. They assume the checkpoint
+path exists on the remote host or Modal volume.
+
+```bash
+bash tools/launch_modal_track3_locom_cd500_suffix_array.sh
+bash tools/launch_modal_track3_locom_resume1600_lr_array.sh
+bash tools/launch_modal_track3_locom_blend_tail3.sh
+```
+
+## Important Env Knobs
+
+Core LocoProp-M:
+
+```text
+TRACK3_LOCOM_ENABLED=1
+TRACK3_LOCOM_LAYERS=all
+TRACK3_LOCOM_STEPS=4
+TRACK3_LOCOM_NORM_CAP=0.20
+TRACK3_LOCOM_ACTIVE_WINDOWS=0:1800
+TRACK3_LOCOM_END_STEP=1800
+```
+
+Schedule controls:
+
+```text
+TRACK3_LR_SCHEDULE=linear|power|pr287
+TRACK3_LR_POWER=1.0
+TRACK3_LR_SCHEDULE_STEPS=3000
+TRACK3_LR_BLEND_START=1800
+TRACK3_LR_BLEND_END=2000
+TRACK3_LR_BLEND_TARGET=pr287
+TRACK3_LR_BLEND_TARGET_POWER=1.10
+TRACK3_LR_BLEND_TARGET_STEPS=3075
+TRACK3_LR_BUMP_WINDOWS=start:ramp_end:hold_end:fade_end:mult
+```
+
+Checkpoint controls:
+
+```text
+TRACK3_CHECKPOINT_STEPS=1600,2000,2400
+TRACK3_CHECKPOINT_DIR=/root/.cache/track3_checkpoints
+TRACK3_RESUME_CHECKPOINT=/path/to/checkpoint.pt
+TRACK3_RESUME_LOAD_OPTIMIZERS=1
+TRACK3_RESUME_RESTORE_RNG=1
+TRACK3_RESUME_ADVANCE_DATA=1
+```
+
+Soft-Muon suffix controls:
+
+```text
+TRACK3_SOFT_MUON=1
+TRACK3_SOFT_MUON_BLEND=1.0
+TRACK3_SOFT_MUON_START_STEP=2500
+TRACK3_SOFT_MUON_END_STEP=3010
+TRACK3_SOFT_MUON_CEIL=0.80
+```
+
+## Current Read
+
+The strongest current evidence is that LocoProp-M creates real early/mid-run
+loss improvements, but the later handoff/suffix has not preserved those gains.
+The refresh3 plot shows the failure mode clearly: the LocoProp suffixes cluster
+around `3.302-3.306 @3000`, while the WR/reference means continue descending to
+about `3.281 @3000`.

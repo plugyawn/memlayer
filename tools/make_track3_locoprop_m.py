@@ -54,6 +54,8 @@ LOCO_M_GATHER_SAMPLES = _env_flag("TRACK3_LOCOM_GATHER_SAMPLES", "1")
 LOCO_M_ACCUM_SAMPLES = _env_flag("TRACK3_LOCOM_ACCUM_SAMPLES", "0")
 LOCO_M_MICRO_SAMPLE_TOKENS = int(os.environ.get("TRACK3_LOCOM_MICRO_SAMPLE_TOKENS", "32"))
 LOCO_M_LOCAL_OPT = os.environ.get("TRACK3_LOCOM_LOCAL_OPT", "sgd").lower()
+LOCO_M_TARGET_SPACE = os.environ.get("TRACK3_LOCOM_TARGET_SPACE", "post").lower()
+LOCO_M_RANDOM_CORRECTION = _env_flag("TRACK3_LOCOM_RANDOM_CORRECTION", "0") or LOCO_M_LOCAL_OPT == "random"
 LOCO_M_LOCAL_LR_DECAY = _env_flag("TRACK3_LOCOM_LOCAL_LR_DECAY", "0")
 LOCO_M_RMS_BETA1 = float(os.environ.get("TRACK3_LOCOM_RMS_BETA1", "0.999"))
 LOCO_M_RMS_BETA2 = float(os.environ.get("TRACK3_LOCOM_RMS_BETA2", "0.9"))
@@ -74,6 +76,12 @@ TRACK3_LR_SWITCH_STEP = int(os.environ.get("TRACK3_LR_SWITCH_STEP", "-1"))
 TRACK3_LR_AFTER_SWITCH = os.environ.get("TRACK3_LR_AFTER_SWITCH", "").lower()
 TRACK3_LR_AFTER_SWITCH_POWER = float(os.environ.get("TRACK3_LR_AFTER_SWITCH_POWER", str(TRACK3_LR_POWER)))
 TRACK3_LR_AFTER_SWITCH_STEPS = int(os.environ.get("TRACK3_LR_AFTER_SWITCH_STEPS", "0"))
+TRACK3_LR_BLEND_START = int(os.environ.get("TRACK3_LR_BLEND_START", "-1"))
+TRACK3_LR_BLEND_END = int(os.environ.get("TRACK3_LR_BLEND_END", "-1"))
+TRACK3_LR_BLEND_TARGET = os.environ.get("TRACK3_LR_BLEND_TARGET", "").lower()
+TRACK3_LR_BLEND_TARGET_POWER = float(os.environ.get("TRACK3_LR_BLEND_TARGET_POWER", str(TRACK3_LR_POWER)))
+TRACK3_LR_BLEND_TARGET_STEPS = int(os.environ.get("TRACK3_LR_BLEND_TARGET_STEPS", "0"))
+TRACK3_LR_BUMP_WINDOWS_SPEC = os.environ.get("TRACK3_LR_BUMP_WINDOWS", "")
 TRACK3_ADAM_EMBED_POWER_C = float(os.environ.get("TRACK3_ADAM_EMBED_POWER_C", "4.976805410800738e-05"))
 TRACK3_ADAM_PROJ_POWER_C = float(os.environ.get("TRACK3_ADAM_PROJ_POWER_C", "5.184172302917436e-07"))
 TRACK3_ADAM_OTHER_POWER_C = float(os.environ.get("TRACK3_ADAM_OTHER_POWER_C", "1.6589351369335795e-06"))
@@ -82,9 +90,18 @@ if TRACK3_LR_SCHEDULE not in {"linear", "power", "pr287"}:
     raise ValueError("TRACK3_LR_SCHEDULE must be 'linear', 'power', or 'pr287'")
 if TRACK3_LR_AFTER_SWITCH and TRACK3_LR_AFTER_SWITCH not in {"linear", "power", "pr287"}:
     raise ValueError("TRACK3_LR_AFTER_SWITCH must be empty, 'linear', 'power', or 'pr287'")
+if TRACK3_LR_BLEND_TARGET and TRACK3_LR_BLEND_TARGET not in {"linear", "power", "pr287"}:
+    raise ValueError("TRACK3_LR_BLEND_TARGET must be empty, 'linear', 'power', or 'pr287'")
+if TRACK3_LR_BLEND_TARGET and TRACK3_LR_BLEND_END < TRACK3_LR_BLEND_START:
+    raise ValueError("TRACK3_LR_BLEND_END must be >= TRACK3_LR_BLEND_START")
+if LOCO_M_TARGET_SPACE not in {"post", "pre"}:
+    raise ValueError("TRACK3_LOCOM_TARGET_SPACE must be 'post' or 'pre'")
 TRACK3_SOFT_MUON = _env_flag("TRACK3_SOFT_MUON", "0")
 TRACK3_SOFT_MUON_BLEND = float(os.environ.get("TRACK3_SOFT_MUON_BLEND", "1.0"))
 TRACK3_SOFT_MUON_NORM_RESTORE = _env_flag("TRACK3_SOFT_MUON_NORM_RESTORE", "1")
+TRACK3_SOFT_MUON_START_STEP = int(os.environ.get("TRACK3_SOFT_MUON_START_STEP", "-1"))
+TRACK3_SOFT_MUON_END_STEP = int(os.environ.get("TRACK3_SOFT_MUON_END_STEP", "-1"))
+TRACK3_SOFT_MUON_CEIL = float(os.environ.get("TRACK3_SOFT_MUON_CEIL", "1.0"))
 TRACK3_CHECKPOINT_STEPS = {
     int(x)
     for x in os.environ.get("TRACK3_CHECKPOINT_STEPS", "").split(",")
@@ -96,6 +113,8 @@ TRACK3_CHECKPOINT_EXIT_AFTER = _env_flag("TRACK3_CHECKPOINT_EXIT_AFTER", "0")
 TRACK3_RESUME_CHECKPOINT = os.environ.get("TRACK3_RESUME_CHECKPOINT", "")
 TRACK3_RESUME_ADVANCE_DATA = _env_flag("TRACK3_RESUME_ADVANCE_DATA", "1")
 TRACK3_RESUME_RESTORE_RNG = _env_flag("TRACK3_RESUME_RESTORE_RNG", "1")
+TRACK3_RESUME_LOAD_OPTIMIZERS = _env_flag("TRACK3_RESUME_LOAD_OPTIMIZERS", "1")
+TRACK3_CHECKPOINT_SAVED_STEPS: set[int] = set()
 LOCO_M_LOG_STEPS = {
     int(x)
     for x in os.environ.get("TRACK3_LOCOM_LOG_STEPS", "0,1,2,10,50,125,250,500").split(",")
@@ -139,6 +158,55 @@ def _parse_step_windows(spec: str) -> list[tuple[int, int]]:
 LOCO_M_NORM_CAP_WINDOWS = _parse_step_value_windows(LOCO_M_NORM_CAP_WINDOWS_SPEC)
 LOCO_M_ACTIVE_WINDOWS = _parse_step_windows(LOCO_M_ACTIVE_WINDOWS_SPEC)
 
+def _parse_lr_bump_windows(spec: str) -> list[tuple[int, int, int, int, float]]:
+    windows: list[tuple[int, int, int, int, float]] = []
+    for part in spec.split(","):
+        part = part.strip()
+        if not part:
+            continue
+        fields = part.split(":")
+        if len(fields) != 5:
+            raise ValueError("TRACK3_LR_BUMP_WINDOWS entries must be start:ramp_end:hold_end:fade_end:mult")
+        start, ramp_end, hold_end, fade_end = map(int, fields[:4])
+        mult = float(fields[4])
+        if not (start <= ramp_end <= hold_end <= fade_end):
+            raise ValueError("TRACK3_LR_BUMP_WINDOWS requires start <= ramp_end <= hold_end <= fade_end")
+        windows.append((start, ramp_end, hold_end, fade_end, mult))
+    return windows
+
+TRACK3_LR_BUMP_WINDOWS = _parse_lr_bump_windows(TRACK3_LR_BUMP_WINDOWS_SPEC)
+
+def _track3_lr_multiplier(step: int) -> float:
+    multiplier = 1.0
+    for start, ramp_end, hold_end, fade_end, mult in TRACK3_LR_BUMP_WINDOWS:
+        if step < start or step > fade_end:
+            continue
+        if ramp_end <= start or step >= ramp_end:
+            if step <= hold_end:
+                t = 1.0
+            elif fade_end <= hold_end:
+                t = 0.0
+            else:
+                t = max(0.0, (fade_end - step) / (fade_end - hold_end))
+        else:
+            t = (step - start) / (ramp_end - start)
+        multiplier *= 1.0 + (mult - 1.0) * t
+    return multiplier
+
+def _track3_soft_muon_blend_for_step(step: int) -> float:
+    if not TRACK3_SOFT_MUON:
+        return 0.0
+    if TRACK3_SOFT_MUON_START_STEP < 0:
+        return min(TRACK3_SOFT_MUON_CEIL, TRACK3_SOFT_MUON_BLEND)
+    if step < TRACK3_SOFT_MUON_START_STEP:
+        return 0.0
+    if TRACK3_SOFT_MUON_END_STEP <= TRACK3_SOFT_MUON_START_STEP:
+        ramp = 1.0
+    else:
+        ramp = (step - TRACK3_SOFT_MUON_START_STEP) / (TRACK3_SOFT_MUON_END_STEP - TRACK3_SOFT_MUON_START_STEP)
+        ramp = max(0.0, min(1.0, ramp))
+    return min(TRACK3_SOFT_MUON_CEIL, TRACK3_SOFT_MUON_BLEND * ramp)
+
 def _locom_current_norm_cap(step: int) -> float:
     cap = LOCO_M_NORM_CAP
     for start, end, value in LOCO_M_NORM_CAP_WINDOWS:
@@ -160,9 +228,11 @@ LOCOM_MLP = r'''class MLP(nn.Module):
         self.register_buffer("proj_xtx", torch.zeros(4, dim, dim, dtype=torch.float32), persistent=False)
         self.register_buffer("proj_count", torch.zeros((), dtype=torch.float32), persistent=False)
         self._loco_x = None
+        self._loco_pre = None
         self._loco_post = None
         self._loco_dpre = None
         self._loco_x_chunks = []
+        self._loco_pre_chunks = []
         self._loco_post_chunks = []
         self._loco_dpre_chunks = []
         self._loco_corr = None
@@ -193,6 +263,7 @@ LOCOM_MLP = r'''class MLP(nn.Module):
             return
         if not (
             LOCO_M_ENABLED
+            and not LOCO_M_RANDOM_CORRECTION
             and self.training
             and LOCO_M_CAPTURE_THIS_MICRO
             and self.layer_idx in LOCO_M_LAYER_SET
@@ -200,6 +271,7 @@ LOCOM_MLP = r'''class MLP(nn.Module):
         ):
             return
         self._store_loco_sample("_loco_x", x)
+        self._store_loco_sample("_loco_pre", pre)
         self._store_loco_sample("_loco_post", post)
         if not LOCO_M_ACCUM_SAMPLES:
             self._loco_dpre = None
@@ -223,7 +295,9 @@ LOCOM_MLP = r'''class MLP(nn.Module):
 LOCOM_HELPERS = r'''
 @torch.no_grad()
 def _locom_active(step: int) -> bool:
-    if not (LOCO_M_ENABLED and LOCO_M_LOCAL_STEPS > 0 and step % max(LOCO_M_INTERVAL, 1) == 0):
+    if not (LOCO_M_ENABLED and step % max(LOCO_M_INTERVAL, 1) == 0):
+        return False
+    if not LOCO_M_RANDOM_CORRECTION and LOCO_M_LOCAL_STEPS <= 0:
         return False
     if LOCO_M_ACTIVE_WINDOWS:
         return any(start <= step < end for start, end in LOCO_M_ACTIVE_WINDOWS)
@@ -288,25 +362,65 @@ def prepare_locoprop_m(model: nn.Module, step: int):
     if not _locom_active(step):
         return
     stats = []
+    if LOCO_M_RANDOM_CORRECTION:
+        for layer_idx in sorted(LOCO_M_LAYER_SET):
+            if layer_idx < 0 or layer_idx >= len(model.blocks):
+                continue
+            if layer_idx not in LOCO_M_OWNED_LAYER_SET:
+                continue
+            mlp = model.blocks[layer_idx].mlp
+            if mlp.fc.weight.grad is None:
+                continue
+            corr_f = torch.randn(
+                mlp.fc.weight.shape,
+                device=mlp.fc.weight.device,
+                dtype=torch.float32,
+            )
+            raw_grad = mlp.fc.weight.grad.float()
+            raw_desc = -raw_grad
+            denom = corr_f.norm().mul(raw_desc.norm()).clamp_min(1e-12)
+            cosine = corr_f.flatten().dot(raw_desc.flatten()) / denom
+            corr = corr_f.to(mlp.fc.weight.dtype)
+            mlp._loco_corr = corr
+            mlp.fc.weight._loco_corr = corr
+            mlp.fc.weight._loco_step = step
+            if step in LOCO_M_LOG_STEPS and len(stats) < 4:
+                stats.append(
+                    f"l{layer_idx}:random=1"
+                    f",corr_norm={float(corr_f.norm()):.3e}"
+                    f",grad_norm={float(raw_grad.norm()):.3e}"
+                    f",cos_desc={float(cosine):.3f}"
+                    f",accepted=1"
+                    f",opt={LOCO_M_LOCAL_OPT}"
+                )
+        if step in LOCO_M_LOG_STEPS and stats:
+            print0("locoprop_m_prepare step=" + str(step) + " " + " | ".join(stats), console=True)
+        return
+
     for layer_idx in sorted(LOCO_M_LAYER_SET):
         if layer_idx < 0 or layer_idx >= len(model.blocks):
             continue
         mlp = model.blocks[layer_idx].mlp
         x_local = _locom_take_sample(mlp, "_loco_x")
+        pre_local = _locom_take_sample(mlp, "_loco_pre")
         post_local = _locom_take_sample(mlp, "_loco_post")
         dpre_local = _locom_take_sample(mlp, "_loco_dpre")
-        if x_local is None or post_local is None or dpre_local is None:
+        if x_local is None or pre_local is None or post_local is None or dpre_local is None:
             continue
         if mlp.fc.weight.grad is None:
             continue
 
         x = _locom_gather_sample(x_local)
+        pre0 = _locom_gather_sample(pre_local)
         post = _locom_gather_sample(post_local)
         dpre = _locom_gather_sample(dpre_local)
         if layer_idx not in LOCO_M_OWNED_LAYER_SET:
             continue
 
-        target = post - LOCO_M_TARGET_GAMMA * dpre
+        if LOCO_M_TARGET_SPACE == "pre":
+            target = pre0 - LOCO_M_TARGET_GAMMA * dpre
+        else:
+            target = post - LOCO_M_TARGET_GAMMA * dpre
         W0 = mlp.fc.weight.detach().float()
         W = W0.clone()
         inv_n = 1.0 / max(x.size(0), 1)
@@ -322,8 +436,11 @@ def prepare_locoprop_m(model: nn.Module, step: int):
         for local_step in range(LOCO_M_LOCAL_STEPS):
             pred = x @ W.mT
             pred = pred + mlp.fc.bias.detach().float()
-            post = pred.relu().square()
-            err = post - target
+            if LOCO_M_TARGET_SPACE == "pre":
+                err = pred - target
+            else:
+                post = pred.relu().square()
+                err = post - target
             loss_k = 0.5 * err.square().mean()
             if loss0 is None:
                 loss0 = loss_k
@@ -418,8 +535,11 @@ def flush_locoprop_m_apply_stats(step: int):
 def maybe_save_track3_checkpoint(model: nn.Module, optimizers: list[torch.optim.Optimizer], step: int, train_steps: int, trial_idx: int, val_loss: Tensor | None):
     if step not in TRACK3_CHECKPOINT_STEPS:
         return False
+    if step in TRACK3_CHECKPOINT_SAVED_STEPS:
+        return False
     if not TRACK3_CHECKPOINT_DIR:
         raise ValueError("TRACK3_CHECKPOINT_STEPS is set but TRACK3_CHECKPOINT_DIR is empty")
+    TRACK3_CHECKPOINT_SAVED_STEPS.add(step)
     rank = dist.get_rank() if dist.is_initialized() else 0
     if rank == 0:
         checkpoint_dir = Path(TRACK3_CHECKPOINT_DIR)
@@ -458,6 +578,8 @@ def maybe_save_track3_checkpoint(model: nn.Module, optimizers: list[torch.optim.
                 "loco_m_gather_samples": LOCO_M_GATHER_SAMPLES,
                 "loco_m_accum_samples": LOCO_M_ACCUM_SAMPLES,
                 "loco_m_local_opt": LOCO_M_LOCAL_OPT,
+                "loco_m_target_space": LOCO_M_TARGET_SPACE,
+                "loco_m_random_correction": LOCO_M_RANDOM_CORRECTION,
                 "loco_m_local_lr_decay": LOCO_M_LOCAL_LR_DECAY,
                 "loco_m_rms_beta1": LOCO_M_RMS_BETA1,
                 "loco_m_rms_beta2": LOCO_M_RMS_BETA2,
@@ -470,6 +592,12 @@ def maybe_save_track3_checkpoint(model: nn.Module, optimizers: list[torch.optim.
                 "track3_lr_power": TRACK3_LR_POWER,
                 "track3_lr_schedule_steps": TRACK3_LR_SCHEDULE_STEPS,
                 "track3_lr_min_eta": TRACK3_LR_MIN_ETA,
+                "track3_lr_bump_windows": TRACK3_LR_BUMP_WINDOWS_SPEC,
+                "track3_lr_blend_start": TRACK3_LR_BLEND_START,
+                "track3_lr_blend_end": TRACK3_LR_BLEND_END,
+                "track3_lr_blend_target": TRACK3_LR_BLEND_TARGET,
+                "track3_lr_blend_target_power": TRACK3_LR_BLEND_TARGET_POWER,
+                "track3_lr_blend_target_steps": TRACK3_LR_BLEND_TARGET_STEPS,
                 "track3_reset_trial_seed": TRACK3_RESET_TRIAL_SEED,
             },
         }
@@ -486,14 +614,15 @@ def maybe_load_track3_checkpoint(model: nn.Module, optimizers: list[torch.optim.
         return 0
     checkpoint = torch.load(TRACK3_RESUME_CHECKPOINT, map_location="cuda")
     model.load_state_dict(checkpoint["model"], strict=True)
-    saved_optimizers = checkpoint.get("optimizers", [])
-    if len(saved_optimizers) != len(optimizers):
-        raise ValueError(
-            f"checkpoint has {len(saved_optimizers)} optimizer states, expected {len(optimizers)}"
-        )
-    for optimizer, optimizer_state in zip(optimizers, saved_optimizers):
-        optimizer.load_state_dict(optimizer_state)
-    if TRACK3_LR_SCHEDULE == "pr287" or TRACK3_LR_AFTER_SWITCH == "pr287":
+    if TRACK3_RESUME_LOAD_OPTIMIZERS:
+        saved_optimizers = checkpoint.get("optimizers", [])
+        if len(saved_optimizers) != len(optimizers):
+            raise ValueError(
+                f"checkpoint has {len(saved_optimizers)} optimizer states, expected {len(optimizers)}"
+            )
+        for optimizer, optimizer_state in zip(optimizers, saved_optimizers):
+            optimizer.load_state_dict(optimizer_state)
+    if TRACK3_LR_SCHEDULE == "pr287" or TRACK3_LR_AFTER_SWITCH == "pr287" or TRACK3_LR_BLEND_TARGET == "pr287":
         optimizers[0].param_groups[0]["power_c"] = TRACK3_ADAM_EMBED_POWER_C
         optimizers[0].param_groups[1]["power_c"] = TRACK3_ADAM_PROJ_POWER_C
         optimizers[0].param_groups[2]["power_c"] = TRACK3_ADAM_OTHER_POWER_C
@@ -509,7 +638,8 @@ def maybe_load_track3_checkpoint(model: nn.Module, optimizers: list[torch.optim.
     step = int(checkpoint["step"])
     print0(
         f"track3_checkpoint_loaded path:{TRACK3_RESUME_CHECKPOINT} step:{step} "
-        f"seed:{checkpoint.get('seed')} val_loss:{checkpoint.get('val_loss')}",
+        f"seed:{checkpoint.get('seed')} val_loss:{checkpoint.get('val_loss')} "
+        f"load_optimizers:{TRACK3_RESUME_LOAD_OPTIMIZERS}",
         console=True,
     )
     return step
@@ -639,17 +769,24 @@ def _track3_soft_muon_pr291_from_operand(g: torch.Tensor):
     return out
 
 @torch.compile
-def muon_update(grad, momentum, mu=0.95, nesterov=True):
+def _track3_muon_update_soft(grad, momentum, soft_blend, mu=0.95, nesterov=True):
     momentum.lerp_(grad, 1 - mu)
     operand = grad.lerp_(momentum, mu) if nesterov else momentum
     update = zeropower_via_newtonschulz5(operand)
     update *= max(1, grad.size(-2) / grad.size(-1))**0.5
-    if TRACK3_SOFT_MUON:
-        soft_update = _track3_soft_muon_pr291_from_operand(operand)
-        soft_update *= max(1, grad.size(-2) / grad.size(-1))**0.5
-        if TRACK3_SOFT_MUON_NORM_RESTORE:
-            soft_update = soft_update * update.float().norm().div(soft_update.float().norm().clamp_min(1e-12))
-        update = update + TRACK3_SOFT_MUON_BLEND * (soft_update - update)
+    soft_update = _track3_soft_muon_pr291_from_operand(operand)
+    soft_update *= max(1, grad.size(-2) / grad.size(-1))**0.5
+    if TRACK3_SOFT_MUON_NORM_RESTORE:
+        soft_update = soft_update * update.float().norm().div(soft_update.float().norm().clamp_min(1e-12))
+    update = update + soft_blend.to(update.dtype) * (soft_update - update)
+    return update
+
+@torch.compile
+def muon_update(grad, momentum, mu=0.95, nesterov=True):
+    momentum.lerp_(grad, 1 - mu)
+    update = grad.lerp_(momentum, mu) if nesterov else momentum
+    update = zeropower_via_newtonschulz5(update)
+    update *= max(1, grad.size(-2) / grad.size(-1))**0.5
     return update
 """ + LOCOM_HELPERS,
             1,
@@ -664,7 +801,11 @@ def muon_update(grad, momentum, mu=0.95, nesterov=True):
         text = replace_exact(
             text,
             "                    update = muon_update(p.grad, state[\"momentum\"], mu=group[\"mu\"])\n",
-            "                    update = muon_update(p.grad, state[\"momentum\"], mu=group[\"mu\"])\n"
+            "                    soft_blend = _track3_soft_muon_blend_for_step(LOCO_M_CURRENT_STEP)\n"
+            "                    if soft_blend > 0.0:\n"
+            "                        update = _track3_muon_update_soft(p.grad, state[\"momentum\"], p.grad.new_tensor(soft_blend), mu=group[\"mu\"])\n"
+            "                    else:\n"
+            "                        update = muon_update(p.grad, state[\"momentum\"], mu=group[\"mu\"])\n"
             "                    state[\"last_update_norm\"] = update.float().norm()\n",
         )
     if (
@@ -709,7 +850,7 @@ def muon_update(grad, momentum, mu=0.95, nesterov=True):
         text,
         'print0(f"Running PyTorch {torch.version.__version__} compiled for CUDA {torch.version.cuda}"',
         f'print0("Track3 LocoProp-M generated run: source={source_label} train_steps={train_steps}")\n'
-        'print0(f"LocoM enabled={LOCO_M_ENABLED} layers={LOCO_M_LAYERS_SPEC} steps={LOCO_M_LOCAL_STEPS} sample_tokens={LOCO_M_SAMPLE_TOKENS} gather={LOCO_M_GATHER_SAMPLES} accum={LOCO_M_ACCUM_SAMPLES} micro_sample_tokens={LOCO_M_MICRO_SAMPLE_TOKENS} local_opt={LOCO_M_LOCAL_OPT} lr_decay={LOCO_M_LOCAL_LR_DECAY} rms_beta1={LOCO_M_RMS_BETA1} rms_beta2={LOCO_M_RMS_BETA2} rms_eps={LOCO_M_RMS_EPS} rms_reset_each_step={LOCO_M_RMS_RESET_EACH_STEP} require_loss_decrease={LOCO_M_REQUIRE_LOSS_DECREASE} min_cos_desc={LOCO_M_MIN_COS_DESC} inner_lr={LOCO_M_INNER_LR} target_gamma={LOCO_M_TARGET_GAMMA} prox={LOCO_M_PROX} alpha={LOCO_M_ALPHA} norm_to_base={LOCO_M_NORM_TO_BASE} norm_target={LOCO_M_NORM_TARGET} norm_cap={LOCO_M_NORM_CAP} norm_cap_windows={LOCO_M_NORM_CAP_WINDOWS_SPEC} active_windows={LOCO_M_ACTIVE_WINDOWS_SPEC} start_step={LOCO_M_START_STEP} end_step={LOCO_M_END_STEP} interval={LOCO_M_INTERVAL} target_loss={TRACK3_TARGET_LOSS} seed_base={TRACK3_SEED_BASE} seed_offset={TRACK3_SEED_OFFSET} cooldown_frac={TRACK3_COOLDOWN_FRAC} lr_schedule={TRACK3_LR_SCHEDULE} lr_power={TRACK3_LR_POWER} lr_schedule_steps={TRACK3_LR_SCHEDULE_STEPS} lr_min_eta={TRACK3_LR_MIN_ETA} lr_switch_step={TRACK3_LR_SWITCH_STEP} lr_after_switch={TRACK3_LR_AFTER_SWITCH} lr_after_switch_power={TRACK3_LR_AFTER_SWITCH_POWER} lr_after_switch_steps={TRACK3_LR_AFTER_SWITCH_STEPS} soft_muon={TRACK3_SOFT_MUON} soft_blend={TRACK3_SOFT_MUON_BLEND} soft_norm_restore={TRACK3_SOFT_MUON_NORM_RESTORE} resume_checkpoint={TRACK3_RESUME_CHECKPOINT}")\n'
+        'print0(f"LocoM enabled={LOCO_M_ENABLED} layers={LOCO_M_LAYERS_SPEC} steps={LOCO_M_LOCAL_STEPS} sample_tokens={LOCO_M_SAMPLE_TOKENS} gather={LOCO_M_GATHER_SAMPLES} accum={LOCO_M_ACCUM_SAMPLES} micro_sample_tokens={LOCO_M_MICRO_SAMPLE_TOKENS} local_opt={LOCO_M_LOCAL_OPT} target_space={LOCO_M_TARGET_SPACE} random_correction={LOCO_M_RANDOM_CORRECTION} lr_decay={LOCO_M_LOCAL_LR_DECAY} rms_beta1={LOCO_M_RMS_BETA1} rms_beta2={LOCO_M_RMS_BETA2} rms_eps={LOCO_M_RMS_EPS} rms_reset_each_step={LOCO_M_RMS_RESET_EACH_STEP} require_loss_decrease={LOCO_M_REQUIRE_LOSS_DECREASE} min_cos_desc={LOCO_M_MIN_COS_DESC} inner_lr={LOCO_M_INNER_LR} target_gamma={LOCO_M_TARGET_GAMMA} prox={LOCO_M_PROX} alpha={LOCO_M_ALPHA} norm_to_base={LOCO_M_NORM_TO_BASE} norm_target={LOCO_M_NORM_TARGET} norm_cap={LOCO_M_NORM_CAP} norm_cap_windows={LOCO_M_NORM_CAP_WINDOWS_SPEC} active_windows={LOCO_M_ACTIVE_WINDOWS_SPEC} start_step={LOCO_M_START_STEP} end_step={LOCO_M_END_STEP} interval={LOCO_M_INTERVAL} target_loss={TRACK3_TARGET_LOSS} seed_base={TRACK3_SEED_BASE} seed_offset={TRACK3_SEED_OFFSET} cooldown_frac={TRACK3_COOLDOWN_FRAC} lr_schedule={TRACK3_LR_SCHEDULE} lr_power={TRACK3_LR_POWER} lr_schedule_steps={TRACK3_LR_SCHEDULE_STEPS} lr_min_eta={TRACK3_LR_MIN_ETA} lr_bump_windows={TRACK3_LR_BUMP_WINDOWS_SPEC} lr_switch_step={TRACK3_LR_SWITCH_STEP} lr_after_switch={TRACK3_LR_AFTER_SWITCH} lr_after_switch_power={TRACK3_LR_AFTER_SWITCH_POWER} lr_after_switch_steps={TRACK3_LR_AFTER_SWITCH_STEPS} lr_blend_start={TRACK3_LR_BLEND_START} lr_blend_end={TRACK3_LR_BLEND_END} lr_blend_target={TRACK3_LR_BLEND_TARGET} lr_blend_target_power={TRACK3_LR_BLEND_TARGET_POWER} lr_blend_target_steps={TRACK3_LR_BLEND_TARGET_STEPS} soft_muon={TRACK3_SOFT_MUON} soft_blend={TRACK3_SOFT_MUON_BLEND} soft_start={TRACK3_SOFT_MUON_START_STEP} soft_end={TRACK3_SOFT_MUON_END_STEP} soft_ceil={TRACK3_SOFT_MUON_CEIL} soft_norm_restore={TRACK3_SOFT_MUON_NORM_RESTORE} resume_checkpoint={TRACK3_RESUME_CHECKPOINT} resume_load_optimizers={TRACK3_RESUME_LOAD_OPTIMIZERS}")\n'
         'print0(f"Running PyTorch {torch.version.__version__} compiled for CUDA {torch.version.cuda}"',
     )
     if "for _ in range(num_trials):\n" in text:
@@ -795,6 +936,32 @@ def muon_update(grad, momentum, mu=0.95, nesterov=True):
         f"{body_indent}schedule_steps = schedule_steps if schedule_steps > 0 else train_steps\n"
         f"{body_indent}downward_lr = power_c * max(0.0, schedule_steps - step) ** lr_power\n"
         f"{body_indent}return min(initial_lr, downward_lr)\n\n"
+        f"{fn_indent}def _track3_schedule_lr(step, group, lr_schedule, schedule_steps, lr_power):\n"
+        f"{body_indent}schedule_steps = schedule_steps if schedule_steps > 0 else train_steps\n"
+        f"{body_indent}if lr_schedule == \"pr287\":\n"
+        f"{body_indent}    return _track3_pr287_lr(step, group[\"initial_lr\"], group[\"power_c\"], schedule_steps, lr_power)\n"
+        f"{body_indent}progress = step / schedule_steps\n"
+        f"{body_indent}if progress < 1 - TRACK3_COOLDOWN_FRAC:\n"
+        f"{body_indent}    eta = 1.0\n"
+        f"{body_indent}else:\n"
+        f"{body_indent}    eta = (1 - progress) / TRACK3_COOLDOWN_FRAC\n"
+        f"{body_indent}    if lr_schedule == \"power\":\n"
+        f"{body_indent}        eta = eta ** lr_power\n"
+        f"{body_indent}    eta = max(eta, TRACK3_LR_MIN_ETA)\n"
+        f"{body_indent}return group[\"initial_lr\"] * eta\n\n"
+        f"{fn_indent}def _track3_blend_lr(step, group, base_lr, lr_mult):\n"
+        f"{body_indent}if not TRACK3_LR_BLEND_TARGET or TRACK3_LR_BLEND_START < 0:\n"
+        f"{body_indent}    return base_lr\n"
+        f"{body_indent}if step < TRACK3_LR_BLEND_START:\n"
+        f"{body_indent}    return base_lr\n"
+        f"{body_indent}target_lr = _track3_schedule_lr(step, group, TRACK3_LR_BLEND_TARGET, TRACK3_LR_BLEND_TARGET_STEPS, TRACK3_LR_BLEND_TARGET_POWER) * lr_mult\n"
+        f"{body_indent}if TRACK3_LR_BLEND_END <= TRACK3_LR_BLEND_START or step >= TRACK3_LR_BLEND_END:\n"
+        f"{body_indent}    t = 1.0\n"
+        f"{body_indent}else:\n"
+        f"{body_indent}    t = (step - TRACK3_LR_BLEND_START) / (TRACK3_LR_BLEND_END - TRACK3_LR_BLEND_START)\n"
+        f"{body_indent}    t = max(0.0, min(1.0, t))\n"
+        f"{body_indent}    t = t * t * (3.0 - 2.0 * t)\n"
+        f"{body_indent}return base_lr + (target_lr - base_lr) * t\n\n"
     )
     if set_hparams_style == "fixed_power":
         text = replace_exact(
@@ -805,9 +972,11 @@ def muon_update(grad, momentum, mu=0.95, nesterov=True):
             + f"{body_indent}lr_schedule, lr_schedule_steps, lr_power = _track3_active_lr_schedule(step)\n"
             + f"{body_indent}if lr_schedule not in {{\"pr287\", \"power\"}}:\n"
             + f"{body_indent}    lr_schedule = \"pr287\"\n"
+            + f"{body_indent}lr_mult = _track3_lr_multiplier(step)\n"
             + f"{body_indent}for opt in optimizers:\n"
             + f"{body_indent}    for group in opt.param_groups:\n"
-            + f"{body_indent}        group[\"lr\"] = _track3_pr287_lr(step, group[\"initial_lr\"], group[\"power_c\"], lr_schedule_steps, lr_power)\n",
+            + f"{body_indent}        base_lr = _track3_schedule_lr(step, group, lr_schedule, lr_schedule_steps, lr_power) * lr_mult\n"
+            + f"{body_indent}        group[\"lr\"] = _track3_blend_lr(step, group, base_lr, lr_mult)\n",
         )
     else:
         text = replace_exact(
@@ -821,9 +990,10 @@ def muon_update(grad, momentum, mu=0.95, nesterov=True):
             f"{body_indent}progress = step / train_steps\n",
             f"{body_indent}lr_schedule, lr_schedule_steps, lr_power = _track3_active_lr_schedule(step)\n"
             f"{body_indent}if lr_schedule == \"pr287\":\n"
+            f"{body_indent}    lr_mult = _track3_lr_multiplier(step)\n"
             f"{body_indent}    for opt in optimizers:\n"
             f"{body_indent}        for group in opt.param_groups:\n"
-            f"{body_indent}            group[\"lr\"] = _track3_pr287_lr(step, group[\"initial_lr\"], group[\"power_c\"], lr_schedule_steps, lr_power)\n"
+            f"{body_indent}            group[\"lr\"] = _track3_pr287_lr(step, group[\"initial_lr\"], group[\"power_c\"], lr_schedule_steps, lr_power) * lr_mult\n"
             f"{body_indent}    return\n"
             f"{body_indent}schedule_steps = lr_schedule_steps if lr_schedule_steps > 0 else train_steps\n"
             f"{body_indent}progress = step / schedule_steps\n",
@@ -836,6 +1006,13 @@ def muon_update(grad, momentum, mu=0.95, nesterov=True):
             f"{body_indent}    if lr_schedule == \"power\":\n"
             f"{body_indent}        eta = eta ** lr_power\n"
             f"{body_indent}    eta = max(eta, TRACK3_LR_MIN_ETA)\n",
+        )
+        text = replace_exact(
+            text,
+            f"{body_indent}        group[\"lr\"] = group[\"initial_lr\"] * eta\n",
+            f"{body_indent}        lr_mult = _track3_lr_multiplier(step)\n"
+            f"{body_indent}        base_lr = group[\"initial_lr\"] * eta * lr_mult\n"
+            f"{body_indent}        group[\"lr\"] = _track3_blend_lr(step, group, base_lr, lr_mult)\n",
         )
     if "        val_step_freq = 125 if step / train_steps < 0.9 else 25\n" in text:
         text = replace_exact(
@@ -1007,7 +1184,9 @@ def muon_update(grad, momentum, mu=0.95, nesterov=True):
                 f"{indent}for opt in optimizers:\n"
                 f"{indent}    opt.step()\n"
                 f"{indent}flush_locoprop_m_apply_stats(step)\n"
-                f"{indent}model.zero_grad(set_to_none=True)\n",
+                f"{indent}model.zero_grad(set_to_none=True)\n"
+                f"{indent}if maybe_save_track3_checkpoint(model, optimizers, step + 1, train_steps, trial_idx, None):\n"
+                f"{indent}    break\n",
                 1,
             )
             step_block_inserted = True
