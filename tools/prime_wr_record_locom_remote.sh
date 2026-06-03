@@ -7,8 +7,9 @@ steps="${WR_TRAIN_STEPS:-3040}"
 schedule_steps="${WR_SCHEDULE_STEPS:-3105}"
 nproc="${NPROC_PER_NODE:-1}"
 seed="${WR_SEED:-28}"
-data_chunks="${WR_DATA_CHUNKS:-20}"
 torch_version="${WR_TORCH_VERSION:-2.11.0}"
+default_data_chunks=$(( ((steps + 1) * 524288 + 100000000 - 1) / 100000000 ))
+data_chunks="${WR_DATA_CHUNKS:-${default_data_chunks}}"
 
 export DEBIAN_FRONTEND=noninteractive
 export PYTHONUNBUFFERED=1
