@@ -14,6 +14,12 @@ from pathlib import Path
 
 
 LOCOM_BLOCK = r'''
+try:
+    import torch._dynamo as _wr_locom_dynamo
+    _wr_locom_dynamo_disable = _wr_locom_dynamo.disable
+except Exception:
+    _wr_locom_dynamo_disable = lambda fn: fn
+
 def _wr_locom_flag(name: str, default: str = "0") -> bool:
     return os.environ.get(name, default).lower() in {"1", "true", "yes", "on"}
 
@@ -95,6 +101,7 @@ def _wr_locom_begin_step(step: int) -> None:
     WR_LOCOM_CORR.clear()
     WR_LOCOM_APPLY_STATS.clear()
 
+@_wr_locom_dynamo_disable
 @torch.no_grad()
 def _wr_locom_sample_rows(x: Tensor) -> Tensor:
     flat = x.reshape(-1, x.size(-1))
@@ -106,6 +113,7 @@ def _wr_locom_sample_rows(x: Tensor) -> Tensor:
     stride = max(flat.size(0) // sample_tokens, 1)
     return flat[::stride][:sample_tokens].detach().to(torch.bfloat16)
 
+@_wr_locom_dynamo_disable
 @torch.no_grad()
 def _wr_locom_gather(t: Tensor) -> Tensor:
     if not (dist.is_available() and dist.is_initialized()) or dist.get_world_size() == 1:
@@ -114,6 +122,7 @@ def _wr_locom_gather(t: Tensor) -> Tensor:
     dist.all_gather(gathered, t.contiguous())
     return torch.cat(gathered, dim=0).float()
 
+@_wr_locom_dynamo_disable
 @torch.no_grad()
 def _wr_locom_capture_forward(layer_idx: int, x: Tensor, post: Tensor) -> None:
     if not (_wr_locom_active(WR_LOCOM_CURRENT_STEP) and _wr_locom_layer_active(layer_idx)):
@@ -123,6 +132,7 @@ def _wr_locom_capture_forward(layer_idx: int, x: Tensor, post: Tensor) -> None:
         "post": _wr_locom_sample_rows(post),
     }
 
+@_wr_locom_dynamo_disable
 @torch.no_grad()
 def _wr_locom_capture_dpre(layer_idx: int, dpre: Tensor) -> None:
     if not (_wr_locom_active(WR_LOCOM_CURRENT_STEP) and _wr_locom_layer_active(layer_idx)):
