@@ -170,3 +170,38 @@ loss improvements, but the later handoff/suffix has not preserved those gains.
 The refresh3 plot shows the failure mode clearly: the LocoProp suffixes cluster
 around `3.302-3.306 @3000`, while the WR/reference means continue descending to
 about `3.281 @3000`.
+
+## Current Next Probe
+
+The direct current-record WR + LocoProp-M hook integration OOMed before step 0
+on Prime. The next probe is therefore a model-state handoff:
+
+```text
+simple Track 3 + LocoProp-M prefix checkpoint at step 1600
+-> current-record WR source suffix with no LocoProp hooks
+```
+
+Use:
+
+```bash
+WR_RESUME_DRY_RUN=1 bash tools/run_wr_record_resume.sh
+```
+
+for local generation/compile, and:
+
+```bash
+RUN_LABEL=wr_resume_locom1600_modelonly_seed3710 \
+WR_RESUME_CHECKPOINT=/root/.cache/track3_checkpoints/track3_cd500red_softmerge_pr2872000_p110_ckpt1600_seed3710_step1600.pt \
+WR_RESUME_LOAD_ADAM=0 \
+WR_RESUME_RESTORE_RNG=1 \
+WR_RESUME_ADVANCE_DATA=1 \
+WR_TRAIN_STEPS=3040 \
+WR_SCHEDULE_STEPS=3105 \
+WR_SEED=3710 \
+WR_TARGET_LOSS=3.28 \
+NPROC_PER_NODE=1 \
+bash tools/prime_wr_record_resume_remote.sh
+```
+
+on a synced Prime H100/GH200 pod. The rationale and launch gates are recorded
+in `.opencode/track3_wr_resume_handoff_plan_20260603.md`.
