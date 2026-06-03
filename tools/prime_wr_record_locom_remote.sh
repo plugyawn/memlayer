@@ -16,6 +16,10 @@ export HF_HOME="${HF_HOME:-/root/.cache/huggingface}"
 export XDG_CACHE_HOME="${XDG_CACHE_HOME:-/root/.cache/xdg}"
 export TRITON_CACHE_DIR="${TRITON_CACHE_DIR:-/root/.cache/triton}"
 export TORCHINDUCTOR_CACHE_DIR="${TORCHINDUCTOR_CACHE_DIR:-/root/.cache/torchinductor-wr-record-locom-${nproc}x}"
+export HF_XET_HIGH_PERFORMANCE="${HF_XET_HIGH_PERFORMANCE:-1}"
+export HF_XET_NUM_CONCURRENT_RANGE_GETS="${HF_XET_NUM_CONCURRENT_RANGE_GETS:-64}"
+export HF_HUB_DOWNLOAD_TIMEOUT="${HF_HUB_DOWNLOAD_TIMEOUT:-60}"
+export HF_HUB_ETAG_TIMEOUT="${HF_HUB_ETAG_TIMEOUT:-30}"
 
 mkdir -p /root/prime_track3_logs
 cd "${repo_dir}"
