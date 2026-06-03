@@ -8,6 +8,7 @@ schedule_steps="${WR_SCHEDULE_STEPS:-3105}"
 nproc="${NPROC_PER_NODE:-1}"
 seed="${WR_SEED:-28}"
 data_chunks="${WR_DATA_CHUNKS:-20}"
+torch_version="${WR_TORCH_VERSION:-2.11.0}"
 
 export DEBIAN_FRONTEND=noninteractive
 export PYTHONUNBUFFERED=1
@@ -27,7 +28,7 @@ fi
 
 source /root/venv/bin/activate
 python -m pip install -q --upgrade pip
-python -m pip install -q --index-url https://download.pytorch.org/whl/cu126 torch==2.7.1
+python -m pip install -q --index-url https://download.pytorch.org/whl/cu126 "torch==${torch_version}"
 python -m pip install -q numpy tqdm huggingface-hub typing-extensions setuptools
 
 python data/cached_fineweb10B.py "${data_chunks}" > "/root/prime_track3_logs/${label}_cache_fineweb_${data_chunks}.log" 2>&1
@@ -47,8 +48,8 @@ status_file="/root/prime_track3_logs/${label}.status"
 {
   printf 'started %s\n' "$(date -Is)"
   printf 'repo=%s commit=%s\n' "${repo_dir}" "$(git rev-parse --short HEAD 2>/dev/null || true)"
-  printf 'label=%s nproc=%s steps=%s schedule_steps=%s seed=%s data_chunks=%s\n' \
-    "${label}" "${nproc}" "${steps}" "${schedule_steps}" "${seed}" "${data_chunks}"
+  printf 'label=%s nproc=%s steps=%s schedule_steps=%s seed=%s data_chunks=%s torch=%s\n' \
+    "${label}" "${nproc}" "${steps}" "${schedule_steps}" "${seed}" "${data_chunks}" "${torch_version}"
   printf 'wr_locom enabled=%s layers=%s windows=%s K=%s sample_tokens=%s inner_lr=%s prox=%s alpha=%s norm_cap=%s norm_to_base=%s min_cos=%s require_loss_decrease=%s\n' \
     "${WR_LOCOM_ENABLED:-1}" "${WR_LOCOM_LAYERS:-all}" "${WR_LOCOM_ACTIVE_WINDOWS:-}" \
     "${WR_LOCOM_STEPS:-4}" "${WR_LOCOM_SAMPLE_TOKENS:-1024}" "${WR_LOCOM_INNER_LR:-0.1}" \
