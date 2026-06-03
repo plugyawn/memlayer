@@ -241,12 +241,24 @@ MLP_BLOCK = r'''class MLP(nn.Module):
         global WR_LOCOM_NEXT_LAYER
         self.layer_idx = WR_LOCOM_NEXT_LAYER
         WR_LOCOM_NEXT_LAYER += 1
+        self.wr_locom_layer_enabled = _wr_locom_layer_active(self.layer_idx)
         hdim = 4 * dim
         self.fc = Linear(dim, hdim)
         self.proj = Linear(hdim, dim)
 
-    @_wr_locom_dynamo_disable
     def forward(self, x: Tensor):
+        if self.wr_locom_layer_enabled:
+            return self._forward_locom(x)
+        return self._forward_plain(x)
+
+    def _forward_plain(self, x: Tensor):
+        x = self.fc(x)
+        x = x.relu().square()
+        x = self.proj(x)
+        return x
+
+    @_wr_locom_dynamo_disable
+    def _forward_locom(self, x: Tensor):
         pre = self.fc(x)
         post = pre.relu().square()
         if self.training and _wr_locom_active(WR_LOCOM_CURRENT_STEP) and _wr_locom_layer_active(self.layer_idx):
