@@ -46,7 +46,7 @@ WR_TRAIN_STEPS="${steps}" \
 WR_SCHEDULE_STEPS="${schedule_steps}" \
 WR_SEED="${seed}" \
 NPROC_PER_NODE="${nproc}" \
-tools/run_wr_record_locoprop_m.sh > "/root/prime_track3_logs/${label}_generate.log" 2>&1
+bash tools/run_wr_record_locoprop_m.sh > "/root/prime_track3_logs/${label}_generate.log" 2>&1
 
 run_log="/root/prime_track3_logs/${label}.log"
 status_file="/root/prime_track3_logs/${label}.status"
