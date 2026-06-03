@@ -245,6 +245,7 @@ MLP_BLOCK = r'''class MLP(nn.Module):
         self.fc = Linear(dim, hdim)
         self.proj = Linear(hdim, dim)
 
+    @_wr_locom_dynamo_disable
     def forward(self, x: Tensor):
         pre = self.fc(x)
         post = pre.relu().square()
