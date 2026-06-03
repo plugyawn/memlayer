@@ -16,6 +16,7 @@ from pathlib import Path
 LOCOM_BLOCK = r'''
 try:
     import torch._dynamo as _wr_locom_dynamo
+    _wr_locom_dynamo.config.allow_unspec_int_on_nn_module = True
     _wr_locom_dynamo_disable = _wr_locom_dynamo.disable
 except Exception:
     _wr_locom_dynamo_disable = lambda fn: fn
