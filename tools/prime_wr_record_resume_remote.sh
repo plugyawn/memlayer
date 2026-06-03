@@ -8,6 +8,7 @@ schedule_steps="${WR_SCHEDULE_STEPS:-3105}"
 nproc="${NPROC_PER_NODE:-1}"
 seed="${WR_SEED:-28}"
 torch_version="${WR_TORCH_VERSION:-2.11.0}"
+torch_index_url="${WR_TORCH_INDEX_URL:-https://download.pytorch.org/whl/cu130}"
 default_data_chunks=$(( ((steps + 1) * 524288 + 100000000 - 1) / 100000000 ))
 data_chunks="${WR_DATA_CHUNKS:-${default_data_chunks}}"
 
@@ -28,13 +29,13 @@ cd "${repo_dir}"
 
 if [[ ! -x /root/venv/bin/python ]]; then
   apt-get update
-  apt-get install -y --no-install-recommends python3 python3-venv python3-pip git ca-certificates curl
+  apt-get install -y --no-install-recommends python3 python3-venv python3-pip python3-dev build-essential git ca-certificates curl
   python3 -m venv /root/venv
 fi
 
 source /root/venv/bin/activate
 python -m pip install -q --upgrade pip
-python -m pip install -q --index-url https://download.pytorch.org/whl/cu126 "torch==${torch_version}"
+python -m pip install -q --index-url "${torch_index_url}" "torch==${torch_version}"
 python -m pip install -q numpy tqdm huggingface-hub typing-extensions setuptools
 
 python data/cached_fineweb10B.py "${data_chunks}" > "/root/prime_track3_logs/${label}_cache_fineweb_${data_chunks}.log" 2>&1
@@ -54,11 +55,13 @@ status_file="/root/prime_track3_logs/${label}.status"
 {
   printf 'started %s\n' "$(date -Is)"
   printf 'repo=%s commit=%s\n' "${repo_dir}" "$(git rev-parse --short HEAD 2>/dev/null || true)"
-  printf 'label=%s nproc=%s steps=%s schedule_steps=%s seed=%s data_chunks=%s torch=%s\n' \
-    "${label}" "${nproc}" "${steps}" "${schedule_steps}" "${seed}" "${data_chunks}" "${torch_version}"
-  printf 'resume checkpoint=%s advance_data=%s restore_rng=%s load_adam=%s target=%s\n' \
-    "${WR_RESUME_CHECKPOINT:-}" "${WR_RESUME_ADVANCE_DATA:-1}" "${WR_RESUME_RESTORE_RNG:-1}" \
-    "${WR_RESUME_LOAD_ADAM:-0}" "${WR_TARGET_LOSS:-3.28}"
+  printf 'label=%s nproc=%s steps=%s schedule_steps=%s seed=%s data_chunks=%s torch=%s torch_index=%s\n' \
+    "${label}" "${nproc}" "${steps}" "${schedule_steps}" "${seed}" "${data_chunks}" "${torch_version}" "${torch_index_url}"
+  printf 'resume checkpoint=%s model_checkpoint=%s optimizer_checkpoint=%s advance_data=%s restore_rng=%s load_adam=%s load_optimizers=%s target=%s\n' \
+    "${WR_RESUME_CHECKPOINT:-}" "${WR_RESUME_MODEL_CHECKPOINT:-}" "${WR_RESUME_OPTIMIZER_CHECKPOINT:-}" \
+    "${WR_RESUME_ADVANCE_DATA:-1}" "${WR_RESUME_RESTORE_RNG:-1}" \
+    "${WR_RESUME_LOAD_ADAM:-0}" "${WR_RESUME_LOAD_OPTIMIZERS:-0}" "${WR_TARGET_LOSS:-3.28}"
+  printf 'save checkpoint=%s save_step=%s\n' "${WR_SAVE_CHECKPOINT:-}" "${WR_SAVE_CHECKPOINT_STEP:-}"
 } | tee "${status_file}"
 
 env \
@@ -68,10 +71,15 @@ env \
   WR_SEED="${seed}" \
   NPROC_PER_NODE="${nproc}" \
   WR_RESUME_CHECKPOINT="${WR_RESUME_CHECKPOINT:-}" \
+  WR_RESUME_MODEL_CHECKPOINT="${WR_RESUME_MODEL_CHECKPOINT:-}" \
+  WR_RESUME_OPTIMIZER_CHECKPOINT="${WR_RESUME_OPTIMIZER_CHECKPOINT:-}" \
   WR_RESUME_ADVANCE_DATA="${WR_RESUME_ADVANCE_DATA:-1}" \
   WR_RESUME_RESTORE_RNG="${WR_RESUME_RESTORE_RNG:-1}" \
   WR_RESUME_LOAD_ADAM="${WR_RESUME_LOAD_ADAM:-0}" \
+  WR_RESUME_LOAD_OPTIMIZERS="${WR_RESUME_LOAD_OPTIMIZERS:-0}" \
   WR_RESUME_STRICT_MODEL="${WR_RESUME_STRICT_MODEL:-1}" \
+  WR_SAVE_CHECKPOINT="${WR_SAVE_CHECKPOINT:-}" \
+  WR_SAVE_CHECKPOINT_STEP="${WR_SAVE_CHECKPOINT_STEP:--1}" \
   WR_TARGET_LOSS="${WR_TARGET_LOSS:-3.28}" \
   SCREEN_VAL_EVERY="${SCREEN_VAL_EVERY:-125}" \
   bash tools/run_wr_record_resume.sh > "${run_log}" 2>&1
