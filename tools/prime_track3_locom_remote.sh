@@ -22,7 +22,7 @@ cd "${repo_dir}"
 
 if [[ ! -x /root/venv/bin/python ]]; then
   apt-get update
-  apt-get install -y --no-install-recommends python3 python3-venv python3-pip git ca-certificates curl
+  apt-get install -y --no-install-recommends python3 python3-dev python3-venv python3-pip build-essential git ca-certificates curl
   python3 -m venv /root/venv
 fi
 
