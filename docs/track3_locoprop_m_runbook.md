@@ -125,6 +125,26 @@ The parser reports final validation loss, recent non-eval step time, whether
 `aux_capture`/`batched_prep` were requested, and whether `batched=1` appeared in
 the LocoProp diagnostics.
 
+## WR-Current-Record Fast Path
+
+For probes on the checked-in current-record source, prefer the hookless aux
+generator. The runner defaults to `WR_LOCOM_GENERATOR=aux` and now requests
+batched prep by default for that generator:
+
+```bash
+WR_LOCOM_GENERATOR=aux \
+WR_LOCOM_BATCHED_PREP=1 \
+WR_LOCOM_AUX_SEQS=16 \
+WR_TRAIN_STEPS=3040 \
+WR_SCHEDULE_STEPS=3105 \
+bash tools/run_wr_record_locoprop_m.sh
+```
+
+This keeps the main WR training path compiled, collects LocoProp samples through
+a small explicit aux forward/autograd pass, and runs the per-layer K-step local
+SGD solve as stacked batched GEMMs. Set `WR_LOCOM_GENERATOR=hook` only for a
+legacy hook-control run.
+
 ## Resume From A 1600-Step Checkpoint
 
 The recent suffix tests resumed from a 1600 checkpoint and preserved model,

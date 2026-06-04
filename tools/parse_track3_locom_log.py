@@ -19,8 +19,8 @@ PROGRESS_RE = re.compile(
     r"step_avg:(?P<avg>[0-9.]+)ms"
 )
 KEYVAL_RE = re.compile(r"([A-Za-z_][A-Za-z0-9_]*)=([^ \n]+)")
-PREP_RE = re.compile(r"locoprop_m_prepare step=(?P<step>\d+)\s+(?P<body>.*)")
-APPLY_RE = re.compile(r"locoprop_m_apply step=(?P<step>\d+)\s+(?P<body>.*)")
+PREP_RE = re.compile(r"(?:locoprop_m_prepare|wr_locom_prepare) step=(?P<step>\d+)\s+(?P<body>.*)")
+APPLY_RE = re.compile(r"(?:locoprop_m_apply|wr_locom_apply) step=(?P<step>\d+)\s+(?P<body>.*)")
 
 
 def _time_seconds(value: str, unit: str) -> float:
@@ -42,12 +42,19 @@ def parse_one(path: Path) -> dict[str, object]:
     for line in text.splitlines():
         if "track3_locom_runner " in line:
             runner.update(dict(KEYVAL_RE.findall(line)))
+        if "wr_record_locom_runner " in line:
+            runner.update(dict(KEYVAL_RE.findall(line)))
         if "track3_locom_source_sha " in line:
+            source_sha.update(dict(KEYVAL_RE.findall(line)))
+        if "wr_record_locom_source_sha " in line:
             source_sha.update(dict(KEYVAL_RE.findall(line)))
         if (
             "LocoM enabled=" in line
+            or "WR LocoProp-M aux generated run" in line
+            or "WR LocoProp-M generated run" in line
             or "track3_locom_fused_screen " in line
             or line.startswith("locom ")
+            or line.startswith("wr_locom ")
         ):
             config.update(dict(KEYVAL_RE.findall(line)))
         match = VAL_RE.search(line)
@@ -102,7 +109,11 @@ def parse_one(path: Path) -> dict[str, object]:
         "locoprop_apply_steps": apply_steps,
         "locoprop_prepare_count": len(prepare_steps),
         "locoprop_apply_count": len(apply_steps),
-        "saw_aux_capture": config.get("aux_capture") == "True" or config.get("aux_capture") == "1",
+        "saw_aux_capture": (
+            config.get("aux_capture") == "True"
+            or config.get("aux_capture") == "1"
+            or config.get("aux_hookless") == "1"
+        ),
         "saw_batched_prep_config": config.get("batched_prep") == "True" or config.get("batched_prep") == "1",
         "saw_batched_prep_diag": saw_batched_diag,
     }

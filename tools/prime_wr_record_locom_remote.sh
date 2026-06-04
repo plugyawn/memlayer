@@ -10,6 +10,7 @@ seed="${WR_SEED:-28}"
 locom_generator="${WR_LOCOM_GENERATOR:-aux}"
 final_mbs="${FINAL_MBS:-64}"
 aux_seqs="${WR_LOCOM_AUX_SEQS:-16}"
+batched_prep="${WR_LOCOM_BATCHED_PREP:-1}"
 torch_version="${WR_TORCH_VERSION:-2.11.0}"
 torch_index_url="${WR_TORCH_INDEX_URL:-https://download.pytorch.org/whl/cu130}"
 default_data_chunks=$(( ((steps + 1) * 524288 + 100000000 - 1) / 100000000 ))
@@ -52,6 +53,7 @@ WR_SCHEDULE_STEPS="${schedule_steps}" \
 WR_SEED="${seed}" \
 FINAL_MBS="${final_mbs}" \
 NPROC_PER_NODE="${nproc}" \
+WR_LOCOM_BATCHED_PREP="${batched_prep}" \
 bash tools/run_wr_record_locoprop_m.sh > "/root/prime_track3_logs/${label}_generate.log" 2>&1
 
 run_log="/root/prime_track3_logs/${label}.log"
@@ -61,9 +63,9 @@ status_file="/root/prime_track3_logs/${label}.status"
   printf 'repo=%s commit=%s\n' "${repo_dir}" "$(git rev-parse --short HEAD 2>/dev/null || true)"
   printf 'label=%s nproc=%s steps=%s schedule_steps=%s seed=%s data_chunks=%s torch=%s torch_index=%s generator=%s final_mbs=%s\n' \
     "${label}" "${nproc}" "${steps}" "${schedule_steps}" "${seed}" "${data_chunks}" "${torch_version}" "${torch_index_url}" "${locom_generator}" "${final_mbs}"
-  printf 'wr_locom enabled=%s layers=%s windows=%s K=%s sample_tokens=%s aux_seqs=%s inner_lr=%s prox=%s alpha=%s norm_cap=%s norm_to_base=%s min_cos=%s require_loss_decrease=%s\n' \
+  printf 'wr_locom enabled=%s layers=%s windows=%s K=%s sample_tokens=%s aux_seqs=%s batched_prep=%s inner_lr=%s prox=%s alpha=%s norm_cap=%s norm_to_base=%s min_cos=%s require_loss_decrease=%s\n' \
     "${WR_LOCOM_ENABLED:-1}" "${WR_LOCOM_LAYERS:-all}" "${WR_LOCOM_ACTIVE_WINDOWS:-}" \
-    "${WR_LOCOM_STEPS:-4}" "${WR_LOCOM_SAMPLE_TOKENS:-1024}" "${aux_seqs}" "${WR_LOCOM_INNER_LR:-0.1}" \
+    "${WR_LOCOM_STEPS:-4}" "${WR_LOCOM_SAMPLE_TOKENS:-1024}" "${aux_seqs}" "${batched_prep}" "${WR_LOCOM_INNER_LR:-0.1}" \
     "${WR_LOCOM_PROX:-0.1}" "${WR_LOCOM_ALPHA:-1.0}" "${WR_LOCOM_NORM_CAP:-0.20}" \
     "${WR_LOCOM_NORM_TO_BASE:-0}" "${WR_LOCOM_MIN_COS_DESC:--inf}" "${WR_LOCOM_REQUIRE_LOSS_DECREASE:-0}"
 } | tee "${status_file}"
@@ -94,6 +96,7 @@ env \
   WR_LOCOM_REQUIRE_LOSS_DECREASE="${WR_LOCOM_REQUIRE_LOSS_DECREASE:-0}" \
   WR_LOCOM_LOG_STEPS="${WR_LOCOM_LOG_STEPS:-0,1,2,10,50,125,250,500,1000,1500,1750,1875,2000,2125,2250,2375,2500,2625,2750,2875,3000,3030,3040}" \
   WR_LOCOM_AUX_SEQS="${aux_seqs}" \
+  WR_LOCOM_BATCHED_PREP="${batched_prep}" \
   SCREEN_VAL_EVERY="${SCREEN_VAL_EVERY:-125}" \
   bash tools/run_wr_record_locoprop_m.sh > "${run_log}" 2>&1
 

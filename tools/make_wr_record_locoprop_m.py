@@ -71,6 +71,7 @@ WR_LOCOM_NORM_CAP = float(os.environ.get("WR_LOCOM_NORM_CAP", "0.20"))
 WR_LOCOM_NORM_TO_BASE = _wr_locom_flag("WR_LOCOM_NORM_TO_BASE", "0")
 WR_LOCOM_REQUIRE_LOSS_DECREASE = _wr_locom_flag("WR_LOCOM_REQUIRE_LOSS_DECREASE", "0")
 WR_LOCOM_MIN_COS_DESC = float(os.environ.get("WR_LOCOM_MIN_COS_DESC", "-inf"))
+WR_LOCOM_BATCHED_PREP = _wr_locom_flag("WR_LOCOM_BATCHED_PREP", "0")
 WR_LOCOM_LOG_STEPS = {
     int(x)
     for x in os.environ.get("WR_LOCOM_LOG_STEPS", "0,1,2,10,50,125,250,500,1000,1500,2000,2125,2250,2500,2750,3000").split(",")
@@ -143,10 +144,95 @@ def _wr_locom_capture_dpre(layer_idx: int, dpre: Tensor) -> None:
         sample["dpre"] = _wr_locom_sample_rows(dpre)
 
 @torch.no_grad()
+def _prepare_wr_locom_m_batched(model: nn.Module, step: int, stats: list[str]) -> bool:
+    if not WR_LOCOM_BATCHED_PREP:
+        return False
+
+    layers = []
+    xs = []
+    posts = []
+    dpres = []
+    weights = []
+    biases = []
+    raw_grads = []
+    for layer_idx, block in enumerate(model.blocks):
+        if not _wr_locom_layer_active(layer_idx):
+            continue
+        sample = WR_LOCOM_SAMPLES.get(layer_idx)
+        if sample is None or "x" not in sample or "post" not in sample or "dpre" not in sample:
+            continue
+        if block.mlp.fc.weight.grad is None:
+            continue
+        layers.append(layer_idx)
+        xs.append(_wr_locom_gather(sample["x"]).float())
+        posts.append(_wr_locom_gather(sample["post"]).float())
+        dpres.append(_wr_locom_gather(sample["dpre"]).float())
+        weights.append(block.mlp.fc.weight.detach().float())
+        biases.append(block.mlp.fc.bias.detach().float())
+        raw_grads.append(block.mlp.fc.weight.grad.float())
+
+    if not layers:
+        return True
+
+    try:
+        x = torch.stack(xs, dim=0)
+        post0 = torch.stack(posts, dim=0)
+        dpre = torch.stack(dpres, dim=0)
+        W0 = torch.stack(weights, dim=0)
+        b0 = torch.stack(biases, dim=0)
+        raw_grad = torch.stack(raw_grads, dim=0)
+    except RuntimeError as exc:
+        raise RuntimeError("batched WR LocoProp-M prep requires same-shaped layer samples") from exc
+
+    target = post0 - WR_LOCOM_TARGET_GAMMA * dpre
+    W = W0.clone()
+    inv_n = 1.0 / max(x.size(1), 1)
+    loss0 = None
+    loss_k = None
+    for _ in range(WR_LOCOM_STEPS):
+        pre = torch.bmm(x, W.transpose(1, 2)).add_(b0[:, None, :])
+        post = pre.relu().square()
+        err = post - target
+        loss_k = 0.5 * err.square().mean(dim=(1, 2))
+        if loss0 is None:
+            loss0 = loss_k
+        grad_w = torch.bmm(err.transpose(1, 2), x).mul_(inv_n)
+        if WR_LOCOM_PROX != 0:
+            grad_w.add_(W - W0, alpha=WR_LOCOM_PROX)
+        W.add_(grad_w, alpha=-WR_LOCOM_INNER_LR)
+
+    corr_stack = W - W0
+    raw_desc = -raw_grad
+    corr_norm = corr_stack.flatten(1).norm(dim=1).clamp_min(1e-12)
+    raw_norm = raw_desc.flatten(1).norm(dim=1).clamp_min(1e-12)
+    cos_desc = (corr_stack.flatten(1) * raw_desc.flatten(1)).sum(dim=1) / (corr_norm * raw_norm)
+    loss_decreased = loss_k <= loss0
+    accepted = loss_decreased if WR_LOCOM_REQUIRE_LOSS_DECREASE else torch.ones_like(loss_decreased, dtype=torch.bool)
+    accepted = accepted & (cos_desc >= float(WR_LOCOM_MIN_COS_DESC))
+
+    for pos, layer_idx in enumerate(layers):
+        if bool(accepted[pos]):
+            layer = model.blocks[layer_idx].mlp
+            WR_LOCOM_CORR[layer_idx] = corr_stack[pos].to(layer.fc.weight.dtype)
+        if step in WR_LOCOM_LOG_STEPS and len(stats) < 8:
+            stats.append(
+                f"l{layer_idx}:loss0={float(loss0[pos]):.3e},lossK={float(loss_k[pos]):.3e}"
+                f",corr={float(corr_norm[pos]):.3e},grad={float(raw_norm[pos]):.3e}"
+                f",cos={float(cos_desc[pos]):.3f},accepted={int(bool(accepted[pos]))}"
+                f",tokens={x.size(1)},batched=1"
+            )
+    return True
+
+@torch.no_grad()
 def prepare_wr_locom_m(model: nn.Module, step: int) -> None:
     if not _wr_locom_active(step):
         return
     stats = []
+    if _prepare_wr_locom_m_batched(model, step, stats):
+        if step in WR_LOCOM_LOG_STEPS and stats:
+            print0("wr_locom_prepare step=" + str(step) + " " + " | ".join(stats), console=True)
+        return
+
     for layer_idx, block in enumerate(model.blocks):
         if not _wr_locom_layer_active(layer_idx):
             continue
@@ -342,7 +428,8 @@ def generate(source: Path, output: Path, train_steps: int, schedule_steps: int |
         "    f\"windows={WR_LOCOM_ACTIVE_WINDOWS or [(WR_LOCOM_START_STEP, WR_LOCOM_END_STEP)]} \"\n"
         "    f\"K={WR_LOCOM_STEPS} sample_tokens={WR_LOCOM_SAMPLE_TOKENS} inner_lr={WR_LOCOM_INNER_LR} \"\n"
         "    f\"prox={WR_LOCOM_PROX} alpha={WR_LOCOM_ALPHA} norm_cap={WR_LOCOM_NORM_CAP} \"\n"
-        "    f\"norm_to_base={WR_LOCOM_NORM_TO_BASE} min_cos={WR_LOCOM_MIN_COS_DESC}\",\n"
+        "    f\"norm_to_base={WR_LOCOM_NORM_TO_BASE} min_cos={WR_LOCOM_MIN_COS_DESC} \"\n"
+        "    f\"batched_prep={WR_LOCOM_BATCHED_PREP}\",\n"
         "    console=True,\n"
         ")\n"
         "print0(\"=\"*100)\n\nval_tokens = 20 * 524288\n",

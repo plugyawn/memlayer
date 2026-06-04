@@ -22,6 +22,9 @@ esac
 generated_script="${WR_LOCOM_GENERATED_SCRIPT:-${default_generated}}"
 nproc="${NPROC_PER_NODE:-1}"
 seed="${WR_SEED:-0}"
+if [[ "${generator_kind}" == "aux" ]]; then
+  export WR_LOCOM_BATCHED_PREP="${WR_LOCOM_BATCHED_PREP:-1}"
+fi
 
 python3 "${generator_script}" \
   --source "${source_script}" \

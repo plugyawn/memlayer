@@ -114,7 +114,8 @@ def generate(source: Path, output: Path, train_steps: int, schedule_steps: int |
         "    f\"K={WR_LOCOM_STEPS} sample_tokens={WR_LOCOM_SAMPLE_TOKENS} aux_seqs={WR_LOCOM_AUX_SEQS} \"\n"
         "    f\"inner_lr={WR_LOCOM_INNER_LR} prox={WR_LOCOM_PROX} alpha={WR_LOCOM_ALPHA} \"\n"
         "    f\"norm_cap={WR_LOCOM_NORM_CAP} norm_to_base={WR_LOCOM_NORM_TO_BASE} \"\n"
-        "    f\"min_cos={WR_LOCOM_MIN_COS_DESC} aux_hookless=1\",\n"
+        "    f\"min_cos={WR_LOCOM_MIN_COS_DESC} batched_prep={WR_LOCOM_BATCHED_PREP} \"\n"
+        "    f\"aux_hookless=1\",\n"
         "    console=True,\n"
         ")\n"
         "print0(\"=\"*100)\n\nval_tokens = 20 * 524288\n",
