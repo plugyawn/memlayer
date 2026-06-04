@@ -75,6 +75,11 @@ LR multiplier=0.35 through 2450, then fade to full by 2750
 LocoProp active windows=0:1800 only
 ```
 
+The script runs under `tools/watch_track3_gates.py`, so the process group is
+terminated automatically if any observed gate fails. This is meant to protect
+the next GPU session from drifting into a full run after the 2500/2600 evidence
+already answers the question.
+
 Multiplier comparison:
 
 ```text
