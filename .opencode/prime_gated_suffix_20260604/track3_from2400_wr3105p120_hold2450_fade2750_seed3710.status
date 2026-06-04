@@ -1,0 +1,8 @@
+started 2026-06-04T18:32:11+00:00
+resume=/home/ubuntu/.cache/track3_checkpoints/track3_short2000_wr3105p120_mult035_hold2400_seed3710_step2400.pt
+tail=pr287 h3105 p1.20; resume at 2400; LR multiplier 0.35 held 2400-2450 then fade to 1 by 2750; no late LocoProp
+gate: kill if 2500 > 3.3430, or 2600 is not clearly better than the old slow-fade 3.33852
+2026-06-04T18:32:11+0000 gate_watcher_started pid=5024 gates={2500: 3.343, 2600: 3.33852, 2750: 3.315, 2875: 3.288}
+2026-06-04T18:47:42+0000 gate_passed step=2500 loss=3.34023 max_loss=3.34300
+2026-06-04T19:01:58+0000 gate_failed step=2600 loss=3.33989 max_loss=3.33852; terminating
+finished 2026-06-04T19:01:58+00:00 rc=143 watch_rc=42

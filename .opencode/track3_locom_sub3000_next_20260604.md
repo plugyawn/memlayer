@@ -63,7 +63,45 @@ immediate fade to full by 2600:
   verdict: too hot / shocky
 ```
 
+4. Prime self-gated suffix, MassedCompute H100 PCIe:
+
+```text
+resume=track3_short2000_wr3105p120_mult035_hold2400_seed3710_step2400.pt
+schedule=pr287 h3105 p1.20
+LR multiplier=0.35 through 2450, fade to full by 2750
+LocoProp active windows=0:1800 only
+
+2400: 3.34502
+2425: 3.34337
+2450: 3.34138
+2475: 3.34061
+2500: 3.34023
+2525: 3.34044
+2550: 3.34021
+2575: 3.33976
+2600: 3.33989
+verdict: stable but flat; failed 2600 gate against old slow-fade 3.33852
+```
+
+5. Same 2400 checkpoint and tail, late LocoProp reactivated:
+
+```text
+LocoProp active windows=0:1800,2400:2700
+cap=0.20, K=4
+
+2400: 3.34502
+2425: 3.34345
+2450: 3.34144
+2475: 3.34071
+2500: 3.34032
+verdict: active corrections were consistently slightly worse than scheduler-only;
+failed stricter 2500 gate. Late online LocoProp on this 2400 state is not the
+missing tail.
+```
+
 ## Next targeted run
+
+Status: executed and failed. Do not rerun this exact suffix.
 
 Run exactly one suffix first:
 

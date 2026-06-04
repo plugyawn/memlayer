@@ -1,0 +1,8 @@
+started 2026-06-04T19:06:18+00:00
+resume=/home/ubuntu/.cache/track3_checkpoints/track3_short2000_wr3105p120_mult035_hold2400_seed3710_step2400.pt
+tail=pr287 h3105 p1.20; resume at 2400; LR multiplier 0.35 held 2400-2450 then fade to 1 by 2750
+late_locom=active 2400:2700, cap=0.20, K=4; tests whether the stalled suffix needs actual LocoProp again
+gate: kill if not better than scheduler-only failed suffix at 2500/2600
+2026-06-04T19:06:18+0000 gate_watcher_started pid=6476 gates={2500: 3.34, 2600: 3.3375, 2750: 3.312, 2875: 3.2865}
+2026-06-04T19:21:49+0000 gate_failed step=2500 loss=3.34032 max_loss=3.34000; terminating
+finished 2026-06-04T19:21:50+00:00 rc=143 watch_rc=42
