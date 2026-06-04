@@ -56,9 +56,9 @@ status_file="/root/prime_track3_logs/${label}.status"
   printf 'locom aux_capture=%s aux_seqs=%s active_windows=%s norm_cap_windows=%s\n' \
     "${TRACK3_LOCOM_AUX_CAPTURE:-0}" "${TRACK3_LOCOM_AUX_SEQS:-16}" \
     "${TRACK3_LOCOM_ACTIVE_WINDOWS:-}" "${TRACK3_LOCOM_NORM_CAP_WINDOWS:-}"
-  printf 'locom batched_prep=%s local_opt=%s target_space=%s\n' \
+  printf 'locom batched_prep=%s local_opt=%s target_space=%s correction_mode=%s\n' \
     "${TRACK3_LOCOM_BATCHED_PREP:-0}" "${TRACK3_LOCOM_LOCAL_OPT:-sgd}" \
-    "${TRACK3_LOCOM_TARGET_SPACE:-post}"
+    "${TRACK3_LOCOM_TARGET_SPACE:-post}" "${TRACK3_LOCOM_CORRECTION_MODE:-normal}"
 } | tee "${status_file}"
 
 env \
@@ -99,6 +99,7 @@ env \
   TRACK3_LOCOM_RMS_RESET_EACH_STEP="${TRACK3_LOCOM_RMS_RESET_EACH_STEP:-0}" \
   TRACK3_LOCOM_REQUIRE_LOSS_DECREASE="${TRACK3_LOCOM_REQUIRE_LOSS_DECREASE:-0}" \
   TRACK3_LOCOM_MIN_COS_DESC="${TRACK3_LOCOM_MIN_COS_DESC:--inf}" \
+  TRACK3_LOCOM_CORRECTION_MODE="${TRACK3_LOCOM_CORRECTION_MODE:-normal}" \
   TRACK3_LOCOM_LOG_STEPS="${TRACK3_LOCOM_LOG_STEPS:-0,1,2,10,50,125,250,500}" \
   TRACK3_SEED_BASE="${TRACK3_SEED_BASE:-0}" \
   TRACK3_SEED_OFFSET="${TRACK3_SEED_OFFSET:-0}" \
