@@ -211,3 +211,129 @@ At step 250 one layer had `raw_cos_desc=0.763` but an enormous local correction
 norm, and projection forced the applied cosine to zero. This creates a capped
 lateral displacement but discards the aligned component that may be part of the
 real correction.
+
+## Corrected decision gates
+
+Step `250` is not a decision reference for the current hypothesis. It is only a
+smoke screen for broken code, catastrophic schedule mismatch, or obvious local
+solve harm. The LocoProp-M question is phase dependent, so ranking variants at
+`250` answers the wrong problem.
+
+Use these gates instead:
+
+| gate | purpose |
+| ---: | --- |
+| `900-1250` | first meaningful prefix separation on 3000-ish schedules |
+| `1500-1600` | whether the LocoProp prefix state is actually better before handoff |
+| `2000-2200` | whether the optimizer handoff preserves slope instead of flattening |
+| `2400-2500` | whether the WR-style late optimizer is catching up or being stifled |
+| `2800-3000` | terminal slope; this decides whether the run can actually land below `3000` |
+
+The earlier `softpolar` / `orthogonal` Prime checks are therefore only path
+checks. They say the projection/polar variants did not obviously rescue the
+mechanism, but they do not settle whether LocoProp-M helps in the actual
+`900+` schedule phase.
+
+## Next conservative probe
+
+The best remaining low-spend experiment is not another correction-mode screen.
+It is an optimizer-state handoff probe:
+
+```text
+model state:
+  LocoProp-improved simple Track 3 prefix checkpoint at step 1600
+
+optimizer state:
+  current-record WR source checkpoint at the matching step
+
+variant:
+  load Adam state only, do not hard-load Muon/SOAP optimizer2 state
+```
+
+This sits between the two failures already observed:
+
+```text
+cold WR suffix:
+  may lose mature late optimizer geometry
+
+hard mature WR optimizer splice:
+  immediate model-state advantage, then flattening from nonportable optimizer state
+```
+
+The exact run should use:
+
+```bash
+RUN_LABEL=wr_resume_locom1600_adamonly_seed3710
+WR_RESUME_MODEL_CHECKPOINT=/root/.cache/track3_checkpoints/track3_cd500red_softmerge_pr2872000_p110_ckpt1600_seed3710_step1600.pt
+WR_RESUME_OPTIMIZER_CHECKPOINT=/root/.cache/track3_checkpoints/wr_source_seed3710_step1600.pt
+WR_RESUME_LOAD_ADAM=1
+WR_RESUME_LOAD_OPTIMIZERS=0
+WR_RESUME_RESTORE_RNG=1
+WR_RESUME_ADVANCE_DATA=1
+WR_TRAIN_STEPS=2125
+WR_SCHEDULE_STEPS=3105
+WR_SEED=3710
+NPROC_PER_NODE=1
+bash tools/prime_wr_record_resume_remote.sh
+```
+
+If the `1625/1750` points keep the hard-splice initial advantage without the
+hard-splice flattening, extend the same pod to `2500` and then `3000`. If it
+flattens by `1750`, stop; it is not the bridge.
+
+## 2026-06-04 Handoff Probe Results
+
+Provider/runtime:
+
+```text
+Prime Datacrunch H100 SXM5
+pod: e3ba5d547a504c658ac556065772a8c2
+logs: .opencode/prime_locom_handoff_20260604/
+wallet before launch: $11.75
+cleanup: pod terminated, Prime active pods = 0
+```
+
+The `env.local` key was valid once mapped as `PRIME_API_KEY=$PRIME_KEY`.
+
+First, rebuilt the matched WR source step-1600 checkpoint on the same pod:
+
+| run | result |
+| --- | --- |
+| `wr_source_state_seed3710_step1600_handoff` | `3.51918 @1600`, saved `/root/.cache/track3_checkpoints/wr_source_seed3710_step1600.pt` |
+
+Then tested the LocoProp model checkpoint plus WR Adam-only state:
+
+| run | LocoProp active after 1600? | 1625 | 1750 | read |
+| --- | --- | ---: | ---: | --- |
+| `wr_resume_locom1600_adamonly_seed3710` | no | `3.50208` | `3.50222` | preserves initial LocoProp-model advantage but immediately flattens |
+| `wr_resume_locom1600_active_k4_cap020_seed3710` | yes, no gate | `3.50571` | stopped | worse immediately; accepted exploding local solves |
+| `wr_resume_locom1600_active_gated_k4_cap020_seed3710` | yes, loss-decrease and cos gate | `3.50207` | `3.50218` | sane but still flat; mostly only shallow l0/l1 corrections accepted |
+
+This answers the immediate question:
+
+```text
+LocoProp was not active in the Adam-only bridge suffix.
+When turned on explicitly from 1600, no-gate harmed and gated was neutral.
+```
+
+The active no-gate diagnostics showed the same failure mode seen elsewhere:
+
+```text
+lossK >> loss0 in several deeper layers,
+large correction norms,
+norm cap rescales them,
+but accepting those directions still worsens the first post-resume screen.
+```
+
+The gated run rejected those deep bad solves and applied mostly l0/l1
+corrections. That avoided the immediate harm but did not fix the plateau:
+`3.50207 -> 3.50218` from `1625` to `1750`.
+
+Conclusion:
+
+```text
+The step-1600 LocoProp model state advantage is real enough to show up at 1625,
+but the WR suffix with fresh Muon/SOAP state does not descend from it.
+Adding LocoProp corrections after 1600 does not rescue this handoff.
+The failure is optimizer-state/suffix geometry, not merely "LocoProp was off."
+```
