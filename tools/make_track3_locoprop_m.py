@@ -442,14 +442,14 @@ def _prepare_locoprop_m_batched(model: nn.Module, step: int, stats: list[str]) -
     for layer_idx in sorted(LOCO_M_LAYER_SET):
         if layer_idx < 0 or layer_idx >= len(model.blocks):
             continue
+        if layer_idx not in LOCO_M_OWNED_LAYER_SET:
+            continue
         mlp = model.blocks[layer_idx].mlp
         x_local = _locom_take_sample(mlp, "_loco_x")
         pre_local = _locom_take_sample(mlp, "_loco_pre")
         post_local = _locom_take_sample(mlp, "_loco_post")
         dpre_local = _locom_take_sample(mlp, "_loco_dpre")
         if x_local is None or pre_local is None or post_local is None or dpre_local is None:
-            continue
-        if layer_idx not in LOCO_M_OWNED_LAYER_SET:
             continue
         if mlp.fc.weight.grad is None:
             continue
