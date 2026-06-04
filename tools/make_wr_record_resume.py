@@ -27,6 +27,9 @@ WR_RESUME_LOAD_ADAM = _wr_resume_flag("WR_RESUME_LOAD_ADAM", "0")
 WR_RESUME_LOAD_OPTIMIZERS = _wr_resume_flag("WR_RESUME_LOAD_OPTIMIZERS", "0")
 WR_RESUME_STRICT_MODEL = _wr_resume_flag("WR_RESUME_STRICT_MODEL", "1")
 WR_RESUME_LOG_MODEL_DIFF = _wr_resume_flag("WR_RESUME_LOG_MODEL_DIFF", "1")
+WR_RESUME_OPTIMIZER2_MOMENTUM_SCALE = float(os.environ.get("WR_RESUME_OPTIMIZER2_MOMENTUM_SCALE", "1.0"))
+WR_RESUME_OPTIMIZER2_SOAP_RESET = _wr_resume_flag("WR_RESUME_OPTIMIZER2_SOAP_RESET", "0")
+WR_RESUME_OPTIMIZER2_NOR_RESET = _wr_resume_flag("WR_RESUME_OPTIMIZER2_NOR_RESET", "0")
 WR_SAVE_CHECKPOINT = os.environ.get("WR_SAVE_CHECKPOINT", "").strip()
 WR_SAVE_CHECKPOINT_STEP = int(os.environ.get("WR_SAVE_CHECKPOINT_STEP") or "-1")
 WR_SAVE_CHECKPOINT_STEPS = {
@@ -73,6 +76,40 @@ def _wr_model_diff(model: nn.Module, model_state: dict) -> None:
 def _wr_set_optimizer2_step(optimizer2: torch.optim.Optimizer, step: int) -> None:
     if hasattr(optimizer2, "step_count"):
         optimizer2.step_count = step
+
+def _wr_adjust_optimizer2_resume_state(optimizer2: torch.optim.Optimizer) -> None:
+    scaled_momentum = 0
+    reset_soap = 0
+    reset_nor = 0
+    for state in optimizer2.state.values():
+        momentum = state.get("momentum")
+        if torch.is_tensor(momentum) and WR_RESUME_OPTIMIZER2_MOMENTUM_SCALE != 1.0:
+            momentum.mul_(WR_RESUME_OPTIMIZER2_MOMENTUM_SCALE)
+            scaled_momentum += 1
+        if WR_RESUME_OPTIMIZER2_SOAP_RESET and "row_gg" in state:
+            for key in ("exp_avg_sq", "row_gg", "col_gg"):
+                value = state.get(key)
+                if torch.is_tensor(value):
+                    value.zero_()
+            state["q_row"] = None
+            state["q_col"] = None
+            state["soap_step"] = 0
+            reset_soap += 1
+        if WR_RESUME_OPTIMIZER2_NOR_RESET and "second_moment" in state:
+            value = state.get("second_moment")
+            if torch.is_tensor(value):
+                value.zero_()
+                reset_nor += 1
+    if (
+        WR_RESUME_OPTIMIZER2_MOMENTUM_SCALE != 1.0
+        or WR_RESUME_OPTIMIZER2_SOAP_RESET
+        or WR_RESUME_OPTIMIZER2_NOR_RESET
+    ):
+        print0(
+            f"wr_resume_optimizer2_adjust momentum_scale:{WR_RESUME_OPTIMIZER2_MOMENTUM_SCALE} "
+            f"scaled_momentum:{scaled_momentum} soap_reset:{reset_soap} nor_reset:{reset_nor}",
+            console=True,
+        )
 
 def _wr_checkpoint_save_path(path: str, step: int) -> str:
     if "{step}" in path:
@@ -136,6 +173,7 @@ def maybe_load_wr_resume_checkpoint(
             raise ValueError("WR_RESUME_LOAD_OPTIMIZERS=1 requires two optimizer state dicts")
         optimizer1.load_state_dict(saved_optimizers[0])
         optimizer2.load_state_dict(saved_optimizers[1])
+        _wr_adjust_optimizer2_resume_state(optimizer2)
     model_state = model_checkpoint["model"]
     _wr_model_diff(model, model_state)
     model.load_state_dict(model_state, strict=WR_RESUME_STRICT_MODEL)
@@ -163,7 +201,10 @@ def maybe_load_wr_resume_checkpoint(
         f"model_seed:{model_checkpoint.get('seed')} optimizer_seed:{optimizer_checkpoint.get('seed') if optimizer_checkpoint else None} "
         f"model_val_loss:{model_checkpoint.get('val_loss')} "
         f"load_adam:{WR_RESUME_LOAD_ADAM} load_optimizers:{WR_RESUME_LOAD_OPTIMIZERS} "
-        f"restore_rng:{WR_RESUME_RESTORE_RNG} optimizer2_step_count:{getattr(optimizer2, 'step_count', '<none>')}",
+        f"restore_rng:{WR_RESUME_RESTORE_RNG} optimizer2_step_count:{getattr(optimizer2, 'step_count', '<none>')} "
+        f"optimizer2_momentum_scale:{WR_RESUME_OPTIMIZER2_MOMENTUM_SCALE} "
+        f"optimizer2_soap_reset:{WR_RESUME_OPTIMIZER2_SOAP_RESET} "
+        f"optimizer2_nor_reset:{WR_RESUME_OPTIMIZER2_NOR_RESET}",
         console=True,
     )
     return step

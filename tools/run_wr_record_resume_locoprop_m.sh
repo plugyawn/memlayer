@@ -40,7 +40,7 @@ generated_sha="$(sha256sum "${generated_script}" | awk '{print $1}')"
 
 echo "wr_record_resume_locom_runner source=${source_script} generated=${generated_script} generator=${generator_kind} steps=${steps} schedule_steps=${schedule_steps} nproc=${nproc} seed=${seed}"
 echo "wr_record_resume_locom_source_sha source=${source_sha} generator_script=${generator_script} generator=${generator_sha} generated=${generated_sha}"
-echo "wr_record_resume_locom_checkpoint checkpoint=${WR_RESUME_CHECKPOINT:-<none>} load_adam=${WR_RESUME_LOAD_ADAM:-0} restore_rng=${WR_RESUME_RESTORE_RNG:-1} advance_data=${WR_RESUME_ADVANCE_DATA:-1}"
+echo "wr_record_resume_locom_checkpoint checkpoint=${WR_RESUME_CHECKPOINT:-<none>} load_adam=${WR_RESUME_LOAD_ADAM:-0} restore_rng=${WR_RESUME_RESTORE_RNG:-1} advance_data=${WR_RESUME_ADVANCE_DATA:-1} optimizer2_momentum_scale=${WR_RESUME_OPTIMIZER2_MOMENTUM_SCALE:-1.0} optimizer2_soap_reset=${WR_RESUME_OPTIMIZER2_SOAP_RESET:-0} optimizer2_nor_reset=${WR_RESUME_OPTIMIZER2_NOR_RESET:-0}"
 
 if [[ "${WR_RESUME_LOCOM_DRY_RUN:-0}" == "1" ]]; then
   echo "generated ${generated_script}"
