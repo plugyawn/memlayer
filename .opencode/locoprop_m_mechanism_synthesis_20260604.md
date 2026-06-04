@@ -151,3 +151,63 @@ seed path dependence, not a robust LocoProp mechanism.
 ```
 
 Only after the `1500` mechanism gate should we run to `3000+`.
+
+## 2026-06-04 Prime H100 mode checks
+
+Provider/runtime:
+
+```text
+Prime Datacrunch H100 SXM5, seed offset 3704
+source: records/track_3_optimization/train_gpt_simple.py
+horizon: 3000-step LR schedule
+LocoProp-M: K=4, sample_tokens=2048, inner_lr=0.1, prox=0.1, norm_cap=0.20
+aux_capture=1, aux_seqs=16, batched_prep=1
+```
+
+Pulled logs:
+
+```text
+.opencode/prime_track3_locom_modes_20260604/
+```
+
+Results:
+
+| mode | screen | val | note |
+| --- | ---: | ---: | --- |
+| `softpolar` | 125 | 4.64606 | worse than useful same-horizon band |
+| `softpolar` | 250 | 4.11736 | stopped early; post-softpolar cosines were near zero or negative |
+| `orthogonal` | 125 | 4.63267 | better than softpolar, but not a proof point |
+| `orthogonal` | 250 | 4.11543 | diagnostic only; 250 is too early for the 3000-horizon question |
+| `orthogonal` | 375 | 3.93006 | tracks weak same-horizon behavior |
+| `orthogonal` | 450 | 3.86217 | no breakout |
+| `orthogonal` | 500 | 3.82706 | worse than the useful same-horizon references |
+| `normal` | 125 | 4.64466 | same setup control; also weak |
+| `normal` | 250 | 4.11248 | slightly ahead of projection modes, but not a meaningful later-screen proof |
+| `normal` | 375 | 3.93091 | weak same-horizon behavior |
+| `normal` | 475 | 3.84222 | no strong prefix reproduction |
+| `normal` | 500 | 3.82583 | only `0.00123` better than orthogonal, still weak |
+
+Mechanism read:
+
+```text
+normal being weak says: this exact 3000-horizon Prime setup did not reproduce
+the old strong 500-step LocoProp prefix.
+softpolar failing says: do not just polar/soft-polar the LocoProp direction.
+orthogonal matching normal says: the old gain was not just same-size lateral
+motion, and today's weak behavior is not fixed by removing the parallel part.
+```
+
+The working hypothesis is now narrower:
+
+```text
+The useful LocoProp-M prefix, when it appears, likely depends more on the
+LR/state phase than on a universally helpful correction transform. The coupled
+parallel + orthogonal structure of the raw local correction may still matter,
+but this screen says projection/polar controls are not the immediate fix.
+```
+
+The orthogonal diagnostics also show why a simple cosine story is incomplete.
+At step 250 one layer had `raw_cos_desc=0.763` but an enormous local correction
+norm, and projection forced the applied cosine to zero. This creates a capped
+lateral displacement but discards the aligned component that may be part of the
+real correction.
