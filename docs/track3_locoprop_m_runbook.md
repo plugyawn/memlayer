@@ -93,6 +93,38 @@ SCREEN_VAL_EVERY=25 \
 bash tools/launch_modal_track3_locom_3000_seed.sh
 ```
 
+For the current fused timing screen, prefer the dedicated wrapper:
+
+```bash
+PROTOCOL_BUFFERS_PYTHON_IMPLEMENTATION=python \
+MODAL_DETACH=1 \
+NANOGPT_MODAL_GPU=H100 \
+TRACK3_TRAIN_STEPS=500 \
+TRACK3_SEED_OFFSET=3710 \
+TRACK3_MBS=64 \
+TRACK3_LOCOM_AUX_CAPTURE=1 \
+TRACK3_LOCOM_AUX_SEQS=16 \
+TRACK3_LOCOM_BATCHED_PREP=1 \
+SCREEN_VAL_EVERY=125 \
+bash tools/launch_modal_track3_locom_fused_screen.sh
+```
+
+Use a dry run to verify the generated path without touching GPU quota:
+
+```bash
+TRACK3_DRY_RUN=1 bash tools/launch_modal_track3_locom_fused_screen.sh
+```
+
+Parse logs with:
+
+```bash
+python3 tools/parse_track3_locom_log.py /path/to/run.log
+```
+
+The parser reports final validation loss, recent non-eval step time, whether
+`aux_capture`/`batched_prep` were requested, and whether `batched=1` appeared in
+the LocoProp diagnostics.
+
 ## Resume From A 1600-Step Checkpoint
 
 The recent suffix tests resumed from a 1600 checkpoint and preserved model,
