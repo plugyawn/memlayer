@@ -14,6 +14,7 @@ remote_repo="${REMOTE_REPO:-/root/wr-fresh-20260526}"
 remote_script="${REMOTE_SCRIPT:-.opencode/prime_scripts/wr_record_locom_aux_k5_lr1e3_nogate2000_seed3710_gated.sh}"
 min_balance="${PRIME_MIN_BALANCE_USD:-4.00}"
 known_hosts="${PRIME_KNOWN_HOSTS:-${workspace}/.opencode/prime_known_hosts_wr_locom_overlay}"
+disk_size_gb="${PRIME_DISK_SIZE_GB:-500}"
 
 if [[ ! -f "$env_file" ]]; then
   echo "missing env file: $env_file" >&2
@@ -101,8 +102,8 @@ for r in rows:
   ' "$availability_id" <<<"$availability_json"
 )"
 
-echo "launching pod name=${pod_name} availability=${availability_id} ${availability_desc} head=${head_sha}"
-create_out="$(prime --plain pods create --id "$availability_id" --name "$pod_name" --yes 2>&1 || true)"
+echo "launching pod name=${pod_name} availability=${availability_id} ${availability_desc} disk=${disk_size_gb}GB head=${head_sha}"
+create_out="$(prime --plain pods create --id "$availability_id" --name "$pod_name" --disk-size "$disk_size_gb" --yes 2>&1 || true)"
 echo "$create_out"
 
 pod_id="$(
