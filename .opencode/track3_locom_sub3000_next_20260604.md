@@ -172,3 +172,52 @@ The pod must already have, or receive, the local 2400 checkpoint:
 
 Do not launch with the current Prime balance unless there is enough budget to
 reach at least the 2600 gate.
+
+## Next WR-stack overlay gate
+
+The 2400 suffix branch is now closed. The next non-redundant spend is to test
+whether LocoProp-M helps the current-record optimizer substrate after the
+meaningful `900-1600` phase, using the hookless auxiliary capture path so the
+main WR training graph stays compiled.
+
+Run:
+
+```text
+script=.opencode/prime_scripts/wr_record_locom_aux_k5_lr1e3_nogate2000_seed3710_gated.sh
+source=records/track_3_optimization/results/20260509_contra_soft_muon/03c36e81-e2e5-4916-bf16-0141999b1dbb.txt
+schedule=WR current-record h3105/p1.20 source
+LocoProp=aux c_fc, K=5, inner_lr=1e-3, cap=0.20, no accept/reject gate
+train_steps=2000
+seed=3710
+```
+
+Why this is not redundant:
+
+```text
+500-step aux screens were slightly worse, but 500 is before the phase where the
+simple-Muon LocoProp prefix visibly separated. The exact-WR-state suffix probes
+from 2000 were neutral/worse, but those did not test co-training through the
+phase that could shape the model trajectory.
+```
+
+Automated gates:
+
+```text
+1000 <= 3.6650
+1250 <= 3.6060
+1500 <= 3.5500
+1625 <= 3.5280
+1750 <= 3.5000
+1875 <= 3.4750
+2000 <= 3.4450
+```
+
+Interpretation:
+
+```text
+If it fails before 1500, WR-stack LocoProp is actively hurting before the
+interesting phase and should not be extended. If it survives but is not near or
+ahead of WR source by 2000, the useful simple-Muon LocoProp mechanism does not
+transfer to the current-record substrate. If it is ahead by 2000, promote to a
+terminal-tail branch with current-record Soft-Muon/Contra/SOAP intact.
+```
