@@ -53,6 +53,8 @@ LOCO_M_INTERVAL = int(os.environ.get("TRACK3_LOCOM_INTERVAL", "1"))
 LOCO_M_GATHER_SAMPLES = _env_flag("TRACK3_LOCOM_GATHER_SAMPLES", "1")
 LOCO_M_ACCUM_SAMPLES = _env_flag("TRACK3_LOCOM_ACCUM_SAMPLES", "0")
 LOCO_M_MICRO_SAMPLE_TOKENS = int(os.environ.get("TRACK3_LOCOM_MICRO_SAMPLE_TOKENS", "32"))
+LOCO_M_AUX_CAPTURE = _env_flag("TRACK3_LOCOM_AUX_CAPTURE", "0")
+LOCO_M_AUX_SEQS = int(os.environ.get("TRACK3_LOCOM_AUX_SEQS", "16"))
 LOCO_M_LOCAL_OPT = os.environ.get("TRACK3_LOCOM_LOCAL_OPT", "sgd").lower()
 LOCO_M_TARGET_SPACE = os.environ.get("TRACK3_LOCOM_TARGET_SPACE", "post").lower()
 LOCO_M_RANDOM_CORRECTION = _env_flag("TRACK3_LOCOM_RANDOM_CORRECTION", "0") or LOCO_M_LOCAL_OPT == "random"
@@ -313,6 +315,67 @@ def set_locoprop_m_capture_this_micro(enabled: bool):
     global LOCO_M_CAPTURE_THIS_MICRO
     LOCO_M_CAPTURE_THIS_MICRO = enabled
 
+def _locoprop_m_active_layers(model: nn.Module) -> list[int]:
+    return [
+        i
+        for i, _ in enumerate(model.blocks)
+        if i in LOCO_M_LAYER_SET
+    ]
+
+def _locoprop_m_aux_forward_capture(model: nn.Module, inputs: Tensor, targets: Tensor, active_layers: list[int]) -> Tensor:
+    active = set(active_layers)
+    pre_tensors = []
+    pre_layers = []
+
+    x = model.norm1(model.embed(inputs))
+    for layer_idx, block in enumerate(model.blocks):
+        x = x + block.attn(block.norm1(x))
+        if layer_idx in active:
+            mlp = block.mlp
+            mlp_in = block.norm2(x)
+            pre = mlp.fc(mlp_in)
+            post = pre.relu().square()
+            mlp._store_loco_sample("_loco_x", mlp_in)
+            mlp._store_loco_sample("_loco_pre", pre)
+            mlp._store_loco_sample("_loco_post", post)
+            if not LOCO_M_ACCUM_SAMPLES:
+                mlp._loco_dpre = None
+            mlp._loco_corr = None
+            pre_layers.append(layer_idx)
+            pre_tensors.append(pre)
+            x = x + mlp.proj(post)
+        else:
+            x = x + block.mlp(block.norm2(x))
+
+    logits = model.proj(model.norm2(x)).float()
+    logits = 15 * logits * (logits.square() + 15**2).rsqrt()
+    aux_loss = F.cross_entropy(logits.view(targets.numel(), -1), targets.view(-1), reduction="sum")
+    if not pre_tensors:
+        return aux_loss
+    dpre_tensors = torch.autograd.grad(
+        aux_loss,
+        pre_tensors,
+        retain_graph=False,
+        create_graph=False,
+        allow_unused=True,
+    )
+    for layer_idx, dpre in zip(pre_layers, dpre_tensors):
+        if dpre is not None:
+            model.blocks[layer_idx].mlp._store_loco_sample("_loco_dpre", dpre)
+    return aux_loss
+
+def prepare_locoprop_m_aux(model: nn.Module, inputs: Tensor, targets: Tensor, step: int):
+    if not (LOCO_M_AUX_CAPTURE and _locom_active(step) and not LOCO_M_RANDOM_CORRECTION):
+        return
+    active_layers = _locoprop_m_active_layers(model)
+    if not active_layers:
+        return
+    seqs = max(1, min(int(LOCO_M_AUX_SEQS), inputs.size(0)))
+    aux_inputs = inputs[-seqs:].detach()
+    aux_targets = targets[-seqs:].detach()
+    with torch.enable_grad():
+        _locoprop_m_aux_forward_capture(model, aux_inputs, aux_targets, active_layers)
+
 @torch.no_grad()
 def attach_locoprop_m_optimizer(model: nn.Module, optimizer: torch.optim.Optimizer):
     global LOCO_M_OWNED_LAYER_SET
@@ -333,7 +396,8 @@ def attach_locoprop_m_optimizer(model: nn.Module, optimizer: torch.optim.Optimiz
     print0(
         f"locoprop_m_owner rank={rank} world={world} owned_layers={sorted(owned)} "
         f"sample_tokens={LOCO_M_SAMPLE_TOKENS} gather_samples={LOCO_M_GATHER_SAMPLES} "
-        f"accum_samples={LOCO_M_ACCUM_SAMPLES} micro_sample_tokens={LOCO_M_MICRO_SAMPLE_TOKENS}",
+        f"accum_samples={LOCO_M_ACCUM_SAMPLES} micro_sample_tokens={LOCO_M_MICRO_SAMPLE_TOKENS} "
+        f"aux_capture={LOCO_M_AUX_CAPTURE} aux_seqs={LOCO_M_AUX_SEQS}",
         console=True,
     )
 
@@ -577,6 +641,9 @@ def maybe_save_track3_checkpoint(model: nn.Module, optimizers: list[torch.optim.
                 "loco_m_interval": LOCO_M_INTERVAL,
                 "loco_m_gather_samples": LOCO_M_GATHER_SAMPLES,
                 "loco_m_accum_samples": LOCO_M_ACCUM_SAMPLES,
+                "loco_m_micro_sample_tokens": LOCO_M_MICRO_SAMPLE_TOKENS,
+                "loco_m_aux_capture": LOCO_M_AUX_CAPTURE,
+                "loco_m_aux_seqs": LOCO_M_AUX_SEQS,
                 "loco_m_local_opt": LOCO_M_LOCAL_OPT,
                 "loco_m_target_space": LOCO_M_TARGET_SPACE,
                 "loco_m_random_correction": LOCO_M_RANDOM_CORRECTION,
@@ -833,7 +900,7 @@ def muon_update(grad, momentum, mu=0.95, nesterov=True):
             "model = GPT(vocab_size=50304, num_layers=12, model_dim=768).cuda()\nattach_precond_stats(model)\nmodel.compile(dynamic=False)\n",
             "model = GPT(vocab_size=50304, num_layers=12, model_dim=768).cuda()\n"
             "attach_precond_stats(model)\n"
-            "if not LOCO_M_ENABLED or _env_flag(\"TRACK3_LOCOM_COMPILE\", \"0\"):\n"
+            "if (not LOCO_M_ENABLED) or LOCO_M_AUX_CAPTURE or _env_flag(\"TRACK3_LOCOM_COMPILE\", \"0\"):\n"
             "    model.compile(dynamic=False)\n"
             "compiled_model = model\n",
         )
@@ -842,7 +909,7 @@ def muon_update(grad, momentum, mu=0.95, nesterov=True):
             text,
             "model = GPT(vocab_size=50304, num_layers=12, model_dim=768).cuda()\nmodel.compile(dynamic=False)\n",
             "model = GPT(vocab_size=50304, num_layers=12, model_dim=768).cuda()\n"
-            "if not LOCO_M_ENABLED or _env_flag(\"TRACK3_LOCOM_COMPILE\", \"0\"):\n"
+            "if (not LOCO_M_ENABLED) or LOCO_M_AUX_CAPTURE or _env_flag(\"TRACK3_LOCOM_COMPILE\", \"0\"):\n"
             "    model.compile(dynamic=False)\n"
             "compiled_model = model\n",
         )
@@ -850,7 +917,7 @@ def muon_update(grad, momentum, mu=0.95, nesterov=True):
         text,
         'print0(f"Running PyTorch {torch.version.__version__} compiled for CUDA {torch.version.cuda}"',
         f'print0("Track3 LocoProp-M generated run: source={source_label} train_steps={train_steps}")\n'
-        'print0(f"LocoM enabled={LOCO_M_ENABLED} layers={LOCO_M_LAYERS_SPEC} steps={LOCO_M_LOCAL_STEPS} sample_tokens={LOCO_M_SAMPLE_TOKENS} gather={LOCO_M_GATHER_SAMPLES} accum={LOCO_M_ACCUM_SAMPLES} micro_sample_tokens={LOCO_M_MICRO_SAMPLE_TOKENS} local_opt={LOCO_M_LOCAL_OPT} target_space={LOCO_M_TARGET_SPACE} random_correction={LOCO_M_RANDOM_CORRECTION} lr_decay={LOCO_M_LOCAL_LR_DECAY} rms_beta1={LOCO_M_RMS_BETA1} rms_beta2={LOCO_M_RMS_BETA2} rms_eps={LOCO_M_RMS_EPS} rms_reset_each_step={LOCO_M_RMS_RESET_EACH_STEP} require_loss_decrease={LOCO_M_REQUIRE_LOSS_DECREASE} min_cos_desc={LOCO_M_MIN_COS_DESC} inner_lr={LOCO_M_INNER_LR} target_gamma={LOCO_M_TARGET_GAMMA} prox={LOCO_M_PROX} alpha={LOCO_M_ALPHA} norm_to_base={LOCO_M_NORM_TO_BASE} norm_target={LOCO_M_NORM_TARGET} norm_cap={LOCO_M_NORM_CAP} norm_cap_windows={LOCO_M_NORM_CAP_WINDOWS_SPEC} active_windows={LOCO_M_ACTIVE_WINDOWS_SPEC} start_step={LOCO_M_START_STEP} end_step={LOCO_M_END_STEP} interval={LOCO_M_INTERVAL} target_loss={TRACK3_TARGET_LOSS} seed_base={TRACK3_SEED_BASE} seed_offset={TRACK3_SEED_OFFSET} cooldown_frac={TRACK3_COOLDOWN_FRAC} lr_schedule={TRACK3_LR_SCHEDULE} lr_power={TRACK3_LR_POWER} lr_schedule_steps={TRACK3_LR_SCHEDULE_STEPS} lr_min_eta={TRACK3_LR_MIN_ETA} lr_bump_windows={TRACK3_LR_BUMP_WINDOWS_SPEC} lr_switch_step={TRACK3_LR_SWITCH_STEP} lr_after_switch={TRACK3_LR_AFTER_SWITCH} lr_after_switch_power={TRACK3_LR_AFTER_SWITCH_POWER} lr_after_switch_steps={TRACK3_LR_AFTER_SWITCH_STEPS} lr_blend_start={TRACK3_LR_BLEND_START} lr_blend_end={TRACK3_LR_BLEND_END} lr_blend_target={TRACK3_LR_BLEND_TARGET} lr_blend_target_power={TRACK3_LR_BLEND_TARGET_POWER} lr_blend_target_steps={TRACK3_LR_BLEND_TARGET_STEPS} soft_muon={TRACK3_SOFT_MUON} soft_blend={TRACK3_SOFT_MUON_BLEND} soft_start={TRACK3_SOFT_MUON_START_STEP} soft_end={TRACK3_SOFT_MUON_END_STEP} soft_ceil={TRACK3_SOFT_MUON_CEIL} soft_norm_restore={TRACK3_SOFT_MUON_NORM_RESTORE} resume_checkpoint={TRACK3_RESUME_CHECKPOINT} resume_load_optimizers={TRACK3_RESUME_LOAD_OPTIMIZERS}")\n'
+        'print0(f"LocoM enabled={LOCO_M_ENABLED} layers={LOCO_M_LAYERS_SPEC} steps={LOCO_M_LOCAL_STEPS} sample_tokens={LOCO_M_SAMPLE_TOKENS} gather={LOCO_M_GATHER_SAMPLES} accum={LOCO_M_ACCUM_SAMPLES} micro_sample_tokens={LOCO_M_MICRO_SAMPLE_TOKENS} aux_capture={LOCO_M_AUX_CAPTURE} aux_seqs={LOCO_M_AUX_SEQS} local_opt={LOCO_M_LOCAL_OPT} target_space={LOCO_M_TARGET_SPACE} random_correction={LOCO_M_RANDOM_CORRECTION} lr_decay={LOCO_M_LOCAL_LR_DECAY} rms_beta1={LOCO_M_RMS_BETA1} rms_beta2={LOCO_M_RMS_BETA2} rms_eps={LOCO_M_RMS_EPS} rms_reset_each_step={LOCO_M_RMS_RESET_EACH_STEP} require_loss_decrease={LOCO_M_REQUIRE_LOSS_DECREASE} min_cos_desc={LOCO_M_MIN_COS_DESC} inner_lr={LOCO_M_INNER_LR} target_gamma={LOCO_M_TARGET_GAMMA} prox={LOCO_M_PROX} alpha={LOCO_M_ALPHA} norm_to_base={LOCO_M_NORM_TO_BASE} norm_target={LOCO_M_NORM_TARGET} norm_cap={LOCO_M_NORM_CAP} norm_cap_windows={LOCO_M_NORM_CAP_WINDOWS_SPEC} active_windows={LOCO_M_ACTIVE_WINDOWS_SPEC} start_step={LOCO_M_START_STEP} end_step={LOCO_M_END_STEP} interval={LOCO_M_INTERVAL} target_loss={TRACK3_TARGET_LOSS} seed_base={TRACK3_SEED_BASE} seed_offset={TRACK3_SEED_OFFSET} cooldown_frac={TRACK3_COOLDOWN_FRAC} lr_schedule={TRACK3_LR_SCHEDULE} lr_power={TRACK3_LR_POWER} lr_schedule_steps={TRACK3_LR_SCHEDULE_STEPS} lr_min_eta={TRACK3_LR_MIN_ETA} lr_bump_windows={TRACK3_LR_BUMP_WINDOWS_SPEC} lr_switch_step={TRACK3_LR_SWITCH_STEP} lr_after_switch={TRACK3_LR_AFTER_SWITCH} lr_after_switch_power={TRACK3_LR_AFTER_SWITCH_POWER} lr_after_switch_steps={TRACK3_LR_AFTER_SWITCH_STEPS} lr_blend_start={TRACK3_LR_BLEND_START} lr_blend_end={TRACK3_LR_BLEND_END} lr_blend_target={TRACK3_LR_BLEND_TARGET} lr_blend_target_power={TRACK3_LR_BLEND_TARGET_POWER} lr_blend_target_steps={TRACK3_LR_BLEND_TARGET_STEPS} soft_muon={TRACK3_SOFT_MUON} soft_blend={TRACK3_SOFT_MUON_BLEND} soft_start={TRACK3_SOFT_MUON_START_STEP} soft_end={TRACK3_SOFT_MUON_END_STEP} soft_ceil={TRACK3_SOFT_MUON_CEIL} soft_norm_restore={TRACK3_SOFT_MUON_NORM_RESTORE} resume_checkpoint={TRACK3_RESUME_CHECKPOINT} resume_load_optimizers={TRACK3_RESUME_LOAD_OPTIMIZERS}")\n'
         'print0(f"Running PyTorch {torch.version.__version__} compiled for CUDA {torch.version.cuda}"',
     )
     if "for _ in range(num_trials):\n" in text:
@@ -1142,9 +1209,9 @@ def muon_update(grad, momentum, mu=0.95, nesterov=True):
             simple_microbatch,
             "        num_microbatches = len(inputs) // mbs\n"
             "        for i in range(num_microbatches):\n"
-            "            capture_this_micro = LOCO_M_ACCUM_SAMPLES or i == num_microbatches - 1\n"
+            "            capture_this_micro = (not LOCO_M_AUX_CAPTURE) and (LOCO_M_ACCUM_SAMPLES or i == num_microbatches - 1)\n"
             "            set_locoprop_m_capture_this_micro(capture_this_micro)\n"
-            "            active_model = model if (LOCO_M_ENABLED and _locom_active(step) and capture_this_micro) else compiled_model\n"
+            "            active_model = model if ((not LOCO_M_AUX_CAPTURE) and LOCO_M_ENABLED and _locom_active(step) and capture_this_micro) else compiled_model\n"
             "            active_model(inputs[i*mbs:(i+1)*mbs], targets[i*mbs:(i+1)*mbs]).backward()\n"
             "        set_locoprop_m_capture_this_micro(False)\n",
             1,
@@ -1155,9 +1222,9 @@ def muon_update(grad, momentum, mu=0.95, nesterov=True):
             guarded_microbatch,
             "    num_microbatches = len(inputs) // mbs\n"
             "    for i in range(num_microbatches):\n"
-            "        capture_this_micro = LOCO_M_ACCUM_SAMPLES or i == num_microbatches - 1\n"
+            "        capture_this_micro = (not LOCO_M_AUX_CAPTURE) and (LOCO_M_ACCUM_SAMPLES or i == num_microbatches - 1)\n"
             "        set_locoprop_m_capture_this_micro(capture_this_micro)\n"
-            "        active_model = model if (LOCO_M_ENABLED and _locom_active(step) and capture_this_micro) else compiled_model\n"
+            "        active_model = model if ((not LOCO_M_AUX_CAPTURE) and LOCO_M_ENABLED and _locom_active(step) and capture_this_micro) else compiled_model\n"
             "        loss = active_model(inputs[i*mbs:(i+1)*mbs], targets[i*mbs:(i+1)*mbs])\n"
             "        if not torch.isfinite(loss).all():\n"
             "            raise RuntimeError(f\"non-finite train loss at step {step} mb {i}: {loss.item()}\")\n"
@@ -1180,6 +1247,7 @@ def muon_update(grad, momentum, mu=0.95, nesterov=True):
             text = text.replace(
                 old,
                 f"{indent}set_hparams(step)\n"
+                f"{indent}prepare_locoprop_m_aux(model, inputs, targets, step)\n"
                 f"{indent}prepare_locoprop_m(model, step)\n"
                 f"{indent}for opt in optimizers:\n"
                 f"{indent}    opt.step()\n"

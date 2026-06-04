@@ -18,6 +18,9 @@ Latest plot artifacts:
 `train_gpt.py` and adds:
 
 - MLP `c_fc` LocoProp-M local correction probes.
+- optional hookless auxiliary capture (`TRACK3_LOCOM_AUX_CAPTURE=1`) so the real
+  training forward/backward can stay compiled while LocoProp samples are
+  collected in a small explicit aux pass.
 - Norm-capped additive correction application.
 - checkpoint save/resume with optimizer/RNG restore controls.
 - linear, power, PR287-style, blended, and temporary LR-bump schedules.
@@ -47,11 +50,22 @@ TRACK3_LOCOM_ENABLED=1 \
 TRACK3_LOCOM_LAYERS=all \
 TRACK3_LOCOM_STEPS=4 \
 TRACK3_LOCOM_NORM_CAP=0.20 \
+TRACK3_LOCOM_AUX_CAPTURE=1 \
+TRACK3_LOCOM_AUX_SEQS=16 \
 SCREEN_VAL_EVERY=25 \
 bash tools/run_track3_locoprop_m.sh
 ```
 
 Use `TRACK3_DRY_RUN=1` to only generate and compile-check the script.
+
+The legacy capture path uses Python activation/backward hooks on the final
+microbatch, which forces the active microbatch through the uncompiled model. Use
+`TRACK3_LOCOM_AUX_CAPTURE=1` for timing-sensitive probes: the generated script
+keeps all normal training microbatches on the compiled model, then runs a small
+manual aux forward on `TRACK3_LOCOM_AUX_SEQS` sampled sequences to populate the
+same LocoProp sample buffers. This is the fast path; set
+`TRACK3_LOCOM_AUX_CAPTURE=0` only when you explicitly want the old hook-control
+semantics.
 
 ## Modal Single-Lane Run
 
@@ -124,6 +138,8 @@ TRACK3_LOCOM_ENABLED=1
 TRACK3_LOCOM_LAYERS=all
 TRACK3_LOCOM_STEPS=4
 TRACK3_LOCOM_NORM_CAP=0.20
+TRACK3_LOCOM_AUX_CAPTURE=1
+TRACK3_LOCOM_AUX_SEQS=16
 TRACK3_LOCOM_ACTIVE_WINDOWS=0:1800
 TRACK3_LOCOM_END_STEP=1800
 ```
