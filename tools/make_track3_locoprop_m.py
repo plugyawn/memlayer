@@ -55,6 +55,7 @@ LOCO_M_ACCUM_SAMPLES = _env_flag("TRACK3_LOCOM_ACCUM_SAMPLES", "0")
 LOCO_M_MICRO_SAMPLE_TOKENS = int(os.environ.get("TRACK3_LOCOM_MICRO_SAMPLE_TOKENS", "32"))
 LOCO_M_AUX_CAPTURE = _env_flag("TRACK3_LOCOM_AUX_CAPTURE", "0")
 LOCO_M_AUX_SEQS = int(os.environ.get("TRACK3_LOCOM_AUX_SEQS", "16"))
+LOCO_M_BATCHED_PREP = _env_flag("TRACK3_LOCOM_BATCHED_PREP", "0")
 LOCO_M_LOCAL_OPT = os.environ.get("TRACK3_LOCOM_LOCAL_OPT", "sgd").lower()
 LOCO_M_TARGET_SPACE = os.environ.get("TRACK3_LOCOM_TARGET_SPACE", "post").lower()
 LOCO_M_RANDOM_CORRECTION = _env_flag("TRACK3_LOCOM_RANDOM_CORRECTION", "0") or LOCO_M_LOCAL_OPT == "random"
@@ -397,7 +398,7 @@ def attach_locoprop_m_optimizer(model: nn.Module, optimizer: torch.optim.Optimiz
         f"locoprop_m_owner rank={rank} world={world} owned_layers={sorted(owned)} "
         f"sample_tokens={LOCO_M_SAMPLE_TOKENS} gather_samples={LOCO_M_GATHER_SAMPLES} "
         f"accum_samples={LOCO_M_ACCUM_SAMPLES} micro_sample_tokens={LOCO_M_MICRO_SAMPLE_TOKENS} "
-        f"aux_capture={LOCO_M_AUX_CAPTURE} aux_seqs={LOCO_M_AUX_SEQS}",
+        f"aux_capture={LOCO_M_AUX_CAPTURE} aux_seqs={LOCO_M_AUX_SEQS} batched_prep={LOCO_M_BATCHED_PREP}",
         console=True,
     )
 
@@ -420,6 +421,116 @@ def _locom_take_sample(mlp: nn.Module, name: str):
     value = getattr(mlp, name)
     setattr(mlp, name, None)
     return value
+
+@torch.no_grad()
+def _prepare_locoprop_m_batched(model: nn.Module, step: int, stats: list[str]) -> bool:
+    if not LOCO_M_BATCHED_PREP:
+        return False
+    if LOCO_M_RANDOM_CORRECTION or LOCO_M_LOCAL_OPT != "sgd":
+        return False
+    if LOCO_M_GATHER_SAMPLES and dist.is_initialized() and dist.get_world_size() > 1:
+        return False
+
+    layers = []
+    xs = []
+    pre0s = []
+    posts = []
+    dpres = []
+    weights = []
+    biases = []
+    raw_grads = []
+    for layer_idx in sorted(LOCO_M_LAYER_SET):
+        if layer_idx < 0 or layer_idx >= len(model.blocks):
+            continue
+        mlp = model.blocks[layer_idx].mlp
+        x_local = _locom_take_sample(mlp, "_loco_x")
+        pre_local = _locom_take_sample(mlp, "_loco_pre")
+        post_local = _locom_take_sample(mlp, "_loco_post")
+        dpre_local = _locom_take_sample(mlp, "_loco_dpre")
+        if x_local is None or pre_local is None or post_local is None or dpre_local is None:
+            continue
+        if layer_idx not in LOCO_M_OWNED_LAYER_SET:
+            continue
+        if mlp.fc.weight.grad is None:
+            continue
+        layers.append(layer_idx)
+        xs.append(x_local.float())
+        pre0s.append(pre_local.float())
+        posts.append(post_local.float())
+        dpres.append(dpre_local.float())
+        weights.append(mlp.fc.weight.detach().float())
+        biases.append(mlp.fc.bias.detach().float())
+        raw_grads.append(mlp.fc.weight.grad.float())
+
+    if not layers:
+        return True
+
+    try:
+        x = torch.stack(xs, dim=0)
+        pre0 = torch.stack(pre0s, dim=0)
+        post = torch.stack(posts, dim=0)
+        dpre = torch.stack(dpres, dim=0)
+        W0 = torch.stack(weights, dim=0)
+        bias = torch.stack(biases, dim=0)
+        raw_grad = torch.stack(raw_grads, dim=0)
+    except RuntimeError as exc:
+        raise RuntimeError("batched LocoProp-M prep requires same-shaped owned-layer samples") from exc
+
+    target = pre0 - LOCO_M_TARGET_GAMMA * dpre if LOCO_M_TARGET_SPACE == "pre" else post - LOCO_M_TARGET_GAMMA * dpre
+    W = W0.clone()
+    inv_n = 1.0 / max(x.size(1), 1)
+    loss0 = None
+    loss_k = None
+    for local_step in range(LOCO_M_LOCAL_STEPS):
+        pred = torch.bmm(x, W.transpose(1, 2)).add_(bias[:, None, :])
+        if LOCO_M_TARGET_SPACE == "pre":
+            err = pred - target
+        else:
+            err = pred.relu().square().sub_(target)
+        loss_k = 0.5 * err.square().mean(dim=(1, 2))
+        if loss0 is None:
+            loss0 = loss_k
+        grad_w = torch.bmm(err.transpose(1, 2), x).mul_(inv_n)
+        if LOCO_M_PROX != 0:
+            grad_w.add_(W - W0, alpha=LOCO_M_PROX)
+        local_lr = LOCO_M_INNER_LR
+        if LOCO_M_LOCAL_LR_DECAY:
+            local_lr *= max(1.0 - float(local_step) / max(LOCO_M_LOCAL_STEPS, 1), 0.25)
+        W.add_(grad_w, alpha=-local_lr)
+
+    corr_stack = W - W0
+    raw_desc = -raw_grad
+    corr_norm = corr_stack.flatten(1).norm(dim=1).clamp_min(1e-12)
+    raw_norm = raw_desc.flatten(1).norm(dim=1).clamp_min(1e-12)
+    cosine = (corr_stack.flatten(1) * raw_desc.flatten(1)).sum(dim=1) / (corr_norm * raw_norm)
+    loss_decreased = loss_k <= loss0
+    accepted = loss_decreased if LOCO_M_REQUIRE_LOSS_DECREASE else torch.ones_like(loss_decreased, dtype=torch.bool)
+    accepted = accepted & (cosine >= float(LOCO_M_MIN_COS_DESC))
+
+    for pos, layer_idx in enumerate(layers):
+        mlp = model.blocks[layer_idx].mlp
+        if bool(accepted[pos]):
+            corr = corr_stack[pos].to(mlp.fc.weight.dtype)
+            mlp._loco_corr = corr
+            mlp.fc.weight._loco_corr = corr
+            mlp.fc.weight._loco_step = step
+        else:
+            mlp._loco_corr = None
+            mlp.fc.weight._loco_corr = None
+            mlp.fc.weight._loco_step = step
+        if step in LOCO_M_LOG_STEPS and len(stats) < 4:
+            stats.append(
+                f"l{layer_idx}:loss0={float(loss0[pos]):.3e}"
+                f",lossK={float(loss_k[pos]):.3e}"
+                f",corr_norm={float(corr_norm[pos]):.3e}"
+                f",grad_norm={float(raw_norm[pos]):.3e}"
+                f",cos_desc={float(cosine[pos]):.3f}"
+                f",accepted={int(bool(accepted[pos]))}"
+                f",tokens={x.size(1)}"
+                f",opt={LOCO_M_LOCAL_OPT}"
+                f",batched=1"
+            )
+    return True
 
 @torch.no_grad()
 def prepare_locoprop_m(model: nn.Module, step: int):
@@ -457,6 +568,11 @@ def prepare_locoprop_m(model: nn.Module, step: int):
                     f",accepted=1"
                     f",opt={LOCO_M_LOCAL_OPT}"
                 )
+        if step in LOCO_M_LOG_STEPS and stats:
+            print0("locoprop_m_prepare step=" + str(step) + " " + " | ".join(stats), console=True)
+        return
+
+    if _prepare_locoprop_m_batched(model, step, stats):
         if step in LOCO_M_LOG_STEPS and stats:
             print0("locoprop_m_prepare step=" + str(step) + " " + " | ".join(stats), console=True)
         return
@@ -644,6 +760,7 @@ def maybe_save_track3_checkpoint(model: nn.Module, optimizers: list[torch.optim.
                 "loco_m_micro_sample_tokens": LOCO_M_MICRO_SAMPLE_TOKENS,
                 "loco_m_aux_capture": LOCO_M_AUX_CAPTURE,
                 "loco_m_aux_seqs": LOCO_M_AUX_SEQS,
+                "loco_m_batched_prep": LOCO_M_BATCHED_PREP,
                 "loco_m_local_opt": LOCO_M_LOCAL_OPT,
                 "loco_m_target_space": LOCO_M_TARGET_SPACE,
                 "loco_m_random_correction": LOCO_M_RANDOM_CORRECTION,
@@ -917,7 +1034,7 @@ def muon_update(grad, momentum, mu=0.95, nesterov=True):
         text,
         'print0(f"Running PyTorch {torch.version.__version__} compiled for CUDA {torch.version.cuda}"',
         f'print0("Track3 LocoProp-M generated run: source={source_label} train_steps={train_steps}")\n'
-        'print0(f"LocoM enabled={LOCO_M_ENABLED} layers={LOCO_M_LAYERS_SPEC} steps={LOCO_M_LOCAL_STEPS} sample_tokens={LOCO_M_SAMPLE_TOKENS} gather={LOCO_M_GATHER_SAMPLES} accum={LOCO_M_ACCUM_SAMPLES} micro_sample_tokens={LOCO_M_MICRO_SAMPLE_TOKENS} aux_capture={LOCO_M_AUX_CAPTURE} aux_seqs={LOCO_M_AUX_SEQS} local_opt={LOCO_M_LOCAL_OPT} target_space={LOCO_M_TARGET_SPACE} random_correction={LOCO_M_RANDOM_CORRECTION} lr_decay={LOCO_M_LOCAL_LR_DECAY} rms_beta1={LOCO_M_RMS_BETA1} rms_beta2={LOCO_M_RMS_BETA2} rms_eps={LOCO_M_RMS_EPS} rms_reset_each_step={LOCO_M_RMS_RESET_EACH_STEP} require_loss_decrease={LOCO_M_REQUIRE_LOSS_DECREASE} min_cos_desc={LOCO_M_MIN_COS_DESC} inner_lr={LOCO_M_INNER_LR} target_gamma={LOCO_M_TARGET_GAMMA} prox={LOCO_M_PROX} alpha={LOCO_M_ALPHA} norm_to_base={LOCO_M_NORM_TO_BASE} norm_target={LOCO_M_NORM_TARGET} norm_cap={LOCO_M_NORM_CAP} norm_cap_windows={LOCO_M_NORM_CAP_WINDOWS_SPEC} active_windows={LOCO_M_ACTIVE_WINDOWS_SPEC} start_step={LOCO_M_START_STEP} end_step={LOCO_M_END_STEP} interval={LOCO_M_INTERVAL} target_loss={TRACK3_TARGET_LOSS} seed_base={TRACK3_SEED_BASE} seed_offset={TRACK3_SEED_OFFSET} cooldown_frac={TRACK3_COOLDOWN_FRAC} lr_schedule={TRACK3_LR_SCHEDULE} lr_power={TRACK3_LR_POWER} lr_schedule_steps={TRACK3_LR_SCHEDULE_STEPS} lr_min_eta={TRACK3_LR_MIN_ETA} lr_bump_windows={TRACK3_LR_BUMP_WINDOWS_SPEC} lr_switch_step={TRACK3_LR_SWITCH_STEP} lr_after_switch={TRACK3_LR_AFTER_SWITCH} lr_after_switch_power={TRACK3_LR_AFTER_SWITCH_POWER} lr_after_switch_steps={TRACK3_LR_AFTER_SWITCH_STEPS} lr_blend_start={TRACK3_LR_BLEND_START} lr_blend_end={TRACK3_LR_BLEND_END} lr_blend_target={TRACK3_LR_BLEND_TARGET} lr_blend_target_power={TRACK3_LR_BLEND_TARGET_POWER} lr_blend_target_steps={TRACK3_LR_BLEND_TARGET_STEPS} soft_muon={TRACK3_SOFT_MUON} soft_blend={TRACK3_SOFT_MUON_BLEND} soft_start={TRACK3_SOFT_MUON_START_STEP} soft_end={TRACK3_SOFT_MUON_END_STEP} soft_ceil={TRACK3_SOFT_MUON_CEIL} soft_norm_restore={TRACK3_SOFT_MUON_NORM_RESTORE} resume_checkpoint={TRACK3_RESUME_CHECKPOINT} resume_load_optimizers={TRACK3_RESUME_LOAD_OPTIMIZERS}")\n'
+        'print0(f"LocoM enabled={LOCO_M_ENABLED} layers={LOCO_M_LAYERS_SPEC} steps={LOCO_M_LOCAL_STEPS} sample_tokens={LOCO_M_SAMPLE_TOKENS} gather={LOCO_M_GATHER_SAMPLES} accum={LOCO_M_ACCUM_SAMPLES} micro_sample_tokens={LOCO_M_MICRO_SAMPLE_TOKENS} aux_capture={LOCO_M_AUX_CAPTURE} aux_seqs={LOCO_M_AUX_SEQS} batched_prep={LOCO_M_BATCHED_PREP} local_opt={LOCO_M_LOCAL_OPT} target_space={LOCO_M_TARGET_SPACE} random_correction={LOCO_M_RANDOM_CORRECTION} lr_decay={LOCO_M_LOCAL_LR_DECAY} rms_beta1={LOCO_M_RMS_BETA1} rms_beta2={LOCO_M_RMS_BETA2} rms_eps={LOCO_M_RMS_EPS} rms_reset_each_step={LOCO_M_RMS_RESET_EACH_STEP} require_loss_decrease={LOCO_M_REQUIRE_LOSS_DECREASE} min_cos_desc={LOCO_M_MIN_COS_DESC} inner_lr={LOCO_M_INNER_LR} target_gamma={LOCO_M_TARGET_GAMMA} prox={LOCO_M_PROX} alpha={LOCO_M_ALPHA} norm_to_base={LOCO_M_NORM_TO_BASE} norm_target={LOCO_M_NORM_TARGET} norm_cap={LOCO_M_NORM_CAP} norm_cap_windows={LOCO_M_NORM_CAP_WINDOWS_SPEC} active_windows={LOCO_M_ACTIVE_WINDOWS_SPEC} start_step={LOCO_M_START_STEP} end_step={LOCO_M_END_STEP} interval={LOCO_M_INTERVAL} target_loss={TRACK3_TARGET_LOSS} seed_base={TRACK3_SEED_BASE} seed_offset={TRACK3_SEED_OFFSET} cooldown_frac={TRACK3_COOLDOWN_FRAC} lr_schedule={TRACK3_LR_SCHEDULE} lr_power={TRACK3_LR_POWER} lr_schedule_steps={TRACK3_LR_SCHEDULE_STEPS} lr_min_eta={TRACK3_LR_MIN_ETA} lr_bump_windows={TRACK3_LR_BUMP_WINDOWS_SPEC} lr_switch_step={TRACK3_LR_SWITCH_STEP} lr_after_switch={TRACK3_LR_AFTER_SWITCH} lr_after_switch_power={TRACK3_LR_AFTER_SWITCH_POWER} lr_after_switch_steps={TRACK3_LR_AFTER_SWITCH_STEPS} lr_blend_start={TRACK3_LR_BLEND_START} lr_blend_end={TRACK3_LR_BLEND_END} lr_blend_target={TRACK3_LR_BLEND_TARGET} lr_blend_target_power={TRACK3_LR_BLEND_TARGET_POWER} lr_blend_target_steps={TRACK3_LR_BLEND_TARGET_STEPS} soft_muon={TRACK3_SOFT_MUON} soft_blend={TRACK3_SOFT_MUON_BLEND} soft_start={TRACK3_SOFT_MUON_START_STEP} soft_end={TRACK3_SOFT_MUON_END_STEP} soft_ceil={TRACK3_SOFT_MUON_CEIL} soft_norm_restore={TRACK3_SOFT_MUON_NORM_RESTORE} resume_checkpoint={TRACK3_RESUME_CHECKPOINT} resume_load_optimizers={TRACK3_RESUME_LOAD_OPTIMIZERS}")\n'
         'print0(f"Running PyTorch {torch.version.__version__} compiled for CUDA {torch.version.cuda}"',
     )
     if "for _ in range(num_trials):\n" in text:

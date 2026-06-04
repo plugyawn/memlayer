@@ -56,6 +56,9 @@ status_file="/root/prime_track3_logs/${label}.status"
   printf 'locom aux_capture=%s aux_seqs=%s active_windows=%s norm_cap_windows=%s\n' \
     "${TRACK3_LOCOM_AUX_CAPTURE:-0}" "${TRACK3_LOCOM_AUX_SEQS:-16}" \
     "${TRACK3_LOCOM_ACTIVE_WINDOWS:-}" "${TRACK3_LOCOM_NORM_CAP_WINDOWS:-}"
+  printf 'locom batched_prep=%s local_opt=%s target_space=%s\n' \
+    "${TRACK3_LOCOM_BATCHED_PREP:-0}" "${TRACK3_LOCOM_LOCAL_OPT:-sgd}" \
+    "${TRACK3_LOCOM_TARGET_SPACE:-post}"
 } | tee "${status_file}"
 
 env \
@@ -80,6 +83,7 @@ env \
   TRACK3_LOCOM_MICRO_SAMPLE_TOKENS="${TRACK3_LOCOM_MICRO_SAMPLE_TOKENS:-32}" \
   TRACK3_LOCOM_AUX_CAPTURE="${TRACK3_LOCOM_AUX_CAPTURE:-0}" \
   TRACK3_LOCOM_AUX_SEQS="${TRACK3_LOCOM_AUX_SEQS:-16}" \
+  TRACK3_LOCOM_BATCHED_PREP="${TRACK3_LOCOM_BATCHED_PREP:-0}" \
   TRACK3_LOCOM_ACTIVE_WINDOWS="${TRACK3_LOCOM_ACTIVE_WINDOWS:-}" \
   TRACK3_LOCOM_NORM_CAP_WINDOWS="${TRACK3_LOCOM_NORM_CAP_WINDOWS:-}" \
   TRACK3_LOCOM_START_STEP="${TRACK3_LOCOM_START_STEP:-0}" \

@@ -21,6 +21,9 @@ Latest plot artifacts:
 - optional hookless auxiliary capture (`TRACK3_LOCOM_AUX_CAPTURE=1`) so the real
   training forward/backward can stay compiled while LocoProp samples are
   collected in a small explicit aux pass.
+- optional batched local preparation (`TRACK3_LOCOM_BATCHED_PREP=1`) for the
+  standard SGD local solve, stacking owned MLP layers and running the K local
+  steps with batched GEMMs.
 - Norm-capped additive correction application.
 - checkpoint save/resume with optimizer/RNG restore controls.
 - linear, power, PR287-style, blended, and temporary LR-bump schedules.
@@ -52,6 +55,7 @@ TRACK3_LOCOM_STEPS=4 \
 TRACK3_LOCOM_NORM_CAP=0.20 \
 TRACK3_LOCOM_AUX_CAPTURE=1 \
 TRACK3_LOCOM_AUX_SEQS=16 \
+TRACK3_LOCOM_BATCHED_PREP=1 \
 SCREEN_VAL_EVERY=25 \
 bash tools/run_track3_locoprop_m.sh
 ```
@@ -66,6 +70,12 @@ manual aux forward on `TRACK3_LOCOM_AUX_SEQS` sampled sequences to populate the
 same LocoProp sample buffers. This is the fast path; set
 `TRACK3_LOCOM_AUX_CAPTURE=0` only when you explicitly want the old hook-control
 semantics.
+
+For the usual `local_opt=sgd`, `target_space=post`, 1x-H100 screen, add
+`TRACK3_LOCOM_BATCHED_PREP=1`. This preserves the same local K-step update but
+computes all owned MLP `c_fc` corrections in a stacked tensor path. It currently
+falls back before consuming samples for unsupported modes such as RMSProp or
+multi-rank sample gathering.
 
 ## Modal Single-Lane Run
 
@@ -140,6 +150,7 @@ TRACK3_LOCOM_STEPS=4
 TRACK3_LOCOM_NORM_CAP=0.20
 TRACK3_LOCOM_AUX_CAPTURE=1
 TRACK3_LOCOM_AUX_SEQS=16
+TRACK3_LOCOM_BATCHED_PREP=1
 TRACK3_LOCOM_ACTIVE_WINDOWS=0:1800
 TRACK3_LOCOM_END_STEP=1800
 ```
