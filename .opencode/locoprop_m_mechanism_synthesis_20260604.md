@@ -81,9 +81,13 @@ trajectory and phase dependent.
 `tools/make_track3_locoprop_m.py` now supports:
 
 ```text
-TRACK3_LOCOM_CORRECTION_MODE=normal      # default, old behavior
-TRACK3_LOCOM_CORRECTION_MODE=orthogonal  # subtract projection onto base descent
-TRACK3_LOCOM_CORRECTION_MODE=parallel    # keep only projection onto base descent
+TRACK3_LOCOM_CORRECTION_MODE=normal                # default, old behavior
+TRACK3_LOCOM_CORRECTION_MODE=orthogonal            # subtract projection onto base descent
+TRACK3_LOCOM_CORRECTION_MODE=parallel              # keep only projection onto base descent
+TRACK3_LOCOM_CORRECTION_MODE=polar                 # Muon/NS polarize LocoProp correction
+TRACK3_LOCOM_CORRECTION_MODE=softpolar             # PR291-style soft polarize correction
+TRACK3_LOCOM_CORRECTION_MODE=orthogonal_polar      # lateral part, then hard polar
+TRACK3_LOCOM_CORRECTION_MODE=orthogonal_softpolar  # lateral part, then soft polar
 ```
 
 Diagnostics now log:
@@ -107,6 +111,10 @@ orthogonal succeeds:
 
 normal succeeds but both controls fail:
     the interaction between aligned and orthogonal components matters.
+
+polar/softpolar succeeds:
+    LocoProp's matrix subspace is useful, but its local-solve spectrum is out
+    of scale for the global optimizer.
 ```
 
 ## Next no-waste run ladder
@@ -121,6 +129,8 @@ then run only to `1500` first:
 2. TRACK3_LOCOM_RANDOM_CORRECTION=1, same schedule/cap, to 1500
 3. TRACK3_LOCOM_CORRECTION_MODE=orthogonal, same schedule/cap, to 1500
 4. TRACK3_LOCOM_CORRECTION_MODE=parallel, same schedule/cap, to 1500
+5. TRACK3_LOCOM_CORRECTION_MODE=softpolar, same schedule/cap, to 1500
+6. TRACK3_LOCOM_CORRECTION_MODE=orthogonal_softpolar, same schedule/cap, to 1500
 ```
 
 Gate:
@@ -131,6 +141,10 @@ as a feature-conditioned orthogonal correction and tune the late schedule.
 
 If only parallel helps, stop treating this as LocoProp geometry; tune it as a
 small aligned additive update / LR-shaping effect.
+
+If softpolar beats normal, keep the LocoProp direction but stop trusting the raw
+local-solve singular values. Hard `polar` is a sharper science control, but
+`softpolar` should be the first WR-facing polar variant.
 
 If none reproduce the old `cd500` prefix gap, the old result was schedule or
 seed path dependence, not a robust LocoProp mechanism.

@@ -66,7 +66,7 @@ LOCO_M_RMS_EPS = float(os.environ.get("TRACK3_LOCOM_RMS_EPS", "1e-5"))
 LOCO_M_RMS_RESET_EACH_STEP = _env_flag("TRACK3_LOCOM_RMS_RESET_EACH_STEP", "0")
 LOCO_M_REQUIRE_LOSS_DECREASE = _env_flag("TRACK3_LOCOM_REQUIRE_LOSS_DECREASE", "0")
 LOCO_M_MIN_COS_DESC = float(os.environ.get("TRACK3_LOCOM_MIN_COS_DESC", "-inf"))
-LOCO_M_CORRECTION_MODE = os.environ.get("TRACK3_LOCOM_CORRECTION_MODE", "normal").lower()
+LOCO_M_CORRECTION_MODE = os.environ.get("TRACK3_LOCOM_CORRECTION_MODE", "normal").lower().replace("-", "_")
 TRACK3_TARGET_LOSS = float(os.environ.get("TRACK3_TARGET_LOSS", "0"))
 TRACK3_SEED_BASE = int(os.environ.get("TRACK3_SEED_BASE", "0"))
 TRACK3_SEED_OFFSET = int(os.environ.get("TRACK3_SEED_OFFSET", "0"))
@@ -100,8 +100,22 @@ if TRACK3_LR_BLEND_TARGET and TRACK3_LR_BLEND_END < TRACK3_LR_BLEND_START:
     raise ValueError("TRACK3_LR_BLEND_END must be >= TRACK3_LR_BLEND_START")
 if LOCO_M_TARGET_SPACE not in {"post", "pre"}:
     raise ValueError("TRACK3_LOCOM_TARGET_SPACE must be 'post' or 'pre'")
-if LOCO_M_CORRECTION_MODE not in {"normal", "orthogonal", "parallel"}:
-    raise ValueError("TRACK3_LOCOM_CORRECTION_MODE must be normal, orthogonal, or parallel")
+if LOCO_M_CORRECTION_MODE not in {
+    "normal",
+    "orthogonal",
+    "parallel",
+    "polar",
+    "softpolar",
+    "orthogonal_polar",
+    "orthogonal_softpolar",
+    "parallel_polar",
+    "parallel_softpolar",
+}:
+    raise ValueError(
+        "TRACK3_LOCOM_CORRECTION_MODE must be one of normal, orthogonal, parallel, "
+        "polar, softpolar, orthogonal_polar, orthogonal_softpolar, parallel_polar, "
+        "or parallel_softpolar"
+    )
 TRACK3_SOFT_MUON = _env_flag("TRACK3_SOFT_MUON", "0")
 TRACK3_SOFT_MUON_BLEND = float(os.environ.get("TRACK3_SOFT_MUON_BLEND", "1.0"))
 TRACK3_SOFT_MUON_NORM_RESTORE = _env_flag("TRACK3_SOFT_MUON_NORM_RESTORE", "1")
@@ -312,7 +326,8 @@ def _locom_active(step: int) -> bool:
 @torch.no_grad()
 def _locom_adjust_correction_stack(corr_stack: Tensor, raw_desc: Tensor) -> tuple[Tensor, Tensor]:
     raw_corr = corr_stack
-    if LOCO_M_CORRECTION_MODE == "normal":
+    mode = LOCO_M_CORRECTION_MODE
+    if mode == "normal":
         return raw_corr, raw_corr
 
     corr_flat = raw_corr.flatten(1)
@@ -321,9 +336,21 @@ def _locom_adjust_correction_stack(corr_stack: Tensor, raw_desc: Tensor) -> tupl
     coeff = (corr_flat * desc_flat).sum(dim=1) / desc_norm_sq
     parallel = coeff.view(coeff.shape[0], *([1] * (raw_corr.ndim - 1))) * raw_desc
 
-    if LOCO_M_CORRECTION_MODE == "parallel":
-        return parallel, raw_corr
-    return raw_corr - parallel, raw_corr
+    if mode.startswith("parallel"):
+        adjusted = parallel
+    elif mode.startswith("orthogonal"):
+        adjusted = raw_corr - parallel
+    else:
+        adjusted = raw_corr
+
+    if mode.endswith("softpolar"):
+        adjusted = _track3_soft_muon_pr291_from_operand(adjusted.float()).float()
+        adjusted *= max(1, adjusted.size(-2) / adjusted.size(-1))**0.5
+    elif mode.endswith("polar"):
+        adjusted = zeropower_via_newtonschulz5(adjusted.float()).float()
+        adjusted *= max(1, adjusted.size(-2) / adjusted.size(-1))**0.5
+
+    return adjusted, raw_corr
 
 @torch.no_grad()
 def _locom_adjust_correction(corr: Tensor, raw_desc: Tensor) -> tuple[Tensor, Tensor]:
@@ -581,7 +608,10 @@ def prepare_locoprop_m(model: nn.Module, step: int):
             )
             raw_grad = mlp.fc.weight.grad.float()
             raw_desc = -raw_grad
+            corr_f, raw_corr_f = _locom_adjust_correction(corr_f, raw_desc)
             denom = corr_f.norm().mul(raw_desc.norm()).clamp_min(1e-12)
+            raw_denom = raw_corr_f.norm().mul(raw_desc.norm()).clamp_min(1e-12)
+            raw_cosine = raw_corr_f.flatten().dot(raw_desc.flatten()) / raw_denom
             cosine = corr_f.flatten().dot(raw_desc.flatten()) / denom
             corr = corr_f.to(mlp.fc.weight.dtype)
             mlp._loco_corr = corr
@@ -592,6 +622,7 @@ def prepare_locoprop_m(model: nn.Module, step: int):
                     f"l{layer_idx}:random=1"
                     f",corr_norm={float(corr_f.norm()):.3e}"
                     f",grad_norm={float(raw_grad.norm()):.3e}"
+                    f",raw_cos_desc={float(raw_cosine):.3f}"
                     f",cos_desc={float(cosine):.3f}"
                     f",accepted=1"
                     f",opt={LOCO_M_LOCAL_OPT}"
