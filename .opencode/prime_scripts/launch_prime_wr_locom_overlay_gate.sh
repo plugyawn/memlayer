@@ -20,7 +20,20 @@ if [[ ! -f "$env_file" ]]; then
   exit 2
 fi
 
-export PRIME_API_KEY="${PRIME_API_KEY:-$(awk -F= '$1=="PRIME_KEY"{print substr($0,index($0,"=")+1)}' "$env_file")}"
+export PRIME_API_KEY="${PRIME_API_KEY:-$(python3 - "$env_file" <<'PY'
+import sys
+path = sys.argv[1]
+values = {}
+with open(path) as f:
+    for line in f:
+        line = line.strip()
+        if not line or line.startswith("#") or "=" not in line:
+            continue
+        k, v = line.split("=", 1)
+        values[k.strip()] = v.strip().strip('"').strip("'")
+print(values.get("PRIME_API_KEY") or values.get("PRIME_KEY") or "")
+PY
+)}"
 if [[ -z "${PRIME_API_KEY}" ]]; then
   echo "PRIME_API_KEY/PRIME_KEY is not set" >&2
   exit 2
