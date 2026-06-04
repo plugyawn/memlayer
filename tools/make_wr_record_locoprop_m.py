@@ -306,6 +306,11 @@ def generate(source: Path, output: Path, train_steps: int, schedule_steps: int |
             "FINAL_SCHEDULE_STEPS = 3105\n",
             "FINAL_SCHEDULE_STEPS = int(os.environ.get(\"FINAL_SCHEDULE_STEPS\", \"3105\"))\n",
         )
+    text = replace_exact(
+        text,
+        "mbs = 64\n",
+        "mbs = int(os.environ.get(\"FINAL_MBS\", \"64\"))\n",
+    )
     old_mlp = '''class MLP(nn.Module):
     def __init__(self, dim: int):
         super().__init__()

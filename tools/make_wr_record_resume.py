@@ -29,6 +29,11 @@ WR_RESUME_STRICT_MODEL = _wr_resume_flag("WR_RESUME_STRICT_MODEL", "1")
 WR_RESUME_LOG_MODEL_DIFF = _wr_resume_flag("WR_RESUME_LOG_MODEL_DIFF", "1")
 WR_SAVE_CHECKPOINT = os.environ.get("WR_SAVE_CHECKPOINT", "").strip()
 WR_SAVE_CHECKPOINT_STEP = int(os.environ.get("WR_SAVE_CHECKPOINT_STEP") or "-1")
+WR_SAVE_CHECKPOINT_STEPS = {
+    int(x)
+    for x in os.environ.get("WR_SAVE_CHECKPOINT_STEPS", "").split(",")
+    if x.strip()
+}
 WR_TARGET_LOSS = float(os.environ.get("WR_TARGET_LOSS", "0.0"))
 
 def _wr_load_checkpoint(path: str) -> dict:
@@ -69,6 +74,14 @@ def _wr_set_optimizer2_step(optimizer2: torch.optim.Optimizer, step: int) -> Non
     if hasattr(optimizer2, "step_count"):
         optimizer2.step_count = step
 
+def _wr_checkpoint_save_path(path: str, step: int) -> str:
+    if "{step}" in path:
+        return path.format(step=step)
+    if WR_SAVE_CHECKPOINT_STEPS and len(WR_SAVE_CHECKPOINT_STEPS) > 1:
+        base, suffix = os.path.splitext(path)
+        return f"{base}_step{step}{suffix or '.pt'}"
+    return path
+
 def maybe_save_wr_checkpoint(
     path: str,
     step: int,
@@ -80,10 +93,12 @@ def maybe_save_wr_checkpoint(
 ) -> None:
     if not path:
         return
-    if WR_SAVE_CHECKPOINT_STEP >= 0 and step != WR_SAVE_CHECKPOINT_STEP:
+    if WR_SAVE_CHECKPOINT_STEPS:
+        if step not in WR_SAVE_CHECKPOINT_STEPS:
+            return
+    elif WR_SAVE_CHECKPOINT_STEP >= 0 and step != WR_SAVE_CHECKPOINT_STEP:
         return
-    if step != (WR_SAVE_CHECKPOINT_STEP if WR_SAVE_CHECKPOINT_STEP >= 0 else step):
-        return
+    save_path = _wr_checkpoint_save_path(path, step)
     checkpoint = {
         "step": int(step),
         "seed": int(os.environ.get("WR_SEED", "0")),
@@ -95,8 +110,8 @@ def maybe_save_wr_checkpoint(
         "rng_cpu": torch.get_rng_state().detach().cpu(),
         "rng_cuda": [s.detach().cpu() for s in torch.cuda.get_rng_state_all()],
     }
-    torch.save(checkpoint, path)
-    print0(f"wr_save_checkpoint path:{path} step:{step} val_loss:{checkpoint['val_loss']}", console=True)
+    torch.save(checkpoint, save_path)
+    print0(f"wr_save_checkpoint path:{save_path} step:{step} val_loss:{checkpoint['val_loss']}", console=True)
 
 @torch.no_grad()
 def maybe_load_wr_resume_checkpoint(
