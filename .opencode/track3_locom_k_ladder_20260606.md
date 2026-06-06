@@ -591,6 +591,14 @@ First coldp2 gate:
 1825: 3.39518
 1850: 3.39175
 1875: 3.38819
+1900: 3.38477
+1925: 3.38173
+1950: 3.37909
+1975: 3.37605
+2000: 3.37337
+2025: 3.37101
+2050: 3.36869
+2075: 3.36658
 ```
 
 This matches the 1800 short-schedule control at the first gate (`3.45139`) while
@@ -610,3 +618,8 @@ the 1800 run ended at `3.40453`, while coldp2 is already `3.39872 @1800` and
 continues descending. This suggests the useful lever is not "end the run at the
 cold point", but "enter the LocoProp-friendly low-base-step regime while keeping
 enough tail LR alive."
+
+By `2000-2075`, the slope has visibly tapered. The run should continue for
+evidence, but the next design target is a cold prefix that unlocks the
+LocoProp-friendly trajectory followed by a smoother/warmer tail; another
+LocoProp norm-target increase is no longer the obvious lever.
