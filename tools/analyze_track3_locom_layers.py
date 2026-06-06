@@ -268,9 +268,9 @@ def _print_summary(path: Path, rows: list[KDiag], summaries: list[LayerSummary],
     print(f"- accepted weak/strong layers: {accepted_layers if accepted_layers else 'none'}")
     print(f"- risky layers: {risky_layers if risky_layers else 'none'}")
     if strong_layers:
-        print(f"- next subset candidate: `WR_LOCOM_LAYER_SET={','.join(str(layer) for layer in strong_layers)}`")
+        print(f"- next subset candidate: `TRACK3_LOCOM_LAYERS={','.join(str(layer) for layer in strong_layers)}`")
     elif accepted_layers:
-        print(f"- next subset candidate: `WR_LOCOM_LAYER_SET={','.join(str(layer) for layer in accepted_layers)}`")
+        print(f"- next subset candidate: `TRACK3_LOCOM_LAYERS={','.join(str(layer) for layer in accepted_layers)}`")
     else:
         print("- next subset candidate: none from these diagnostics")
     print()

@@ -123,6 +123,8 @@ The per-layer health report adds another narrowing:
 ```text
 tools/analyze_track3_locom_layers.py
 .opencode/track3_locom_layer_health_k5_20260607.md
+.opencode/track3_locom_layer_health_k8_20260607.md
+.opencode/track3_locom_layer_health_k10_20260607.md
 ```
 
 K5 across the `1600,1625,...,1775` prefix diagnostics:
@@ -133,17 +135,28 @@ accepted weak/strong layers: 0,1,2,3,4,5,6,7,8,9,10
 risky/borderline layer:      11
 ```
 
-Layer `11` locally improves loss, but has negative/borderline cosine on half
-the samples. Layers `0-1` are directionally accepted but weak. The strongest
-candidate layer subset is therefore:
+Cross-K read:
 
 ```text
-WR_LOCOM_LAYER_SET=2,7,8,9,10
+robust core across K5/K8/K10: 7,8,9,10
+expanded K8/K10 core:         6,7,8,9,10
+K10-only wider set:           5,6,7,8,9,10,11
+unstable/inconsistent:        2,11
+```
+
+Layer `11` locally improves loss, but its cosine is inconsistent. Layer `2`
+looks strong in the K5 log but becomes opposing/inconsistent in K8/K10. Layers
+`0-1` are directionally accepted but weak. The next layer-subset probes should
+therefore use:
+
+```text
+TRACK3_LOCOM_LAYERS=7,8,9,10
+TRACK3_LOCOM_LAYERS=6,7,8,9,10
 ```
 
 This does not replace the all-layer prefix specificity control. It says that
-if the all-layer active prefix reproduces, the next cheap rung should be this
-strong-layer subset versus all-layer, not more K-depth.
+if the all-layer active prefix reproduces, the next cheap rung should be core
+subset versus all-layer, not more K-depth.
 
 The joined mechanism report adds the sharper falsification:
 
@@ -540,6 +553,37 @@ The current evidence says not to spend more on K-depth until the prefix
 specificity control is done. K-depth is not the bottleneck in the validation
 curve we have.
 
+Prepared layer-subset runner:
+
+```text
+tools/run_track3_locom_layer_subset_probe.sh
+```
+
+It runs:
+
+```text
+active_all:     known all-layer active K5 prefix
+core_7_10:      TRACK3_LOCOM_LAYERS=7,8,9,10
+expanded_6_10:  TRACK3_LOCOM_LAYERS=6,7,8,9,10
+noloco:         exact no-Loco control
+```
+
+Decision rule:
+
+```text
+active_all fails to reproduce ~3.3987 @1800:
+    invalid run; do not interpret subsets.
+
+core_7_10 matches active_all:
+    useful prefix is carried by the robust core; use the cheaper subset.
+
+expanded_6_10 beats core_7_10 or matches active_all when core does not:
+    layer 6 is part of the useful state despite weak K5 status.
+
+both subsets trail active_all:
+    prefix effect is distributed or weak layers are needed for state formation.
+```
+
 ## Post-1800 Control Update
 
 Prime SXM pod `461e0ceb6a3743f98ebd2b621fba42ca` answered a key control that
@@ -674,7 +718,7 @@ more K in prefix: K5/K8/K10 tied externally through 1800
 continued post-1800 c_fc LocoProp: active/random/no-correction tied
 late scalar LR floor: floor 0.08/0.09 was worse
 late normed c_fc LocoProp: 2% base-step correction stayed parity/worse
-all layers equally valuable: K5 layer health points to a strong subset
+all layers equally valuable: cross-K layer health points to a robust 7-10 core
 ```
 
 The next high-value question is not "more LocoProp steps." It is whether the

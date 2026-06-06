@@ -27,5 +27,5 @@ Read:
 - strong layers: [2, 7, 8, 9, 10]
 - accepted weak/strong layers: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
 - risky layers: [11]
-- next subset candidate: `WR_LOCOM_LAYER_SET=2,7,8,9,10`
+- next subset candidate: `TRACK3_LOCOM_LAYERS=2,7,8,9,10`
 

@@ -27,6 +27,7 @@ def _header(*, enabled: bool, local_opt: str = "sgd", random: bool = False, mode
 def _header_with_lr(
     *,
     enabled: bool,
+    layers: str = "all",
     local_opt: str = "sgd",
     random: bool = False,
     mode: str = "normal",
@@ -37,7 +38,7 @@ def _header_with_lr(
     end_step: int = 1800,
 ) -> str:
     return (
-        f"LocoM enabled={enabled} layers=all steps=5 sample_tokens=1024 "
+        f"LocoM enabled={enabled} layers={layers} steps=5 sample_tokens=1024 "
         f"gather=True accum=False micro_sample_tokens=32 aux_capture=False "
         f"aux_seqs=16 batched_prep=False local_opt={local_opt} target_space=post "
         f"true_post_grad=True random_correction={random} correction_mode={mode} "
@@ -80,6 +81,7 @@ def _log(
     *,
     vals: dict[int, float],
     enabled: bool,
+    layers: str = "all",
     local_opt: str = "sgd",
     random: bool = False,
     mode: str = "normal",
@@ -87,7 +89,7 @@ def _log(
     lr_bump: str = "",
     with_apply: bool = False,
 ) -> None:
-    lines = [_header(enabled=enabled, local_opt=local_opt, random=random, mode=mode, norm_target=norm_target, lr_bump=lr_bump)]
+    lines = [_header_with_lr(enabled=enabled, layers=layers, local_opt=local_opt, random=random, mode=mode, norm_target=norm_target, lr_bump=lr_bump)]
     total = max(vals) if vals else 0
     for step, loss in sorted(vals.items()):
         lines.append(f"step:{step}/{total} val_loss:{loss:.5f} train_time:0.000s step_avg:nanms\n")
@@ -248,6 +250,31 @@ def test_prefix_manifest_checker(tmp: Path) -> None:
     _assert_contains(out, "PASS: all prefix lane headers match the manifest")
 
 
+def test_layer_subset_manifest_checker(tmp: Path) -> None:
+    lanes = [
+        ("active_all", True, "all"),
+        ("core_7_10", True, "7,8,9,10"),
+        ("expanded_6_10", True, "6,7,8,9,10"),
+        ("noloco", False, "all"),
+    ]
+    for lane, enabled, layers in lanes:
+        (tmp / f"track3_layersubset_{lane}_seed3710.log").write_text(
+            _header_with_lr(enabled=enabled, layers=layers)
+        )
+    out = _run(["tools/check_track3_locom_layer_subset_manifest.py", str(tmp)])
+    _assert_contains(out, "PASS: all layer-subset lane headers match the manifest")
+
+
+def test_layer_subset_decision(tmp: Path) -> None:
+    _log(tmp / "track3_layersubset_noloco_seed3710.log", vals={1600: 3.48, 1800: 3.4020}, enabled=False)
+    _log(tmp / "track3_layersubset_active_all_seed3710.log", vals={1600: 3.48, 1800: 3.3987}, enabled=True)
+    _log(tmp / "track3_layersubset_core_7_10_seed3710.log", vals={1600: 3.48, 1800: 3.3988}, enabled=True, layers="7,8,9,10")
+    _log(tmp / "track3_layersubset_expanded_6_10_seed3710.log", vals={1600: 3.48, 1800: 3.3994}, enabled=True, layers="6,7,8,9,10")
+    out = _run(["tools/analyze_track3_locom_layer_subset_probe.py", str(tmp), "--steps", "1600,1800"])
+    _assert_contains(out, "Known all-layer reproduction check")
+    _assert_contains(out, "`core_7_10` match all-layer active")
+
+
 def test_suffix_manifest_checker_and_lr_preview(tmp: Path) -> None:
     lanes = [
         ("control", False, "sgd", False, "normal", 0.0, 0.0, ""),
@@ -288,6 +315,8 @@ def main() -> int:
         test_mechanism_k5_read,
         test_layer_health_labels,
         test_prefix_manifest_checker,
+        test_layer_subset_manifest_checker,
+        test_layer_subset_decision,
         test_suffix_manifest_checker_and_lr_preview,
     ]
     with tempfile.TemporaryDirectory() as tmpdir:
