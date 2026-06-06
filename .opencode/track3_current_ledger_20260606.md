@@ -13,6 +13,103 @@ is explicitly named here.
 - Do not repeat: plain oldtail `h3075,p1.10` suffixes from 2400. They reproduce
   the same slope and do not create a sub-3.28 path.
 
+## Latest Modal Run
+
+### `track3_kdiag_post-true-k10-lr2e4-active-poscos-coldp2-sample2048_modal`
+
+Status: completed diagnostic window and stopped manually at step `~1824` to avoid
+spending more Modal balance on a lane that matched the prior `1024` sample run.
+The detached spawn at `2026-06-06T16:52:31Z` stopped with zero tasks; the
+attached relaunch at `2026-06-06T16:55Z` ran correctly.
+
+Handles:
+
+```text
+detached_attempt_app_id=ap-sFa4riI3GlzC9hlaJSKC9d
+detached_attempt_function_call_id=fc-01KTEXJBVEY1KSXY1DDXCXXMG0
+attached_app_id=ap-aKjW1pA7gkHgh8Boo5rRj5
+```
+
+Reason:
+
+- The prior `sample_tokens=2048` Prime lane used the older p1.10/rewarm
+  schedule and was therefore not a clean test of larger local samples.
+- This run restarts the same true-post K10/LR2e-4 primitive on the corrected
+  `coldp2` LR schedule.
+
+Settings:
+
+```text
+runner=tools/run_track3_locom_kdiag_probe.sh
+TRACK3_KDIAG_PROFILE=post-true-k10-lr2e4-active-poscos
+TRACK3_TRAIN_STEPS=3000
+TRACK3_COOLDOWN_FRAC=1.0
+TRACK3_LR_SCHEDULE=power
+TRACK3_LR_POWER=2.0
+TRACK3_LOCOM_SAMPLE_TOKENS=2048
+TRACK3_LOCOM_ACTIVE_WINDOWS=0:3000
+TRACK3_LOCOM_END_STEP=3000
+TRACK3_LOCOM_NORM_TARGET=0.0
+TRACK3_LOCOM_NORM_TO_BASE=0
+SCREEN_VAL_EVERY=25
+resume=/root/.cache/track3_checkpoints/track3_cd500red_softmerge_pr2872000_p110_ckpt1600_seed3710_step1600.pt
+```
+
+Prime state at launch time:
+
+```text
+personal wallet=-1.2578 USD
+team Andorune wallet=-4.4385 USD
+Prime pods=0
+```
+
+First attached evidence:
+
+```text
+1600 val_loss=3.48242
+sample_tokens=2048
+checkpoint_loaded=track3_cd500red_softmerge_pr2872000_p110_ckpt1600_seed3710_step1600.pt
+base_step ~= 4.224e-01
+first four logged layers accepted: 1,1,0,1
+corrections uncapped, scale=1.0
+```
+
+Final pulled evidence:
+
+```text
+1600 3.48242
+1625 3.45134
+1650 3.43561
+1675 3.42616
+1700 3.41883
+1725 3.41288
+1750 3.40792
+1775 3.40358
+1800 3.39871
+```
+
+Artifacts:
+
+```text
+.opencode/current_track3_ledger_20260606_logs/modal_coldp2_2048/app_ap-aKjW1pA7gkHgh8Boo5rRj5.log
+.opencode/current_track3_ledger_20260606_logs/modal_coldp2_2048/parsed.md
+.opencode/current_track3_ledger_20260606_logs/modal_coldp2_2048/kdiag.md
+.opencode/current_track3_ledger_20260606_logs/modal_coldp2_2048/apply_scale.md
+```
+
+Read:
+
+- This was the corrected version of the `2048` sample-token test on the true
+  `coldp2` schedule.
+- It matched the prior `1024` sample-token coldp2 line to noise:
+  `3.45135 @1625`, `3.43562 @1650`, `3.42613 @1675`,
+  `3.41883 @1700`, `3.39872 @1800`.
+- Larger sampling cleaned up some local diagnostics/acceptance, but did not move
+  validation loss. Do not repeat `2048` as a convergence lever.
+- Modal final state after stop: both app IDs stopped, zero active containers.
+- Prime final state: zero pods; current checked wallet remained negative, so no
+  Prime launch was possible.
+
 ## Prime Pod
 
 - pod_id: `6f66430b6a1a444bbe1f503b4f73caaf`
