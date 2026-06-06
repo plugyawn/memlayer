@@ -657,3 +657,36 @@ explanation that the late taper is caused by accidentally stopping LocoProp at
 - too much coldness later starves the tail even while LocoProp remains on;
 - the next useful diagnostic is a cold prefix plus smoother/warmer tail, not a
   bigger LocoProp correction or another 1024-vs-2048 sample-token check.
+
+## 2026-06-06 LR handoff probes
+
+The first warm-tail attempt preserved the prefix but was too aggressive:
+
+```text
+label: track3_kdiag_post-true-k10-lr2e4-active-poscos-coldp2-prblend1800-2200_131444
+schedule: cold power2 prefix, smooth blend 1800->2200 to PR287 h3105,p1.20
+1775: 3.40360
+1800: 3.39871
+1850: 3.39262
+1900: 3.38964
+1925: 3.39010
+1950: 3.39198
+1975: 3.39380
+2000: 3.39646
+```
+
+This lane proves the problem is not just "use PR287 later". The warm target was
+too large too early: logged base step rose from `~3.10e-01 @1800` to
+`~5.20e-01 @2000`, and validation loss reversed.
+
+Launched next on the same pod:
+
+```text
+label: track3_kdiag_post-true-k10-lr2e4-active-poscos-coldp2-switch2000-pr287035fade2600_135759
+schedule: cold power2 until 2000, then PR287 h3105,p1.20 * 0.35 held to 2200,
+          fading to 1.0 by 2600
+first gate: 3.45136 @1625
+```
+
+This is a tempered rewarm: at step 2000 the Muon LR is only about `1.34x` the
+cold curve, instead of the failed blend's much larger effective jump.

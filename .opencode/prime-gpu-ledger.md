@@ -304,3 +304,8 @@
     - continued taper: `3.36425 @2100`, `3.36217 @2125`, `3.36005 @2150`; still descending but with little margin for a 3.28 by 3000 path.
     - coldp2 remained active through `2400` with sample_tokens=1024 and no LocoProp stop: `3.35803 @2175`, `3.35629 @2200`, `3.35478 @2225`, `3.35306 @2250`, `3.35149 @2275`, `3.34996 @2300`, `3.34865 @2325`, `3.34747 @2350`, `3.34629 @2375`, `3.34514 @2400`.
     - `locoprop_m_prepare step=2400` still shows local loss decrease and positive cosine for 3/4 logged layers (`tokens=1024`), but `base_step` is down to `~7.76e-02`; the observed problem is tail slope/LR starvation, not that LocoProp shut off at 1800.
+    - stopped coldp2 after `3.34403 @2425` because the tail slope was still starving.
+    - launched replacement `track3_kdiag_post-true-k10-lr2e4-active-poscos-coldp2-prblend1800-2200_131444` on the same warm pod: same step1600 checkpoint, same true-post K10 `inner_lr=2e-4`, `sample_tokens=1024`, LocoProp active `0:3000`, cold `power=2.0` schedule until blend start, then smooth blend `1800->2200` to PR287 `h3105,p1.20`.
+    - stopped `coldp2-prblend1800-2200` after it overheated the suffix: it matched prefix (`3.39871 @1800`) but degraded after the warm blend (`3.38964 @1900`, `3.39010 @1925`, `3.39646 @2000`), with logged `base_step` rising to `~5.20e-01 @2000`.
+    - launched tempered rewarm `track3_kdiag_post-true-k10-lr2e4-active-poscos-coldp2-switch2000-pr287035fade2600_135759`: cold `power=2.0` until step 2000, then PR287 `h3105,p1.20` with LR multiplier `0.35` held `2000-2200` and faded to `1.0` by 2600; same LocoProp primitive remains active `0:3000`.
+    - tempered rewarm first gate matched coldp2 prefix as intended: `3.45136 @1625`; this isolates the future LR handoff.
