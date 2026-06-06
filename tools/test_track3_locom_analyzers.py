@@ -116,12 +116,37 @@ def test_suffix_insufficient_data(tmp: Path) -> None:
     _assert_contains(out, "insufficient validation data")
 
 
+def test_window_health_slope_break(tmp: Path) -> None:
+    _log(
+        tmp / "track3_survival_noloco_from_k5_1800_seed3710.log",
+        vals={1800: 3.39867, 1900: 3.38474, 2000: 3.37334, 2100: 3.36420, 2125: 3.36213},
+        enabled=False,
+    )
+    out = _run(
+        [
+            "tools/analyze_track3_locom_window_health.py",
+            str(tmp),
+            "--steps",
+            "1800,1900,2000,2100,2125",
+            "--start-step",
+            "1800",
+            "--target-step",
+            "3000",
+            "--target-loss",
+            "3.28",
+        ]
+    )
+    _assert_contains(out, "last healthy window `1900->2000`")
+    _assert_contains(out, "first cold window `2100->2125`")
+
+
 def main() -> int:
     tests = [
         test_prefix_direction_specific,
         test_prefix_perturbation_tie,
         test_suffix_scheduler_only,
         test_suffix_insufficient_data,
+        test_window_health_slope_break,
     ]
     with tempfile.TemporaryDirectory() as tmpdir:
         base = Path(tmpdir)

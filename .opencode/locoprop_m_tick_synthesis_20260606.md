@@ -48,6 +48,40 @@ So the slope break starts just after `2000`, not at `1900`. The better
 intervention target is to preserve the `1800->2000` regime into `2000->2400`,
 not to preemptively change the run at `1900`.
 
+This is now codified by:
+
+```text
+tools/analyze_track3_locom_window_health.py
+.opencode/track3_locom_window_health_1800_suffix_20260607.md
+.opencode/track3_locom_window_health_kdepth_20260607.md
+```
+
+The clean suffix replay from the exact K5 step-1800 checkpoint says:
+
+```text
+no-Loco 1800->1900: 1.41x target slope
+no-Loco 1900->2000: 1.15x target slope
+no-Loco 2000->2100: 0.92x target slope
+no-Loco 2100->2125: 0.84x target slope
+
+random  1800->1900: 1.41x target slope
+random  1900->2000: 1.15x target slope
+random  2000->2100: 0.92x target slope
+random  2100->2125: 0.84x target slope
+```
+
+Read: after a good LocoProp prefix, `1900->2000` remains healthy even with
+LocoProp off. Random same-shape correction does not change that. The state
+created by the prefix is doing useful trajectory work through `2000`; the
+later problem is slope preservation, not a missing LocoProp correction exactly
+at `1900`.
+
+The K-depth window report says K5/K8/K10 are validation-identical through
+`1800`; every `1600->1800` subwindow is still healthy. For the few-iteration
+question, this means `K=5` is already externally enough in this setup. K8/K10
+improve the local objective more, but do not buy visible validation advantage
+through the prefix screen.
+
 The externally relevant correction size is small:
 
 ```text
