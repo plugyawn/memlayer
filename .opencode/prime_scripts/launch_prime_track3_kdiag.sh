@@ -15,6 +15,10 @@ local_ckpt="${LOCAL_CKPT:-/Users/progyan/speedrun/tmp/modal_ckpt_transfer/track3
 remote_ckpt="${remote_ckpt_dir}/track3_cd500red_softmerge_pr2872000_p110_ckpt1600_seed3710_step1600.pt"
 profiles_csv="${TRACK3_KDIAG_PROFILES:-post-true-k10-lr1e4-alpha0,post-true-k10-lr2e4-alpha0,post-true-k10-lr3e4-alpha0,post-true-k10-lr1e3-alpha0}"
 
+shell_quote() {
+  printf "%q" "$1"
+}
+
 if [[ ! -f "${env_file}" ]]; then
   echo "missing env file: ${env_file}" >&2
   exit 2
@@ -253,6 +257,29 @@ echo "copying checkpoint"
 ssh_remote "${ssh_target}" "mkdir -p '${remote_ckpt_dir}' '${remote_logdir}'"
 scp_to_remote "${ssh_target}" "${local_ckpt}" "${remote_ckpt}"
 
+remote_run_env="TRACK3_KDIAG_PROFILES=$(shell_quote "${profiles_csv}")"
+for var in \
+  TRACK3_TRAIN_STEPS \
+  TRACK3_LOCOM_ACTIVE_WINDOWS \
+  TRACK3_LOCOM_END_STEP \
+  TRACK3_LOCOM_LOG_STEPS \
+  TRACK3_LOCOM_SAMPLE_TOKENS \
+  TRACK3_LOCOM_NORM_CAP \
+  TRACK3_LOCOM_MIN_COS_DESC \
+  TRACK3_LOCOM_REQUIRE_LOSS_DECREASE \
+  TRACK3_LOCOM_INNER_LR \
+  TRACK3_LOCOM_STEPS \
+  TRACK3_COOLDOWN_FRAC \
+  TRACK3_LR_SCHEDULE \
+  TRACK3_LR_SCHEDULE_STEPS \
+  TRACK3_LR_POWER \
+  SCREEN_VAL_EVERY
+do
+  if [[ -n "${!var:-}" ]]; then
+    remote_run_env+=" ${var}=$(shell_quote "${!var}")"
+  fi
+done
+
 echo "writing remote diagnostic sequence"
 ssh_remote "${ssh_target}" "cat > '${remote_logdir}/run_kdiag_sequence.sh' <<'REMOTE_SCRIPT'
 #!/usr/bin/env bash
@@ -301,7 +328,7 @@ done
 touch \"${logdir}/DONE\"
 REMOTE_SCRIPT
 chmod +x '${remote_logdir}/run_kdiag_sequence.sh'
-TRACK3_KDIAG_PROFILES='${profiles_csv}' nohup bash '${remote_logdir}/run_kdiag_sequence.sh' > '${remote_logdir}/run_kdiag_sequence.nohup.log' 2>&1 & echo \$! > '${remote_logdir}/run_kdiag_sequence.pid'"
+${remote_run_env} nohup bash '${remote_logdir}/run_kdiag_sequence.sh' > '${remote_logdir}/run_kdiag_sequence.nohup.log' 2>&1 & echo \$! > '${remote_logdir}/run_kdiag_sequence.pid'"
 run_started=1
 
 cat <<EOF
