@@ -130,6 +130,23 @@ So the readout should not be based only on final loss or a plot. The first
 question is whether any lane keeps the `2000->2100` and `2000->2250` slopes
 near the healthy reference.
 
+Current saved readout:
+
+```text
+.opencode/track3_locom_2000_suffix_slope_decision_20260607.md
+```
+
+It says the available `2000+` logs did not preserve the reference slope:
+
+```text
+best slope preservation: 0.80x on 2000->2100
+norm002 active:          0.80x on 2000->2100, 0.72x on 2100->2125
+old floor009 scheduler:  0.80x on 2000->2100, 0.67x on 2100->2125
+```
+
+That confirms the old suffixes were slope-starved, not merely missing a late
+validation-polish step.
+
 ## Kill And Promotion Rules
 
 Prefix specificity:
