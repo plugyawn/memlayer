@@ -33,6 +33,7 @@ The newest read is sharper:
 It ticks as a prefix/trajectory intervention before ~1800-2000.
 It does not tick as a continued suffix correction after 1800.
 It does not tick as a late 2000+ normalized correction on the same c_fc surface.
+It is not uniformly strong across all c_fc layers.
 ```
 
 The 1800->2000 segment itself is not the failure. From the no-correction replay:
@@ -86,6 +87,11 @@ actionable failure is the next transition, where LR falls from `0.111111` to
 suggests state/velocity has already decayed; a fix should preserve the
 `1900->2000` regime across `2000->2250`, not wait until the endpoint.
 
+This changes the intervention timing: `1900` is still inside the good regime.
+The earliest place to intervene is `2000`, or slightly before it only as a
+smooth continuity guard. A hard change at `1900` risks disturbing the last
+confirmed healthy window.
+
 The clean suffix replay from the exact K5 step-1800 checkpoint says:
 
 ```text
@@ -111,6 +117,33 @@ The K-depth window report says K5/K8/K10 are validation-identical through
 question, this means `K=5` is already externally enough in this setup. K8/K10
 improve the local objective more, but do not buy visible validation advantage
 through the prefix screen.
+
+The per-layer health report adds another narrowing:
+
+```text
+tools/analyze_track3_locom_layers.py
+.opencode/track3_locom_layer_health_k5_20260607.md
+```
+
+K5 across the `1600,1625,...,1775` prefix diagnostics:
+
+```text
+strong c_fc layers:          2,7,8,9,10
+accepted weak/strong layers: 0,1,2,3,4,5,6,7,8,9,10
+risky/borderline layer:      11
+```
+
+Layer `11` locally improves loss, but has negative/borderline cosine on half
+the samples. Layers `0-1` are directionally accepted but weak. The strongest
+candidate layer subset is therefore:
+
+```text
+WR_LOCOM_LAYER_SET=2,7,8,9,10
+```
+
+This does not replace the all-layer prefix specificity control. It says that
+if the all-layer active prefix reproduces, the next cheap rung should be this
+strong-layer subset versus all-layer, not more K-depth.
 
 The joined mechanism report adds the sharper falsification:
 
@@ -641,6 +674,7 @@ more K in prefix: K5/K8/K10 tied externally through 1800
 continued post-1800 c_fc LocoProp: active/random/no-correction tied
 late scalar LR floor: floor 0.08/0.09 was worse
 late normed c_fc LocoProp: 2% base-step correction stayed parity/worse
+all layers equally valuable: K5 layer health points to a strong subset
 ```
 
 The next high-value question is not "more LocoProp steps." It is whether the

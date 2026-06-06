@@ -209,6 +209,24 @@ def test_mechanism_k5_read(tmp: Path) -> None:
     _assert_contains(out, "local K5 correction is locally sane at [1600]")
 
 
+def test_layer_health_labels(tmp: Path) -> None:
+    path = tmp / "track3_kdepth_k5-lr2e4_seed3710.log"
+    lines = [_header(enabled=True)]
+    for step in (1600, 1625):
+        lines.append(_kdiag(step, 0, k=5, ratio=0.88, corr_norm=0.004, cos=0.02))
+        lines.append(_kdiag(step, 1, k=5, ratio=0.82, corr_norm=0.010, cos=-0.03))
+        lines.append(_kdiag(step, 2, k=5, ratio=1.20, corr_norm=0.500, cos=0.01))
+        lines.append(_kdiag(step, 3, k=5, ratio=0.97, corr_norm=0.001, cos=0.01))
+    path.write_text("".join(lines))
+    out = _run(["tools/analyze_track3_locom_layers.py", str(path), "--steps", "1600,1625", "--k", "5"])
+    _assert_contains(out, "| 0 | 2 | 8.800e-01")
+    _assert_contains(out, "| 0 | 2 | 8.800e-01 | 1.200e-01")
+    _assert_contains(out, "| 1 | 2 | 8.200e-01 | 1.800e-01")
+    _assert_contains(out, "| 2 | 2 | 1.200e+00 | -2.000e-01")
+    _assert_contains(out, "strong layers: [0]")
+    _assert_contains(out, "risky layers: [1, 2]")
+
+
 def test_prefix_manifest_checker(tmp: Path) -> None:
     lanes = [
         ("active_k5", True, "sgd", False, "normal", 0.0),
@@ -268,6 +286,7 @@ def main() -> int:
         test_window_health_slope_break,
         test_lr_slope_join_reads_power_tail,
         test_mechanism_k5_read,
+        test_layer_health_labels,
         test_prefix_manifest_checker,
         test_suffix_manifest_checker_and_lr_preview,
     ]
