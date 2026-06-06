@@ -599,6 +599,9 @@ First coldp2 gate:
 2025: 3.37101
 2050: 3.36869
 2075: 3.36658
+2100: 3.36425
+2125: 3.36217
+2150: 3.36005
 ```
 
 This matches the 1800 short-schedule control at the first gate (`3.45139`) while
@@ -623,3 +626,7 @@ By `2000-2075`, the slope has visibly tapered. The run should continue for
 evidence, but the next design target is a cold prefix that unlocks the
 LocoProp-friendly trajectory followed by a smoother/warmer tail; another
 LocoProp norm-target increase is no longer the obvious lever.
+
+By `2125-2150`, it is still descending but with little margin:
+`3.36217 @2125`, `3.36005 @2150`. The trajectory needs roughly `0.0021-0.0023`
+per 25 steps from here to reach 3.28 by 3000, so any further taper misses.

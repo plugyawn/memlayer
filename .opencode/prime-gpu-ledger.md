@@ -301,3 +301,4 @@
     - coldp2 remained on the good curve through `1750`: `3.43562 @1650`, `3.42613 @1675`, `3.41883 @1700`, `3.41289 @1725`, `3.40792 @1750`.
     - coldp2 beat the short control after the old endpoint: `3.40359 @1775`, `3.39872 @1800`, then kept descending to `3.39518 @1825`, `3.39175 @1850`, `3.38819 @1875`.
     - by `2000`, coldp2 slope had tapered: `3.38477 @1900`, `3.38173 @1925`, `3.37909 @1950`, `3.37605 @1975`, `3.37337 @2000`, `3.37101 @2025`, `3.36869 @2050`, `3.36658 @2075`. Keep running, but next obvious follow-up is cold-prefix plus smoother/warmer tail, not larger LocoProp correction.
+    - continued taper: `3.36425 @2100`, `3.36217 @2125`, `3.36005 @2150`; still descending but with little margin for a 3.28 by 3000 path.
