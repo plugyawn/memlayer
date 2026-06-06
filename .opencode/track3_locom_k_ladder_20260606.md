@@ -581,6 +581,16 @@ First coldp2 gate:
 ```text
 1600: 3.48241
 1625: 3.45135
+1650: 3.43562
+1675: 3.42613
+1700: 3.41883
+1725: 3.41289
+1750: 3.40792
+1775: 3.40359
+1800: 3.39872
+1825: 3.39518
+1850: 3.39175
+1875: 3.38819
 ```
 
 This matches the 1800 short-schedule control at the first gate (`3.45139`) while
@@ -594,3 +604,9 @@ coldp2 3000 base_step @1600/1625: ~0.42 / ~0.41
 
 So the live hypothesis is now schedule/base-update temperature, not simply
 LocoProp correction/base normalization.
+
+The important change versus the pure 1800 control is after the old endpoint:
+the 1800 run ended at `3.40453`, while coldp2 is already `3.39872 @1800` and
+continues descending. This suggests the useful lever is not "end the run at the
+cold point", but "enter the LocoProp-friendly low-base-step regime while keeping
+enough tail LR alive."

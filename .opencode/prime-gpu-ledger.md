@@ -298,3 +298,5 @@
     - short-schedule control completed: `3.45139 @1625`, `3.43530 @1650`, `3.40855 @1750`, `3.40573 @1775`, `3.40453 @1800`.
     - launched cold-power 3000 suffix `track3_kdiag_post-true-k10-lr2e4-active-poscos-coldp2_115017` with `TRACK3_COOLDOWN_FRAC=1.0`, `TRACK3_LR_SCHEDULE=power`, `TRACK3_LR_POWER=2.0`, no norm target, to reduce the base update itself while keeping nonzero LR past 1800.
     - coldp2 first gate matched the short schedule while staying in a 3000-step run: `3.45135 @1625`; logged base step was `~0.42` at 1600/1625 versus hot 3000 `~1.29` and short control `~0.31/0.27`.
+    - coldp2 remained on the good curve through `1750`: `3.43562 @1650`, `3.42613 @1675`, `3.41883 @1700`, `3.41289 @1725`, `3.40792 @1750`.
+    - coldp2 beat the short control after the old endpoint: `3.40359 @1775`, `3.39872 @1800`, then kept descending to `3.39518 @1825`, `3.39175 @1850`, `3.38819 @1875`.
