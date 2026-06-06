@@ -79,6 +79,81 @@ Artifacts pulled locally:
 .opencode/current_track3_ledger_20260606_logs/state_diff_ours_cold_vs_wr_step2400.md
 ```
 
+### `track3_truepost3000_post-true-k10-lr2e4-active-poscos_103924`
+
+Status: stopped early and pod terminated after artifacts were pulled.
+
+Purpose:
+
+- Test whether the clean true-post `K=10`, `inner_lr=2e-4` LocoProp-M active
+  result from the short 1800 screen survives under a proper 3000-step suffix.
+- This was launched from the same seed `3710` step `1600` checkpoint as the
+  successful 1800 screen.
+
+Settings:
+
+```text
+TRACK3_TRAIN_STEPS=3000
+TRACK3_LOCOM_ACTIVE_WINDOWS=0:3000
+TRACK3_LOCOM_END_STEP=3000
+K=10
+inner_lr=2e-4
+true_post_grad=1
+require_loss_decrease=1
+min_cos_desc=0.0
+sample_tokens=1024
+```
+
+Result:
+
+```text
+1600 3.48241
+1625 3.49295
+1650 3.49193
+```
+
+Comparison against the short 1800 screen:
+
+```text
+short 1800 screen:
+1600 3.48241
+1625 3.45139
+1650 3.43530
+1800 3.40452
+
+proper 3000 schedule:
+1600 3.48241
+1625 3.49295
+1650 3.49193
+```
+
+Artifacts pulled locally:
+
+```text
+.opencode/current_track3_ledger_20260606_logs/truepost3000_848672/
+```
+
+Read:
+
+- The true-post local solve did not explode under the 3000 schedule.
+- The logged corrections remained small and uncapped, but the base Muon step was
+  much larger than in the short screen:
+
+```text
+3000-schedule step 1600 base_step ~= 1.293
+3000-schedule step 1625 base_step ~= 1.270
+logged corr_norm range at 1625 ~= 1e-3 to 2e-2
+```
+
+- So the exact local-solve correction that moved validation loss in the 1800
+  screen was effectively diluted by the hot 3000-schedule Muon step.
+- This rules out a naive "just extend the clean K10 true-post screen to 3000"
+  path.
+- The next version, if funded, needs a relative-scale rule such as correction
+  normalized to a fixed fraction of the base Muon step, a colder/handoff window,
+  or layer-restricted stronger true-post corrections. Repeating this exact
+  `2e-4` all-layer active run under the hot 3000 schedule is ruled out.
+
 ## Closed Current Runs
 
 Local text logs:

@@ -409,3 +409,70 @@ Read:
 - Applied corrections were not cap-limited (`scale=1.000e+00` on logged applied
   layers), so this is evidence for a real local-solve update rather than another
   capped perturbation.
+
+## True-Post Active 3000-Schedule Check - 2026-06-06
+
+Artifact directory:
+
+```text
+.opencode/current_track3_ledger_20260606_logs/truepost3000_848672/
+```
+
+Run:
+
+```text
+track3_truepost3000_post-true-k10-lr2e4-active-poscos_103924
+```
+
+Settings:
+
+```text
+K=10
+inner_lr=2e-4
+true_post_grad=1
+require_loss_decrease=1
+min_cos_desc=0.0
+train_steps=3000
+active_windows=0:3000
+```
+
+Result:
+
+```text
+1600: 3.48241
+1625: 3.49295
+1650: 3.49193
+```
+
+Comparison:
+
+```text
+short 1800 active screen:
+1625: 3.45139
+1650: 3.43530
+1800: 3.40452
+
+proper 3000 active screen:
+1625: 3.49295
+1650: 3.49193
+```
+
+Read:
+
+- This is a negative result for naive extension to the full 3000 schedule.
+- The correction did not become unsafe: logged applied corrections were
+  uncapped (`scale=1.000e+00`) and remained around `1e-3..2e-2`.
+- The difference is relative scale. In the 3000 schedule, the logged `c_fc`
+  base Muon step was about `1.29` at `1600` and `1.27` at `1625`, so the same
+  true-post correction is much too small to move the trajectory.
+- Therefore, "what makes LocoProp tick" currently includes the schedule/relative
+  scale: the true-post local solve is locally sane, but it only moves validation
+  when its magnitude is a meaningful fraction of the active Muon update.
+
+Updated rule:
+
+- Do not repeat all-layer `inner_lr=2e-4` true-post active under a hot 3000
+  schedule without relative normalization.
+- The next credible test should set a correction target as a fraction of the
+  base Muon step, or run a colder/local window where the correction naturally
+  occupies that fraction.

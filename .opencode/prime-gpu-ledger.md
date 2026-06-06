@@ -267,10 +267,13 @@
   price_per_hour: selected by availability id ec854a
   created_at: 2026-06-06T10:26Z
   expected_stop: after 3000-step suffix completes, clear gate failure, setup failure, or artifact pull
-  status: running_truepost3000_manual_after_launcher_heredoc_bug
+  status: terminated_after_3000_schedule_failed_early_gate_artifacts_pulled_prime_active_pods_0
   termination_policy: terminate after workload/failure unless user asks to keep alive
   notes:
     - Prime preflight before launch: wallet `$17.882`, zero active pods, cheapest adequate H100 was spot SXM5 `$1.14/hr`.
     - Launcher created the pod and copied the step1600 checkpoint, but failed before starting training due to local shell expansion in the remote heredoc. Remote checkpoint provenance is intact.
     - Manual remote run started on `root@86.38.238.161 -p 22`, PID 2947, from commit `8f1dbd2`.
     - Run env: `post-true-k10-lr2e4-active-poscos`, `TRACK3_TRAIN_STEPS=3000`, `TRACK3_LOCOM_ACTIVE_WINDOWS=0:3000`, `TRACK3_LOCOM_END_STEP=3000`, `SCREEN_VAL_EVERY=25`.
+    - Early result under the proper 3000 schedule: `3.48241 @1600`, `3.49295 @1625`, `3.49193 @1650`; stopped because it was far worse than the short 1800 screen (`3.45139 @1625`, `3.43530 @1650`).
+    - Diagnostic read: correction norms remained small and uncapped, but the 3000 schedule's `base_step` was about `1.29` at 1600, so the same LocoProp correction was too small relative to the hot Muon step.
+    - Artifacts pulled to `.opencode/current_track3_ledger_20260606_logs/truepost3000_848672/`; pod terminated successfully and `prime pods list` returned zero active pods.
