@@ -741,3 +741,25 @@ schedule: cold power2 until 2000, then PR287 h3105,p1.20 * 0.26 held to 2400,
 
 This matches the cold Muon LR at the switch (`~0.995x` at 2000), then warms
 slowly: about `1.02x` cold at 2025, `1.13x` at 2125, and `1.61x` at 2400.
+
+Result through 2175:
+
+```text
+2000: 3.37336
+2025: 3.37244
+2050: 3.37067
+2075: 3.36885
+2100: 3.36651
+2125: 3.36460
+2150: 3.36242
+2175: 3.36038
+```
+
+This avoided the abrupt validation spike, proving LR continuity matters. But it
+was still worse than the plain coldp2 curve by about `0.0024` at 2125 and 2175.
+So the current evidence is:
+
+- hard rewarm at 1800 or 2000 damages the suffix;
+- continuous rewarm avoids the damage but slows loss relative to coldp2;
+- LocoProp off after 1800 is loss-neutral and only mildly faster;
+- the late taper is not solved by PR287 rewarm or by LocoProp switch-out.

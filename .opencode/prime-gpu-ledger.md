@@ -286,7 +286,7 @@
   price_per_hour: selected by availability id 90f5c3
   created_at: 2026-06-06T11:06:38Z
   expected_stop: after norm-target early gates answer the scale question, setup failure, or artifact pull
-  status: launched_by_launch_prime_track3_kdiag.sh_head_b3e1d3f
+  status: terminated_after_locom_lr_handoff_logs_pulled_prime_active_pods_0
   termination_policy: keep warm for the immediate norm005 follow-up when norm002 misses; terminate after the queued ladder/artifact pull unless another concrete follow-up is active
   notes:
     - 2026-06-06: user corrected lifecycle policy; keep this owned SXM pod warm between adjacent runs when repo/cache/checkpoint/compile reuse saves time.
@@ -313,3 +313,6 @@
     - launched direct switch-out diagnostic `track3_kdiag_post-true-k10-lr2e4-active-poscos-coldp2-locomoff1800_144346`: identical cold `power=2.0` 3000-step schedule and same LocoProp primitive, but LocoProp active only `0:1800`. This isolates whether continuing LocoProp after the good prefix causes the taper, without any LR rewarm.
     - stopped `coldp2-locomoff1800` after it matched coldp2 through `2125`: `3.38477 @1900`, `3.37338 @2000`, `3.36218 @2125`; turning LocoProp off after 1800 did not give a loss bump, but reduced step time from about `4600ms` to `4521ms`.
     - launched zero-jump suffix `track3_kdiag_post-true-k10-lr2e4-coldp2-off1800-switch2000-pr287026hold2400fade3000_153844`: LocoProp active `0:1800`, cold `power=2.0` schedule until 2000, then PR287 `h3105,p1.20` with multiplier `0.26` held `2000-2400` and faded to `1.0` by 3000. This matches cold LR at the switch (`~0.995x` at 2000) and warms slowly.
+    - zero-jump suffix avoided the validation spike but did not catch coldp2: `3.37336 @2000`, `3.37244 @2025`, `3.36460 @2125`, `3.36038 @2175`; this is worse than coldp2 (`3.37337 @2000`, `3.37101 @2025`, `3.36217 @2125`, `3.35803 @2175`).
+    - pulled focused SXM logs to `.opencode/current_track3_ledger_20260606_logs/normtarget_sxm_c57f/`.
+    - terminated pod successfully after parsing `env.local` key-values safely; Prime `pods list` returned zero active pods.

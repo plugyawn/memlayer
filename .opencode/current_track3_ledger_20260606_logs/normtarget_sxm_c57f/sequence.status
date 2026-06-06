@@ -1,0 +1,18 @@
+profile_start post-true-k10-lr2e4-active-poscos-norm002 label=track3_kdiag_post-true-k10-lr2e4-active-poscos-norm002_111634 2026-06-06T11:16:34Z
+profile_start post-true-k10-lr2e4-active-poscos-norm005 label=track3_kdiag_post-true-k10-lr2e4-active-poscos-norm005_112249 2026-06-06T11:22:49Z
+profile_start post-true-k10-lr2e4-active-poscos label=track3_kdiag_post-true-k10-lr2e4-active-poscos_112755 2026-06-06T11:27:55Z
+profile_done post-true-k10-lr2e4-active-poscos label=track3_kdiag_post-true-k10-lr2e4-active-poscos_112755 2026-06-06T11:47:55Z
+profile_start post-true-k10-lr2e4-active-poscos-coldp2 label=track3_kdiag_post-true-k10-lr2e4-active-poscos-coldp2_114934 2026-06-06T11:49:34Z
+profile_start post-true-k10-lr2e4-active-poscos-coldp2 label=track3_kdiag_post-true-k10-lr2e4-active-poscos-coldp2_115017 2026-06-06T11:50:17Z
+profile_start post-true-k10-lr2e4-active-poscos-coldp2-prblend1800-2200 label=track3_kdiag_post-true-k10-lr2e4-active-poscos-coldp2-prblend1800-2200_131444 2026-06-06T13:14:44Z
+source_checkpoint=/root/.cache/track3_checkpoints/track3_cd500red_softmerge_pr2872000_p110_ckpt1600_seed3710_step1600.pt
+schedule=cold power2 prefix; blend 1800->2200 to pr287 h3105 p1.20; LocoProp active 0:3000; sample_tokens=1024
+profile_start post-true-k10-lr2e4-active-poscos-coldp2-switch2000-pr287035fade2600 label=track3_kdiag_post-true-k10-lr2e4-active-poscos-coldp2-switch2000-pr287035fade2600_135759 2026-06-06T13:57:59Z
+source_checkpoint=/root/.cache/track3_checkpoints/track3_cd500red_softmerge_pr2872000_p110_ckpt1600_seed3710_step1600.pt
+schedule=cold power2 until 2000; switch pr287 h3105 p1.20; LR multiplier 0.35 hold 2000-2200 fade to 1 by 2600; LocoProp active 0:3000; sample_tokens=1024
+profile_start post-true-k10-lr2e4-active-poscos-coldp2-locomoff1800 label=track3_kdiag_post-true-k10-lr2e4-active-poscos-coldp2-locomoff1800_144346 2026-06-06T14:43:46Z
+source_checkpoint=/root/.cache/track3_checkpoints/track3_cd500red_softmerge_pr2872000_p110_ckpt1600_seed3710_step1600.pt
+schedule=cold power2 full 3000; LocoProp active 0:1800 only; sample_tokens=1024; isolates switch-out without LR rewarm
+profile_start post-true-k10-lr2e4-coldp2-off1800-switch2000-pr287026hold2400fade3000 label=track3_kdiag_post-true-k10-lr2e4-coldp2-off1800-switch2000-pr287026hold2400fade3000_153844 2026-06-06T15:38:44Z
+source_checkpoint=/root/.cache/track3_checkpoints/track3_cd500red_softmerge_pr2872000_p110_ckpt1600_seed3710_step1600.pt
+schedule=cold power2 until 2000; switch pr287 h3105 p1.20 with 0.26 held 2000-2400 fade to 1 by 3000; LocoProp active 0:1800; sample_tokens=1024
