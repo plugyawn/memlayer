@@ -791,6 +791,46 @@ Remote log paths:
 - Large remote checkpoint files were not pulled locally; only logs, generated
   script, and state-diff Markdown artifacts were preserved locally.
 
+## 2026-06-06 Corrected LR Restart Attempt
+
+Status: not launched due provider billing limits.
+
+Action taken:
+
+- Confirmed there were no active Prime pods and Modal had no live tasks.
+- Verified the Modal cache volume contains the required step-1600 checkpoint:
+  `track3_checkpoints/track3_cd500red_softmerge_pr2872000_p110_ckpt1600_seed3710_step1600.pt`.
+- Attempted to launch the corrected Modal lane and hit:
+  `App creation failed: workspace billing cycle spend limit reached`.
+- Checked Prime contexts:
+  - personal wallet: `-1.2578 USD`
+  - team `Andorune` wallet: `-4.4385 USD`
+  - active Prime pods: `0`
+
+Corrected restart prepared:
+
+```text
+launcher=tools/launch_modal_track3_rightlr_locomoff1800.sh
+resume=/root/.cache/track3_checkpoints/track3_cd500red_softmerge_pr2872000_p110_ckpt1600_seed3710_step1600.pt
+schedule=cold power2 for full 3000-step suffix
+TRACK3_COOLDOWN_FRAC=1.0
+TRACK3_LR_SCHEDULE=power
+TRACK3_LR_POWER=2.0
+TRACK3_LR_SWITCH_STEP=-1
+TRACK3_LR_AFTER_SWITCH=
+LocoProp=true-post K10, inner_lr=2e-4
+LocoProp active=0:1800
+sample_tokens=1024
+```
+
+Read:
+
+- The stopped lane `coldp2-off1800-switch2000-pr287026hold2400fade3000`
+  diverged from the pure cold schedule by 2125 (`3.36460` vs `3.36217` for the
+  full-cold reference).
+- The corrected restart keeps the schedule cold instead of switching/reheating
+  at 2000; this isolates whether the switch itself caused the stall.
+
 ## 2026-06-06 Sample Size Probe: `sample_tokens=2048`
 
 Status: pod terminated externally before the 2125 gate; no active Prime pods
