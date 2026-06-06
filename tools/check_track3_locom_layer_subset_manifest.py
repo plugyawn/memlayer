@@ -72,12 +72,14 @@ class LaneSpec:
     enabled: bool
     layers: str
     intent: str
+    required: bool = True
 
 
 LANES = {
     "active_all": LaneSpec("active_all", True, "all", "known all-layer active K5 prefix"),
     "core_7_10": LaneSpec("core_7_10", True, "7,8,9,10", "robust K5/K8/K10 strong-layer core"),
     "expanded_6_10": LaneSpec("expanded_6_10", True, "6,7,8,9,10", "core plus layer 6, which joins at K8/K10"),
+    "freq_0_6_10": LaneSpec("freq_0_6_10", True, "0,6,10", "optional high-acceptance-frequency contrast", required=False),
     "noloco": LaneSpec("noloco", False, "all", "exact no-correction control"),
 }
 
@@ -195,10 +197,10 @@ def _collect_logs(entries: list[Path]) -> list[Path]:
 def print_manifest() -> None:
     print("# Track 3 LocoProp-M Layer-Subset Manifest")
     print()
-    print("| lane | enabled | layers | intent |")
-    print("| --- | ---: | --- | --- |")
+    print("| lane | required | enabled | layers | intent |")
+    print("| --- | ---: | ---: | --- | --- |")
     for spec in LANES.values():
-        print(f"| {spec.lane} | {int(spec.enabled)} | {spec.layers} | {spec.intent} |")
+        print(f"| {spec.lane} | {int(spec.required)} | {int(spec.enabled)} | {spec.layers} | {spec.intent} |")
     print()
     print("Common invariants:")
     print()
@@ -224,7 +226,8 @@ def validate(logs: list[Path]) -> int:
             errors.append(f"{path.name}: no LocoM header found")
             continue
         errors.extend(_validate_lane(path, header, spec))
-    missing = set(LANES) - seen
+    required_lanes = {lane for lane, spec in LANES.items() if spec.required}
+    missing = required_lanes - seen
     if missing:
         errors.append(f"missing lanes: {sorted(missing)}")
 

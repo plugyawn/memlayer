@@ -125,6 +125,9 @@ tools/analyze_track3_locom_layers.py
 .opencode/track3_locom_layer_health_k5_20260607.md
 .opencode/track3_locom_layer_health_k8_20260607.md
 .opencode/track3_locom_layer_health_k10_20260607.md
+.opencode/track3_locom_acceptance_k5_20260607.md
+.opencode/track3_locom_acceptance_k8_20260607.md
+.opencode/track3_locom_acceptance_k10_20260607.md
 ```
 
 K5 across the `1600,1625,...,1775` prefix diagnostics:
@@ -157,6 +160,43 @@ TRACK3_LOCOM_LAYERS=6,7,8,9,10
 This does not replace the all-layer prefix specificity control. It says that
 if the all-layer active prefix reproduces, the next cheap rung should be core
 subset versus all-layer, not more K-depth.
+
+The accepted-layer sequence report clarifies what "all layers" actually did:
+the local gate already selected a broad, moving subset. The reconstruction
+matches the layerless apply-count trace after accounting for the eight-entry
+logging cap and three-decimal cosine rounding.
+
+K5 accepted layers:
+
+```text
+1600: 0,3,4,6,7,8,9,10
+1625: 0,1,2,4,5,6,7,8,9,10,11
+1650: 0,1,4,5,6,7,9,10
+1675: 0,1,2,3,5,6,10
+1700: 0,1,2,3,4,5,6,8,9,10
+1725: 0,1,4,5,7,8,9,10,11
+1750: 0,1,2,3,5,6,7,8,9,10,11
+1775: 0,1,2,3,4,5,6,7,8,9,10,11
+```
+
+High-frequency K5 layers:
+
+```text
+always accepted: 0,10
+accepted 7/8:    1,5,6,9
+accepted 6/8:    4,7,8
+```
+
+So there are two plausible subset mechanisms:
+
+```text
+local-gain core:       7,8,9,10 or 6,7,8,9,10
+acceptance-frequency:  0,6,10
+```
+
+The default layer-subset probe tests the local-gain core. The optional
+`TRACK3_LAYER_SUBSET_INCLUDE_FREQ=1` lane adds `freq_0_6_10` to test whether
+frequent accepted correction, not local-gain strength, is the operative axis.
 
 The joined mechanism report adds the sharper falsification:
 
@@ -566,6 +606,9 @@ active_all:     known all-layer active K5 prefix
 core_7_10:      TRACK3_LOCOM_LAYERS=7,8,9,10
 expanded_6_10:  TRACK3_LOCOM_LAYERS=6,7,8,9,10
 noloco:         exact no-Loco control
+
+optional with TRACK3_LAYER_SUBSET_INCLUDE_FREQ=1:
+freq_0_6_10:    TRACK3_LOCOM_LAYERS=0,6,10
 ```
 
 Decision rule:
@@ -582,6 +625,9 @@ expanded_6_10 beats core_7_10 or matches active_all when core does not:
 
 both subsets trail active_all:
     prefix effect is distributed or weak layers are needed for state formation.
+
+freq_0_6_10 matches active_all:
+    acceptance frequency matters more than local-gain strength.
 ```
 
 ## Post-1800 Control Update

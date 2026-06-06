@@ -229,6 +229,23 @@ def test_layer_health_labels(tmp: Path) -> None:
     _assert_contains(out, "risky layers: [1, 2]")
 
 
+def test_acceptance_sequence(tmp: Path) -> None:
+    path = tmp / "track3_kdepth_k5-lr2e4_seed3710.log"
+    lines = [_header(enabled=True)]
+    lines.append(_kdiag(1600, 0, k=5, ratio=0.88, cos=0.02))
+    lines.append(_kdiag(1600, 1, k=5, ratio=0.82, cos=-0.03))
+    lines.append(_kdiag(1600, 2, k=5, ratio=1.20, cos=0.01))
+    lines.append(_apply(1600, eff_frac=0.01))
+    lines.append("locoprop_m_apply step=1625 " + " | ".join(["shape=(3072, 768):base_step=1.0,corr_norm=0.1,cap=0.2,scale=1.0"] * 8) + "\n")
+    for layer in range(10):
+        lines.append(_kdiag(1625, layer, k=5, ratio=0.80, cos=0.01))
+    path.write_text("".join(lines))
+    out = _run(["tools/analyze_track3_locom_acceptance.py", str(path), "--steps", "1600,1625", "--k", "5"])
+    _assert_contains(out, "| 1600 | 1 | 0 | 1 | ok |")
+    _assert_contains(out, "| 1625 | 10 | 0,1,2,3,4,5,6,7,8,9 | 8 | ok capped |")
+    _assert_contains(out, "gate reconstruction matches")
+
+
 def test_prefix_manifest_checker(tmp: Path) -> None:
     lanes = [
         ("active_k5", True, "sgd", False, "normal", 0.0),
@@ -314,6 +331,7 @@ def main() -> int:
         test_lr_slope_join_reads_power_tail,
         test_mechanism_k5_read,
         test_layer_health_labels,
+        test_acceptance_sequence,
         test_prefix_manifest_checker,
         test_layer_subset_manifest_checker,
         test_layer_subset_decision,

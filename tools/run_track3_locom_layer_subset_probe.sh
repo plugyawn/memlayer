@@ -80,6 +80,9 @@ run_lane() {
 run_lane "active_all" 1 "all"
 run_lane "core_7_10" 1 "7,8,9,10"
 run_lane "expanded_6_10" 1 "6,7,8,9,10"
+if [[ "${TRACK3_LAYER_SUBSET_INCLUDE_FREQ:-0}" == "1" ]]; then
+  run_lane "freq_0_6_10" 1 "0,6,10"
+fi
 run_lane "noloco" 0 "all"
 
 subset_logs=("${log_dir}"/track3_layersubset_*.log)
