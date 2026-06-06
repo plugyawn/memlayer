@@ -302,3 +302,5 @@
     - coldp2 beat the short control after the old endpoint: `3.40359 @1775`, `3.39872 @1800`, then kept descending to `3.39518 @1825`, `3.39175 @1850`, `3.38819 @1875`.
     - by `2000`, coldp2 slope had tapered: `3.38477 @1900`, `3.38173 @1925`, `3.37909 @1950`, `3.37605 @1975`, `3.37337 @2000`, `3.37101 @2025`, `3.36869 @2050`, `3.36658 @2075`. Keep running, but next obvious follow-up is cold-prefix plus smoother/warmer tail, not larger LocoProp correction.
     - continued taper: `3.36425 @2100`, `3.36217 @2125`, `3.36005 @2150`; still descending but with little margin for a 3.28 by 3000 path.
+    - coldp2 remained active through `2400` with sample_tokens=1024 and no LocoProp stop: `3.35803 @2175`, `3.35629 @2200`, `3.35478 @2225`, `3.35306 @2250`, `3.35149 @2275`, `3.34996 @2300`, `3.34865 @2325`, `3.34747 @2350`, `3.34629 @2375`, `3.34514 @2400`.
+    - `locoprop_m_prepare step=2400` still shows local loss decrease and positive cosine for 3/4 logged layers (`tokens=1024`), but `base_step` is down to `~7.76e-02`; the observed problem is tail slope/LR starvation, not that LocoProp shut off at 1800.

@@ -630,3 +630,30 @@ LocoProp norm-target increase is no longer the obvious lever.
 By `2125-2150`, it is still descending but with little margin:
 `3.36217 @2125`, `3.36005 @2150`. The trajectory needs roughly `0.0021-0.0023`
 per 25 steps from here to reach 3.28 by 3000, so any further taper misses.
+
+By `2400`, the run is still LocoProp-active and still using the same 1024-token
+sample path:
+
+```text
+2175: 3.35803
+2200: 3.35629
+2225: 3.35478
+2250: 3.35306
+2275: 3.35149
+2300: 3.34996
+2325: 3.34865
+2350: 3.34747
+2375: 3.34629
+2400: 3.34514
+```
+
+`locoprop_m_prepare step=2400` still reports local loss decrease and positive
+cosine for 3/4 logged layers. The logged application path also still runs, but
+the base Muon step has fallen to about `7.76e-02`. This rules out the simple
+explanation that the late taper is caused by accidentally stopping LocoProp at
+1800. The better read is:
+
+- a cold base update makes the LocoProp prefix viable;
+- too much coldness later starves the tail even while LocoProp remains on;
+- the next useful diagnostic is a cold prefix plus smoother/warmer tail, not a
+  bigger LocoProp correction or another 1024-vs-2048 sample-token check.
