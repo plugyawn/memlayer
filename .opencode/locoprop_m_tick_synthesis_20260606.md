@@ -253,6 +253,66 @@ questions are:
   problem is not local-solve quality; it is external direction/state alignment.
 ```
 
+Prepared runner:
+
+```text
+tools/run_track3_locom_2000_suffix_probe.sh
+```
+
+It is intentionally two-stage:
+
+```text
+MODE=save2000:
+  resume the step-1600 checkpoint;
+  run active true-post c_fc LocoProp-M K5 through 1800;
+  continue the cold schedule to 2000;
+  save track3_locom_good2000_seed3710_step2000.pt.
+
+MODE=suffixes:
+  branch from the exact saved 2000 state.
+```
+
+Default suffix lanes:
+
+```text
+control:
+  no LocoProp, cold schedule.
+
+natural:
+  true-post c_fc K5, natural scale/cap, active 2000:2250.
+
+norm002:
+  true-post c_fc K5, forced 2% base-step norm, active 2000:2250.
+
+random:
+  random same-shape correction at 2% base-step norm.
+
+orthogonal:
+  true-post c_fc correction with base-descent component removed, 2% norm.
+
+hold115:
+  no LocoProp; small LR bump 2000:2050:2250:2400:1.15.
+```
+
+Gates:
+
+```text
+If natural/norm002 beat control:
+  late c_fc LocoProp direction still matters; previous K10 norm002 miss may have
+  been depth/scale/path specific.
+
+If random or orthogonal match active:
+  the useful object is not local descent alignment; it is perturbation/state
+  exploration.
+
+If hold115 beats control but LocoProp lanes do not:
+  the post-2000 failure is mainly scheduler velocity, not the local solve.
+
+If all lanes match control:
+  the 2000 state has already lost the LocoProp-specific leverage; branch earlier
+  around 1800-1900 or test different surfaces.
+```
+
 ## Unresolved Question
 
 Is the 1600->1800 prefix improvement LocoProp-specific, or is it mostly the cold
