@@ -46,6 +46,13 @@ def _apply(step: int, eff_frac: float = 0.02) -> str:
     )
 
 
+def _kdiag(step: int, layer: int, *, k: int = 5, ratio: float = 0.90, corr_norm: float = 0.004, cos: float = 0.02) -> str:
+    return (
+        f"locoprop_m_kdiag step={step} l{layer} "
+        f"k{k}:loss=1.000e-05,ratio={ratio:.3e},corr_norm={corr_norm:.3e},raw_cos={cos:.3f},cos={cos:.3f}\n"
+    )
+
+
 def _log(
     path: Path,
     *,
@@ -140,6 +147,18 @@ def test_window_health_slope_break(tmp: Path) -> None:
     _assert_contains(out, "first cold window `2100->2125`")
 
 
+def test_mechanism_k5_read(tmp: Path) -> None:
+    path = tmp / "track3_kdepth_k5-lr2e4_seed3710.log"
+    lines = [_header(enabled=True)]
+    lines.append("step:1600/1800 val_loss:3.48000 train_time:0.000s step_avg:nanms\n")
+    lines.append(_kdiag(1600, 0, k=5, ratio=0.90, cos=0.02))
+    lines.append(_kdiag(1600, 1, k=5, ratio=0.92, cos=-0.01))
+    lines.append(_apply(1600, eff_frac=0.01))
+    path.write_text("".join(lines))
+    out = _run(["tools/analyze_track3_locom_mechanism.py", str(tmp), "--steps", "1600", "--ks", "5,10"])
+    _assert_contains(out, "local K5 correction is locally sane at [1600]")
+
+
 def main() -> int:
     tests = [
         test_prefix_direction_specific,
@@ -147,6 +166,7 @@ def main() -> int:
         test_suffix_scheduler_only,
         test_suffix_insufficient_data,
         test_window_health_slope_break,
+        test_mechanism_k5_read,
     ]
     with tempfile.TemporaryDirectory() as tmpdir:
         base = Path(tmpdir)

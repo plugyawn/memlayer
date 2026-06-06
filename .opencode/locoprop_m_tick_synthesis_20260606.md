@@ -82,6 +82,61 @@ question, this means `K=5` is already externally enough in this setup. K8/K10
 improve the local objective more, but do not buy visible validation advantage
 through the prefix screen.
 
+The joined mechanism report adds the sharper falsification:
+
+```text
+tools/analyze_track3_locom_mechanism.py
+.opencode/track3_locom_mechanism_kdepth_20260607.md
+.opencode/track3_locom_mechanism_suffix_20260607.md
+```
+
+Prefix, from the exact step-1600 checkpoint:
+
+```text
+K5  @1600: med local loss/loss0 0.9038, med applied frac 1.04%
+K8  @1600: med local loss/loss0 0.8589, med applied frac 1.58%
+K10 @1600: med local loss/loss0 0.8327, med applied frac 1.92%
+
+K5/K8/K10 validation @1800:
+  K5  3.39870
+  K8  3.39870
+  K10 3.39873
+```
+
+So more local iterations do improve the local objective, but not the external
+prefix validation. This makes `K=5` the right cheap default for the next
+mechanism probes.
+
+Suffix, from the post-prefix 2000 state:
+
+```text
+K10 norm002 @2000: med local loss/loss0 0.8609, eff applied frac 2.00%
+K10 norm002 @2100: med local loss/loss0 0.8721, eff applied frac 2.00%
+K10 norm002 @2125: med local loss/loss0 0.8588, eff applied frac 2.00%
+
+validation slope:
+  2000->2100: 0.98x needed, marginal
+  2100->2125: 0.88-0.89x needed, cold
+```
+
+Read: the late failure is not that the local optimizer stopped solving its
+local objective. The local solve still works, and a real 2%-of-base-step
+correction is applied. The failure is that the local correction no longer
+changes the global training trajectory. That points to prefix state formation
+and LR/optimizer-state compatibility, not more K.
+
+The random suffix is also informative:
+
+```text
+random from K5@1800 checkpoint:
+  eff applied frac ~= 20% of base step
+  validation matches no-Loco through 2125
+```
+
+That rules out "any bounded perturbation" as the reason for the prefix state.
+The good prefix is direction/state-specific, but the remaining missing control
+is still the exact prefix random/orthogonal/no-Loco comparison from 1600->1800.
+
 The externally relevant correction size is small:
 
 ```text
