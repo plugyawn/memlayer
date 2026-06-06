@@ -81,4 +81,11 @@ run_lane "noloco" 0 "sgd" "normal" "0.0"
 run_lane "random_norm002" 1 "random" "normal" "0.02"
 run_lane "orthogonal_k5_norm002" 1 "sgd" "orthogonal" "0.02"
 
+prefix_logs=("${log_dir}"/track3_prefix_*.log)
+if [[ -e "${prefix_logs[0]}" ]]; then
+  python3 tools/analyze_track3_locom_prefix_probe.py \
+    --steps "1600,1625,1650,1675,1700,1725,1750,1775,1800" \
+    "${prefix_logs[@]}" | tee "${log_dir}/track3_prefix_specificity_decision.md" || true
+fi
+
 echo "prefix_specificity_done $(date -u +%Y-%m-%dT%H:%M:%SZ)" | tee -a "${log_dir}/sequence.status"

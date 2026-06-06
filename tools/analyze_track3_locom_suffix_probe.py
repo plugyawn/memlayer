@@ -90,7 +90,7 @@ def _infer_category(name: str, lane: Lane) -> str:
         return "parallel"
     if "norm" in lowered:
         return "active_normed"
-    if "natural" in lowered or "locom" in lowered:
+    if "active" in lowered or "natural" in lowered or "locom" in lowered:
         return "active"
     return "unknown"
 
@@ -100,6 +100,7 @@ def _lane_name(path: Path) -> str:
     return (
         stem.removeprefix("track3_locom_2000_")
         .removeprefix("track3_from2000_")
+        .removeprefix("track3_prefix_")
         .removesuffix("_seed3710")
     )
 
