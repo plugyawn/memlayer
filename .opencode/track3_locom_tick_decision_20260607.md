@@ -118,6 +118,18 @@ Purpose: only after prefix specificity is established, test whether a
 post-2000 schedule can preserve the `1900->2000` rate without adding a bad
 late LocoProp correction.
 
+The suffix analyzer now reports slope preservation directly against the
+observed healthy `1900->2000` reference:
+
+```text
+reference_drop_per_100 = 0.01140
+preserved = lane_drop_per_100 >= 0.90 * reference_drop_per_100
+```
+
+So the readout should not be based only on final loss or a plot. The first
+question is whether any lane keeps the `2000->2100` and `2000->2250` slopes
+near the healthy reference.
+
 ## Kill And Promotion Rules
 
 Prefix specificity:
@@ -152,6 +164,9 @@ Suffix:
 post-2000 control still follows 1900->2000-like slope through 2250:
     do not add LocoProp; protect schedule/state.
 
+no lane preserves >=90% of the 1900->2000 reference slope:
+    this is still slope starvation, not a solved suffix.
+
 floor/ramp beats control but LocoProp lanes do not:
     missing lever is LR/velocity, not local-solve direction.
 
@@ -168,4 +183,3 @@ LocoProp-M helps by producing a better prefix trajectory before 1800.
 That trajectory remains good through 1900->2000.
 The failure is preserving slope after 2000, not creating a new LocoProp effect at 1900.
 ```
-

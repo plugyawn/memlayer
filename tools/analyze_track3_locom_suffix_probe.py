@@ -184,6 +184,50 @@ def _required_target(start_step: int, start_loss: float, step: int, *, target_st
     return start_loss - slope * (step - start_step)
 
 
+def _parse_slope_windows(spec: str) -> list[tuple[int, int]]:
+    windows: list[tuple[int, int]] = []
+    for part in spec.split(","):
+        part = part.strip()
+        if not part:
+            continue
+        fields = part.replace("->", ":").split(":")
+        if len(fields) != 2:
+            continue
+        start, end = (int(fields[0]), int(fields[1]))
+        if end > start:
+            windows.append((start, end))
+    return windows
+
+
+def _drop_per_100(lane: Lane, start: int, end: int) -> float | None:
+    if start not in lane.vals or end not in lane.vals or end <= start:
+        return None
+    return (lane.vals[start] - lane.vals[end]) * 100.0 / (end - start)
+
+
+def _required_drop_per_100(lane: Lane, start: int, *, target_step: int, target_loss: float) -> float | None:
+    if start not in lane.vals or target_step <= start:
+        return None
+    required = (lane.vals[start] - target_loss) * 100.0 / (target_step - start)
+    return required if required > 0 else None
+
+
+def _fmt_ratio(value: float | None) -> str:
+    if value is None or not math.isfinite(value):
+        return "nan"
+    return f"{value:.2f}x"
+
+
+def _slope_status(ref_ratio: float | None, required_ratio: float | None, preserve_threshold: float) -> str:
+    if ref_ratio is not None and math.isfinite(ref_ratio) and ref_ratio >= preserve_threshold:
+        return "preserved"
+    if required_ratio is not None and math.isfinite(required_ratio) and required_ratio >= 1.0:
+        return "enough"
+    if required_ratio is not None and math.isfinite(required_ratio) and required_ratio >= 0.9:
+        return "marginal"
+    return "cold"
+
+
 def print_report(
     lanes: list[Lane],
     *,
@@ -192,6 +236,9 @@ def print_report(
     tie_eps: float,
     target_step: int,
     target_loss: float,
+    reference_drop_per_100: float,
+    preserve_threshold: float,
+    slope_windows: list[tuple[int, int]],
 ) -> None:
     if not lanes:
         print("No logs parsed.")
@@ -244,6 +291,37 @@ def print_report(
             control_loss = control.vals.get(step)
             diff = None if required is None or control_loss is None else control_loss - required
             print(f"| {step} | {_fmt(required)} | {_fmt(control_loss)} | {_fmt_gain(diff)} |")
+    print()
+
+    print("## Slope Preservation")
+    print()
+    print(
+        f"Reference healthy slope: `{reference_drop_per_100:.5f}` loss per 100 steps "
+        "from the observed 1900->2000 window."
+    )
+    print()
+    print("| lane | category | window | drop/100 | vs reference | vs required | status |")
+    print("| --- | --- | --- | ---: | ---: | ---: | --- |")
+    best_preserve_lane: Lane | None = None
+    best_preserve_window: tuple[int, int] | None = None
+    best_preserve_ratio: float | None = None
+    for lane in sorted(lanes, key=lambda item: (item.category, item.name)):
+        for start, end in slope_windows:
+            drop100 = _drop_per_100(lane, start, end)
+            if drop100 is None:
+                continue
+            ref_ratio = drop100 / reference_drop_per_100 if reference_drop_per_100 > 0 else None
+            required100 = _required_drop_per_100(lane, start, target_step=target_step, target_loss=target_loss)
+            required_ratio = drop100 / required100 if required100 and required100 > 0 else None
+            if ref_ratio is not None and (best_preserve_ratio is None or ref_ratio > best_preserve_ratio):
+                best_preserve_lane = lane
+                best_preserve_window = (start, end)
+                best_preserve_ratio = ref_ratio
+            print(
+                f"| {lane.name} | {lane.category} | {start}->{end} | {_fmt(drop100)} | "
+                f"{_fmt_ratio(ref_ratio)} | {_fmt_ratio(required_ratio)} | "
+                f"{_slope_status(ref_ratio, required_ratio, preserve_threshold)} |"
+            )
     print()
 
     print("## Apply-Scale Summary")
@@ -302,6 +380,14 @@ def print_report(
         f"Best scheduler-only gain: {_fmt_gain(scheduler_gain)}"
         + (f" at {scheduler_step} via `{scheduler_lane.name}`." if scheduler_lane and scheduler_step else ".")
     )
+    print(
+        f"Best slope preservation: {_fmt_ratio(best_preserve_ratio)}"
+        + (
+            f" on {best_preserve_window[0]}->{best_preserve_window[1]} via `{best_preserve_lane.name}`."
+            if best_preserve_lane and best_preserve_window
+            else "."
+        )
+    )
     print()
 
     if active_gain is not None and active_gain >= material_gain:
@@ -315,6 +401,10 @@ def print_report(
         print("Read: perturbation controls beat control while active LocoProp does not; treat the effect as state/noise exploration, not LocoProp.")
     else:
         print("Read: no lane materially beats control; the 2000 state has likely lost c_fc LocoProp-specific leverage.")
+    if best_preserve_ratio is not None and best_preserve_ratio < preserve_threshold:
+        print("Slope read: no lane preserves the 1900->2000 descent rate; this is still a slope-starvation result.")
+    elif best_preserve_lane is not None:
+        print("Slope read: at least one lane preserves the 1900->2000 descent-rate target; inspect its validation gain before promoting.")
 
 
 def main() -> int:
@@ -325,6 +415,9 @@ def main() -> int:
     parser.add_argument("--tie-eps", type=float, default=0.0005)
     parser.add_argument("--target-step", type=int, default=3000)
     parser.add_argument("--target-loss", type=float, default=3.28)
+    parser.add_argument("--reference-drop-per-100", type=float, default=0.01140)
+    parser.add_argument("--preserve-threshold", type=float, default=0.90)
+    parser.add_argument("--slope-windows", default="2000:2100,2100:2125,2000:2250")
     args = parser.parse_args()
 
     paths: list[Path] = []
@@ -343,6 +436,9 @@ def main() -> int:
         tie_eps=args.tie_eps,
         target_step=args.target_step,
         target_loss=args.target_loss,
+        reference_drop_per_100=args.reference_drop_per_100,
+        preserve_threshold=args.preserve_threshold,
+        slope_windows=_parse_slope_windows(args.slope_windows),
     )
     return 0
 

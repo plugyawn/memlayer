@@ -149,6 +149,27 @@ def test_suffix_scheduler_only(tmp: Path) -> None:
     _assert_contains(out, "mainly LR/velocity")
 
 
+def test_suffix_slope_preservation(tmp: Path) -> None:
+    _log(tmp / "track3_locom_2000_control_seed3710.log", vals={2000: 3.37330, 2100: 3.36420}, enabled=False)
+    _log(
+        tmp / "track3_locom_2000_floor111_seed3710.log",
+        vals={2000: 3.37330, 2100: 3.36190},
+        enabled=False,
+    )
+    out = _run(
+        [
+            "tools/analyze_track3_locom_suffix_probe.py",
+            str(tmp),
+            "--steps",
+            "2000,2100",
+            "--slope-windows",
+            "2000:2100",
+        ]
+    )
+    _assert_contains(out, "Best slope preservation: 1.00x")
+    _assert_contains(out, "Slope read: at least one lane preserves")
+
+
 def test_suffix_insufficient_data(tmp: Path) -> None:
     _log(tmp / "track3_locom_2000_control_seed3710.log", vals={}, enabled=False)
     _log(tmp / "track3_locom_2000_norm002_k5_seed3710.log", vals={}, enabled=True, norm_target=0.02)
@@ -326,6 +347,7 @@ def main() -> int:
         test_prefix_perturbation_tie,
         test_prefix_requires_active_reproduction,
         test_suffix_scheduler_only,
+        test_suffix_slope_preservation,
         test_suffix_insufficient_data,
         test_window_health_slope_break,
         test_lr_slope_join_reads_power_tail,
