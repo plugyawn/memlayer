@@ -690,3 +690,29 @@ first gate: 3.45136 @1625
 
 This is a tempered rewarm: at step 2000 the Muon LR is only about `1.34x` the
 cold curve, instead of the failed blend's much larger effective jump.
+
+Result: this also fails right at the switch.
+
+```text
+1800: 3.39870
+1900: 3.38477
+1975: 3.37604
+2000: 3.37335
+2025: 3.37638
+```
+
+The logged base step at the switch was only about `2.89e-01`, so the failure is
+not only from the huge `5.20e-01` spike in the full blend. The state appears
+extremely sensitive to rewarming around 2000. The next diagnostic should isolate
+the other hypothesis: keep the cold schedule unchanged but turn LocoProp off at
+1800, to test whether the late taper is caused by continuing LocoProp rather
+than by the LR schedule.
+
+Launched:
+
+```text
+label: track3_kdiag_post-true-k10-lr2e4-active-poscos-coldp2-locomoff1800_144346
+schedule: same cold power2 3000-step schedule
+LocoProp: active 0:1800 only
+purpose: isolate "switch out LocoProp" from any LR rewarm
+```
