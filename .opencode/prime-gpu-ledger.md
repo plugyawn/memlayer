@@ -316,3 +316,35 @@
     - zero-jump suffix avoided the validation spike but did not catch coldp2: `3.37336 @2000`, `3.37244 @2025`, `3.36460 @2125`, `3.36038 @2175`; this is worse than coldp2 (`3.37337 @2000`, `3.37101 @2025`, `3.36217 @2125`, `3.35803 @2175`).
     - pulled focused SXM logs to `.opencode/current_track3_ledger_20260606_logs/normtarget_sxm_c57f/`.
     - terminated pod successfully after parsing `env.local` key-values safely; Prime `pods list` returned zero active pods.
+
+- pod_id: 461e0ceb6a3743f98ebd2b621fba42ca
+  name: oc-main-locom-kdepth-h100sxm-20260606-1837
+  owner: current-agent
+  purpose: Track 3 true-post LocoProp-M K-depth 1600->1800 screen: K10/K8/K5/K5-lr3e4
+  gpu: H100 80GB SXM5 datacrunch $3.25
+  price_per_hour: selected by availability id a74def
+  created_at: 2026-06-06T18:37:54Z
+  expected_stop: after the normalized LocoProp from-2000 probe answers 2125/2250 gates, or earlier if it clearly misses
+  status: terminated_after_from2000_floor_and_norm002_suffix_missed_pods_total_0
+  termination_policy: terminated after active suffix probes missed and artifacts were pulled
+  notes:
+    - K-depth screen completed. K10/K8/K5 at lr2e-4 were externally tied through 1800 (`~3.39870`), so K5 is the cheapest adequate prefix in this window.
+    - Stopped K5-lr3e-4 early to prioritize controls.
+    - Random same-shape/cap continuation from K5 1800 matched active continuation to 2125 (`3.36216`).
+    - No-correction continuation from the same checkpoint also matched (`3.36213 @2125`), proving the post-1800 descent is not continued-LocoProp-specific.
+    - Saved exact no-correction checkpoint at remote `/root/.cache/track3_checkpoints/track3_noloco_ckpt2125_seed3710_seed3710_step2125.pt`.
+    - Saved cold no-correction 2400 checkpoint at remote `/root/.cache/track3_checkpoints/track3_fast_noloco_from2125_seed3710_seed3710_step2400.pt`.
+    - Pulled text logs to `.opencode/current_track3_ledger_20260606_logs/kdepth_461e/`.
+    - Checkpoint blobs are being pulled to `/Users/progyan/speedrun/tmp/prime_ckpt_transfer/`; terminate pod after transfer completes.
+    - Hot PR287 no-correction suffix from 2125 spiked (`3.40302 @2150`, `3.41107 @2200`) and was stopped.
+    - Power2 no-correction with `LR_MIN_ETA=0.08` was worse than cold by 2200/2250 and was stopped.
+    - Replayed no-correction from 1800 and saved `/root/.cache/track3_checkpoints/track3_noloco_slope_seed3710_seed3710_step2000.pt`, `...step2075.pt`, and `...step2100.pt`.
+    - Verified replay slope: `3.38474 @1900`, `3.37333 @2000`, `3.36655 @2075`, `3.36420 @2100`.
+    - Launched fast no-LocoProp branch `track3_from2000_floor009_to2400_213135` from the 2000 checkpoint with power2 h3000 and `LR_MIN_ETA=0.09`; saves 2250/2400 checkpoints.
+    - `floor009` failed the 2250 gate: `3.35514 @2250`, worse than cold `3.35305 @2250`; stopped after checkpoint save.
+    - Launched `track3_from2000_norm002_locom_to2250_213950`: true-post K10 `inner_lr=2e-4`, positive-cos/loss-decrease, `NORM_TARGET=0.02`, active `2000:2250` from the same step-2000 checkpoint.
+    - `norm002` first gate: `3.37101 @2025`, neutral/slightly worse than cold `3.37098`; continue only to `2125` unless it turns positive.
+    - `norm002` stopped at `3.36217 @2125`, still slightly worse than no-Loco cold `3.36215`; local K10 loss/loss0 improved to median `~0.86-0.89`, but median cosine stayed `~0.004-0.009`.
+    - Pulled suffix logs to `.opencode/current_track3_ledger_20260606_logs/kdepth_461e/suffix_from2000/` and generated local `.kdiag.md` / `.apply_scale.md` for the normalized run.
+    - Terminated pod successfully with `PRIME_API_KEY=$PRIME_KEY`; follow-up `prime pods list` showed zero active pods.
+    - Caveat: remote `1800/2000/2075/2100` checkpoint blobs were not pulled before termination. Local preserved checkpoint blobs from this pod are the later `2125` and `2400` files in `/Users/progyan/speedrun/tmp/prime_ckpt_transfer/`; the exact earlier branch blobs would need to be regenerated from the local step-1600 provenance.

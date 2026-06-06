@@ -219,6 +219,250 @@ Final pulled evidence:
 1800 3.39871
 ```
 
+## Prime K-Depth And No-Correction Controls
+
+### `oc-main-locom-kdepth-h100sxm-20260606-1837`
+
+Status: completed; logs pulled to:
+
+```text
+.opencode/current_track3_ledger_20260606_logs/kdepth_461e/
+```
+
+Remote checkpoint artifacts created:
+
+```text
+/root/.cache/track3_checkpoints/track3_kdepth_k5-lr2e4_seed3710_step1800.pt
+/root/.cache/track3_checkpoints/track3_noloco_ckpt2125_seed3710_seed3710_step2125.pt
+/root/.cache/track3_checkpoints/track3_fast_noloco_from2125_seed3710_seed3710_step2400.pt
+```
+
+Local checkpoint transfer target:
+
+```text
+/Users/progyan/speedrun/tmp/prime_ckpt_transfer/
+```
+
+K-depth active result, same true-post primitive and coldp2 schedule:
+
+```text
+K10 lr2e-4: 3.39873 @1800
+K8  lr2e-4: 3.39870 @1800
+K5  lr2e-4: 3.39870 @1800
+```
+
+Read:
+
+- External validation was insensitive to K from `5` to `10` through `1800`.
+- This contradicts the local-only K diagnostic, where K8 was the first
+  80%-of-K10 knee. The cheap external primitive is at least `K5` for this
+  prefix, but the evidence is only through `1800`.
+- `K5-lr3e-4` was intentionally stopped before a real result to prioritize the
+  random/no-Loco controls.
+
+Post-1800 controls from the saved K5 checkpoint:
+
+```text
+active true-post K5/K8/K10 continuation: ~3.36217 @2125
+cap-random same scaffold:                 3.36216 @2125
+no LocoProp correction:                   3.36213 @2125
+checkpoint replay no LocoProp:            3.36215 @2125
+```
+
+Read:
+
+- From `1800 -> 2125`, the suffix descent is not LocoProp-specific.
+- It is not even cap-random-specific: plain no-correction continuation matched
+  random and active LocoProp to noise.
+- The useful object in this line is the checkpoint/state reached by the prefix
+  plus the cold schedule, not the continued local correction after `1800`.
+
+Timing correction:
+
+```text
+active LocoProp/random scaffold: ~4.54s/step
+no-correction generated resume:  ~1.27s/step steady
+```
+
+Do not use the per-train-line `~150-200ms/step` numbers after resume; those are
+`train_time / absolute_step` artifacts. The validation-line interval is the
+correct segment average.
+
+No-correction suffix probes from the `2125` checkpoint:
+
+```text
+cold power2, LR_MIN_ETA=0.0:
+  2125 3.36215
+  2250 3.35305
+  2400 3.34512
+
+full PR287 h3105,p1.20:
+  2125 3.36215
+  2150 3.40302
+  2200 3.41107
+  stopped; much too hot for this state
+
+power2 with LR_MIN_ETA=0.08:
+  2125 3.36215
+  2150 3.36003
+  2200 3.35668
+  2250 3.35419
+  stopped; immediately worse than cold power2
+```
+
+Read:
+
+- The remaining gap is real: from `3.36215 @2125`, hitting `3.28 @3000`
+  requires about `9.39e-5` loss/step. Cold power2 is already below that pace by
+  `2150 -> 2400`.
+- Naive hotter suffixes are not the fix. Full PR287 spikes; even a modest
+  `eta` floor hurts by `2200`.
+- If probing further, do not repeat full PR287-from-2125 or eta-floor-0.08.
+  The more plausible direction is a state-aware schedule learned from a
+  checkpoint before the slope collapse, or a late optimizer-state change that
+  does not simply increase all LR.
+
+No-correction replay from `1800` to save earlier branch points:
+
+```text
+run: track3_noloco_ckpt2000_2100_from1800_212259
+resume: /root/.cache/track3_checkpoints/track3_kdepth_k5-lr2e4_seed3710_step1800.pt
+schedule: power2 h3000, LR_MIN_ETA=0.0
+LocoProp: disabled
+
+1800 3.39867
+1900 3.38474
+2000 3.37333  checkpoint saved
+2025 3.37098
+2050 3.36867
+```
+
+Slope read:
+
+```text
+target from 3.39867 @1800 to 3.280 @3000:
+  required slope: 9.889e-5 loss/step
+  target @2000: 3.37889
+  target @2800: 3.29978
+
+observed:
+  1800->1900: 1.393e-4 loss/step, 1.41x required
+  1900->2000: 1.141e-4 loss/step, 1.15x required
+  2000->2050: 9.32e-5 loss/step, 0.94x required
+```
+
+Read:
+
+- `1900->2000` is still a good interval; the useful branch point is `2000`.
+- The slope starts to become marginal immediately after `2000`, before the
+  already-tested `2125` checkpoint.
+- First next probe should be a cheap no-LocoProp slope-preservation suffix from
+  the saved `2000` checkpoint, not another LocoProp-active continuation.
+
+No-LocoProp floor probe from `2000`:
+
+```text
+run: track3_from2000_floor009_to2400_213135
+resume: /root/.cache/track3_checkpoints/track3_noloco_slope_seed3710_seed3710_step2000.pt
+schedule: power2 h3000, LR_MIN_ETA=0.09
+LocoProp: disabled
+
+2000 3.37333
+2025 3.37099
+2050 3.36867
+2075 3.36656
+2100 3.36420
+2125 3.36230
+2150 3.36052
+2175 3.35893
+2200 3.35755
+2225 3.35649
+2250 3.35514  checkpoint saved, stopped
+```
+
+Read:
+
+- Failed the `2250` gate: worse than cold `3.35305 @2250` and worse than the
+  straight target `~3.35417 @2250`.
+- A simple eta floor / "more LR" is not the missing late fix, even when the
+  transition is zero-jump at `2000`.
+- Next probe launched: normalized true-post LocoProp from the same `2000`
+  checkpoint:
+
+```text
+run: track3_from2000_norm002_locom_to2250_213950
+profile: post-true-k10-lr2e4-active-poscos-norm002
+active window: 2000:2250
+norm target: 0.02 * base_step
+schedule: power2 h3000, LR_MIN_ETA=0.0
+gate: neutral-or-better vs cold at 2125/2250
+```
+
+First read:
+
+```text
+2000 3.37337
+2025 3.37101
+```
+
+Read:
+
+- Correctly loaded the `2000` checkpoint and applied accepted true-post
+  corrections at fixed `0.02 * base_step`.
+- `2025` is neutral/slightly worse than no-Loco cold (`3.37098`), so this has
+  not yet shown a positive external effect. Continue only through `2125` unless
+  it turns positive.
+
+Final stopped result:
+
+```text
+2000 3.37337
+2025 3.37101
+2050 3.36870
+2075 3.36658
+2100 3.36423
+2125 3.36217  stopped
+```
+
+Control comparison:
+
+```text
+no-Loco cold:
+2000 3.37333
+2025 3.37098
+2050 3.36867
+2075 3.36655
+2100 3.36420
+2125 3.36215
+```
+
+Diagnostics:
+
+```text
+K10 local loss/loss0 median: ~0.855-0.893 across 2000-2125
+median cosine: ~0.004-0.009
+effective correction/base-step fraction: exactly ~0.02
+segment timing: ~4.59s/step
+```
+
+Read:
+
+- `NORM_TARGET=0.02` made the correction visible; this was not washed out by
+  tiny raw norm.
+- Local solves were locally successful, but external validation stayed at exact
+  parity/slightly worse than no-Loco.
+- Do not run `norm005` from this same suffix state without a new reason; it
+  would likely amplify a neutral/worse direction.
+- Prime H100 pod `461e0ceb6a3743f98ebd2b621fba42ca` was terminated after logs
+  were pulled; `prime pods list` returned zero active pods.
+- Caveat: the newly created remote `1800/2000/2075/2100` checkpoint blobs were
+  not pulled before pod termination. Local checkpoint blobs currently preserved
+  from this pod are the later `2125` and `2400` checkpoints under
+  `/Users/progyan/speedrun/tmp/prime_ckpt_transfer/`. The branch is still
+  reproducible from the older local `1600` checkpoint plus the commands captured
+  in this ledger/logs, but the exact `1800/2000/2075/2100` blobs from this pod
+  are not local.
+
 Artifacts:
 
 ```text

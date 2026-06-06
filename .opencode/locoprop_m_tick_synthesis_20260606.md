@@ -241,3 +241,63 @@ solve cheap/fused enough for real speedrun use. If only K10 works, keep K10 as
 an algorithmic probe and focus on the LR-tail floor/hold experiments before
 kernel work. If K5 also matches, the useful object is probably more about
 effective correction scale than local-solve depth.
+
+## Post-1800 Control Update
+
+Prime SXM pod `461e0ceb6a3743f98ebd2b621fba42ca` answered a key control that
+was missing from the previous synthesis.
+
+Through `1800`, external validation was insensitive to K-depth:
+
+```text
+K10 lr2e-4: 3.39873 @1800
+K8  lr2e-4: 3.39870 @1800
+K5  lr2e-4: 3.39870 @1800
+```
+
+From the K5 `1800` checkpoint, three suffixes matched to noise:
+
+```text
+active LocoProp continuation: ~3.36217 @2125
+cap-random continuation:       3.36216 @2125
+no-correction continuation:    3.36213 @2125
+```
+
+Read:
+
+- The post-1800 suffix descent is not evidence that continued LocoProp-M is
+  helping. Plain no-correction continuation gives the same curve.
+- The LocoProp-specific effect, if any, is in creating the prefix/checkpoint
+  state by `1800`, not in the correction applied after `1800`.
+- A clean no-correction checkpoint was saved at:
+
+```text
+/root/.cache/track3_checkpoints/track3_noloco_ckpt2125_seed3710_seed3710_step2125.pt
+```
+
+No-correction suffix probes from that checkpoint:
+
+```text
+cold power2:
+  2125 3.36215
+  2250 3.35305
+  2400 3.34512
+
+full PR287 h3105,p1.20:
+  2150 3.40302
+  2200 3.41107
+  stopped; too hot
+
+power2 + LR_MIN_ETA=0.08:
+  2200 3.35668
+  2250 3.35419
+  stopped; worse than cold power2
+```
+
+This changes the current theory:
+
+1. Do not keep spending on continued post-1800 LocoProp unless a pre-1800
+   random/no-correction prefix control shows the prefix itself is not specific.
+2. Do not rewarm this state with a direct PR287 jump or a simple LR floor.
+3. The remaining record path must preserve the prefix advantage and solve the
+   late slope collapse with a more state-aware late optimizer/schedule change.
