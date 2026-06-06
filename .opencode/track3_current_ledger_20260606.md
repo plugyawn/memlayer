@@ -10,6 +10,9 @@ is explicitly named here.
   PR287-style late scheduling.
 - Current question: can we preserve the early/mid LocoProp advantage and avoid
   the post-2500 slope starvation?
+- Current implementation scope: sampled true-post LocoProp-M is MLP `c_fc`
+  only, across all real MLP layers when `TRACK3_LOCOM_LAYERS=all`; it does not
+  currently apply to `c_proj`, QK, V, O, embeddings, or output head.
 - Do not repeat: plain oldtail `h3075,p1.10` suffixes from 2400. They reproduce
   the same slope and do not create a sub-3.28 path.
 
@@ -21,12 +24,28 @@ Current read:
 
 - LocoProp-M only became externally useful on the true-post local target:
   `target_space=post`, `true_post_grad=1`.
-- K=5-10 at `inner_lr ~= 2e-4` is locally sane; post-approx/preactivation K10
-  are ruled out as unstable or wrong-target variants.
+- K8-10 at `inner_lr ~= 2e-4` is locally supported; K5 is locally sane but
+  weaker. Post-approx/preactivation K10 are ruled out as unstable or
+  wrong-target variants.
 - The working correction is small and usually uncapped: roughly `1-3%` median
   effective correction/base-step before `2000` in the coldp2 line.
 - `sample_tokens=2048` matched `1024`; do not spend more on sample count as a
   primary lever.
+- Earlier non-MLP surface tests were not this true-post sampled LocoProp-M:
+  they were right-feature/LPA/soft-polar probes. They are useful context, but
+  they do not prove true LocoProp-M has been tested on QK/V/O/c_proj.
+
+K-effect result from the corrected coldp2 diagnostic window:
+
+```text
+1600, 1625, ..., 1800:
+  smallest K reaching 80% of K10 local gain = K8 at every logged point
+
+representative @1800:
+  K5  gain/ref 62.9%, corr/ref 56.4%
+  K8  gain/ref 84.0%, corr/ref 85.4%
+  K10 gain/ref 100.0%
+```
 
 Next K-isolation screen, prepared but not launched:
 
@@ -38,13 +57,14 @@ Lanes:
 
 ```text
 k10-lr2e4 control
-k8-lr2e4
+k8-lr2e4 first promotion candidate
 k5-lr2e4
-k5-lr3e4
+k5-lr3e4 secondary scale probe
 ```
 
-Gate: if K8 or K5-lr3e4 is within `<=0.003` of K10 at `1800`, promote the
-cheaper local-solve shape.
+Gate: if K8 is within `<=0.003` of K10 at `1800`, promote the cheaper
+local-solve shape. If K5-lr3e4 is also within `<=0.003`, the active effect is
+probably more scale-sensitive than K-depth-sensitive.
 
 ## Next Runnable Probe
 

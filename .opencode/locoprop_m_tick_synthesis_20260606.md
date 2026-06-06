@@ -14,7 +14,7 @@ LocoProp-M only started to "tick" when all of these were true:
 ```text
 target_space=post
 true_post_grad=1
-K ~= 5-10
+K ~= 8-10
 inner_lr ~= 2e-4
 require_loss_decrease=1
 min_cos_desc=0.0
@@ -26,6 +26,18 @@ base schedule cold enough that the local correction is not diluted
 
 This makes the applied correction a small, state-decoupled local displacement,
 not a replacement for Muon momentum/state.
+
+Current implementation scope:
+
+```text
+surface: MLP c_fc only
+layers: all real MLP layers when WR_LOCOM_LAYERS=all
+not covered: MLP c_proj, QK, V, O, embeddings, output head
+```
+
+The name `WR_LOCOM_LAYERS=all` means all MLP layers, not all model surfaces.
+Older V/O/QK/MLP surface screens were right-feature/LPA/soft-polar probes, not
+this sampled true-post LocoProp-M correction.
 
 ## What Failed
 
@@ -70,8 +82,25 @@ Scale ladder:
 ```
 
 Read: `2e-4` is the clean all-layer active default. `3e-4` is near the edge but
-useful for K5 because it may match K10's correction scale with fewer local
-steps.
+may still be useful as a scale probe. The current local-step evidence does not
+support K5 as the main knee: K5 reaches only about `55-63%` of K10 local gain in
+the coldp2 logs, while K8 reaches about `83-86%`.
+
+K-effect read from the corrected coldp2 diagnostic window:
+
+```text
+every logged step 1600, 1625, ..., 1800:
+  smallest K reaching 80% of K10 local gain = K8
+
+representative step 1800:
+  K5  gain/ref = 62.9%, corr/ref = 56.4%
+  K8  gain/ref = 84.0%, corr/ref = 85.4%
+  K10 gain/ref = 100.0%
+```
+
+So the next active-run question is `K8` versus `K10`, not `K5` versus `K10`.
+`K5-lr3e4` remains a secondary scale test because it is cheaper, but it is not
+the current best-supported primitive.
 
 ## What Worked Externally
 
@@ -141,6 +170,9 @@ The remaining failure is twofold:
 Is K10 essential, or is the useful object just the true-post local correction at
 the right effective norm?
 
+Current local diagnostics say K10 is probably not essential, but K5 is likely
+too shallow. K8 is the first compression target.
+
 Next prepared screen:
 
 ```text
@@ -151,9 +183,9 @@ Lanes:
 
 ```text
 k10-lr2e4: control; known good local shape
-k8-lr2e4:  tests whether last two local steps matter
-k5-lr2e4:  half-cost weaker correction
-k5-lr3e4:  half-cost, scale-closer correction
+k8-lr2e4:  first promotion candidate; local K-effect knee
+k5-lr2e4:  weak half-cost correction
+k5-lr3e4:  secondary scale probe, not the main bet
 ```
 
 Run gate:
@@ -161,11 +193,13 @@ Run gate:
 ```text
 At 1800:
   K10 control should reproduce ~3.3987.
-  K8 or K5-lr3e4 within <=0.003 of K10 is a promotion candidate.
-  K5-lr2e4 within <=0.005 of K10 is still interesting because it is cheaper.
+  K8 within <=0.003 of K10 is a promotion candidate.
+  K5-lr3e4 within <=0.003 is surprising and worth promoting.
+  K5-lr2e4 within <=0.005 is interesting but not expected from local evidence.
 ```
 
-If K5/K8 matches K10, the next engineering path is to make the true-post local
+If K8 matches K10, the next engineering path is to make the true-post local
 solve cheap/fused enough for real speedrun use. If only K10 works, keep K10 as
 an algorithmic probe and focus on the LR-tail floor/hold experiments before
-kernel work.
+kernel work. If K5 also matches, the useful object is probably more about
+effective correction scale than local-solve depth.
