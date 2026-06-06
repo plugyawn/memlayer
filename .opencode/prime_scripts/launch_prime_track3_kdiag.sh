@@ -281,7 +281,7 @@ do
 done
 
 echo "writing remote diagnostic sequence"
-ssh_remote "${ssh_target}" "cat > '${remote_logdir}/run_kdiag_sequence.sh' <<'REMOTE_SCRIPT'
+ssh_remote "${ssh_target}" "cat > '${remote_logdir}/run_kdiag_sequence.sh'" <<'REMOTE_SCRIPT'
 #!/usr/bin/env bash
 set -euo pipefail
 
@@ -327,8 +327,8 @@ for profile in \"${profiles[@]}\"; do
 done
 touch \"${logdir}/DONE\"
 REMOTE_SCRIPT
-chmod +x '${remote_logdir}/run_kdiag_sequence.sh'
-${remote_run_env} nohup bash '${remote_logdir}/run_kdiag_sequence.sh' > '${remote_logdir}/run_kdiag_sequence.nohup.log' 2>&1 & echo \$! > '${remote_logdir}/run_kdiag_sequence.pid'"
+ssh_remote "${ssh_target}" "chmod +x '${remote_logdir}/run_kdiag_sequence.sh'"
+ssh_remote "${ssh_target}" "${remote_run_env} nohup bash '${remote_logdir}/run_kdiag_sequence.sh' > '${remote_logdir}/run_kdiag_sequence.nohup.log' 2>&1 & echo \$! > '${remote_logdir}/run_kdiag_sequence.pid'"
 run_started=1
 
 cat <<EOF

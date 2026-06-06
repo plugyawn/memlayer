@@ -258,3 +258,19 @@
     - 2026-06-06: launched active screen `track3_kdiag_post-true-k10-lr2e4-active-poscos_095921` from the same step1600 checkpoint, PID 6230, to test whether the clean `2e-4` local diagnostic translates to validation loss by step 1800.
     - Active screen completed: `3.48241 @1600`, `3.45139 @1625`, `3.40855 @1750`, `3.40452 @1800`; artifacts pulled to the same directory.
     - Pod terminated successfully after mapping `PRIME_KEY` to `PRIME_API_KEY`; `prime pods list` reported zero active pods.
+
+- pod_id: 8486723dca7749a0a7603d4eca10db7b
+  name: oc-main-track3-truepost3000-h100-20260606-1026
+  owner: current-agent
+  purpose: Extend true-post K10 LocoProp-M `2e-4` active-poscos result from seed3710 step1600 checkpoint to a proper 3000-step suffix
+  gpu: H100 80GB (Spot) SXM5 datacrunch $1.14
+  price_per_hour: selected by availability id ec854a
+  created_at: 2026-06-06T10:26Z
+  expected_stop: after 3000-step suffix completes, clear gate failure, setup failure, or artifact pull
+  status: running_truepost3000_manual_after_launcher_heredoc_bug
+  termination_policy: terminate after workload/failure unless user asks to keep alive
+  notes:
+    - Prime preflight before launch: wallet `$17.882`, zero active pods, cheapest adequate H100 was spot SXM5 `$1.14/hr`.
+    - Launcher created the pod and copied the step1600 checkpoint, but failed before starting training due to local shell expansion in the remote heredoc. Remote checkpoint provenance is intact.
+    - Manual remote run started on `root@86.38.238.161 -p 22`, PID 2947, from commit `8f1dbd2`.
+    - Run env: `post-true-k10-lr2e4-active-poscos`, `TRACK3_TRAIN_STEPS=3000`, `TRACK3_LOCOM_ACTIVE_WINDOWS=0:3000`, `TRACK3_LOCOM_END_STEP=3000`, `SCREEN_VAL_EVERY=25`.
