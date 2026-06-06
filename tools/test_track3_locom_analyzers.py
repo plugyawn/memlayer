@@ -114,20 +114,29 @@ def _assert_contains(text: str, needle: str) -> None:
 
 
 def test_prefix_direction_specific(tmp: Path) -> None:
-    _log(tmp / "track3_prefix_noloco_seed3710.log", vals={1600: 3.48, 1700: 3.42, 1800: 3.4000}, enabled=False)
-    _log(tmp / "track3_prefix_active_k5_seed3710.log", vals={1600: 3.48, 1700: 3.418, 1800: 3.3965}, enabled=True, with_apply=True)
-    _log(tmp / "track3_prefix_random_norm002_seed3710.log", vals={1600: 3.48, 1700: 3.419, 1800: 3.3990}, enabled=True, local_opt="random", random=True, norm_target=0.02, with_apply=True)
-    _log(tmp / "track3_prefix_orthogonal_k5_norm002_seed3710.log", vals={1600: 3.48, 1700: 3.419, 1800: 3.3988}, enabled=True, mode="orthogonal", norm_target=0.02, with_apply=True)
+    _log(tmp / "track3_prefix_noloco_seed3710.log", vals={1600: 3.48, 1700: 3.42, 1800: 3.4010}, enabled=False)
+    _log(tmp / "track3_prefix_active_k5_seed3710.log", vals={1600: 3.48, 1700: 3.418, 1800: 3.3987}, enabled=True, with_apply=True)
+    _log(tmp / "track3_prefix_random_norm002_seed3710.log", vals={1600: 3.48, 1700: 3.419, 1800: 3.4005}, enabled=True, local_opt="random", random=True, norm_target=0.02, with_apply=True)
+    _log(tmp / "track3_prefix_orthogonal_k5_norm002_seed3710.log", vals={1600: 3.48, 1700: 3.419, 1800: 3.4004}, enabled=True, mode="orthogonal", norm_target=0.02, with_apply=True)
     out = _run(["tools/analyze_track3_locom_prefix_probe.py", str(tmp), "--steps", "1600,1700,1800"])
+    _assert_contains(out, "Known active-prefix reproduction check")
     _assert_contains(out, "c_fc true-post direction matters in the prefix")
 
 
 def test_prefix_perturbation_tie(tmp: Path) -> None:
-    _log(tmp / "track3_prefix_noloco_seed3710.log", vals={1600: 3.48, 1800: 3.4000}, enabled=False)
-    _log(tmp / "track3_prefix_active_k5_seed3710.log", vals={1600: 3.48, 1800: 3.3965}, enabled=True, with_apply=True)
-    _log(tmp / "track3_prefix_random_norm002_seed3710.log", vals={1600: 3.48, 1800: 3.3963}, enabled=True, local_opt="random", random=True, norm_target=0.02, with_apply=True)
+    _log(tmp / "track3_prefix_noloco_seed3710.log", vals={1600: 3.48, 1800: 3.4010}, enabled=False)
+    _log(tmp / "track3_prefix_active_k5_seed3710.log", vals={1600: 3.48, 1800: 3.3987}, enabled=True, with_apply=True)
+    _log(tmp / "track3_prefix_random_norm002_seed3710.log", vals={1600: 3.48, 1800: 3.3986}, enabled=True, local_opt="random", random=True, norm_target=0.02, with_apply=True)
     out = _run(["tools/analyze_track3_locom_prefix_probe.py", str(tmp), "--steps", "1600,1800"])
     _assert_contains(out, "not clearly local-direction-specific")
+
+
+def test_prefix_requires_active_reproduction(tmp: Path) -> None:
+    _log(tmp / "track3_prefix_noloco_seed3710.log", vals={1600: 3.48, 1800: 3.4000}, enabled=False)
+    _log(tmp / "track3_prefix_active_k5_seed3710.log", vals={1600: 3.48, 1800: 3.4100}, enabled=True, with_apply=True)
+    _log(tmp / "track3_prefix_random_norm002_seed3710.log", vals={1600: 3.48, 1800: 3.3990}, enabled=True, local_opt="random", random=True, norm_target=0.02, with_apply=True)
+    out = _run(["tools/analyze_track3_locom_prefix_probe.py", str(tmp), "--steps", "1600,1800"])
+    _assert_contains(out, "active K5 did not reproduce the known prefix")
 
 
 def test_suffix_scheduler_only(tmp: Path) -> None:
@@ -253,6 +262,7 @@ def main() -> int:
     tests = [
         test_prefix_direction_specific,
         test_prefix_perturbation_tie,
+        test_prefix_requires_active_reproduction,
         test_suffix_scheduler_only,
         test_suffix_insufficient_data,
         test_window_health_slope_break,

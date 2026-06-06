@@ -679,6 +679,9 @@ tools/analyze_track3_locom_prefix_probe.py
 Decision rule:
 
 ```text
+active_k5 fails to reproduce ~3.3987 @1800 within tolerance:
+    run is invalid; do not interpret controls.
+
 active_k5 beats noloco/random:
     c_fc true-post direction matters in the prefix.
 

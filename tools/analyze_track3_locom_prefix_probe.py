@@ -55,6 +55,8 @@ def print_report(
     decision_step: int,
     material_gain: float,
     tie_eps: float,
+    expected_active_loss: float | None,
+    expected_active_tol: float,
 ) -> None:
     print("# Track 3 LocoProp-M Prefix Specificity Decision")
     print()
@@ -128,6 +130,22 @@ def print_report(
     )
     print()
 
+    if active_lane is not None and expected_active_loss is not None:
+        active_loss = active_lane.vals.get(decision_step)
+        active_delta = None if active_loss is None else active_loss - expected_active_loss
+        print(
+            f"Known active-prefix reproduction check @ {decision_step}: "
+            f"expected {_fmt(expected_active_loss)}, actual {_fmt(active_loss)}, "
+            f"delta {_fmt_gain(active_delta)}."
+        )
+        print()
+        if active_delta is None or abs(active_delta) > expected_active_tol:
+            print(
+                "Read: active K5 did not reproduce the known prefix within tolerance; "
+                "do not interpret prefix controls until the active lane is fixed."
+            )
+            return
+
     comparable = [
         _gain_at(lane, control, decision_step)
         for lane in lanes
@@ -156,6 +174,8 @@ def main() -> int:
     parser.add_argument("--decision-step", type=int, default=1800)
     parser.add_argument("--material-gain", type=float, default=0.0015)
     parser.add_argument("--tie-eps", type=float, default=0.0005)
+    parser.add_argument("--expected-active-loss", type=float, default=3.3987)
+    parser.add_argument("--expected-active-tol", type=float, default=0.003)
     args = parser.parse_args()
 
     steps = [int(step) for step in args.steps.split(",") if step.strip()]
@@ -166,6 +186,8 @@ def main() -> int:
         decision_step=args.decision_step,
         material_gain=args.material_gain,
         tie_eps=args.tie_eps,
+        expected_active_loss=args.expected_active_loss,
+        expected_active_tol=args.expected_active_tol,
     )
     return 0
 
