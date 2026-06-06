@@ -13,6 +13,84 @@ is explicitly named here.
 - Do not repeat: plain oldtail `h3075,p1.10` suffixes from 2400. They reproduce
   the same slope and do not create a sub-3.28 path.
 
+## Next Runnable Probe
+
+### `tools/launch_modal_track3_coldp2_tail_floor_array.sh`
+
+Status: prepared locally, not launched.
+
+Purpose:
+
+- The corrected `coldp2` true-post K10 lane reaches `3.39872 @1800`.
+- To hit `3.28 @3000`, it only needs `0.11872` more loss over `1200` steps:
+  `9.893e-5` per step, or `0.00247` per 25 steps.
+- The actual line has enough velocity through `~2000`, then fades as the
+  power-2 LR eta gets tiny:
+
+```text
+step  eta
+1800  0.16000
+1900  0.13444
+2000  0.11111
+2125  0.08507
+2250  0.06250
+2375  0.04340
+2400  0.04000
+2450  0.03361
+2500  0.02778
+2625  0.01562
+2750  0.00694
+2875  0.00174
+3000  0.00000
+```
+
+Target line from `3.39872 @1800`:
+
+```text
+1800 3.39872
+1900 3.38883
+2000 3.37893
+2125 3.36657
+2250 3.35420
+2375 3.34183
+2400 3.33936
+2450 3.33441
+2500 3.32947
+2625 3.31710
+2750 3.30473
+2875 3.29237
+3000 3.28000
+```
+
+Lanes:
+
+```text
+floor006:              coldp2, LocoProp off at 1800, LR_MIN_ETA=0.06
+floor008:              coldp2, LocoProp off at 1800, LR_MIN_ETA=0.08
+hold010-2000-2400:     coldp2, LocoProp off at 1800, bump 2000:2125:2400:2600:2.50
+hold008-2000-2500:     coldp2, LocoProp off at 1800, bump 2000:2125:2500:2750:2.88
+```
+
+Gate:
+
+```text
+2125 <= 3.362
+2250 <= 3.351
+2375 <= 3.337
+2500 <= 3.326
+2625 <= 3.313
+```
+
+Read before launch:
+
+- This is intentionally not another `sample_tokens` run. `2048` matched `1024`
+  to noise through `1800`, so sample size is not the current bottleneck.
+- This is intentionally not a PR287 rewarm. Prior hard rewarm probes hurt when
+  they restored too much LR right after the cold drop.
+- The script uses `tools/run_track3_locom_kdiag_probe.sh`, not the generic
+  launcher, so the true-post K10 diagnostics and `TRACK3_LOCOM_TRUE_POST_GRAD=1`
+  are preserved.
+
 ## Latest Modal Run
 
 ### `track3_kdiag_post-true-k10-lr2e4-active-poscos-coldp2-sample2048_modal`
