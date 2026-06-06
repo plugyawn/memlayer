@@ -13,6 +13,39 @@ is explicitly named here.
 - Do not repeat: plain oldtail `h3075,p1.10` suffixes from 2400. They reproduce
   the same slope and do not create a sub-3.28 path.
 
+## Mechanism Synthesis
+
+See `.opencode/locoprop_m_tick_synthesis_20260606.md`.
+
+Current read:
+
+- LocoProp-M only became externally useful on the true-post local target:
+  `target_space=post`, `true_post_grad=1`.
+- K=5-10 at `inner_lr ~= 2e-4` is locally sane; post-approx/preactivation K10
+  are ruled out as unstable or wrong-target variants.
+- The working correction is small and usually uncapped: roughly `1-3%` median
+  effective correction/base-step before `2000` in the coldp2 line.
+- `sample_tokens=2048` matched `1024`; do not spend more on sample count as a
+  primary lever.
+
+Next K-isolation screen, prepared but not launched:
+
+```text
+tools/launch_modal_track3_locom_k5_k10_coldp2_array.sh
+```
+
+Lanes:
+
+```text
+k10-lr2e4 control
+k8-lr2e4
+k5-lr2e4
+k5-lr3e4
+```
+
+Gate: if K8 or K5-lr3e4 is within `<=0.003` of K10 at `1800`, promote the
+cheaper local-solve shape.
+
 ## Next Runnable Probe
 
 ### `tools/launch_modal_track3_coldp2_tail_floor_array.sh`
