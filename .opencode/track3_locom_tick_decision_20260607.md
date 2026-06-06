@@ -7,6 +7,12 @@ step-1600 checkpoint:
 /root/.cache/track3_checkpoints/track3_cd500red_softmerge_pr2872000_p110_ckpt1600_seed3710_step1600.pt
 ```
 
+Strict evidence audit:
+
+```text
+.opencode/track3_locom_tick_evidence_audit_20260607.md
+```
+
 ## Current Read
 
 `1900->2000` was still a good window. Do not treat `1900` as the failure
