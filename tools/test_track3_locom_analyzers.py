@@ -147,6 +147,25 @@ def test_window_health_slope_break(tmp: Path) -> None:
     _assert_contains(out, "first cold window `2100->2125`")
 
 
+def test_lr_slope_join_reads_power_tail(tmp: Path) -> None:
+    _log(
+        tmp / "track3_survival_noloco_from_k5_1800_seed3710.log",
+        vals={1800: 3.39867, 1900: 3.38474, 2000: 3.37334, 2100: 3.36420, 2125: 3.36213},
+        enabled=False,
+    )
+    out = _run(
+        [
+            "tools/analyze_track3_locom_lr_slope.py",
+            str(tmp),
+            "--steps",
+            "1800,1900,2000,2100,2125",
+        ]
+    )
+    _assert_contains(out, "0.111111")
+    _assert_contains(out, "2000->2100")
+    _assert_contains(out, "first cold `2100->2125`")
+
+
 def test_mechanism_k5_read(tmp: Path) -> None:
     path = tmp / "track3_kdepth_k5-lr2e4_seed3710.log"
     lines = [_header(enabled=True)]
@@ -187,6 +206,7 @@ def main() -> int:
         test_suffix_scheduler_only,
         test_suffix_insufficient_data,
         test_window_health_slope_break,
+        test_lr_slope_join_reads_power_tail,
         test_mechanism_k5_read,
         test_prefix_manifest_checker,
     ]

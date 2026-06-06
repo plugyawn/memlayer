@@ -52,9 +52,39 @@ This is now codified by:
 
 ```text
 tools/analyze_track3_locom_window_health.py
+tools/analyze_track3_locom_lr_slope.py
 .opencode/track3_locom_window_health_1800_suffix_20260607.md
 .opencode/track3_locom_window_health_kdepth_20260607.md
+.opencode/track3_locom_lr_slope_1800_suffix_20260607.md
 ```
+
+The LR/slope join makes the post-2000 failure more concrete. In the exact
+no-correction replay from the K5 step-1800 checkpoint:
+
+```text
+step 1800 lr_frac 0.160000
+step 1900 lr_frac 0.134444
+step 2000 lr_frac 0.111111
+step 2100 lr_frac 0.090000
+step 2125 lr_frac 0.085069
+```
+
+Window read:
+
+```text
+1800->1900: 1.41x rolling target slope, LR drop 16.0%, healthy
+1900->2000: 1.20x rolling target slope, LR drop 17.4%, healthy
+2000->2100: 0.98x rolling target slope, LR drop 19.0%, marginal
+2100->2125: 0.89x rolling target slope, LR drop  5.5%, cold
+```
+
+So the "1900->2000 was good" correction is right. The 1900 window still
+absorbs a substantial LR drop and remains above target slope. The first
+actionable failure is the next transition, where LR falls from `0.111111` to
+`0.090000` and the slope drops just below the future required average. By
+`2100->2125`, the curve is cold even though the extra LR drop is small, which
+suggests state/velocity has already decayed; a fix should preserve the
+`1900->2000` regime across `2000->2250`, not wait until the endpoint.
 
 The clean suffix replay from the exact K5 step-1800 checkpoint says:
 
