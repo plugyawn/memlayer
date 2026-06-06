@@ -320,3 +320,92 @@ This uses true post-gradient, requires local loss decrease, and keeps only
 nonnegative-cosine corrections. If it fails by `1800`, the remaining useful
 effect is very likely a capped perturbation/scheduler interaction, not a clean
 multi-step local optimizer.
+
+## True-Post Scale Ladder - 2026-06-06
+
+Artifact directory:
+
+```text
+.opencode/current_track3_ledger_20260606_logs/kdiag_scale_035786/
+```
+
+Profiles:
+
+```text
+post-true-k10-lr1e4-alpha0
+post-true-k10-lr2e4-alpha0
+post-true-k10-lr3e4-alpha0
+post-true-k10-lr1e3-alpha0
+```
+
+K=10 summary:
+
+```text
+inner_lr=1e-4:
+  median loss/loss0 9.044e-01, corr_norm 4.069e-03,
+  bad_loss 0/12, nonfinite 0, pos-cos 8/12
+
+inner_lr=2e-4:
+  median loss/loss0 8.327e-01, corr_norm 6.757e-03,
+  bad_loss 0/12, nonfinite 0, pos-cos 9/12
+
+inner_lr=3e-4:
+  median loss/loss0 8.297e-01, corr_norm 9.128e-03,
+  bad_loss 1/12, nonfinite 0, pos-cos 9/12
+
+inner_lr=1e-3:
+  median loss/loss0 7.789e-01, corr_norm 2.842e-02,
+  bad_loss 3/12, nonfinite 0, pos-cos 11/12
+```
+
+Read:
+
+- The true-post local solve is not dead. Scaled correctly, it reduces the local
+  objective by `~10-17%` median without nonfinite corrections.
+- `2e-4` is the clean active candidate: useful local reduction, correction norm
+  inside the desired `1e-3..1e-2` band, and no bad-loss layers.
+- `3e-4` is the edge of the clean region. It is similar median local reduction
+  but already has one bad-loss layer.
+- `1e-3` is too hot for all-layer active use. It reduces median local loss more,
+  but correction norm is above the target band and bad-loss layers rise to
+  `3/12`; use it only for layer-restricted or stronger-gated tests.
+
+Active screen launched from the same pod:
+
+```text
+track3_kdiag_post-true-k10-lr2e4-active-poscos_095921
+```
+
+Settings:
+
+```text
+K=10
+inner_lr=2e-4
+true_post_grad=1
+require_loss_decrease=1
+min_cos_desc=0.0
+train_steps=1800
+```
+
+Result:
+
+```text
+1600: 3.48241
+1625: 3.45139
+1650: 3.43530
+1675: 3.42536
+1700: 3.41809
+1725: 3.41258
+1750: 3.40855
+1775: 3.40573
+1800: 3.40452
+```
+
+Read:
+
+- The active `2e-4` true-post local solve beat the previously useful
+  `B1 softmerge1600` reference by `0.01689` at `1800` and `0.02490` at `1750`.
+- It beat the weak `3.46252 @1800` family by `0.05800`.
+- Applied corrections were not cap-limited (`scale=1.000e+00` on logged applied
+  layers), so this is evidence for a real local-solve update rather than another
+  capped perturbation.

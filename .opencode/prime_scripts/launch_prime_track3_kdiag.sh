@@ -53,25 +53,35 @@ import shlex
 import sys
 
 target = sys.argv[1].strip()
-host = target
+parts = shlex.split(target)
+if parts and parts[0] == "ssh":
+    parts = parts[1:]
+
+host = ""
 port = ""
-if target.startswith("ssh "):
-    parts = shlex.split(target)
-    host = ""
-    i = 1
-    while i < len(parts):
-        part = parts[i]
-        if part in ("-p", "-P") and i + 1 < len(parts):
-            port = parts[i + 1]
-            i += 2
-            continue
-        if part.startswith("-p") and len(part) > 2:
-            port = part[2:]
-            i += 1
-            continue
-        if not part.startswith("-") and not host:
-            host = part
+if not parts:
+    raise SystemExit("empty ssh target")
+
+i = 0
+while i < len(parts):
+    part = parts[i]
+    if part in ("-p", "-P") and i + 1 < len(parts):
+        port = parts[i + 1]
+        i += 2
+        continue
+    if part.startswith("-p") and len(part) > 2:
+        port = part[2:]
         i += 1
+        continue
+    if part.startswith("-"):
+        i += 1
+        continue
+    if not host:
+        host = part
+    i += 1
+
+if not host:
+    raise SystemExit(f"could not parse ssh host from: {target!r}")
 print(host, port)
 PY
 }

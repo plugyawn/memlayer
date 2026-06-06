@@ -1,0 +1,20 @@
+| profile | step | k | layers | med loss/loss0 | med corr_norm | med cos | bad loss | nonfinite | bad cos |
+| --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: |
+| post-true-k10-lr2e4-active-poscos_095921 | 1600 | 1 | 12 | 9.779e-01 | 9.401e-04 | 0.003 | 0 | 0 | 4 |
+| post-true-k10-lr2e4-active-poscos_095921 | 1600 | 2 | 12 | 9.576e-01 | 1.845e-03 | 0.003 | 0 | 0 | 4 |
+| post-true-k10-lr2e4-active-poscos_095921 | 1600 | 4 | 12 | 9.206e-01 | 3.533e-03 | 0.004 | 0 | 0 | 4 |
+| post-true-k10-lr2e4-active-poscos_095921 | 1600 | 5 | 12 | 9.038e-01 | 4.123e-03 | 0.005 | 0 | 0 | 4 |
+| post-true-k10-lr2e4-active-poscos_095921 | 1600 | 8 | 12 | 8.589e-01 | 5.749e-03 | 0.005 | 0 | 0 | 3 |
+| post-true-k10-lr2e4-active-poscos_095921 | 1600 | 10 | 12 | 8.327e-01 | 6.756e-03 | 0.006 | 0 | 0 | 3 |
+| post-true-k10-lr2e4-active-poscos_095921 | 1625 | 1 | 12 | 9.790e-01 | 7.120e-04 | 0.009 | 0 | 0 | 2 |
+| post-true-k10-lr2e4-active-poscos_095921 | 1625 | 2 | 12 | 9.605e-01 | 1.352e-03 | 0.009 | 0 | 0 | 2 |
+| post-true-k10-lr2e4-active-poscos_095921 | 1625 | 4 | 12 | 9.297e-01 | 2.530e-03 | 0.009 | 0 | 0 | 2 |
+| post-true-k10-lr2e4-active-poscos_095921 | 1625 | 5 | 12 | 9.157e-01 | 3.090e-03 | 0.009 | 0 | 0 | 2 |
+| post-true-k10-lr2e4-active-poscos_095921 | 1625 | 8 | 12 | 8.777e-01 | 4.690e-03 | 0.009 | 0 | 0 | 2 |
+| post-true-k10-lr2e4-active-poscos_095921 | 1625 | 10 | 12 | 8.550e-01 | 5.699e-03 | 0.009 | 0 | 0 | 2 |
+| post-true-k10-lr2e4-active-poscos_095921 | 1750 | 1 | 12 | 9.808e-01 | 8.506e-04 | 0.012 | 0 | 0 | 4 |
+| post-true-k10-lr2e4-active-poscos_095921 | 1750 | 2 | 12 | 9.627e-01 | 1.632e-03 | 0.013 | 0 | 0 | 3 |
+| post-true-k10-lr2e4-active-poscos_095921 | 1750 | 4 | 12 | 9.298e-01 | 3.036e-03 | 0.013 | 0 | 0 | 3 |
+| post-true-k10-lr2e4-active-poscos_095921 | 1750 | 5 | 12 | 9.146e-01 | 3.697e-03 | 0.014 | 0 | 0 | 3 |
+| post-true-k10-lr2e4-active-poscos_095921 | 1750 | 8 | 12 | 8.736e-01 | 5.563e-03 | 0.013 | 0 | 0 | 2 |
+| post-true-k10-lr2e4-active-poscos_095921 | 1750 | 10 | 12 | 8.493e-01 | 6.726e-03 | 0.013 | 0 | 0 | 2 |

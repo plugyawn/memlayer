@@ -823,3 +823,75 @@ Rationale:
 - The active profile requires local loss decrease and nonnegative cosine so it
   tests "faithful local correction" rather than another capped random-ish
   perturbation.
+
+### True-Post K10 Scale Ladder: Prime `0357862775354f9b89186256e498af27`
+
+Status: alpha-zero scale ladder completed; artifacts pulled. The same pod is
+currently running one active `2e-4` validation screen.
+
+Artifact directory:
+
+```text
+.opencode/current_track3_ledger_20260606_logs/kdiag_scale_035786/
+```
+
+K=10 scale read:
+
+```text
+1e-4: median loss/loss0 9.044e-01, corr_norm 4.069e-03,
+      bad_loss 0/12, nonfinite 0
+2e-4: median loss/loss0 8.327e-01, corr_norm 6.757e-03,
+      bad_loss 0/12, nonfinite 0
+3e-4: median loss/loss0 8.297e-01, corr_norm 9.128e-03,
+      bad_loss 1/12, nonfinite 0
+1e-3: median loss/loss0 7.789e-01, corr_norm 2.842e-02,
+      bad_loss 3/12, nonfinite 0
+```
+
+Read:
+
+- The corrected true-post local optimizer is locally meaningful once scaled up.
+  This is the first K10 shape here that lowers the local objective without
+  turning into nonfinite/cap-only noise.
+- `2e-4` is the cleanest active candidate. `3e-4` is already edge-case; `1e-3`
+  is too hot for all-layer use even though its median local objective improves
+  more.
+- Active screen launched:
+
+```text
+track3_kdiag_post-true-k10-lr2e4-active-poscos_095921
+```
+
+Active result:
+
+```text
+1600: 3.48241
+1625: 3.45139
+1650: 3.43530
+1675: 3.42536
+1700: 3.41809
+1725: 3.41258
+1750: 3.40855
+1775: 3.40573
+1800: 3.40452
+```
+
+Comparison:
+
+- The old weak `pr287soft2500` family was `3.46252 @1800`; this active
+  true-post run is better by `0.05800`.
+- The old `B1 softmerge1600` family was `3.42141 @1800`; this active true-post
+  run is better by `0.01689`.
+- At `1750`, this active true-post run is `3.40855`, while the old
+  `B1 softmerge1600` family was `3.43345`, a `0.02490` improvement.
+
+Read:
+
+- This is the first evidence that a cleaned, scaled, true-post LocoProp-M local
+  solve can translate to validation loss, not just improve alpha-zero
+  diagnostics.
+- Corrections were not cap-only: at `1600` and `1750`, logged `scale=1.000e+00`
+  for the applied layers. The effect is coming from the actual local correction
+  after positive-cos/loss-decrease gating.
+- The run is still very slow (`~4595ms/step` on the Prime H100 after resume), so
+  this is an algorithmic screen, not a speedrun candidate yet.

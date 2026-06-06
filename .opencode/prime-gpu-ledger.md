@@ -242,3 +242,19 @@
     - artifacts pulled to `.opencode/current_track3_ledger_20260606_logs/kdiag_bb96/`.
     - current post-approx and preactivation K>1 paths blew up; true post-gradient was stable but tiny.
     - pod terminated with `--yes`; `prime pods list` returned zero active pods.
+
+- pod_id: 0357862775354f9b89186256e498af27
+  name: oc-main-track3-kdiag-scale-20260606-0927
+  owner: current-agent
+  purpose: Track 3 LocoProp-M K-ladder diagnostics profiles=post-true-k10-lr1e4-alpha0,post-true-k10-lr2e4-alpha0,post-true-k10-lr3e4-alpha0,post-true-k10-lr1e3-alpha0
+  gpu: H100 80GB (Spot) SXM5 datacrunch $1.14
+  price_per_hour: selected by availability id ec854a
+  created_at: 2026-06-06T09:28:22Z
+  expected_stop: after K-ladder diagnostics, setup failure, or artifact pull
+  status: terminated_after_true_post_scale_ladder_and_active_screen_artifacts_pulled_prime_active_pods_0
+  termination_policy: terminate after diagnostics/artifact pull unless user asks to keep alive
+  notes:
+    - 2026-06-06: K-ladder completed and artifacts were pulled to `.opencode/current_track3_ledger_20260606_logs/kdiag_scale_035786/`.
+    - 2026-06-06: launched active screen `track3_kdiag_post-true-k10-lr2e4-active-poscos_095921` from the same step1600 checkpoint, PID 6230, to test whether the clean `2e-4` local diagnostic translates to validation loss by step 1800.
+    - Active screen completed: `3.48241 @1600`, `3.45139 @1625`, `3.40855 @1750`, `3.40452 @1800`; artifacts pulled to the same directory.
+    - Pod terminated successfully after mapping `PRIME_KEY` to `PRIME_API_KEY`; `prime pods list` reported zero active pods.
