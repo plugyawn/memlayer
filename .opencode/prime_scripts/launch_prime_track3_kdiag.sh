@@ -14,6 +14,7 @@ min_balance="${PRIME_MIN_BALANCE_USD:-4.00}"
 local_ckpt="${LOCAL_CKPT:-/Users/progyan/speedrun/tmp/modal_ckpt_transfer/track3_cd500red_softmerge_pr2872000_p110_ckpt1600_seed3710_step1600.pt}"
 remote_ckpt="${remote_ckpt_dir}/track3_cd500red_softmerge_pr2872000_p110_ckpt1600_seed3710_step1600.pt"
 profiles_csv="${TRACK3_KDIAG_PROFILES:-post-true-k10-lr1e4-alpha0,post-true-k10-lr2e4-alpha0,post-true-k10-lr3e4-alpha0,post-true-k10-lr1e3-alpha0}"
+gpu_socket_filter="${PRIME_GPU_SOCKET:-SXM}"
 
 shell_quote() {
   printf "%q" "$1"
@@ -150,17 +151,18 @@ availability_json="$(prime --plain availability list --gpu-type H100_80GB --gpu-
 availability_id="$(
   python3 -c '
 import json, sys
+socket_filter = sys.argv[1].upper()
 rows = json.load(sys.stdin).get("gpu_resources", [])
 rows = [
     r for r in rows
     if r.get("stock_status") == "Available"
-    and str(r.get("socket", "")).upper().startswith("SXM")
+    and (not socket_filter or str(r.get("socket", "")).upper().startswith(socket_filter))
 ]
 if not rows:
-    raise SystemExit("no available SXM H100 rows")
+    raise SystemExit("no available H100 rows matching socket filter")
 rows.sort(key=lambda r: (float(r.get("price_value", 1e9)), not bool(r.get("is_spot"))))
 print(rows[0]["id"])
-' <<<"${availability_json}"
+' "${gpu_socket_filter}" <<<"${availability_json}"
 )"
 availability_desc="$(
   python3 -c '
@@ -289,7 +291,7 @@ set -euo pipefail
 
 repo=/root/wr-track3-locom-20260606
 logdir=/root/prime_track3_kdiag_logs
-profiles_csv=\"${TRACK3_KDIAG_PROFILES:-post-approx-k10-alpha0,pre-k10-alpha0,post-true-k10-alpha0}\"
+profiles_csv="${TRACK3_KDIAG_PROFILES:-post-approx-k10-alpha0,pre-k10-alpha0,post-true-k10-alpha0}"
 
 export DEBIAN_FRONTEND=noninteractive
 export PYTHONUNBUFFERED=1
@@ -298,8 +300,8 @@ export XDG_CACHE_HOME=/root/.cache/xdg
 export TRITON_CACHE_DIR=/root/.cache/triton
 export TORCHINDUCTOR_CACHE_DIR=/root/.cache/torchinductor-track3-kdiag
 
-mkdir -p \"${logdir}\"
-cd \"${repo}\"
+mkdir -p "${logdir}"
+cd "${repo}"
 
 if [[ ! -x /root/venv/bin/python ]]; then
   apt-get update
@@ -312,22 +314,22 @@ python -m pip install -q --upgrade pip
 python -m pip install -q --index-url https://download.pytorch.org/whl/cu126 torch==2.7.1
 python -m pip install -q numpy tqdm huggingface-hub typing-extensions
 
-python data/cached_fineweb10B.py 20 > \"${logdir}/cache_fineweb.log\" 2>&1
-nvidia-smi --query-gpu=name,memory.total --format=csv,noheader > \"${logdir}/gpu.txt\" 2>&1 || true
+python data/cached_fineweb10B.py 20 > "${logdir}/cache_fineweb.log" 2>&1
+nvidia-smi --query-gpu=name,memory.total --format=csv,noheader > "${logdir}/gpu.txt" 2>&1 || true
 
-IFS=',' read -r -a profiles <<< \"${profiles_csv}\"
-for profile in \"${profiles[@]}\"; do
-  profile=\"$(echo \"${profile}\" | xargs)\"
-  [[ -z \"${profile}\" ]] && continue
-  label=\"track3_kdiag_${profile}_$(date -u +%H%M%S)\"
-  echo \"profile_start ${profile} label=${label} $(date -u +%Y-%m-%dT%H:%M:%SZ)\" | tee -a \"${logdir}/sequence.status\"
-  TRACK3_KDIAG_PROFILE=\"${profile}\" \
-  TRACK3_KDIAG_LABEL=\"${label}\" \
-  TRACK3_KDIAG_LOG_DIR=\"${logdir}\" \
+IFS=',' read -r -a profiles <<< "${profiles_csv}"
+for profile in "${profiles[@]}"; do
+  profile="$(echo "${profile}" | xargs)"
+  [[ -z "${profile}" ]] && continue
+  label="track3_kdiag_${profile}_$(date -u +%H%M%S)"
+  echo "profile_start ${profile} label=${label} $(date -u +%Y-%m-%dT%H:%M:%SZ)" | tee -a "${logdir}/sequence.status"
+  TRACK3_KDIAG_PROFILE="${profile}" \
+  TRACK3_KDIAG_LABEL="${label}" \
+  TRACK3_KDIAG_LOG_DIR="${logdir}" \
   bash tools/run_track3_locom_kdiag_probe.sh
-  echo \"profile_done ${profile} label=${label} $(date -u +%Y-%m-%dT%H:%M:%SZ)\" | tee -a \"${logdir}/sequence.status\"
+  echo "profile_done ${profile} label=${label} $(date -u +%Y-%m-%dT%H:%M:%SZ)" | tee -a "${logdir}/sequence.status"
 done
-touch \"${logdir}/DONE\"
+touch "${logdir}/DONE"
 REMOTE_SCRIPT
 ssh_remote "${ssh_target}" "chmod +x '${remote_logdir}/run_kdiag_sequence.sh'"
 ssh_remote "${ssh_target}" "${remote_run_env} nohup bash '${remote_logdir}/run_kdiag_sequence.sh' > '${remote_logdir}/run_kdiag_sequence.nohup.log' 2>&1 & echo \$! > '${remote_logdir}/run_kdiag_sequence.pid'"

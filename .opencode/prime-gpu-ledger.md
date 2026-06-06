@@ -277,3 +277,24 @@
     - Early result under the proper 3000 schedule: `3.48241 @1600`, `3.49295 @1625`, `3.49193 @1650`; stopped because it was far worse than the short 1800 screen (`3.45139 @1625`, `3.43530 @1650`).
     - Diagnostic read: correction norms remained small and uncapped, but the 3000 schedule's `base_step` was about `1.29` at 1600, so the same LocoProp correction was too small relative to the hot Muon step.
     - Artifacts pulled to `.opencode/current_track3_ledger_20260606_logs/truepost3000_848672/`; pod terminated successfully and `prime pods list` returned zero active pods.
+
+- pod_id: c57f71bf40964f2ab874120ddd3140cd
+  name: oc-main-track3-normtarget-sxm-20260606-1106
+  owner: current-agent
+  purpose: Track 3 LocoProp-M relative-scale diagnostics on SXM H100, starting with norm002 and reusing the warm pod for norm005 if needed
+  gpu: H100 80GB SXM5 datacrunch $3.25
+  price_per_hour: selected by availability id 90f5c3
+  created_at: 2026-06-06T11:06:38Z
+  expected_stop: after norm-target early gates answer the scale question, setup failure, or artifact pull
+  status: launched_by_launch_prime_track3_kdiag.sh_head_b3e1d3f
+  termination_policy: keep warm for the immediate norm005 follow-up when norm002 misses; terminate after the queued ladder/artifact pull unless another concrete follow-up is active
+  notes:
+    - 2026-06-06: user corrected lifecycle policy; keep this owned SXM pod warm between adjacent runs when repo/cache/checkpoint/compile reuse saves time.
+    - norm002 (`TRACK3_LOCOM_NORM_TARGET=0.02`) launched as `track3_kdiag_post-true-k10-lr2e4-active-poscos-norm002_111634`.
+    - norm002 missed the early gate: `3.49340 @1625`, matching the failed raw 3000 schedule and far behind the short 1800 screen.
+    - stopped only the training process, not the pod, and launched norm005 (`TRACK3_LOCOM_NORM_TARGET=0.05`) as `track3_kdiag_post-true-k10-lr2e4-active-poscos-norm005_112249`.
+    - norm005 also missed the early gate: `3.49298 @1625`; correction/base normalization alone did not recover the short-screen hit under the hot 3000 schedule.
+    - launched same-primitive short-schedule control on the warm pod as `track3_kdiag_post-true-k10-lr2e4-active-poscos_112755`; it reproduced the hit at `3.45139 @1625`.
+    - short-schedule control completed: `3.45139 @1625`, `3.43530 @1650`, `3.40855 @1750`, `3.40573 @1775`, `3.40453 @1800`.
+    - launched cold-power 3000 suffix `track3_kdiag_post-true-k10-lr2e4-active-poscos-coldp2_115017` with `TRACK3_COOLDOWN_FRAC=1.0`, `TRACK3_LR_SCHEDULE=power`, `TRACK3_LR_POWER=2.0`, no norm target, to reduce the base update itself while keeping nonzero LR past 1800.
+    - coldp2 first gate matched the short schedule while staying in a 3000-step run: `3.45135 @1625`; logged base step was `~0.42` at 1600/1625 versus hot 3000 `~1.29` and short control `~0.31/0.27`.

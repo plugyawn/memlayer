@@ -507,3 +507,90 @@ post-true-k10-lr2e4-active-poscos-norm005
 
 These preserve the locally sane true-post `K=10`, `inner_lr=2e-4` direction and
 only change the relative size of the state-decoupled correction.
+
+## 2026-06-06 SXM warm-pod norm-target check
+
+Pod: `c57f71bf40964f2ab874120ddd3140cd`, H100 80GB SXM5.
+
+The norm-target hypothesis was tested on the same pod/checkpoint/code path:
+
+```text
+checkpoint: track3_cd500red_softmerge_pr2872000_p110_ckpt1600_seed3710_step1600.pt
+K=10
+inner_lr=2e-4
+true_post_grad=1
+require_loss_decrease=1
+min_cos_desc=0.0
+```
+
+Results at the first post-resume validation:
+
+```text
+3000 schedule, norm_target=0.02: 3.49340 @1625
+3000 schedule, norm_target=0.05: 3.49298 @1625
+1800 short schedule control:     3.45139 @1625
+```
+
+The 1800 short-schedule control completed on the same SXM pod:
+
+```text
+1600: 3.48241
+1625: 3.45139
+1650: 3.43530
+1675: 3.42535
+1700: 3.41808
+1725: 3.41258
+1750: 3.40855
+1775: 3.40573
+1800: 3.40453
+```
+
+Read:
+
+- The short-screen LocoProp hit reproduced exactly on the SXM pod.
+- Forcing the same local correction to `2%` or `5%` of the Muon base step did
+  not recover the hit under the hot 3000-step schedule.
+- Therefore the effect is not just "make the correction a certain fraction of
+  the current Muon update". The schedule/temperature changes the actual
+  training dynamics: by step 1600 the 1800 schedule has a much smaller logged
+  base Muon step (`~0.308` at 1600, `~0.269` at 1625), while the 3000 schedule
+  is still around `~1.29`/`~1.27`.
+- Next credible test should change the schedule/base-update temperature while
+  preserving the true-post K10 primitive, rather than increasing the LocoProp
+  norm target again.
+
+Launched next:
+
+```text
+label=track3_kdiag_post-true-k10-lr2e4-active-poscos-coldp2_115017
+TRACK3_TRAIN_STEPS=3000
+TRACK3_COOLDOWN_FRAC=1.0
+TRACK3_LR_SCHEDULE=power
+TRACK3_LR_POWER=2.0
+TRACK3_LOCOM_NORM_TARGET=0.0
+TRACK3_LOCOM_ACTIVE_WINDOWS=0:3000
+TRACK3_LOCOM_END_STEP=3000
+```
+
+This tests whether making the base Muon update cold enough, instead of scaling
+the LocoProp correction up, is the actual ingredient behind the short-screen
+gain.
+
+First coldp2 gate:
+
+```text
+1600: 3.48241
+1625: 3.45135
+```
+
+This matches the 1800 short-schedule control at the first gate (`3.45139`) while
+remaining a 3000-step run. The logged base step is intermediate:
+
+```text
+hot 3000 base_step @1600/1625:    ~1.29 / ~1.27
+short 1800 base_step @1600/1625:  ~0.31 / ~0.27
+coldp2 3000 base_step @1600/1625: ~0.42 / ~0.41
+```
+
+So the live hypothesis is now schedule/base-update temperature, not simply
+LocoProp correction/base normalization.
