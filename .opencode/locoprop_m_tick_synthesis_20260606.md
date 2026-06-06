@@ -39,6 +39,44 @@ The name `WR_LOCOM_LAYERS=all` means all MLP layers, not all model surfaces.
 Older V/O/QK/MLP surface screens were right-feature/LPA/soft-polar probes, not
 this sampled true-post LocoProp-M correction.
 
+## Untested Surface: MLP c_proj
+
+`c_proj` is feasible on an 80GB H100 if it stays sampled and layer-sequential.
+It is not likely to OOM at `sample_tokens=1024`: the main sampled tensors are
+roughly `1024 x 3072` BF16 for `post` and `1024 x 768` BF16 for the output
+target/gradient, plus a few `3072 x 768` local FP32 matrices. That is tens of
+MiB per active layer, not multiple GiB, as long as we do not materialize all
+layers' local solve temporaries at once.
+
+The blocker is optimizer geometry, not memory:
+
+```text
+c_fc:
+  local map: x -> relu(x W1.T)^2
+  feature dim: 768
+  target currently captured: post - gamma * dpre
+
+c_proj:
+  local map: post @ W2 -> mlp_out
+  feature dim: 3072
+  target needed: mlp_out - gamma * grad_output
+```
+
+Risks:
+
+```text
+post features are sparse/heavy-tailed;
+c_proj directly changes residual-stream MLP output;
+c_proj is zero-initialized in this codebase;
+baseline gives c_proj a 2x per-matrix LR multiplier;
+current LocoProp-M capture stores dpre for c_fc, not grad_output for c_proj;
+current apply path skips odd MLP-bank indices, which are c_proj.
+```
+
+If tested, start with diagnostic-only `c_proj` K ladders before applying
+anything. A first active probe should use a small layer subset, hard cap
+`0.05-0.10`, and separate logs from `c_fc`.
+
 ## What Failed
 
 The old post-approx path was not "more LocoProp." It was the wrong local target
