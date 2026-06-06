@@ -1,0 +1,20 @@
+| profile | step | k | med loss/loss0 | med corr_norm | bad loss | nonfinite | pass local gate |
+| --- | ---: | ---: | ---: | ---: | ---: | ---: | --- |
+| post-approx-k10-alpha0 | 1600 | 1 | 9.133e-01 | 3.492e-02 | 4 | 0 | no |
+| post-approx-k10-alpha0 | 1600 | 2 | 4.950e+00 | 6.107e-02 | 10 | 0 | no |
+| post-approx-k10-alpha0 | 1600 | 4 | 2.132e+03 | 1.030e+00 | 10 | 0 | no |
+| post-approx-k10-alpha0 | 1600 | 5 | 2.494e+04 | 3.441e+00 | 10 | 0 | no |
+| post-approx-k10-alpha0 | 1600 | 8 | 3.244e+04 | 1.112e+02 | 9 | 2 | no |
+| post-approx-k10-alpha0 | 1600 | 10 | 3.128e+04 | 1.266e+02 | 8 | 4 | no |
+| post-true-k10-alpha0 | 1600 | 1 | 9.989e-01 | 4.724e-05 | 0 | 0 | no |
+| post-true-k10-alpha0 | 1600 | 2 | 9.977e-01 | 9.440e-05 | 0 | 0 | no |
+| post-true-k10-alpha0 | 1600 | 4 | 9.955e-01 | 1.884e-04 | 0 | 0 | no |
+| post-true-k10-alpha0 | 1600 | 5 | 9.945e-01 | 2.354e-04 | 0 | 0 | no |
+| post-true-k10-alpha0 | 1600 | 8 | 9.911e-01 | 3.755e-04 | 0 | 0 | no |
+| post-true-k10-alpha0 | 1600 | 10 | 9.890e-01 | 4.685e-04 | 0 | 0 | no |
+| pre-k10-alpha0 | 1600 | 1 | 2.274e+00 | 7.451e-02 | 11 | 0 | no |
+| pre-k10-alpha0 | 1600 | 2 | 2.698e+01 | 2.444e-01 | 11 | 0 | no |
+| pre-k10-alpha0 | 1600 | 4 | 9.794e+03 | 4.976e+00 | 11 | 0 | no |
+| pre-k10-alpha0 | 1600 | 5 | 1.966e+05 | 2.223e+01 | 11 | 0 | no |
+| pre-k10-alpha0 | 1600 | 8 | 1.609e+09 | 1.966e+03 | 11 | 0 | no |
+| pre-k10-alpha0 | 1600 | 10 | 6.590e+11 | 3.918e+04 | 11 | 0 | no |
