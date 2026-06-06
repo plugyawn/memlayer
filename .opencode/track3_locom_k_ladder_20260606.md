@@ -716,3 +716,28 @@ schedule: same cold power2 3000-step schedule
 LocoProp: active 0:1800 only
 purpose: isolate "switch out LocoProp" from any LR rewarm
 ```
+
+Result through 2125:
+
+```text
+1800: 3.39871
+1900: 3.38477
+2000: 3.37338
+2125: 3.36218
+```
+
+This is loss-identical to coldp2 through 2125. Turning LocoProp off does not
+create a validation bump; it only reduces step time slightly (`~4521ms` versus
+`~4600ms`).
+
+The next schedule probe is a continuous handoff rather than a jump:
+
+```text
+label: track3_kdiag_post-true-k10-lr2e4-coldp2-off1800-switch2000-pr287026hold2400fade3000_153844
+LocoProp: active 0:1800 only
+schedule: cold power2 until 2000, then PR287 h3105,p1.20 * 0.26 held to 2400,
+          fading to 1.0 by 3000
+```
+
+This matches the cold Muon LR at the switch (`~0.995x` at 2000), then warms
+slowly: about `1.02x` cold at 2025, `1.13x` at 2125, and `1.61x` at 2400.
