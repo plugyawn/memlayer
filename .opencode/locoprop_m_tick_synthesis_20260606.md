@@ -52,6 +52,7 @@ not to preemptively change the run at `1900`.
 This is now codified by:
 
 ```text
+.opencode/track3_locom_tick_decision_20260607.md
 tools/analyze_track3_locom_window_health.py
 tools/analyze_track3_locom_lr_slope.py
 .opencode/track3_locom_window_health_1800_suffix_20260607.md

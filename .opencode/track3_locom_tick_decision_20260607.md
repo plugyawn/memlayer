@@ -1,0 +1,171 @@
+# Track 3 LocoProp-M Tick Decision - 2026-06-07
+
+Scope: simple Track 3 Muon + LocoProp-M from the known seed `3710`
+step-1600 checkpoint:
+
+```text
+/root/.cache/track3_checkpoints/track3_cd500red_softmerge_pr2872000_p110_ckpt1600_seed3710_step1600.pt
+```
+
+## Current Read
+
+`1900->2000` was still a good window. Do not treat `1900` as the failure
+point.
+
+The confirmed no-Loco replay after the K5 LocoProp prefix was:
+
+```text
+1800: 3.39867
+1900: 3.38474
+2000: 3.37334
+2100: 3.36420
+2125: 3.36213
+```
+
+Window slopes:
+
+```text
+1800->1900: drop 0.01393 per 100, healthy
+1900->2000: drop 0.01140 per 100, healthy
+2000->2100: drop 0.00914 per 100, marginal
+2100->2125: drop 0.00828 per 100 equivalent, cold
+```
+
+From `3.37334 @2000`, landing at `3.28 @3000` needs:
+
+```text
+required: (3.37334 - 3.28) / 10 = 0.00933 loss per 100 steps
+```
+
+So the `1900->2000` rate is enough. The first actionable slope break is after
+`2000`, not before it.
+
+## Practical Consequence
+
+Treat `1800->2000` as protected trajectory.
+
+The next useful suffix probe should preserve the existing `1900->2000` state
+and try to carry that slope into `2000->2250`. A hard optimizer or LR change at
+`1900` is risky because it can disturb the last confirmed healthy window.
+
+Acceptable intervention timing:
+
+```text
+best:      start at 2000
+acceptable: smooth continuity guard from 1950->2050
+avoid:     hard switch at 1900
+too late:  2400+ rescue-only suffixes
+```
+
+## What Is Already Known
+
+LocoProp-M tick conditions for this line:
+
+```text
+target_space=post
+true_post_grad=1
+K=5 is externally enough through 1800
+inner_lr ~= 2e-4
+require_loss_decrease=1
+min_cos_desc=0.0
+norm_to_base=0
+norm_target=0
+norm_cap=0.20
+surface=c_fc only
+placement=separate parameter displacement, not Muon momentum mutation
+```
+
+Known negatives:
+
+```text
+K8/K10 do not beat K5 externally through 1800
+2048 sample tokens did not move validation versus 1024
+continued post-1800 LocoProp, random, and no-Loco matched through 2125
+normalized 2% post-2000 true-post LocoProp applied real corrections but stayed parity/worse
+late floor/ramp probes after the slope is already cold have not rescued the run
+```
+
+## Open Gates
+
+The remaining useful questions are narrow.
+
+1. Prefix specificity:
+
+```text
+tools/run_track3_locom_prefix_specificity.sh
+```
+
+Purpose: decide whether the 1600->1800 LocoProp prefix is direction-specific,
+generic perturbation, or just schedule/checkpoint state.
+
+2. Layer subset:
+
+```text
+tools/run_track3_locom_layer_subset_probe.sh
+```
+
+Purpose: decide whether the robust local-gain core `7,8,9,10` or
+`6,7,8,9,10` is enough, versus needing the full moving gated c_fc set.
+
+3. Suffix preservation:
+
+```text
+MODE=save2000 tools/run_track3_locom_2000_suffix_probe.sh
+MODE=suffixes tools/run_track3_locom_2000_suffix_probe.sh
+```
+
+Purpose: only after prefix specificity is established, test whether a
+post-2000 schedule can preserve the `1900->2000` rate without adding a bad
+late LocoProp correction.
+
+## Kill And Promotion Rules
+
+Prefix specificity:
+
+```text
+active K5 not near 3.3987 @1800 within 0.003:
+    invalid replay; stop.
+
+active K5 not better than no-Loco by >=0.0015 @1800:
+    LocoProp prefix is not specific enough.
+
+random or orthogonal within 0.0005 of active:
+    prefix effect is not clearly the local-solve descent direction.
+```
+
+Layer subset:
+
+```text
+core_7_10 matches all-layer within 0.0005:
+    promote core; stop paying for full moving layer set.
+
+expanded_6_10 wins or matches when core_7_10 does not:
+    layer 6 is part of the useful core.
+
+all static subsets trail all-layer by >0.0005:
+    moving local gate / distributed state formation matters.
+```
+
+Suffix:
+
+```text
+post-2000 control still follows 1900->2000-like slope through 2250:
+    do not add LocoProp; protect schedule/state.
+
+floor/ramp beats control but LocoProp lanes do not:
+    missing lever is LR/velocity, not local-solve direction.
+
+no suffix lane beats control:
+    this 2000 state has already lost the c_fc-specific leverage.
+```
+
+## Bottom Line
+
+The current best hypothesis is:
+
+```text
+LocoProp-M helps by producing a better prefix trajectory before 1800.
+That trajectory remains good through 1900->2000.
+The failure is preserving slope after 2000, not creating a new LocoProp effect at 1900.
+```
+
