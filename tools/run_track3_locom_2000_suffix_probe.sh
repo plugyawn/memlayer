@@ -10,6 +10,11 @@ set -euo pipefail
 #
 #   MODE=suffixes tools/run_track3_locom_2000_suffix_probe.sh
 #   MODE=all      tools/run_track3_locom_2000_suffix_probe.sh
+#
+# The current mechanism read says 1900->2000 is healthy, then the power tail
+# cools from eta=0.111111 @2000 to eta=0.090000 @2100 and the slope turns cold.
+# The default suffix lanes therefore focus on preserving the step-2000 LR
+# regime and asking whether LocoProp adds anything after that schedule control.
 
 mode="${MODE:-save2000}"
 base_checkpoint="${TRACK3_BASE_CHECKPOINT:-/root/.cache/track3_checkpoints/track3_cd500red_softmerge_pr2872000_p110_ckpt1600_seed3710_step1600.pt}"
@@ -22,7 +27,7 @@ save_prefix="${TRACK3_2000_PREFIX:-track3_locom_good2000}"
 state2000="${TRACK3_2000_CHECKPOINT:-${checkpoint_dir}/${save_prefix}_seed${seed_offset}_step2000.pt}"
 suffix_steps="${TRACK3_SUFFIX_STEPS:-2400}"
 suffix_active_end="${TRACK3_SUFFIX_ACTIVE_END:-2250}"
-suffix_lanes="${TRACK3_SUFFIX_LANES:-control,natural,norm002,random,orthogonal,hold115}"
+suffix_lanes="${TRACK3_SUFFIX_LANES:-control,floor111,floor111_norm002,floor111_random002,ramp111}"
 
 mkdir -p "${log_dir}" "${checkpoint_dir}"
 
@@ -122,9 +127,13 @@ suffix_common() {
 
 run_suffixes() {
   if [[ ! -f "${state2000}" ]]; then
-    echo "missing step-2000 checkpoint: ${state2000}" >&2
-    echo "run MODE=save2000 first, or set TRACK3_2000_CHECKPOINT" >&2
-    exit 1
+    if [[ "${TRACK3_DRY_RUN:-0}" == "1" ]]; then
+      echo "missing_step2000_checkpoint_dry_run_ok ${state2000}" | tee -a "${log_dir}/sequence.status"
+    else
+      echo "missing step-2000 checkpoint: ${state2000}" >&2
+      echo "run MODE=save2000 first, or set TRACK3_2000_CHECKPOINT" >&2
+      exit 1
+    fi
   fi
 
   if want_lane control; then
@@ -186,8 +195,56 @@ run_suffixes() {
       TRACK3_LR_BUMP_WINDOWS="2000:2050:2250:2400:1.15"
   fi
 
+  if want_lane floor111; then
+    suffix_common "floor111" \
+      TRACK3_LOCOM_ENABLED=0 \
+      TRACK3_LOCOM_ACTIVE_WINDOWS="2000:${suffix_active_end}" \
+      TRACK3_LOCOM_END_STEP="${suffix_active_end}" \
+      TRACK3_LR_MIN_ETA=0.1111111111
+  fi
+
+  if want_lane floor111_norm002; then
+    suffix_common "floor111_norm002_k5" \
+      TRACK3_LOCOM_ENABLED=1 \
+      TRACK3_LOCOM_ACTIVE_WINDOWS="2000:${suffix_active_end}" \
+      TRACK3_LOCOM_END_STEP="${suffix_active_end}" \
+      TRACK3_LOCOM_NORM_TARGET=0.02 \
+      TRACK3_LR_MIN_ETA=0.1111111111
+  fi
+
+  if want_lane floor111_random002; then
+    suffix_common "floor111_random002" \
+      TRACK3_LOCOM_ENABLED=1 \
+      TRACK3_LOCOM_LOCAL_OPT=random \
+      TRACK3_LOCOM_RANDOM_CORRECTION=1 \
+      TRACK3_LOCOM_ACTIVE_WINDOWS="2000:${suffix_active_end}" \
+      TRACK3_LOCOM_END_STEP="${suffix_active_end}" \
+      TRACK3_LOCOM_NORM_TARGET=0.02 \
+      TRACK3_LR_MIN_ETA=0.1111111111
+  fi
+
+  if want_lane floor111_orthogonal002; then
+    suffix_common "floor111_orthogonal002" \
+      TRACK3_LOCOM_ENABLED=1 \
+      TRACK3_LOCOM_CORRECTION_MODE=orthogonal \
+      TRACK3_LOCOM_ACTIVE_WINDOWS="2000:${suffix_active_end}" \
+      TRACK3_LOCOM_END_STEP="${suffix_active_end}" \
+      TRACK3_LOCOM_NORM_TARGET=0.02 \
+      TRACK3_LR_MIN_ETA=0.1111111111
+  fi
+
+  if want_lane ramp111; then
+    suffix_common "ramp111" \
+      TRACK3_LOCOM_ENABLED=0 \
+      TRACK3_LOCOM_ACTIVE_WINDOWS="2000:${suffix_active_end}" \
+      TRACK3_LOCOM_END_STEP="${suffix_active_end}" \
+      TRACK3_LR_BUMP_WINDOWS="2000:2250:2250:2400:1.7777777778"
+  fi
+
   local suffix_logs=("${log_dir}"/track3_locom_2000_*.log)
-  if [[ -e "${suffix_logs[0]}" ]]; then
+  if [[ "${TRACK3_DRY_RUN:-0}" == "1" ]]; then
+    echo "suffix_probe_dry_run_no_decision_analysis" | tee -a "${log_dir}/sequence.status"
+  elif [[ -e "${suffix_logs[0]}" ]]; then
     python3 tools/analyze_track3_locom_suffix_probe.py \
       --steps "2000,2025,2050,2075,2100,2125,2200,2250,2325,2400" \
       "${suffix_logs[@]}" | tee "${log_dir}/track3_locom_2000_suffix_decision.md" || true

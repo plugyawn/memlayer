@@ -409,38 +409,43 @@ Default suffix lanes:
 control:
   no LocoProp, cold schedule.
 
-natural:
-  true-post c_fc K5, natural scale/cap, active 2000:2250.
+floor111:
+  no LocoProp; floor power-tail LR at eta=0.111111, the step-2000 LR fraction.
 
-norm002:
-  true-post c_fc K5, forced 2% base-step norm, active 2000:2250.
+floor111_norm002:
+  floor111 plus true-post c_fc K5 correction at 2% base-step norm,
+  active 2000:2250.
 
-random:
-  random same-shape correction at 2% base-step norm.
+floor111_random002:
+  floor111 plus same-shape random correction at 2% base-step norm.
 
-orthogonal:
-  true-post c_fc correction with base-descent component removed, 2% norm.
+ramp111:
+  no LocoProp; smooth multiplier ramp 2000:2250:2250:2400:1.7777777778,
+  approximately preserving the step-2000 LR through 2250 without an abrupt
+  permanent floor.
 
-hold115:
-  no LocoProp; small LR bump 2000:2050:2250:2400:1.15.
+Optional add-ons:
+  floor111_orthogonal002, natural, norm002, random, orthogonal, hold115.
 ```
 
 Gates:
 
 ```text
-If natural/norm002 beat control:
-  late c_fc LocoProp direction still matters; previous K10 norm002 miss may have
-  been depth/scale/path specific.
+If floor111 beats control:
+  the post-2000 failure is primarily LR/velocity starvation.
 
-If random or orthogonal match active:
-  the useful object is not local descent alignment; it is perturbation/state
-  exploration.
+If ramp111 beats control but floor111 does not:
+  the state wants a smooth LR-shape handoff, not a hard floor.
 
-If hold115 beats control but LocoProp lanes do not:
-  the post-2000 failure is mainly scheduler velocity, not the local solve.
+If floor111_norm002 beats floor111 and floor111_random002:
+  late c_fc LocoProp direction still matters once LR starvation is controlled.
+
+If floor111_random002 matches floor111_norm002:
+  late benefit is not LocoProp-direction-specific; it is perturbation/scale
+  under a repaired schedule.
 
 If all lanes match control:
-  the 2000 state has already lost the LocoProp-specific leverage; branch earlier
+  the 2000 state has already lost the recoverable leverage; branch earlier
   around 1800-1900 or test different surfaces.
 ```
 
