@@ -185,6 +185,13 @@ run_suffixes() {
       TRACK3_LOCOM_END_STEP="${suffix_active_end}" \
       TRACK3_LR_BUMP_WINDOWS="2000:2050:2250:2400:1.15"
   fi
+
+  local suffix_logs=("${log_dir}"/track3_locom_2000_*.log)
+  if [[ -e "${suffix_logs[0]}" ]]; then
+    python3 tools/analyze_track3_locom_suffix_probe.py \
+      --steps "2000,2025,2050,2075,2100,2125,2200,2250,2325,2400" \
+      "${suffix_logs[@]}" | tee "${log_dir}/track3_locom_2000_suffix_decision.md" || true
+  fi
 }
 
 case "${mode}" in
