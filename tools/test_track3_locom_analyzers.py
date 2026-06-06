@@ -14,6 +14,28 @@ TOOLS = ROOT / "tools"
 
 
 def _header(*, enabled: bool, local_opt: str = "sgd", random: bool = False, mode: str = "normal", norm_target: float = 0.0, lr_bump: str = "") -> str:
+    return _header_with_lr(
+        enabled=enabled,
+        local_opt=local_opt,
+        random=random,
+        mode=mode,
+        norm_target=norm_target,
+        lr_bump=lr_bump,
+    )
+
+
+def _header_with_lr(
+    *,
+    enabled: bool,
+    local_opt: str = "sgd",
+    random: bool = False,
+    mode: str = "normal",
+    norm_target: float = 0.0,
+    lr_bump: str = "",
+    lr_min_eta: float = 0.0,
+    active_windows: str = "0:1800",
+    end_step: int = 1800,
+) -> str:
     return (
         f"LocoM enabled={enabled} layers=all steps=5 sample_tokens=1024 "
         f"gather=True accum=False micro_sample_tokens=32 aux_capture=False "
@@ -23,10 +45,10 @@ def _header(*, enabled: bool, local_opt: str = "sgd", random: bool = False, mode
         f"rms_eps=1e-5 rms_reset_each_step=False require_loss_decrease=True "
         f"min_cos_desc=0.0 inner_lr=0.0002 target_gamma=1.0 prox=0.1 "
         f"alpha=1.0 norm_to_base=False norm_target={norm_target} norm_cap=0.20 "
-        f"norm_cap_windows= active_windows=0:1800 start_step=0 end_step=1800 "
+        f"norm_cap_windows= active_windows={active_windows} start_step=0 end_step={end_step} "
         f"interval=1 target_loss=3.28 seed_base=0 seed_offset=3710 "
         f"cooldown_frac=1.0 lr_schedule=power lr_power=2.0 "
-        f"lr_schedule_steps=3000 lr_min_eta=0.0 lr_bump_windows={lr_bump} "
+        f"lr_schedule_steps=3000 lr_min_eta={lr_min_eta} lr_bump_windows={lr_bump} "
         f"lr_switch_step=-1 lr_after_switch= lr_after_switch_power=2.0 "
         f"lr_after_switch_steps=0 lr_blend_start=-1 lr_blend_end=-1 "
         f"lr_blend_target= lr_blend_target_power=2.0 lr_blend_target_steps=0 "
@@ -199,6 +221,34 @@ def test_prefix_manifest_checker(tmp: Path) -> None:
     _assert_contains(out, "PASS: all prefix lane headers match the manifest")
 
 
+def test_suffix_manifest_checker_and_lr_preview(tmp: Path) -> None:
+    lanes = [
+        ("control", False, "sgd", False, "normal", 0.0, 0.0, ""),
+        ("floor111", False, "sgd", False, "normal", 0.0, 0.1111111111, ""),
+        ("floor111_norm002_k5", True, "sgd", False, "normal", 0.02, 0.1111111111, ""),
+        ("floor111_random002", True, "random", True, "normal", 0.02, 0.1111111111, ""),
+        ("ramp111", False, "sgd", False, "normal", 0.0, 0.0, "2000:2250:2250:2400:1.7777777778"),
+    ]
+    for lane, enabled, local_opt, random, mode, norm_target, lr_min_eta, lr_bump in lanes:
+        (tmp / f"track3_locom_2000_{lane}_seed3710.log").write_text(
+            _header_with_lr(
+                enabled=enabled,
+                local_opt=local_opt,
+                random=random,
+                mode=mode,
+                norm_target=norm_target,
+                lr_min_eta=lr_min_eta,
+                lr_bump=lr_bump,
+                active_windows="2000:2250",
+                end_step=2250,
+            )
+        )
+    out = _run(["tools/check_track3_locom_suffix_manifest.py", str(tmp)])
+    _assert_contains(out, "PASS: all suffix lane headers match the manifest")
+    _assert_contains(out, "| floor111 | 0.111111")
+    _assert_contains(out, "| ramp111 | 0.111111 | 0.113840")
+
+
 def main() -> int:
     tests = [
         test_prefix_direction_specific,
@@ -209,6 +259,7 @@ def main() -> int:
         test_lr_slope_join_reads_power_tail,
         test_mechanism_k5_read,
         test_prefix_manifest_checker,
+        test_suffix_manifest_checker_and_lr_preview,
     ]
     with tempfile.TemporaryDirectory() as tmpdir:
         base = Path(tmpdir)

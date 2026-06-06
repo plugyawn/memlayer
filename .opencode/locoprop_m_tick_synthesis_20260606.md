@@ -378,6 +378,25 @@ Prepared runner:
 tools/run_track3_locom_2000_suffix_probe.sh
 ```
 
+Preflight manifest / LR preview:
+
+```text
+tools/check_track3_locom_suffix_manifest.py
+.opencode/track3_locom_2000_suffix_manifest_20260607.md
+```
+
+The manifest confirms the intended schedule shapes:
+
+```text
+control:  0.111111 @2000 -> 0.090000 @2100 -> 0.062500 @2250
+floor111: fixed 0.111111 through the preview window
+ramp111:  0.111111 @2000 -> 0.118152 @2125 -> 0.111111 @2250
+```
+
+`ramp111` is not a no-overshoot floor; it is a smooth re-energization lane that
+lands back at the step-2000 LR around 2250 and then decays. `floor111` is the
+strict schedule-starvation control.
+
 It is intentionally two-stage:
 
 ```text

@@ -30,6 +30,8 @@ suffix_active_end="${TRACK3_SUFFIX_ACTIVE_END:-2250}"
 suffix_lanes="${TRACK3_SUFFIX_LANES:-control,floor111,floor111_norm002,floor111_random002,ramp111}"
 
 mkdir -p "${log_dir}" "${checkpoint_dir}"
+python3 tools/check_track3_locom_suffix_manifest.py --manifest-only \
+  | tee "${log_dir}/track3_locom_2000_suffix_manifest.md"
 
 run_direct() {
   local label="$1"
@@ -245,6 +247,8 @@ run_suffixes() {
   if [[ "${TRACK3_DRY_RUN:-0}" == "1" ]]; then
     echo "suffix_probe_dry_run_no_decision_analysis" | tee -a "${log_dir}/sequence.status"
   elif [[ -e "${suffix_logs[0]}" ]]; then
+    python3 tools/check_track3_locom_suffix_manifest.py \
+      "${suffix_logs[@]}" | tee "${log_dir}/track3_locom_2000_suffix_manifest_check.md"
     python3 tools/analyze_track3_locom_suffix_probe.py \
       --steps "2000,2025,2050,2075,2100,2125,2200,2250,2325,2400" \
       "${suffix_logs[@]}" | tee "${log_dir}/track3_locom_2000_suffix_decision.md" || true
