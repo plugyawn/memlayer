@@ -469,6 +469,25 @@ Read:
   scale: the true-post local solve is locally sane, but it only moves validation
   when its magnitude is a meaningful fraction of the active Muon update.
 
+Apply-scale summary, generated with
+`tools/analyze_locom_apply_scale.py`:
+
+```text
+short 1800 active screen:
+step  base_med  eff_frac_med  eff_frac_p90
+1600  0.3080    0.02636       0.06374
+1625  0.2694    0.02115       0.05442
+1750  0.0770    0.05339       0.14470
+
+proper 3000 active screen:
+step  base_med  eff_frac_med  eff_frac_p90
+1600  1.2930    0.006276      0.01517
+1625  1.2700    0.004056      0.01454
+```
+
+So the successful screen lives in the `~0.02-0.05` median correction/base-step
+band, while the failed 3000 run was closer to `~0.004-0.006`.
+
 Updated rule:
 
 - Do not repeat all-layer `inner_lr=2e-4` true-post active under a hot 3000
@@ -476,3 +495,15 @@ Updated rule:
 - The next credible test should set a correction target as a fraction of the
   base Muon step, or run a colder/local window where the correction naturally
   occupies that fraction.
+- Two explicit next profiles now exist:
+
+```text
+post-true-k10-lr2e4-active-poscos-norm002
+  TRACK3_LOCOM_NORM_TARGET=0.02
+
+post-true-k10-lr2e4-active-poscos-norm005
+  TRACK3_LOCOM_NORM_TARGET=0.05
+```
+
+These preserve the locally sane true-post `K=10`, `inner_lr=2e-4` direction and
+only change the relative size of the state-decoupled correction.

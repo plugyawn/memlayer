@@ -121,9 +121,33 @@ case "${profile}" in
     export TRACK3_LOCOM_REQUIRE_LOSS_DECREASE="${TRACK3_LOCOM_REQUIRE_LOSS_DECREASE:-1}"
     export TRACK3_LOCOM_ALPHA="${TRACK3_LOCOM_ALPHA:-1.0}"
     ;;
+  post-true-k10-lr2e4-active-poscos-norm002)
+    export TRACK3_TRAIN_STEPS="${TRACK3_TRAIN_STEPS:-3000}"
+    export TRACK3_LOCOM_STEPS="${TRACK3_LOCOM_STEPS:-10}"
+    export TRACK3_LOCOM_INNER_LR="${TRACK3_LOCOM_INNER_LR:-2e-4}"
+    export TRACK3_LOCOM_TARGET_SPACE="${TRACK3_LOCOM_TARGET_SPACE:-post}"
+    export TRACK3_LOCOM_TRUE_POST_GRAD="${TRACK3_LOCOM_TRUE_POST_GRAD:-1}"
+    export TRACK3_LOCOM_MIN_COS_DESC="${TRACK3_LOCOM_MIN_COS_DESC:-0.0}"
+    export TRACK3_LOCOM_REQUIRE_LOSS_DECREASE="${TRACK3_LOCOM_REQUIRE_LOSS_DECREASE:-1}"
+    export TRACK3_LOCOM_NORM_TARGET="${TRACK3_LOCOM_NORM_TARGET:-0.02}"
+    export TRACK3_LOCOM_NORM_CAP="${TRACK3_LOCOM_NORM_CAP:-0.20}"
+    export TRACK3_LOCOM_ALPHA="${TRACK3_LOCOM_ALPHA:-1.0}"
+    ;;
+  post-true-k10-lr2e4-active-poscos-norm005)
+    export TRACK3_TRAIN_STEPS="${TRACK3_TRAIN_STEPS:-3000}"
+    export TRACK3_LOCOM_STEPS="${TRACK3_LOCOM_STEPS:-10}"
+    export TRACK3_LOCOM_INNER_LR="${TRACK3_LOCOM_INNER_LR:-2e-4}"
+    export TRACK3_LOCOM_TARGET_SPACE="${TRACK3_LOCOM_TARGET_SPACE:-post}"
+    export TRACK3_LOCOM_TRUE_POST_GRAD="${TRACK3_LOCOM_TRUE_POST_GRAD:-1}"
+    export TRACK3_LOCOM_MIN_COS_DESC="${TRACK3_LOCOM_MIN_COS_DESC:-0.0}"
+    export TRACK3_LOCOM_REQUIRE_LOSS_DECREASE="${TRACK3_LOCOM_REQUIRE_LOSS_DECREASE:-1}"
+    export TRACK3_LOCOM_NORM_TARGET="${TRACK3_LOCOM_NORM_TARGET:-0.05}"
+    export TRACK3_LOCOM_NORM_CAP="${TRACK3_LOCOM_NORM_CAP:-0.20}"
+    export TRACK3_LOCOM_ALPHA="${TRACK3_LOCOM_ALPHA:-1.0}"
+    ;;
   *)
     echo "unsupported TRACK3_KDIAG_PROFILE=${profile}" >&2
-    echo "profiles: post-approx-k10-alpha0 post-true-k10-alpha0 post-true-k10-lr1e4-alpha0 post-true-k10-lr2e4-alpha0 post-true-k10-lr3e4-alpha0 post-true-k10-lr1e3-alpha0 pre-k10-alpha0 post-approx-k10-fixedtime-active pre-k10-fixedtime-active post-true-k10-lr2e4-active-poscos post-true-k10-lr3e4-active-poscos" >&2
+    echo "profiles: post-approx-k10-alpha0 post-true-k10-alpha0 post-true-k10-lr1e4-alpha0 post-true-k10-lr2e4-alpha0 post-true-k10-lr3e4-alpha0 post-true-k10-lr1e3-alpha0 pre-k10-alpha0 post-approx-k10-fixedtime-active pre-k10-fixedtime-active post-true-k10-lr2e4-active-poscos post-true-k10-lr3e4-active-poscos post-true-k10-lr2e4-active-poscos-norm002 post-true-k10-lr2e4-active-poscos-norm005" >&2
     exit 2
     ;;
 esac
@@ -132,3 +156,4 @@ echo "track3_locom_kdiag_profile=${profile} label=${label}"
 echo "log=${log_dir}/${label}.log"
 bash tools/run_track3_locoprop_m.sh 2>&1 | tee "${log_dir}/${label}.log"
 python3 tools/analyze_locom_kdiag.py "${log_dir}/${label}.log" | tee "${log_dir}/${label}.kdiag.md"
+python3 tools/analyze_locom_apply_scale.py "${log_dir}/${label}.log" | tee "${log_dir}/${label}.apply_scale.md"

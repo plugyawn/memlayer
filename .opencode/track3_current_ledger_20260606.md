@@ -153,6 +153,15 @@ logged corr_norm range at 1625 ~= 1e-3 to 2e-2
   normalized to a fixed fraction of the base Muon step, a colder/handoff window,
   or layer-restricted stronger true-post corrections. Repeating this exact
   `2e-4` all-layer active run under the hot 3000 schedule is ruled out.
+- Quantitatively, the successful 1800 screen had median effective
+  correction/base-step fractions of `0.026 @1600`, `0.021 @1625`, and
+  `0.053 @1750`. The failed 3000-schedule run had only `0.006 @1600` and
+  `0.004 @1625`.
+- The next targeted profiles are therefore
+  `post-true-k10-lr2e4-active-poscos-norm002` and
+  `post-true-k10-lr2e4-active-poscos-norm005`, which preserve the local solve
+  direction but scale the applied correction to `2%` or `5%` of the current
+  base Muon step.
 
 ## Closed Current Runs
 
