@@ -15,6 +15,8 @@ log_dir="${TRACK3_PREFIX_SPEC_LOG_DIR:-/root/prime_track3_prefix_specificity_log
 source_script="${TRACK3_SOURCE:-records/track_3_optimization/train_gpt_simple.py}"
 
 mkdir -p "${log_dir}"
+python3 tools/check_track3_locom_prefix_manifest.py --manifest-only \
+  | tee "${log_dir}/track3_prefix_manifest.md"
 
 run_lane() {
   local name="$1"
@@ -82,7 +84,11 @@ run_lane "random_norm002" 1 "random" "normal" "0.02"
 run_lane "orthogonal_k5_norm002" 1 "sgd" "orthogonal" "0.02"
 
 prefix_logs=("${log_dir}"/track3_prefix_*.log)
-if [[ -e "${prefix_logs[0]}" ]]; then
+if [[ "${TRACK3_DRY_RUN:-0}" == "1" ]]; then
+  echo "prefix_specificity_dry_run_no_header_validation" | tee -a "${log_dir}/sequence.status"
+elif [[ -e "${prefix_logs[0]}" ]]; then
+  python3 tools/check_track3_locom_prefix_manifest.py \
+    "${prefix_logs[@]}" | tee "${log_dir}/track3_prefix_manifest_check.md"
   python3 tools/analyze_track3_locom_prefix_probe.py \
     --steps "1600,1625,1650,1675,1700,1725,1750,1775,1800" \
     "${prefix_logs[@]}" | tee "${log_dir}/track3_prefix_specificity_decision.md" || true

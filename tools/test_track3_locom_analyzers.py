@@ -159,6 +159,27 @@ def test_mechanism_k5_read(tmp: Path) -> None:
     _assert_contains(out, "local K5 correction is locally sane at [1600]")
 
 
+def test_prefix_manifest_checker(tmp: Path) -> None:
+    lanes = [
+        ("active_k5", True, "sgd", False, "normal", 0.0),
+        ("noloco", False, "sgd", False, "normal", 0.0),
+        ("random_norm002", True, "random", True, "normal", 0.02),
+        ("orthogonal_k5_norm002", True, "sgd", False, "orthogonal", 0.02),
+    ]
+    for lane, enabled, local_opt, random, mode, norm_target in lanes:
+        (tmp / f"track3_prefix_{lane}_seed3710.log").write_text(
+            _header(
+                enabled=enabled,
+                local_opt=local_opt,
+                random=random,
+                mode=mode,
+                norm_target=norm_target,
+            )
+        )
+    out = _run(["tools/check_track3_locom_prefix_manifest.py", str(tmp)])
+    _assert_contains(out, "PASS: all prefix lane headers match the manifest")
+
+
 def main() -> int:
     tests = [
         test_prefix_direction_specific,
@@ -167,6 +188,7 @@ def main() -> int:
         test_suffix_insufficient_data,
         test_window_health_slope_break,
         test_mechanism_k5_read,
+        test_prefix_manifest_checker,
     ]
     with tempfile.TemporaryDirectory() as tmpdir:
         base = Path(tmpdir)
