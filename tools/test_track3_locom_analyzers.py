@@ -356,6 +356,55 @@ def test_suffix_manifest_checker_and_lr_preview(tmp: Path) -> None:
     _assert_contains(out, "| ramp111 | 0.111111 | 0.113840")
 
 
+def test_tick_completion_audit_blocks_missing_prefix(tmp: Path) -> None:
+    root = tmp / ".opencode"
+    root.mkdir()
+    (root / "track3_locom_mechanism_kdepth_20260607.md").write_text(
+        "k5-lr2e4_192742\nk8-lr2e4_190744\nk10-lr2e4_184734\n"
+        "Synthesis rule: missing ingredient is not more local iterations.\n"
+    )
+    (root / "track3_locom_2000_suffix_slope_decision_20260607.md").write_text(
+        "Slope read: no lane preserves the 1900->2000 descent-rate target.\n"
+    )
+    proc = subprocess.run(
+        [sys.executable, str(TOOLS / "audit_track3_locom_tick.py"), "--root", str(root)],
+        cwd=ROOT,
+        text=True,
+        stdout=subprocess.PIPE,
+        stderr=subprocess.STDOUT,
+    )
+    assert proc.returncode == 1, proc.stdout
+    _assert_contains(proc.stdout, "NOT COMPLETE")
+    _assert_contains(proc.stdout, "prefix specificity: MISSING")
+
+
+def test_tick_completion_audit_passes_mechanism(tmp: Path) -> None:
+    root = tmp / ".opencode"
+    prefix_dir = root / "prefix"
+    layer_dir = root / "layer"
+    prefix_dir.mkdir(parents=True)
+    layer_dir.mkdir(parents=True)
+    (root / "track3_locom_mechanism_kdepth_20260607.md").write_text(
+        "k5-lr2e4_192742\nk8-lr2e4_190744\nk10-lr2e4_184734\n"
+        "Synthesis rule: missing ingredient is not more local iterations.\n"
+    )
+    (prefix_dir / "track3_prefix_specificity_decision.md").write_text(
+        "Best active LocoProp gain @ 2000: +0.00200\n"
+        "Read: active LocoProp materially beats no-Loco and perturbation controls; "
+        "c_fc true-post direction matters in the prefix.\n"
+    )
+    (layer_dir / "track3_layer_subset_decision.md").write_text(
+        "Known all-layer reproduction check @ 2000: expected 3.37334, actual 3.37340\n"
+        "Read: `core_7_10` match all-layer active within tolerance; use the smallest matching subset for speed.\n"
+    )
+    (root / "track3_locom_2000_suffix_slope_decision_20260607.md").write_text(
+        "Slope read: no lane preserves the 1900->2000 descent-rate target.\n"
+    )
+    out = _run([str(TOOLS / "audit_track3_locom_tick.py"), "--root", str(root)])
+    _assert_contains(out, "COMPLETE for the current mechanism question")
+    _assert_contains(out, "post-2000 suffix slope | FAIL")
+
+
 def main() -> int:
     tests = [
         test_prefix_direction_specific,
@@ -373,6 +422,8 @@ def main() -> int:
         test_layer_subset_manifest_checker,
         test_layer_subset_decision,
         test_suffix_manifest_checker_and_lr_preview,
+        test_tick_completion_audit_blocks_missing_prefix,
+        test_tick_completion_audit_passes_mechanism,
     ]
     with tempfile.TemporaryDirectory() as tmpdir:
         base = Path(tmpdir)

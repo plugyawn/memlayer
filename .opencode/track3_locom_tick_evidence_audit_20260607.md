@@ -279,6 +279,19 @@ Optional suffix gate:
 TRACK3_TICK_STOP_AFTER=suffix tools/run_track3_locom_tick_ladder.sh
 ```
 
+Completion audit command:
+
+```text
+python3 tools/audit_track3_locom_tick.py
+```
+
+Current expected result before the GPU gates land:
+
+```text
+NOT COMPLETE
+blocking: prefix specificity, static layer subset
+```
+
 Decisive read:
 
 ```text

@@ -72,6 +72,12 @@ tools/run_track3_locom_tick_ladder.sh
 Default: prefix specificity at `2000`, then layer subset at `2000`. It stops
 before suffix probes unless the mechanism gates pass.
 
+Completion audit:
+
+```text
+python3 tools/audit_track3_locom_tick.py
+```
+
 ## What Is Already Known
 
 LocoProp-M tick conditions for this line:
