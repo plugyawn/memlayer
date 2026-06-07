@@ -57,6 +57,7 @@ LOCO_M_AUX_CAPTURE = _env_flag("TRACK3_LOCOM_AUX_CAPTURE", "0")
 LOCO_M_AUX_SEQS = int(os.environ.get("TRACK3_LOCOM_AUX_SEQS", "16"))
 LOCO_M_BATCHED_PREP = _env_flag("TRACK3_LOCOM_BATCHED_PREP", "0")
 LOCO_M_LOCAL_OPT = os.environ.get("TRACK3_LOCOM_LOCAL_OPT", "sgd").lower()
+LOCO_M_SURFACE = os.environ.get("TRACK3_LOCOM_SURFACE", "fc").lower()
 LOCO_M_TARGET_SPACE = os.environ.get("TRACK3_LOCOM_TARGET_SPACE", "post").lower()
 LOCO_M_TRUE_POST_GRAD = _env_flag("TRACK3_LOCOM_TRUE_POST_GRAD", "0")
 LOCO_M_RANDOM_CORRECTION = _env_flag("TRACK3_LOCOM_RANDOM_CORRECTION", "0") or LOCO_M_LOCAL_OPT == "random"
@@ -102,6 +103,8 @@ if TRACK3_LR_BLEND_TARGET and TRACK3_LR_BLEND_TARGET not in {"linear", "power", 
     raise ValueError("TRACK3_LR_BLEND_TARGET must be empty, 'linear', 'power', or 'pr287'")
 if TRACK3_LR_BLEND_TARGET and TRACK3_LR_BLEND_END < TRACK3_LR_BLEND_START:
     raise ValueError("TRACK3_LR_BLEND_END must be >= TRACK3_LR_BLEND_START")
+if LOCO_M_SURFACE not in {"fc", "proj"}:
+    raise ValueError("TRACK3_LOCOM_SURFACE must be 'fc' or 'proj'")
 if LOCO_M_TARGET_SPACE not in {"post", "pre"}:
     raise ValueError("TRACK3_LOCOM_TARGET_SPACE must be 'post' or 'pre'")
 if LOCO_M_CORRECTION_MODE not in {
@@ -311,14 +314,20 @@ LOCOM_MLP = r'''class MLP(nn.Module):
         self._loco_pre = None
         self._loco_post = None
         self._loco_dpre = None
+        self._loco_y = None
+        self._loco_dy = None
         self._loco_x_chunks = []
         self._loco_pre_chunks = []
         self._loco_post_chunks = []
         self._loco_dpre_chunks = []
+        self._loco_y_chunks = []
+        self._loco_dy_chunks = []
         self._loco_corr = None
         self._loco_diag = None
         self.register_buffer("_loco_rms_avg", torch.zeros(hdim, dim, dtype=torch.float32), persistent=False)
         self.register_buffer("_loco_rms_mom", torch.zeros(hdim, dim, dtype=torch.float32), persistent=False)
+        self.register_buffer("_loco_proj_rms_avg", torch.zeros(dim, hdim, dtype=torch.float32), persistent=False)
+        self.register_buffer("_loco_proj_rms_mom", torch.zeros(dim, hdim, dtype=torch.float32), persistent=False)
 
     def _loco_sample(self, x: Tensor, sample_tokens: int | None = None) -> Tensor:
         flat = x.reshape(-1, x.size(-1))
@@ -338,7 +347,7 @@ LOCOM_MLP = r'''class MLP(nn.Module):
         else:
             setattr(self, name, self._loco_sample(value).to(torch.bfloat16))
 
-    def _capture_locom(self, x: Tensor, pre: Tensor, post: Tensor):
+    def _capture_locom(self, x: Tensor, pre: Tensor, post: Tensor, y: Tensor):
         if torch.compiler.is_compiling():
             return
         if not (
@@ -350,25 +359,37 @@ LOCOM_MLP = r'''class MLP(nn.Module):
             and _locom_active(LOCO_M_CURRENT_STEP)
         ):
             return
-        self._store_loco_sample("_loco_x", x)
-        self._store_loco_sample("_loco_pre", pre)
-        self._store_loco_sample("_loco_post", post)
-        if not LOCO_M_ACCUM_SAMPLES:
-            self._loco_dpre = None
+        if LOCO_M_SURFACE == "proj":
+            self._store_loco_sample("_loco_post", post)
+            self._store_loco_sample("_loco_y", y)
+            if not LOCO_M_ACCUM_SAMPLES:
+                self._loco_dy = None
+
+            def save_dy(grad):
+                self._store_loco_sample("_loco_dy", grad)
+                return grad
+
+            y.register_hook(save_dy)
+        else:
+            self._store_loco_sample("_loco_x", x)
+            self._store_loco_sample("_loco_pre", pre)
+            self._store_loco_sample("_loco_post", post)
+            if not LOCO_M_ACCUM_SAMPLES:
+                self._loco_dpre = None
+
+            def save_dpre(grad):
+                self._store_loco_sample("_loco_dpre", grad)
+                return grad
+
+            pre.register_hook(save_dpre)
         self._loco_corr = None
-
-        def save_dpre(grad):
-            self._store_loco_sample("_loco_dpre", grad)
-            return grad
-
-        pre.register_hook(save_dpre)
 
     def forward(self, x: Tensor):
         pre = self.fc(x)
         post = pre.relu().square()
-        self._capture_locom(x, pre, post)
-        x = self.proj(post)
-        return x
+        y = self.proj(post)
+        self._capture_locom(x, pre, post, y)
+        return y
 '''
 
 
@@ -493,20 +514,21 @@ def attach_locoprop_m_optimizer(model: nn.Module, optimizer: torch.optim.Optimiz
     global LOCO_M_OWNED_LAYER_SET
     rank = dist.get_rank() if dist.is_initialized() else 0
     world = dist.get_world_size() if dist.is_initialized() else 1
-    fc_to_layer = {
-        id(model.blocks[i].mlp.fc.weight): i
+    target_to_layer = {
+        id((model.blocks[i].mlp.proj if LOCO_M_SURFACE == "proj" else model.blocks[i].mlp.fc).weight): i
         for i in range(len(model.blocks))
         if i in LOCO_M_LAYER_SET
     }
     owned = set()
     for group in optimizer.param_groups:
         for idx, p in enumerate(group["params"]):
-            layer_idx = fc_to_layer.get(id(p))
+            layer_idx = target_to_layer.get(id(p))
             if layer_idx is not None and idx % world == rank:
                 owned.add(layer_idx)
     LOCO_M_OWNED_LAYER_SET = owned
     print0(
         f"locoprop_m_owner rank={rank} world={world} owned_layers={sorted(owned)} "
+        f"surface={LOCO_M_SURFACE} "
         f"sample_tokens={LOCO_M_SAMPLE_TOKENS} gather_samples={LOCO_M_GATHER_SAMPLES} "
         f"accum_samples={LOCO_M_ACCUM_SAMPLES} micro_sample_tokens={LOCO_M_MICRO_SAMPLE_TOKENS} "
         f"aux_capture={LOCO_M_AUX_CAPTURE} aux_seqs={LOCO_M_AUX_SEQS} batched_prep={LOCO_M_BATCHED_PREP}",
@@ -541,6 +563,13 @@ def _locom_matching_loss(x: Tensor, W: Tensor, bias: Tensor, target: Tensor) -> 
         err = pred - target
     else:
         err = pred.relu().square() - target
+    return 0.5 * err.square().mean()
+
+@torch.no_grad()
+def _locom_matching_loss_proj(z: Tensor, W: Tensor, bias: Tensor, target: Tensor) -> Tensor:
+    pred = z @ W.mT
+    pred = pred + bias
+    err = pred - target
     return 0.5 * err.square().mean()
 
 @torch.no_grad()
@@ -669,6 +698,129 @@ def _prepare_locoprop_m_batched(model: nn.Module, step: int, stats: list[str]) -
     return True
 
 @torch.no_grad()
+def _prepare_locoprop_m_proj(model: nn.Module, step: int, stats: list[str]):
+    for layer_idx in sorted(LOCO_M_LAYER_SET):
+        if layer_idx < 0 or layer_idx >= len(model.blocks):
+            continue
+        mlp = model.blocks[layer_idx].mlp
+        z_local = _locom_take_sample(mlp, "_loco_post")
+        y_local = _locom_take_sample(mlp, "_loco_y")
+        dy_local = _locom_take_sample(mlp, "_loco_dy")
+        if z_local is None or y_local is None or dy_local is None:
+            continue
+        if mlp.proj.weight.grad is None:
+            continue
+
+        z = _locom_gather_sample(z_local)
+        y0 = _locom_gather_sample(y_local)
+        dy = _locom_gather_sample(dy_local)
+        if layer_idx not in LOCO_M_OWNED_LAYER_SET:
+            continue
+
+        target = y0 - LOCO_M_TARGET_GAMMA * dy
+        W0 = mlp.proj.weight.detach().float()
+        W = W0.clone()
+        bias = mlp.proj.bias.detach().float()
+        inv_n = 1.0 / max(z.size(0), 1)
+        loss0 = None
+        loss_k = None
+        raw_grad = mlp.proj.weight.grad.float()
+        raw_desc = -raw_grad
+        emit_kdiag = (
+            step in LOCO_M_LOG_STEPS
+            and bool(LOCO_M_DIAG_STEPS)
+            and len(stats) < LOCO_M_DIAG_MAX_LAYERS
+        )
+        kdiag = []
+
+        rms_avg = mlp._loco_proj_rms_avg
+        rms_mom = mlp._loco_proj_rms_mom
+        if LOCO_M_LOCAL_OPT == "rmsprop" and LOCO_M_RMS_RESET_EACH_STEP:
+            rms_avg.zero_()
+            rms_mom.zero_()
+
+        for local_step in range(LOCO_M_LOCAL_STEPS):
+            pred = z @ W.mT
+            pred = pred + bias
+            err = pred - target
+            loss_k = 0.5 * err.square().mean()
+            if loss0 is None:
+                loss0 = loss_k
+            grad_w = err.mT @ z
+            grad_w.mul_(inv_n)
+            if LOCO_M_PROX != 0:
+                grad_w.add_(W - W0, alpha=LOCO_M_PROX)
+            local_lr = LOCO_M_INNER_LR
+            if LOCO_M_LOCAL_LR_DECAY:
+                local_lr *= max(1.0 - float(local_step) / max(LOCO_M_LOCAL_STEPS, 1), 0.25)
+            if LOCO_M_LOCAL_OPT == "rmsprop":
+                rms_avg.mul_(LOCO_M_RMS_BETA2).addcmul_(grad_w, grad_w, value=1.0 - LOCO_M_RMS_BETA2)
+                denom = rms_avg.sqrt().add_(LOCO_M_RMS_EPS)
+                rms_mom.mul_(LOCO_M_RMS_BETA1).addcdiv_(grad_w, denom, value=local_lr)
+                W.add_(rms_mom, alpha=-1.0)
+            else:
+                W.add_(grad_w, alpha=-local_lr)
+            k_done = local_step + 1
+            if emit_kdiag and k_done in LOCO_M_DIAG_STEPS:
+                loss_at_k = _locom_matching_loss_proj(z, W, bias, target)
+                diag_corr_f, diag_raw_corr_f = _locom_adjust_correction(W - W0, raw_desc)
+                diag_corr_norm = diag_corr_f.norm().clamp_min(1e-12)
+                diag_raw_corr_norm = diag_raw_corr_f.norm().clamp_min(1e-12)
+                raw_norm = raw_desc.norm().clamp_min(1e-12)
+                diag_raw_cos = diag_raw_corr_f.flatten().dot(raw_desc.flatten()) / (diag_raw_corr_norm * raw_norm)
+                diag_cos = diag_corr_f.flatten().dot(raw_desc.flatten()) / (diag_corr_norm * raw_norm)
+                kdiag.append(
+                    f"k{k_done}:loss={float(loss_at_k):.3e}"
+                    f",ratio={float(loss_at_k / loss0.clamp_min(1e-30)):.3e}"
+                    f",corr_norm={float(diag_corr_norm):.3e}"
+                    f",raw_cos={float(diag_raw_cos):.3f}"
+                    f",cos={float(diag_cos):.3f}"
+                )
+
+        loss_k = _locom_matching_loss_proj(z, W, bias, target)
+        corr_f, raw_corr_f = _locom_adjust_correction(W - W0, raw_desc)
+        corr = corr_f.to(mlp.proj.weight.dtype)
+        denom = corr_f.norm().mul(raw_desc.norm()).clamp_min(1e-12)
+        raw_denom = raw_corr_f.norm().mul(raw_desc.norm()).clamp_min(1e-12)
+        raw_cosine = raw_corr_f.flatten().dot(raw_desc.flatten()) / raw_denom
+        cosine = corr_f.flatten().dot(raw_desc.flatten()) / denom
+        loss_decreased = bool(loss_k <= loss0)
+        accepted = True
+        if LOCO_M_REQUIRE_LOSS_DECREASE and not loss_decreased:
+            accepted = False
+        if float(cosine) < LOCO_M_MIN_COS_DESC:
+            accepted = False
+        if accepted:
+            mlp._loco_corr = corr
+            mlp.proj.weight._loco_corr = corr
+            mlp.proj.weight._loco_step = step
+        else:
+            mlp._loco_corr = None
+            mlp.proj.weight._loco_corr = None
+            mlp.proj.weight._loco_step = step
+
+        if step in LOCO_M_LOG_STEPS and len(stats) < 4:
+            stats.append(
+                f"l{layer_idx}:surface=proj"
+                f",loss0={float(loss0):.3e}"
+                f",lossK={float(loss_k):.3e}"
+                f",corr_norm={float(corr_f.norm()):.3e}"
+                f",grad_norm={float(raw_grad.norm()):.3e}"
+                f",raw_cos_desc={float(raw_cosine):.3f}"
+                f",cos_desc={float(cosine):.3f}"
+                f",accepted={int(accepted)}"
+                f",tokens={z.size(0)}"
+                f",opt={LOCO_M_LOCAL_OPT}"
+                f",mode={LOCO_M_CORRECTION_MODE}"
+            )
+        if kdiag:
+            print0(
+                "locoprop_m_kdiag step=" + str(step) + f" l{layer_idx} "
+                + " | ".join(kdiag),
+                console=True,
+            )
+
+@torch.no_grad()
 def prepare_locoprop_m(model: nn.Module, step: int):
     if not _locom_active(step):
         return
@@ -680,27 +832,29 @@ def prepare_locoprop_m(model: nn.Module, step: int):
             if layer_idx not in LOCO_M_OWNED_LAYER_SET:
                 continue
             mlp = model.blocks[layer_idx].mlp
-            if mlp.fc.weight.grad is None:
+            target_param = mlp.proj.weight if LOCO_M_SURFACE == "proj" else mlp.fc.weight
+            if target_param.grad is None:
                 continue
             corr_f = torch.randn(
-                mlp.fc.weight.shape,
-                device=mlp.fc.weight.device,
+                target_param.shape,
+                device=target_param.device,
                 dtype=torch.float32,
             )
-            raw_grad = mlp.fc.weight.grad.float()
+            raw_grad = target_param.grad.float()
             raw_desc = -raw_grad
             corr_f, raw_corr_f = _locom_adjust_correction(corr_f, raw_desc)
             denom = corr_f.norm().mul(raw_desc.norm()).clamp_min(1e-12)
             raw_denom = raw_corr_f.norm().mul(raw_desc.norm()).clamp_min(1e-12)
             raw_cosine = raw_corr_f.flatten().dot(raw_desc.flatten()) / raw_denom
             cosine = corr_f.flatten().dot(raw_desc.flatten()) / denom
-            corr = corr_f.to(mlp.fc.weight.dtype)
+            corr = corr_f.to(target_param.dtype)
             mlp._loco_corr = corr
-            mlp.fc.weight._loco_corr = corr
-            mlp.fc.weight._loco_step = step
+            target_param._loco_corr = corr
+            target_param._loco_step = step
             if step in LOCO_M_LOG_STEPS and len(stats) < 4:
                 stats.append(
                     f"l{layer_idx}:random=1"
+                    f",surface={LOCO_M_SURFACE}"
                     f",corr_norm={float(corr_f.norm()):.3e}"
                     f",grad_norm={float(raw_grad.norm()):.3e}"
                     f",raw_cos_desc={float(raw_cosine):.3f}"
@@ -709,6 +863,12 @@ def prepare_locoprop_m(model: nn.Module, step: int):
                     f",opt={LOCO_M_LOCAL_OPT}"
                     f",mode={LOCO_M_CORRECTION_MODE}"
                 )
+        if step in LOCO_M_LOG_STEPS and stats:
+            print0("locoprop_m_prepare step=" + str(step) + " " + " | ".join(stats), console=True)
+        return
+
+    if LOCO_M_SURFACE == "proj":
+        _prepare_locoprop_m_proj(model, step, stats)
         if step in LOCO_M_LOG_STEPS and stats:
             print0("locoprop_m_prepare step=" + str(step) + " " + " | ".join(stats), console=True)
         return
@@ -958,6 +1118,7 @@ def maybe_save_track3_checkpoint(model: nn.Module, optimizers: list[torch.optim.
                 "loco_m_aux_seqs": LOCO_M_AUX_SEQS,
                 "loco_m_batched_prep": LOCO_M_BATCHED_PREP,
                 "loco_m_local_opt": LOCO_M_LOCAL_OPT,
+                "loco_m_surface": LOCO_M_SURFACE,
                 "loco_m_target_space": LOCO_M_TARGET_SPACE,
                 "loco_m_true_post_grad": LOCO_M_TRUE_POST_GRAD,
                 "loco_m_random_correction": LOCO_M_RANDOM_CORRECTION,
