@@ -146,15 +146,18 @@ Static layer subsets can become relevant only after an active all-layer variant
 is positive. Otherwise they are optimizing a correction whose external effect
 is already zero.
 
-## Remaining Plausible LocoProp Axes
+## Parked Or Remaining LocoProp Axes
 
 The remaining search should change the correction expression, not just its
 iteration count.
 
-1. Prefix normalized `c_fc` correction:
+1. Prefix normalized `c_fc` correction, parked:
    - same K5 true-post solve;
    - force `norm_target=0.02` or `0.05` from 1600;
    - compare against alpha-zero and same-scale random/orthogonal.
+   - status: not the next run under the current user decision to stop spending
+     on `1600-2000`; post-2000 visible scale already failed, so this is only
+     worth reopening if we explicitly return to prefix mechanism science.
 
 2. Different MLP surface:
    - diagnostic-only `c_proj` first;
@@ -224,23 +227,50 @@ from 3.34514 @2400 -> 3.28 @3000 needs about 0.01086 loss/100 steps
 from 3.33472 @2600 -> 3.28 @3000 needs about 0.01368 loss/100 steps
 ```
 
-The new bridge runner is:
+The older bridge family did not clear the `2400` gate. The current landing
+runner is:
 
 ```text
-tools/run_track3_suffix_bridge_probe.sh
+tools/run_track3_suffix_landing_probe.sh
 ```
 
-It starts only from an existing post-prefix checkpoint and tests delayed LR
-bridges such as:
+It starts only from an existing post-prefix checkpoint and tests group-specific
+suffix LR shaping such as:
 
 ```text
-cold p2 control
-delayed 1.25/1.50 bumps after 2250
-delayed 1.75 pulse after 2400
-smooth blend from p2 to p1.5 / p1.3 after 2250-2300
+control_p2
+muon125_2400_2800
+adam125_2400_2800
+split_muon150_adam085_2400_2800
 ```
 
 Do not launch another 1600-2000 run unless a materially new correction
 expression exists. The next GPU spend should start from `2125`, `2400`, or
 `2600` checkpoints and should stop early if it cannot clear the required
 straight-line suffix gate.
+
+## 2026-06-07 Post-2000 Control Correction
+
+The newer landing audit found that the older suffix decision table had duplicate
+`control` logs. The corrected aligned no-correction replay is:
+
+```text
+2000: 3.37335
+2025: 3.37099
+2050: 3.36867
+2075: 3.36657
+2100: 3.36420
+2125: 3.36216
+```
+
+Visible late `c_fc` LocoProp is still negative:
+
+```text
+floor111 + norm002 K5 @2125: 3.36429
+floor111 + norm005 K5 @2125: 3.36430
+floor111 + random002 @2125:  3.36429
+floor111 + random005 @2125:  3.36429
+```
+
+So late additive `c_fc` LocoProp is not the landing lever. The post-2000 state
+is not too high by loss; it is slope-starved after the known suffix cools.

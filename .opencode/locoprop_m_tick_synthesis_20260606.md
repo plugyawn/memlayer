@@ -1,5 +1,15 @@
 # LocoProp-M Tick Synthesis - 2026-06-06
 
+> Superseded status, 2026-06-07: keep this file as history, but use
+> `.opencode/track3_locom_tick_requirements_20260607.md` and
+> `.opencode/track3_post2000_landing_requirements_20260607.md` as the current
+> source of truth. In particular, do not treat the old "next minimal
+> LocoProp-specific probe is prefix scale" recommendation below as current.
+> The current user decision is to stop spending on the `1600-2000` bracket.
+> Post-2000 visible `c_fc` scale at `2%` and `5%` failed against no-correction
+> and matched same-scale random. Prefix normalized `c_fc` is therefore parked,
+> not the next run.
+
 Scope: Track 3 simple Muon + LocoProp-M from the known seed `3710` step-1600
 checkpoint:
 

@@ -284,10 +284,17 @@ by more than validation/logging noise before any suffix promotion
 Candidates that would count as materially different:
 
 ```text
-stronger normalized correction that still beats alpha-zero
 different surface/target than c_fc true-post
 different local target construction
 post-2000 correction that beats exact same-state alpha-zero
+```
+
+Clarification after the post-2000 visible-scale probe:
+
+```text
+plain stronger c_fc scale no longer counts as a fresh candidate by itself.
+norm_target=0.02 and norm_target=0.05 from the exact 2000 state were worse
+than no-correction and matched same-scale random.
 ```
 
 Not enough:
@@ -296,6 +303,7 @@ Not enough:
 more K on the same natural c_fc path
 2048 sample tokens on the same natural c_fc path
 continuing the same correction after 1800
+visible 2%/5% c_fc scale from the exact 2000 state
 suffix tuning that improves both active and alpha-zero equally
 ```
 
@@ -391,7 +399,9 @@ natural c_fc local-solve correction is not the thing that ticks.
 
 The remaining positive object to study is the schedule/optimizer state that
 produces the healthy 1900->2000 slope, plus any materially different LocoProp
-expression that can beat an alpha-zero same-harness control.
+expression that can beat an alpha-zero same-harness control. For the current
+few-step c_fc additive expression, "more K", "more samples", and "more visible
+norm" are all answered negatively.
 ```
 
 ## Completion Status

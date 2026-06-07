@@ -505,6 +505,47 @@ def test_tick_completion_audit_passes_mechanism(tmp: Path) -> None:
     _assert_contains(out, "post-2000 suffix slope | FAIL")
 
 
+def test_tick_completion_audit_closes_negative_mechanism(tmp: Path) -> None:
+    root = tmp / ".opencode"
+    root.mkdir()
+    (root / "track3_locom_mechanism_kdepth_20260607.md").write_text(
+        "k5-lr2e4_192742\nk8-lr2e4_190744\nk10-lr2e4_184734\n"
+        "Synthesis rule: missing ingredient is not more local iterations.\n"
+    )
+    (root / "track3_locom_prefix_effect_size_20260607.md").write_text(
+        "Alpha-zero matched active K5 through 2000.\n"
+        "The applied LocoProp correction did not measurably move validation.\n"
+    )
+    (root / "track3_locom_2000_suffix_slope_decision_20260607.md").write_text(
+        "Slope read: no lane preserves the 1900->2000 descent-rate target.\n"
+    )
+
+    proc = subprocess.run(
+        [
+            sys.executable,
+            str(TOOLS / "audit_track3_locom_tick.py"),
+            "--root",
+            str(root),
+        ],
+        cwd=ROOT,
+        text=True,
+        stdout=subprocess.PIPE,
+        stderr=subprocess.STDOUT,
+    )
+    assert proc.returncode == 1, proc.stdout
+    _assert_contains(proc.stdout, "NOT COMPLETE")
+
+    out = _run(
+        [
+            str(TOOLS / "audit_track3_locom_tick.py"),
+            "--root",
+            str(root),
+            "--allow-negative",
+        ]
+    )
+    _assert_contains(out, "CLOSED NEGATIVE for the current c_fc K5-10 mechanism")
+
+
 def main() -> int:
     tests = [
         test_prefix_direction_specific,
@@ -527,6 +568,7 @@ def main() -> int:
         test_suffix_manifest_checker_and_lr_preview,
         test_tick_completion_audit_blocks_missing_prefix,
         test_tick_completion_audit_passes_mechanism,
+        test_tick_completion_audit_closes_negative_mechanism,
     ]
     with tempfile.TemporaryDirectory() as tmpdir:
         base = Path(tmpdir)

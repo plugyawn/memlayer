@@ -205,7 +205,21 @@ def _fmt_path(path: Path | None) -> str:
     return "none" if path is None else str(path)
 
 
-def print_report(gates: list[Gate], *, require_suffix: bool) -> int:
+def _closed_negative(gates: list[Gate], *, require_suffix: bool) -> bool:
+    if require_suffix:
+        return False
+    by_name = {gate.name: gate for gate in gates}
+    return (
+        by_name.get("K-depth") is not None
+        and by_name["K-depth"].status == PASS
+        and by_name.get("prefix specificity") is not None
+        and by_name["prefix specificity"].status == FAIL
+        and by_name.get("static layer subset") is not None
+        and by_name["static layer subset"].status == SKIPPED
+    )
+
+
+def print_report(gates: list[Gate], *, require_suffix: bool, allow_negative: bool) -> int:
     print("# Track 3 LocoProp-M Tick Completion Audit")
     print()
     print("| gate | status | evidence | read |")
@@ -227,6 +241,18 @@ def print_report(gates: list[Gate], *, require_suffix: bool) -> int:
         for gate in gates
         if gate.name in critical and gate.status not in {PASS, SKIPPED}
     ]
+
+    if allow_negative and _closed_negative(gates, require_suffix=require_suffix):
+        print("## Completion")
+        print()
+        print("CLOSED NEGATIVE for the current c_fc K5-10 mechanism.")
+        print()
+        print(
+            "This is not a positive LocoProp recipe. It proves the current natural "
+            "true-post c_fc additive path is not the causal mechanism, so future "
+            "work must change surface, target, integration, or optimizer state."
+        )
+        return 0
 
     if missing_or_bad:
         print("## Completion")
@@ -260,6 +286,11 @@ def main() -> int:
         action="store_true",
         help="Require the post-2000 suffix preservation gate for completion.",
     )
+    parser.add_argument(
+        "--allow-negative",
+        action="store_true",
+        help="Exit 0 when the current c_fc mechanism is conclusively closed negative.",
+    )
     args = parser.parse_args()
 
     root = args.root
@@ -283,7 +314,7 @@ def main() -> int:
         _gate_layer_subset(layer_subset, prefix_gate=prefix_gate),
         _gate_suffix(suffix),
     ]
-    return print_report(gates, require_suffix=args.require_suffix)
+    return print_report(gates, require_suffix=args.require_suffix, allow_negative=args.allow_negative)
 
 
 if __name__ == "__main__":

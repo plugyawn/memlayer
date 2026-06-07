@@ -343,13 +343,36 @@ The remaining speedrun problem is preserving the healthy 1900->2000 slope after
 correction beats alpha-zero before we spend on suffix tuning.
 ```
 
-The next minimal LocoProp-specific probe is scale, not more local iterations:
+## 2026-06-07 Update: Scale Is Not The Next Probe
+
+The scale branch has since been answered for the exact post-2000 state:
 
 ```text
-tools/run_track3_locom_prefix_scale_probe.sh
+no-correction aligned control @2125: 3.36216
+floor111 + norm002 K5 @2125:        3.36429
+floor111 + norm005 K5 @2125:        3.36430
+floor111 + random002 @2125:         3.36429
+floor111 + random005 @2125:         3.36429
 ```
 
-It tests alpha-zero, natural K5, true-post K5 normalized to 2% and 5% of the
-base step, and a same-shape random 2% control from the same step-1600
-checkpoint. Promote only if a normalized active lane beats alpha-zero by at
-least `0.001` at `2000` and random does not match it.
+That does not prove no prefix-normalized `c_fc` variant could ever move the
+curve, but under the current user decision it is not the next run. The active
+goal is no longer to spend on `1600-2000`; it is to see whether the already-good
+post-prefix state can land.
+
+Current next gate:
+
+```text
+from a 2400 checkpoint, useful suffix must reach 2600 <= 3.3260
+without an immediate validation spike.
+```
+
+Current runner:
+
+```text
+tools/run_track3_suffix_landing_probe.sh
+```
+
+Keep LocoProp off for this landing probe. If schedule/optimizer-state landing
+fails, reopen LocoProp only with a materially different surface, object, or
+integration.
