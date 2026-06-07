@@ -24,6 +24,7 @@ PASS = "PASS"
 FAIL = "FAIL"
 MISSING = "MISSING"
 PARTIAL = "PARTIAL"
+SKIPPED = "SKIPPED"
 
 
 @dataclass(frozen=True)
@@ -43,6 +44,13 @@ def _read(path: Path | None) -> str:
 def _find_latest(root: Path, pattern: str) -> Path | None:
     matches = sorted(root.glob(pattern), key=lambda path: path.stat().st_mtime)
     return matches[-1] if matches else None
+
+
+def _first_existing(*paths: Path | None) -> Path | None:
+    for path in paths:
+        if path is not None and path.exists():
+            return path
+    return None
 
 
 def _path_arg(value: str | None, fallback: Path | None) -> Path | None:
@@ -118,6 +126,17 @@ def _gate_prefix(path: Path | None) -> Gate:
             path,
             "Perturbation/orthogonal control matched active; current prefix gain is not LocoProp-direction-specific.",
         )
+    if (
+        "active and alpha-zero curves are indistinguishable" in text
+        or "applied LocoProp correction did not measurably move validation" in text
+        or "natural K5 c_fc LocoProp correction did not cause it" in text
+    ):
+        return Gate(
+            "prefix specificity",
+            FAIL,
+            path,
+            "Alpha-zero matched active K5 through the carry window; natural c_fc LocoProp did not cause the prefix.",
+        )
     if "probably schedule/checkpoint state" in text or "not LocoProp-specific" in text:
         return Gate(
             "prefix specificity",
@@ -135,7 +154,14 @@ def _gate_prefix(path: Path | None) -> Gate:
     return Gate("prefix specificity", PARTIAL, path, "Prefix decision exists but the read is ambiguous.")
 
 
-def _gate_layer_subset(path: Path | None) -> Gate:
+def _gate_layer_subset(path: Path | None, *, prefix_gate: Gate | None = None) -> Gate:
+    if prefix_gate is not None and prefix_gate.status == FAIL:
+        return Gate(
+            "static layer subset",
+            SKIPPED,
+            path,
+            "Skipped until a nonzero LocoProp correction beats alpha-zero; subset tests cannot rescue a failed all-layer prefix-specificity gate.",
+        )
     text = _read(path)
     if not text:
         return Gate(
@@ -199,7 +225,7 @@ def print_report(gates: list[Gate], *, require_suffix: bool) -> int:
     missing_or_bad = [
         gate
         for gate in gates
-        if gate.name in critical and gate.status != PASS
+        if gate.name in critical and gate.status not in {PASS, SKIPPED}
     ]
 
     if missing_or_bad:
@@ -239,13 +265,22 @@ def main() -> int:
     root = args.root
     kdepth = _path_arg(args.kdepth, root / "track3_locom_mechanism_kdepth_20260607.md")
     suffix = _path_arg(args.suffix, root / "track3_locom_2000_suffix_slope_decision_20260607.md")
-    prefix = _path_arg(args.prefix, _find_latest(root, "**/track3_prefix_specificity_decision.md"))
+    prefix = _path_arg(
+        args.prefix,
+        _first_existing(
+            _find_latest(root, "**/track3_prefix_specificity_decision.md"),
+            root / "track3_locom_prefix_effect_size_20260607.md",
+            root / "track3_locom_tick_decision_20260607.md",
+        ),
+    )
     layer_subset = _path_arg(args.layer_subset, _find_latest(root, "**/track3_layer_subset_decision.md"))
 
+    kdepth_gate = _gate_existing_kdepth(kdepth)
+    prefix_gate = _gate_prefix(prefix)
     gates = [
-        _gate_existing_kdepth(kdepth),
-        _gate_prefix(prefix),
-        _gate_layer_subset(layer_subset),
+        kdepth_gate,
+        prefix_gate,
+        _gate_layer_subset(layer_subset, prefix_gate=prefix_gate),
         _gate_suffix(suffix),
     ]
     return print_report(gates, require_suffix=args.require_suffix)
