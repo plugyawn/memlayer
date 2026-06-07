@@ -60,6 +60,7 @@ LOCO_M_LOCAL_OPT = os.environ.get("TRACK3_LOCOM_LOCAL_OPT", "sgd").lower()
 LOCO_M_SURFACE = os.environ.get("TRACK3_LOCOM_SURFACE", "fc").lower()
 LOCO_M_TARGET_SPACE = os.environ.get("TRACK3_LOCOM_TARGET_SPACE", "post").lower()
 LOCO_M_TRUE_POST_GRAD = _env_flag("TRACK3_LOCOM_TRUE_POST_GRAD", "0")
+LOCO_M_RESIDUAL_AFTER_MUON = _env_flag("TRACK3_LOCOM_RESIDUAL_AFTER_MUON", "0")
 LOCO_M_RANDOM_CORRECTION = _env_flag("TRACK3_LOCOM_RANDOM_CORRECTION", "0") or LOCO_M_LOCAL_OPT == "random"
 LOCO_M_LOCAL_LR_DECAY = _env_flag("TRACK3_LOCOM_LOCAL_LR_DECAY", "0")
 LOCO_M_RMS_BETA1 = float(os.environ.get("TRACK3_LOCOM_RMS_BETA1", "0.999"))
@@ -576,6 +577,8 @@ def _locom_matching_loss_proj(z: Tensor, W: Tensor, bias: Tensor, target: Tensor
 def _prepare_locoprop_m_batched(model: nn.Module, step: int, stats: list[str]) -> bool:
     if not LOCO_M_BATCHED_PREP:
         return False
+    if LOCO_M_RESIDUAL_AFTER_MUON:
+        return False
     if LOCO_M_RANDOM_CORRECTION or LOCO_M_LOCAL_OPT != "sgd":
         return False
     if LOCO_M_GATHER_SAMPLES and dist.is_initialized() and dist.get_world_size() > 1:
@@ -677,10 +680,17 @@ def _prepare_locoprop_m_batched(model: nn.Module, step: int, stats: list[str]) -
             mlp._loco_corr = corr
             mlp.fc.weight._loco_corr = corr
             mlp.fc.weight._loco_step = step
+            if LOCO_M_RESIDUAL_AFTER_MUON:
+                mlp.fc.weight._loco_residual_payload = (
+                    x,
+                    target,
+                    mlp.fc.bias.detach().float(),
+                )
         else:
             mlp._loco_corr = None
             mlp.fc.weight._loco_corr = None
             mlp.fc.weight._loco_step = step
+            mlp.fc.weight._loco_residual_payload = None
         if step in LOCO_M_LOG_STEPS and len(stats) < 4:
             stats.append(
                 f"l{layer_idx}:loss0={float(loss0[pos]):.3e}"
@@ -1025,7 +1035,43 @@ def _locom_apply_owned_param_(p: nn.Parameter, update: Tensor, lr: float):
         return
     step = getattr(p, "_loco_step", -1)
     base_step_norm = update.float().norm().mul(lr)
-    corr_f = corr.float()
+    residual_loss0 = None
+    residual_loss_k = None
+    if LOCO_M_RESIDUAL_AFTER_MUON:
+        payload = getattr(p, "_loco_residual_payload", None)
+        if payload is not None:
+            x, target, bias = payload
+            W_base = p.detach().float()
+            W = W_base.clone()
+            inv_n = 1.0 / max(x.size(0), 1)
+            residual_loss0 = _locom_matching_loss(x, W, bias, target)
+            for local_step in range(LOCO_M_LOCAL_STEPS):
+                pred = x @ W.mT
+                pred = pred + bias
+                if LOCO_M_TARGET_SPACE == "pre":
+                    err = pred - target
+                else:
+                    post = pred.relu().square()
+                    err = post - target
+                if LOCO_M_TARGET_SPACE == "post" and LOCO_M_TRUE_POST_GRAD:
+                    grad_pre = err * (2.0 * pred.clamp_min(0.0))
+                    grad_w = grad_pre.mT @ x
+                else:
+                    grad_w = err.mT @ x
+                grad_w.mul_(inv_n)
+                if LOCO_M_PROX != 0:
+                    grad_w.add_(W - W_base, alpha=LOCO_M_PROX)
+                local_lr = LOCO_M_INNER_LR
+                if LOCO_M_LOCAL_LR_DECAY:
+                    local_lr *= max(1.0 - float(local_step) / max(LOCO_M_LOCAL_STEPS, 1), 0.25)
+                W.add_(grad_w, alpha=-local_lr)
+            residual_loss_k = _locom_matching_loss(x, W, bias, target)
+            raw_desc = -p.grad.float() if p.grad is not None else -update.float()
+            corr_f, _ = _locom_adjust_correction(W - W_base, raw_desc)
+        else:
+            corr_f = corr.float()
+    else:
+        corr_f = corr.float()
     corr_norm = corr_f.norm().clamp_min(1e-12)
     scale = torch.ones((), device=corr.device, dtype=torch.float32)
     if LOCO_M_NORM_TARGET > 0:
@@ -1044,6 +1090,7 @@ def _locom_apply_owned_param_(p: nn.Parameter, update: Tensor, lr: float):
                 f",corr_norm={float(corr_norm):.3e},cap={norm_cap:.3f},scale=0.000e+00,skipped=1"
             )
         p._loco_corr = None
+        p._loco_residual_payload = None
         return
     if not torch.isfinite(corr_f).all():
         if step in LOCO_M_LOG_STEPS and len(LOCO_M_APPLY_STATS) < 8:
@@ -1052,14 +1099,23 @@ def _locom_apply_owned_param_(p: nn.Parameter, update: Tensor, lr: float):
                 f",corr_norm={float(corr_norm):.3e},cap={norm_cap:.3f},scale={float(scale):.3e},nonfinite=1,skipped=1"
             )
         p._loco_corr = None
+        p._loco_residual_payload = None
         return
-    p.add_(corr, alpha=float(scale))
+    p.add_(corr_f.to(p.dtype), alpha=float(scale))
     if step in LOCO_M_LOG_STEPS and len(LOCO_M_APPLY_STATS) < 8:
+        residual_suffix = ""
+        if residual_loss0 is not None and residual_loss_k is not None:
+            residual_suffix = (
+                f",resid_loss0={float(residual_loss0):.3e}"
+                f",resid_lossK={float(residual_loss_k):.3e}"
+            )
         LOCO_M_APPLY_STATS.append(
             f"shape={tuple(p.shape)}:base_step={float(base_step_norm):.3e}"
             f",corr_norm={float(corr_norm):.3e},cap={norm_cap:.3f},scale={float(scale):.3e}"
+            f"{residual_suffix}"
         )
     p._loco_corr = None
+    p._loco_residual_payload = None
 
 @torch.no_grad()
 def flush_locoprop_m_apply_stats(step: int):
