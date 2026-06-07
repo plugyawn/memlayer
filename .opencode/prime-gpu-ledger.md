@@ -227,6 +227,24 @@
     - 2026-06-06 07:59 UTC: Prime API reports pod status `TERMINATED`; `prime pods list` reports zero active pods. SSH timed out before artifact pull, so final remote logs/checkpoints are unavailable.
     - Last recovered live evidence: `3.44940 @1800`, `3.43419 @1900`; run was effectively tied with sample_tokens=1024 through 1800 and did not show a clear prefix improvement before pod loss.
 
+- pod_id: 1a661182161b4f41a7be8511a9d86bdc
+  name: oc-main-locom-tick-h100spot-20260607-0053
+  owner: current-agent
+  purpose: Guarded Track 3 LocoProp-M tick ladder from seed3710 step1600 checkpoint; prefix specificity then layer subset, optional suffix only if gates pass
+  gpu: 1x H100_80GB SXM5 datacrunch spot
+  price_per_hour: $1.14
+  created_at: 2026-06-07T00:53Z
+  expected_stop: completed and terminated after prefix-specificity decision plus artifact pull
+  status: terminated_after_alpha_zero_control_matched_active_prime_active_pods_0
+  termination_policy: terminate after workload/failure unless an immediate user-approved follow-up reuses the warmed pod
+  notes:
+    - Active K5 prefix reproduced the known healthy segment: `3.38478 @1900` to `3.37337 @2000`, drop `0.01141/100`.
+    - Disabled-path no-Loco control produced `nan` validation through the compiled path, so it was stopped and replaced by same-harness `alpha=0.0` no-parameter-correction control.
+    - Alpha-zero control matched active through the decision point: active `3.37337 @2000`, control `3.37338 @2000`; `1900->2000` drop/100 was `0.01141` active vs `0.01140` control.
+    - Prefix decision: active LocoProp gain over no-correction was only `+0.00001 @2000`; read is schedule/checkpoint state, not applied LocoProp direction.
+    - Pulled artifact archive to `.opencode/current_track3_ledger_20260607_logs/prime_track3_locom_tick_ladder_20260607T022549Z.tar.gz`.
+    - Terminated pod with `--yes`; follow-up `prime pods list` showed zero active pods.
+
 - pod_id: bb96ad929daa4016955006a0f107b7c8
   name: oc-main-track3-kdiag-h100-20260606-$(date -u +%H%M)
   owner: current-agent

@@ -27,6 +27,7 @@ run_lane() {
   local correction_mode="$4"
   local norm_target="$5"
   local min_cos_desc="$6"
+  local alpha="${7:-1.0}"
 
   local label="track3_prefix_${name}_seed${seed_offset}"
   echo "===== ${label} =====" | tee -a "${log_dir}/sequence.status"
@@ -63,7 +64,7 @@ run_lane() {
     TRACK3_LOCOM_TRUE_POST_GRAD=1 \
     TRACK3_LOCOM_MIN_COS_DESC="${min_cos_desc}" \
     TRACK3_LOCOM_REQUIRE_LOSS_DECREASE=1 \
-    TRACK3_LOCOM_ALPHA=1.0 \
+    TRACK3_LOCOM_ALPHA="${alpha}" \
     TRACK3_LOCOM_SAMPLE_TOKENS=1024 \
     TRACK3_LOCOM_NORM_TARGET="${norm_target}" \
     TRACK3_LOCOM_NORM_TO_BASE=0 \
@@ -81,8 +82,12 @@ run_lane() {
     bash tools/run_track3_locom_kdiag_probe.sh
 }
 
-run_lane "active_k5" 1 "sgd" "normal" "0.0" "0.0"
-run_lane "noloco" 0 "sgd" "normal" "0.0" "0.0"
+if [[ "${TRACK3_PREFIX_SKIP_ACTIVE:-0}" != "1" ]]; then
+  run_lane "active_k5" 1 "sgd" "normal" "0.0" "0.0"
+else
+  echo "prefix_specificity_skip_active using_existing_log" | tee -a "${log_dir}/sequence.status"
+fi
+run_lane "noloco" 1 "sgd" "normal" "0.0" "0.0" "0.0"
 run_lane "random_norm002" 1 "random" "normal" "0.02" "0.0"
 # Orthogonal controls have cosine near zero by construction; do not let tiny
 # numerical negative cosine reject the correction.

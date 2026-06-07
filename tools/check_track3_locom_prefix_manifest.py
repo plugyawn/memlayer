@@ -79,14 +79,15 @@ class LaneSpec:
     correction_mode: str
     norm_target: float
     min_cos_desc: float
+    alpha: float
     intent: str
 
 
 LANES = {
-    "active_k5": LaneSpec("active_k5", True, "sgd", False, "normal", 0.0, 0.0, "natural true-post c_fc LocoProp K5"),
-    "noloco": LaneSpec("noloco", False, "sgd", False, "normal", 0.0, 0.0, "exact no-correction checkpoint/schedule control"),
-    "random_norm002": LaneSpec("random_norm002", True, "random", True, "normal", 0.02, 0.0, "same-shape random perturbation at 2% base-step norm"),
-    "orthogonal_k5_norm002": LaneSpec("orthogonal_k5_norm002", True, "sgd", False, "orthogonal", 0.02, -1.0, "true-post correction with descent-parallel component removed at 2% base-step norm"),
+    "active_k5": LaneSpec("active_k5", True, "sgd", False, "normal", 0.0, 0.0, 1.0, "natural true-post c_fc LocoProp K5"),
+    "noloco": LaneSpec("noloco", True, "sgd", False, "normal", 0.0, 0.0, 0.0, "same harness with alpha-zero no-parameter-correction control"),
+    "random_norm002": LaneSpec("random_norm002", True, "random", True, "normal", 0.02, 0.0, 1.0, "same-shape random perturbation at 2% base-step norm"),
+    "orthogonal_k5_norm002": LaneSpec("orthogonal_k5_norm002", True, "sgd", False, "orthogonal", 0.02, -1.0, 1.0, "true-post correction with descent-parallel component removed at 2% base-step norm"),
 }
 
 COMMON_EXPECTED = {
@@ -99,7 +100,6 @@ COMMON_EXPECTED = {
     "require_loss_decrease": True,
     "inner_lr": 2e-4,
     "prox": 0.1,
-    "alpha": 1.0,
     "norm_to_base": False,
     "norm_cap": 0.20,
     "active_windows": "0:1800",
@@ -193,6 +193,7 @@ def _validate_lane(path: Path, header: dict[str, object], spec: LaneSpec) -> lis
         "correction_mode": spec.correction_mode,
         "norm_target": spec.norm_target,
         "min_cos_desc": spec.min_cos_desc,
+        "alpha": spec.alpha,
     }
     for key, value in expected.items():
         if value is None:
@@ -216,12 +217,12 @@ def _collect_logs(entries: list[Path]) -> list[Path]:
 def print_manifest() -> None:
     print("# Track 3 Prefix Specificity Manifest")
     print()
-    print("| lane | enabled | local_opt | random | mode | norm_target | min_cos_desc | intent |")
-    print("| --- | ---: | --- | ---: | --- | ---: | ---: | --- |")
+    print("| lane | enabled | local_opt | random | mode | alpha | norm_target | min_cos_desc | intent |")
+    print("| --- | ---: | --- | ---: | --- | ---: | ---: | ---: | --- |")
     for spec in LANES.values():
         print(
             f"| {spec.lane} | {int(spec.enabled)} | {spec.local_opt} | "
-            f"{int(spec.random_correction)} | {spec.correction_mode} | {spec.norm_target:.2f} | "
+            f"{int(spec.random_correction)} | {spec.correction_mode} | {spec.alpha:.1f} | {spec.norm_target:.2f} | "
             f"{spec.min_cos_desc:.1f} | {spec.intent} |"
         )
     print()

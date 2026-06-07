@@ -22,6 +22,7 @@ def _header(
     norm_target: float = 0.0,
     lr_bump: str = "",
     min_cos_desc: float = 0.0,
+    alpha: float = 1.0,
 ) -> str:
     return _header_with_lr(
         enabled=enabled,
@@ -31,6 +32,7 @@ def _header(
         norm_target=norm_target,
         lr_bump=lr_bump,
         min_cos_desc=min_cos_desc,
+        alpha=alpha,
     )
 
 
@@ -45,6 +47,7 @@ def _header_with_lr(
     lr_bump: str = "",
     lr_min_eta: float = 0.0,
     min_cos_desc: float = 0.0,
+    alpha: float = 1.0,
     active_windows: str = "0:1800",
     end_step: int = 1800,
 ) -> str:
@@ -56,7 +59,7 @@ def _header_with_lr(
         f"diag_steps=1,2,4,5 lr_decay=False rms_beta1=0.999 rms_beta2=0.9 "
         f"rms_eps=1e-5 rms_reset_each_step=False require_loss_decrease=True "
         f"min_cos_desc={min_cos_desc} inner_lr=0.0002 target_gamma=1.0 prox=0.1 "
-        f"alpha=1.0 norm_to_base=False norm_target={norm_target} norm_cap=0.20 "
+        f"alpha={alpha} norm_to_base=False norm_target={norm_target} norm_cap=0.20 "
         f"norm_cap_windows= active_windows={active_windows} start_step=0 end_step={end_step} "
         f"interval=1 target_loss=3.28 seed_base=0 seed_offset=3710 "
         f"cooldown_frac=1.0 lr_schedule=power lr_power=2.0 "
@@ -318,12 +321,12 @@ def test_acceptance_sequence(tmp: Path) -> None:
 
 def test_prefix_manifest_checker(tmp: Path) -> None:
     lanes = [
-        ("active_k5", True, "sgd", False, "normal", 0.0, 0.0),
-        ("noloco", False, "sgd", False, "normal", 0.0, 0.0),
-        ("random_norm002", True, "random", True, "normal", 0.02, 0.0),
-        ("orthogonal_k5_norm002", True, "sgd", False, "orthogonal", 0.02, -1.0),
+        ("active_k5", True, "sgd", False, "normal", 0.0, 0.0, 1.0),
+        ("noloco", True, "sgd", False, "normal", 0.0, 0.0, 0.0),
+        ("random_norm002", True, "random", True, "normal", 0.02, 0.0, 1.0),
+        ("orthogonal_k5_norm002", True, "sgd", False, "orthogonal", 0.02, -1.0, 1.0),
     ]
-    for lane, enabled, local_opt, random, mode, norm_target, min_cos_desc in lanes:
+    for lane, enabled, local_opt, random, mode, norm_target, min_cos_desc, alpha in lanes:
         (tmp / f"track3_prefix_{lane}_seed3710.log").write_text(
             _runner()
             + _header(
@@ -333,11 +336,12 @@ def test_prefix_manifest_checker(tmp: Path) -> None:
                 mode=mode,
                 norm_target=norm_target,
                 min_cos_desc=min_cos_desc,
+                alpha=alpha,
             )
         )
     out = _run(["tools/check_track3_locom_prefix_manifest.py", str(tmp)])
     _assert_contains(out, "PASS: all prefix lane headers match the manifest")
-    _assert_contains(out, "| orthogonal_k5_norm002 | 1 | sgd | 0 | orthogonal | 0.02 | -1.0 |")
+    _assert_contains(out, "| orthogonal_k5_norm002 | 1 | sgd | 0 | orthogonal | 1.0 | 0.02 | -1.0 |")
 
 
 def test_layer_subset_manifest_checker(tmp: Path) -> None:
@@ -360,7 +364,7 @@ def test_manifest_checkers_reject_stale_1800_endpoint(tmp: Path) -> None:
         _runner(steps=1800) + _header(enabled=True)
     )
     (tmp / "track3_prefix_noloco_seed3710.log").write_text(
-        _runner() + _header(enabled=False)
+        _runner() + _header(enabled=True, alpha=0.0)
     )
     (tmp / "track3_prefix_random_norm002_seed3710.log").write_text(
         _runner() + _header(enabled=True, local_opt="random", random=True, norm_target=0.02)
