@@ -259,14 +259,34 @@ If residual correction improves 2500->2600 slope versus cold, promote to a
 
 ## Current Verdict
 
-LocoProp-M is not disproven as a primitive. The current version is likely
-solving the wrong local problem for an additive Muon hybrid.
+The residual-after-Muon probe has now been run from the cold step-2500 branch.
+
+Result:
+
+```text
+normal 0.05x:       3.33829 @2600
+softpolar 0.05x:    3.33830 @2600
+residual 0.05x:     3.33829 @2600
+```
+
+The residual path was active: apply logs contained `resid_loss0/resid_lossK`,
+and those local residual losses decreased. It still did not move validation.
+
+This narrows the claim:
+
+```text
+LocoProp-M is not disproven as a primitive.
+But at the step-2500 flat-tail state, MLP-fc local matching is not a useful
+suffix rescue even when residualized after Muon.
+```
 
 The key next question is not "K5 or K10" and not "normal or softpolar." It is:
 
 ```text
-does the local correction solve the residual that Muon leaves behind?
+why does the same local correction family pull down the prefix/mid-run but
+become validation-inert in the late flat tail?
 ```
 
-Until that is answered, more suffix LR schedules are lower value than the
-residual-after-Muon probe.
+The answer is now more likely state/trajectory phase than correction
+construction. The next useful test is earlier than 2500, not a stronger
+late-tail correction at 2500.

@@ -159,6 +159,46 @@ step 2575 raw_frac_med=918.6, eff_frac_med=0.05
 
 That makes softpolar-on-correction a poor explanation for the missing tail.
 
+### LocoProp Residual-After-Muon From 2500, 0.05x
+
+Settings:
+
+```text
+TRACK3_LOCOM_RESIDUAL_AFTER_MUON=1
+TRACK3_LOCOM_ACTIVE_WINDOWS=2500:2600
+TRACK3_LOCOM_STEPS=5
+TRACK3_LOCOM_INNER_LR=2e-4
+TRACK3_LOCOM_TARGET_SPACE=post
+TRACK3_LOCOM_TRUE_POST_GRAD=1
+TRACK3_LOCOM_REQUIRE_LOSS_DECREASE=0
+TRACK3_LOCOM_MIN_COS_DESC=-inf
+TRACK3_LOCOM_NORM_TARGET=0.05
+TRACK3_LOCOM_NORM_CAP=0.20
+```
+
+Result:
+
+```text
+2500: 3.34115
+2525: 3.34036
+2550: 3.33962
+2575: 3.33890
+2600: 3.33829
+```
+
+This also tied the cold, normal, and softpolar tails. The residual code path was
+verified active by `resid_loss0/resid_lossK` apply logs, and the local residual
+loss decreased, for example at step 2500:
+
+```text
+resid_loss0=3.853e-05 -> resid_lossK=3.840e-05
+resid_loss0=3.096e-05 -> resid_lossK=2.428e-05
+resid_loss0=6.487e-05 -> resid_lossK=5.899e-05
+```
+
+So even solving from the post-Muon weight does not rescue the flat tail at this
+checkpoint. The missing piece is not just "subtract the Muon displacement first."
+
 ## Current Read
 
 1. The good prefix is real enough to recreate, but the suffix cannot be fixed by
@@ -170,8 +210,9 @@ That makes softpolar-on-correction a poor explanation for the missing tail.
 4. Softpolar/polar-style shaping of the LocoProp correction also does not help
    from the flat 2500 state.
 5. The local objective can improve while the global validation curve remains
-   unchanged. The LocoProp correction is not presently aligned with the suffix
-   descent geometry in a way that survives validation.
+   unchanged. This remains true even for the residual-after-Muon version.
+6. The LocoProp correction is not presently aligned with the suffix descent
+   geometry in a way that survives validation.
 
 ## What Would Make LocoProp Tick
 
@@ -188,6 +229,9 @@ cap by itself. The correction needs at least one of:
 
 Given the current evidence, the LocoProp-M correction is a prefix/trajectory
 phenomenon, not a reliable late-tail rescue primitive in this implementation.
+The 2500 state is already too cold/flat for local MLP-fc matching corrections to
+matter, even when those corrections are ungated, norm-forced, softpolar-shaped,
+or residualized after Muon.
 
 ## Local Artifacts
 
@@ -195,5 +239,7 @@ phenomenon, not a reliable late-tail rescue primitive in this implementation.
 .opencode/current_track3_ledger_20260607_logs/tailcopy_43ad37/cold2500_to3000/
 .opencode/current_track3_ledger_20260607_logs/tailcopy_43ad37/soft2500_to3000/
 .opencode/current_track3_ledger_20260607_logs/tailcopy_43ad37/tail2500_tick/
+.opencode/current_track3_ledger_20260607_logs/tailcopy_43ad37/residual_tail2500/
 .opencode/prime_scripts/run_prime_track3_locom_tail2500_tick.sh
+.opencode/prime_scripts/run_prime_track3_locom_residual_tail2500.sh
 ```

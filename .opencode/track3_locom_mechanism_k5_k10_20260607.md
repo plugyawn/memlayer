@@ -12,6 +12,7 @@
 | tailcopy_43ad37/control | nan | nan | nan | nan | nan | 3.37335 | 3.37099 | 3.36869 | 3.36214 | 3.35627 | 3.35306 | nan | nan | nan | nan | nan |
 | track3_locom_tail2500_ungated_norm005_seed3710_to2600 | nan | nan | nan | nan | nan | nan | nan | nan | nan | nan | nan | 3.34115 | 3.34036 | 3.33962 | 3.33891 | 3.33829 |
 | track3_locom_tail2500_ungated_softpolar_norm005_seed3710_to2600 | nan | nan | nan | nan | nan | nan | nan | nan | nan | nan | nan | 3.34115 | 3.34037 | 3.33963 | 3.33892 | 3.33830 |
+| track3_locom_tail2500_residual_norm005_seed3710_to2600 | nan | nan | nan | nan | nan | nan | nan | nan | nan | nan | nan | 3.34115 | 3.34036 | 3.33962 | 3.33890 | 3.33829 |
 
 | log | window | slope/needed | status |
 | --- | --- | ---: | --- |
@@ -40,6 +41,10 @@
 | track3_locom_tail2500_ungated_softpolar_norm005_seed3710_to2600 | 2525->2550 | 0.23x | cold |
 | track3_locom_tail2500_ungated_softpolar_norm005_seed3710_to2600 | 2550->2575 | 0.21x | cold |
 | track3_locom_tail2500_ungated_softpolar_norm005_seed3710_to2600 | 2575->2600 | 0.18x | cold |
+| track3_locom_tail2500_residual_norm005_seed3710_to2600 | 2500->2525 | 0.26x | cold |
+| track3_locom_tail2500_residual_norm005_seed3710_to2600 | 2525->2550 | 0.23x | cold |
+| track3_locom_tail2500_residual_norm005_seed3710_to2600 | 2550->2575 | 0.22x | cold |
+| track3_locom_tail2500_residual_norm005_seed3710_to2600 | 2575->2600 | 0.18x | cold |
 
 ## Local Objective And Direction
 
@@ -64,6 +69,10 @@
 | track3_locom_tail2500_ungated_softpolar_norm005_seed3710_to2600 | 2525 | 5 | 12 | 9.186e-01 | 3.745e+01 | 0.007 | 12 | 12 | 0 |
 | track3_locom_tail2500_ungated_softpolar_norm005_seed3710_to2600 | 2550 | 5 | 12 | 9.110e-01 | 3.754e+01 | 0.008 | 12 | 12 | 0 |
 | track3_locom_tail2500_ungated_softpolar_norm005_seed3710_to2600 | 2575 | 5 | 12 | 9.150e-01 | 3.767e+01 | 0.009 | 12 | 12 | 0 |
+| track3_locom_tail2500_residual_norm005_seed3710_to2600 | 2500 | 5 | 12 | 9.143e-01 | 3.533e-03 | 0.009 | 12 | 11 | 1 |
+| track3_locom_tail2500_residual_norm005_seed3710_to2600 | 2525 | 5 | 12 | 9.204e-01 | 2.699e-03 | 0.009 | 12 | 10 | 2 |
+| track3_locom_tail2500_residual_norm005_seed3710_to2600 | 2550 | 5 | 12 | 9.184e-01 | 3.157e-03 | 0.009 | 12 | 10 | 2 |
+| track3_locom_tail2500_residual_norm005_seed3710_to2600 | 2575 | 5 | 12 | 9.176e-01 | 3.177e-03 | 0.005 | 12 | 10 | 2 |
 
 ## Applied Correction Scale
 
@@ -88,6 +97,10 @@
 | track3_locom_tail2500_ungated_softpolar_norm005_seed3710_to2600 | 2525 | 8 | 0.0486 | 734.7067 | 0.0500 | 0.0500 | 0.000 |
 | track3_locom_tail2500_ungated_softpolar_norm005_seed3710_to2600 | 2550 | 8 | 0.0436 | 805.0291 | 0.0500 | 0.0500 | 0.000 |
 | track3_locom_tail2500_ungated_softpolar_norm005_seed3710_to2600 | 2575 | 8 | 0.0389 | 918.5718 | 0.0500 | 0.0500 | 0.000 |
+| track3_locom_tail2500_residual_norm005_seed3710_to2600 | 2500 | 8 | 0.0539 | 0.0490 | 0.0500 | 0.0500 | 1.042 |
+| track3_locom_tail2500_residual_norm005_seed3710_to2600 | 2525 | 8 | 0.0486 | 0.0458 | 0.0500 | 0.0500 | 1.091 |
+| track3_locom_tail2500_residual_norm005_seed3710_to2600 | 2550 | 8 | 0.0436 | 0.0501 | 0.0500 | 0.0500 | 0.997 |
+| track3_locom_tail2500_residual_norm005_seed3710_to2600 | 2575 | 8 | 0.0389 | 0.0519 | 0.0500 | 0.0500 | 0.964 |
 
 ## Mechanism Read
 
@@ -99,5 +112,6 @@
 - `tailcopy_43ad37/control`: no kdiag rows parsed.
 - `track3_locom_tail2500_ungated_norm005_seed3710_to2600`: local K5 correction is locally sane at [2500, 2525, 2550, 2575]; weak/bad at none.
 - `track3_locom_tail2500_ungated_softpolar_norm005_seed3710_to2600`: local K5 correction is locally sane at [2500, 2525, 2550, 2575]; weak/bad at none.
+- `track3_locom_tail2500_residual_norm005_seed3710_to2600`: local K5 correction is locally sane at [2500, 2525, 2550, 2575]; weak/bad at none.
 
 Synthesis rule: if local loss improves and an applied correction exists but validation slope is still cold, the missing ingredient is not more local iterations. It is trajectory/schedule/state compatibility.

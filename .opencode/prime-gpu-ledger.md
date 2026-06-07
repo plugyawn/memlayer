@@ -610,3 +610,8 @@
     - 2026-06-07 18:25 UTC direct SSH status check: pod still running, `NVIDIA H100 80GB HBM3`, `0 %` GPU util, `0 MiB` GPU memory, no active `train_gpt`/`torchrun` process. User explicitly instructed not to terminate; pod remains intentionally warm for the next targeted suffix/mechanism probe.
     - Launched residual-after-Muon LocoProp-M probe from the cold step-2500 checkpoint, PID `14272`, script `.opencode/prime_scripts/run_prime_track3_locom_residual_tail2500.sh`.
     - First screen matched checkpoint provenance: `3.34115 @2500`; GPU active at `100 %`, about `37.5 GiB` memory.
+    - Stopped the first residual probe process only, not the pod, after verifying it was accidentally using the normal non-residual path due a missing payload in the non-batched prep path.
+    - Fixed `TRACK3_LOCOM_RESIDUAL_AFTER_MUON=1` payload handling, relaunched corrected residual probe as PID `15007`.
+    - Corrected residual-after-Muon probe finished: `3.34115 @2500`, `3.34036 @2525`, `3.33962 @2550`, `3.33890 @2575`, `3.33829 @2600`. This tied normal/cold tail. Apply logs verified residual path with `resid_loss0/resid_lossK`; local residual losses decreased but validation did not move.
+    - Pulled residual logs to `.opencode/current_track3_ledger_20260607_logs/tailcopy_43ad37/residual_tail2500/`.
+    - 2026-06-07 18:56 UTC direct SSH status check after residual probe: pod still running, `NVIDIA H100 80GB HBM3`, `0 %` GPU util, `0 MiB` GPU memory, no active training process.

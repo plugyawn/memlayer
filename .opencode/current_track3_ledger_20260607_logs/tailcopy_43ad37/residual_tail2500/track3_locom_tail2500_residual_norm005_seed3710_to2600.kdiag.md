@@ -1,0 +1,22 @@
+| profile | step | k | layers | med loss/loss0 | med corr_norm | med cos | bad loss | nonfinite | bad cos |
+| --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: |
+| track3_locom_tail2500_residual_norm005_seed3710_to2600 | 2500 | 1 | 12 | 9.769e-01 | 9.813e-04 | 0.008 | 0 | 0 | 1 |
+| track3_locom_tail2500_residual_norm005_seed3710_to2600 | 2500 | 2 | 12 | 9.555e-01 | 1.730e-03 | 0.007 | 0 | 0 | 1 |
+| track3_locom_tail2500_residual_norm005_seed3710_to2600 | 2500 | 4 | 12 | 9.246e-01 | 2.917e-03 | 0.009 | 0 | 0 | 1 |
+| track3_locom_tail2500_residual_norm005_seed3710_to2600 | 2500 | 5 | 12 | 9.143e-01 | 3.533e-03 | 0.009 | 0 | 0 | 1 |
+| track3_locom_tail2500_residual_norm005_seed3710_to2600 | 2501 | 1 | 12 | 9.811e-01 | 7.588e-04 | 0.007 | 0 | 0 | 3 |
+| track3_locom_tail2500_residual_norm005_seed3710_to2600 | 2501 | 2 | 12 | 9.635e-01 | 1.316e-03 | 0.007 | 0 | 0 | 3 |
+| track3_locom_tail2500_residual_norm005_seed3710_to2600 | 2501 | 4 | 12 | 9.410e-01 | 2.286e-03 | 0.007 | 0 | 0 | 3 |
+| track3_locom_tail2500_residual_norm005_seed3710_to2600 | 2501 | 5 | 12 | 9.280e-01 | 2.822e-03 | 0.007 | 0 | 0 | 3 |
+| track3_locom_tail2500_residual_norm005_seed3710_to2600 | 2525 | 1 | 12 | 9.806e-01 | 6.097e-04 | 0.006 | 0 | 0 | 4 |
+| track3_locom_tail2500_residual_norm005_seed3710_to2600 | 2525 | 2 | 12 | 9.648e-01 | 1.142e-03 | 0.006 | 0 | 0 | 2 |
+| track3_locom_tail2500_residual_norm005_seed3710_to2600 | 2525 | 4 | 12 | 9.342e-01 | 2.196e-03 | 0.009 | 0 | 0 | 2 |
+| track3_locom_tail2500_residual_norm005_seed3710_to2600 | 2525 | 5 | 12 | 9.204e-01 | 2.699e-03 | 0.009 | 0 | 0 | 2 |
+| track3_locom_tail2500_residual_norm005_seed3710_to2600 | 2550 | 1 | 12 | 9.813e-01 | 7.506e-04 | 0.009 | 0 | 0 | 2 |
+| track3_locom_tail2500_residual_norm005_seed3710_to2600 | 2550 | 2 | 12 | 9.640e-01 | 1.424e-03 | 0.009 | 0 | 0 | 2 |
+| track3_locom_tail2500_residual_norm005_seed3710_to2600 | 2550 | 4 | 12 | 9.327e-01 | 2.616e-03 | 0.009 | 0 | 0 | 2 |
+| track3_locom_tail2500_residual_norm005_seed3710_to2600 | 2550 | 5 | 12 | 9.184e-01 | 3.157e-03 | 0.009 | 0 | 0 | 2 |
+| track3_locom_tail2500_residual_norm005_seed3710_to2600 | 2575 | 1 | 12 | 9.808e-01 | 7.717e-04 | 0.005 | 0 | 0 | 1 |
+| track3_locom_tail2500_residual_norm005_seed3710_to2600 | 2575 | 2 | 12 | 9.631e-01 | 1.459e-03 | 0.005 | 0 | 0 | 1 |
+| track3_locom_tail2500_residual_norm005_seed3710_to2600 | 2575 | 4 | 12 | 9.318e-01 | 2.650e-03 | 0.005 | 0 | 0 | 1 |
+| track3_locom_tail2500_residual_norm005_seed3710_to2600 | 2575 | 5 | 12 | 9.176e-01 | 3.177e-03 | 0.005 | 0 | 0 | 2 |
