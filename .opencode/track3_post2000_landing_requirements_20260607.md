@@ -139,19 +139,25 @@ Priority lanes:
 
 ```text
 control_p2
-muon125_2400_2800
-adam125_2400_2800
-split_muon150_adam085_2400_2800
+floor004_r2500
+floor006_r2500
+floor006_r2600
 ```
 
 Reason:
 
 ```text
-global heat failed.
+global heat failed because it shocked the state.
+immediate high floors failed.
 delayed global bridge failed.
 late c_fc LocoProp failed.
-the remaining cheap axis is optimizer-group LR balance.
+the remaining cheap axis is a continuity-preserving LR floor.
 ```
+
+The default suffix launcher now supports `TRACK3_LR_MIN_ETA_WINDOWS`, formatted
+as `start:ramp_end:hold_end:fade_end:eta`, and uses the floor lanes above by
+default. The old group-bump lanes remain available, but they should not be the
+next default spend.
 
 If those fail, the next LocoProp question should not be more K or scale. It
 should change the object:

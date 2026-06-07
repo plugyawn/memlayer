@@ -15,7 +15,7 @@ train_steps="${TRACK3_TRAIN_STEPS:-3000}"
 checkpoint_dir="${TRACK3_CHECKPOINT_DIR:-/home/ubuntu/.cache/track3_checkpoints}"
 checkpoint_steps="${TRACK3_CHECKPOINT_STEPS:-2600,2800,3000}"
 source_script="${TRACK3_SOURCE:-records/track_3_optimization/train_gpt_simple.py}"
-lanes="${TRACK3_SUFFIX_LANES:-control_p2,muon125_2400_2800,adam125_2400_2800,split_muon150_adam085_2400_2800}"
+lanes="${TRACK3_SUFFIX_LANES:-control_p2,floor004_r2500,floor006_r2500,floor006_r2600}"
 gate_step="${TRACK3_GATE_STEP:-2600}"
 gate_loss="${TRACK3_GATE_LOSS:-3.3260}"
 
@@ -49,6 +49,7 @@ common_env=(
   TRACK3_LR_POWER=2.0
   TRACK3_LR_SCHEDULE_STEPS=3000
   TRACK3_LR_MIN_ETA=0.0
+  TRACK3_LR_MIN_ETA_WINDOWS=
   TRACK3_LR_BUMP_WINDOWS=
   TRACK3_LR_ADAM_BUMP_WINDOWS=
   TRACK3_LR_MUON_BUMP_WINDOWS=
@@ -119,6 +120,26 @@ for lane in "${lane_array[@]}"; do
   case "${lane}" in
     control_p2)
       run_lane "${lane}"
+      ;;
+    floor004_r2500)
+      run_lane "${lane}" TRACK3_LR_MIN_ETA_WINDOWS="2400:2500:3000:3000:0.04"
+      ;;
+    floor005_r2500)
+      run_lane "${lane}" TRACK3_LR_MIN_ETA_WINDOWS="2400:2500:3000:3000:0.05"
+      ;;
+    floor006_r2500)
+      run_lane "${lane}" TRACK3_LR_MIN_ETA_WINDOWS="2400:2500:3000:3000:0.06"
+      ;;
+    floor006_r2600)
+      run_lane "${lane}" TRACK3_LR_MIN_ETA_WINDOWS="2400:2600:3000:3000:0.06"
+      ;;
+    floor008_r2600)
+      run_lane "${lane}" TRACK3_LR_MIN_ETA_WINDOWS="2400:2600:3000:3000:0.08"
+      ;;
+    floor006_muon125_r2600)
+      run_lane "${lane}" \
+        TRACK3_LR_MIN_ETA_WINDOWS="2400:2600:3000:3000:0.06" \
+        TRACK3_LR_MUON_BUMP_WINDOWS="2400:2600:3000:3000:1.25"
       ;;
     muon125_2400_2800)
       run_lane "${lane}" TRACK3_LR_MUON_BUMP_WINDOWS="2400:2500:2800:3000:1.25"

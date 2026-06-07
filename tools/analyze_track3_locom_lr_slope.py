@@ -80,6 +80,22 @@ def _parse_bump_windows(spec: str) -> list[tuple[int, int, int, int, float]]:
     return windows
 
 
+def _parse_floor_windows(spec: str) -> list[tuple[int, int, int, int, float]]:
+    windows: list[tuple[int, int, int, int, float]] = []
+    for part in spec.split(","):
+        part = part.strip()
+        if not part:
+            continue
+        fields = part.split(":")
+        if len(fields) != 5:
+            continue
+        start, ramp_end, hold_end, fade_end = map(int, fields[:4])
+        eta = float(fields[4])
+        if start <= ramp_end <= hold_end <= fade_end:
+            windows.append((start, ramp_end, hold_end, fade_end, eta))
+    return windows
+
+
 def _bump_multiplier(step: int, spec: str) -> float:
     multiplier = 1.0
     for start, ramp_end, hold_end, fade_end, mult in _parse_bump_windows(spec):
@@ -96,6 +112,24 @@ def _bump_multiplier(step: int, spec: str) -> float:
             t = (step - start) / (ramp_end - start)
         multiplier *= 1.0 + (mult - 1.0) * t
     return multiplier
+
+
+def _eta_floor(step: int, header: dict[str, str]) -> float:
+    eta_floor = _float(header, "lr_min_eta", 0.0)
+    for start, ramp_end, hold_end, fade_end, eta in _parse_floor_windows(header.get("lr_min_eta_windows", "")):
+        if step < start or step > fade_end:
+            continue
+        if ramp_end <= start or step >= ramp_end:
+            if step <= hold_end:
+                t = 1.0
+            elif fade_end <= hold_end:
+                t = 0.0
+            else:
+                t = max(0.0, (fade_end - step) / (fade_end - hold_end))
+        else:
+            t = (step - start) / (ramp_end - start)
+        eta_floor = max(eta_floor, eta * t)
+    return eta_floor
 
 
 def _schedule_fraction(
@@ -120,7 +154,6 @@ def _schedule_fraction(
         return None
     cooldown_frac = _float(header, "cooldown_frac", 0.7)
     lr_power = _float(header, power_key, 1.0)
-    lr_min_eta = _float(header, "lr_min_eta", 0.0)
     progress = step / schedule_steps
     if progress < 1.0 - cooldown_frac:
         eta = 1.0
@@ -128,7 +161,7 @@ def _schedule_fraction(
         eta = (1.0 - progress) / cooldown_frac
         if schedule == "power":
             eta = eta**lr_power
-        eta = max(eta, lr_min_eta)
+        eta = max(eta, _eta_floor(step, header))
     return eta
 
 

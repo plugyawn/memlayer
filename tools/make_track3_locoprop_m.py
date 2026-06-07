@@ -77,6 +77,7 @@ TRACK3_LR_SCHEDULE = os.environ.get("TRACK3_LR_SCHEDULE", "linear").lower()
 TRACK3_LR_POWER = float(os.environ.get("TRACK3_LR_POWER", "1.0"))
 TRACK3_LR_SCHEDULE_STEPS = int(os.environ.get("TRACK3_LR_SCHEDULE_STEPS", "0"))
 TRACK3_LR_MIN_ETA = float(os.environ.get("TRACK3_LR_MIN_ETA", "0.0"))
+TRACK3_LR_MIN_ETA_WINDOWS_SPEC = os.environ.get("TRACK3_LR_MIN_ETA_WINDOWS", "")
 TRACK3_LR_SWITCH_STEP = int(os.environ.get("TRACK3_LR_SWITCH_STEP", "-1"))
 TRACK3_LR_AFTER_SWITCH = os.environ.get("TRACK3_LR_AFTER_SWITCH", "").lower()
 TRACK3_LR_AFTER_SWITCH_POWER = float(os.environ.get("TRACK3_LR_AFTER_SWITCH_POWER", str(TRACK3_LR_POWER)))
@@ -207,6 +208,26 @@ TRACK3_LR_BUMP_WINDOWS = _parse_lr_bump_windows(TRACK3_LR_BUMP_WINDOWS_SPEC)
 TRACK3_LR_ADAM_BUMP_WINDOWS = _parse_lr_bump_windows(TRACK3_LR_ADAM_BUMP_WINDOWS_SPEC)
 TRACK3_LR_MUON_BUMP_WINDOWS = _parse_lr_bump_windows(TRACK3_LR_MUON_BUMP_WINDOWS_SPEC)
 
+def _parse_lr_floor_windows(spec: str) -> list[tuple[int, int, int, int, float]]:
+    windows: list[tuple[int, int, int, int, float]] = []
+    for part in spec.split(","):
+        part = part.strip()
+        if not part:
+            continue
+        fields = part.split(":")
+        if len(fields) != 5:
+            raise ValueError("TRACK3_LR_MIN_ETA_WINDOWS entries must be start:ramp_end:hold_end:fade_end:eta")
+        start, ramp_end, hold_end, fade_end = map(int, fields[:4])
+        eta = float(fields[4])
+        if not (start <= ramp_end <= hold_end <= fade_end):
+            raise ValueError("TRACK3_LR_MIN_ETA_WINDOWS requires start <= ramp_end <= hold_end <= fade_end")
+        if eta < 0.0:
+            raise ValueError("TRACK3_LR_MIN_ETA_WINDOWS eta must be non-negative")
+        windows.append((start, ramp_end, hold_end, fade_end, eta))
+    return windows
+
+TRACK3_LR_MIN_ETA_WINDOWS = _parse_lr_floor_windows(TRACK3_LR_MIN_ETA_WINDOWS_SPEC)
+
 def _track3_window_multiplier(step: int, windows: list[tuple[int, int, int, int, float]]) -> float:
     multiplier = 1.0
     for start, ramp_end, hold_end, fade_end, mult in windows:
@@ -234,6 +255,23 @@ def _track3_lr_multiplier_for_optimizer(step: int, opt_idx: int) -> float:
     elif opt_idx == 1:
         multiplier *= _track3_window_multiplier(step, TRACK3_LR_MUON_BUMP_WINDOWS)
     return multiplier
+
+def _track3_lr_eta_floor(step: int) -> float:
+    eta_floor = TRACK3_LR_MIN_ETA
+    for start, ramp_end, hold_end, fade_end, eta in TRACK3_LR_MIN_ETA_WINDOWS:
+        if step < start or step > fade_end:
+            continue
+        if ramp_end <= start or step >= ramp_end:
+            if step <= hold_end:
+                t = 1.0
+            elif fade_end <= hold_end:
+                t = 0.0
+            else:
+                t = max(0.0, (fade_end - step) / (fade_end - hold_end))
+        else:
+            t = (step - start) / (ramp_end - start)
+        eta_floor = max(eta_floor, eta * t)
+    return eta_floor
 
 def _track3_soft_muon_blend_for_step(step: int) -> float:
     if not TRACK3_SOFT_MUON:
@@ -935,6 +973,7 @@ def maybe_save_track3_checkpoint(model: nn.Module, optimizers: list[torch.optim.
                 "track3_lr_power": TRACK3_LR_POWER,
                 "track3_lr_schedule_steps": TRACK3_LR_SCHEDULE_STEPS,
                 "track3_lr_min_eta": TRACK3_LR_MIN_ETA,
+                "track3_lr_min_eta_windows": TRACK3_LR_MIN_ETA_WINDOWS_SPEC,
                 "track3_lr_bump_windows": TRACK3_LR_BUMP_WINDOWS_SPEC,
                 "track3_lr_blend_start": TRACK3_LR_BLEND_START,
                 "track3_lr_blend_end": TRACK3_LR_BLEND_END,
@@ -1193,7 +1232,7 @@ def muon_update(grad, momentum, mu=0.95, nesterov=True):
         text,
         'print0(f"Running PyTorch {torch.version.__version__} compiled for CUDA {torch.version.cuda}"',
         f'print0("Track3 LocoProp-M generated run: source={source_label} train_steps={train_steps}")\n'
-        'print0(f"LocoM enabled={LOCO_M_ENABLED} layers={LOCO_M_LAYERS_SPEC} steps={LOCO_M_LOCAL_STEPS} sample_tokens={LOCO_M_SAMPLE_TOKENS} gather={LOCO_M_GATHER_SAMPLES} accum={LOCO_M_ACCUM_SAMPLES} micro_sample_tokens={LOCO_M_MICRO_SAMPLE_TOKENS} aux_capture={LOCO_M_AUX_CAPTURE} aux_seqs={LOCO_M_AUX_SEQS} batched_prep={LOCO_M_BATCHED_PREP} local_opt={LOCO_M_LOCAL_OPT} target_space={LOCO_M_TARGET_SPACE} true_post_grad={LOCO_M_TRUE_POST_GRAD} random_correction={LOCO_M_RANDOM_CORRECTION} correction_mode={LOCO_M_CORRECTION_MODE} diag_steps={LOCO_M_DIAG_STEPS} lr_decay={LOCO_M_LOCAL_LR_DECAY} rms_beta1={LOCO_M_RMS_BETA1} rms_beta2={LOCO_M_RMS_BETA2} rms_eps={LOCO_M_RMS_EPS} rms_reset_each_step={LOCO_M_RMS_RESET_EACH_STEP} require_loss_decrease={LOCO_M_REQUIRE_LOSS_DECREASE} min_cos_desc={LOCO_M_MIN_COS_DESC} inner_lr={LOCO_M_INNER_LR} target_gamma={LOCO_M_TARGET_GAMMA} prox={LOCO_M_PROX} alpha={LOCO_M_ALPHA} norm_to_base={LOCO_M_NORM_TO_BASE} norm_target={LOCO_M_NORM_TARGET} norm_cap={LOCO_M_NORM_CAP} norm_cap_windows={LOCO_M_NORM_CAP_WINDOWS_SPEC} active_windows={LOCO_M_ACTIVE_WINDOWS_SPEC} start_step={LOCO_M_START_STEP} end_step={LOCO_M_END_STEP} interval={LOCO_M_INTERVAL} target_loss={TRACK3_TARGET_LOSS} seed_base={TRACK3_SEED_BASE} seed_offset={TRACK3_SEED_OFFSET} cooldown_frac={TRACK3_COOLDOWN_FRAC} lr_schedule={TRACK3_LR_SCHEDULE} lr_power={TRACK3_LR_POWER} lr_schedule_steps={TRACK3_LR_SCHEDULE_STEPS} lr_min_eta={TRACK3_LR_MIN_ETA} lr_bump_windows={TRACK3_LR_BUMP_WINDOWS_SPEC} lr_adam_bump_windows={TRACK3_LR_ADAM_BUMP_WINDOWS_SPEC} lr_muon_bump_windows={TRACK3_LR_MUON_BUMP_WINDOWS_SPEC} lr_switch_step={TRACK3_LR_SWITCH_STEP} lr_after_switch={TRACK3_LR_AFTER_SWITCH} lr_after_switch_power={TRACK3_LR_AFTER_SWITCH_POWER} lr_after_switch_steps={TRACK3_LR_AFTER_SWITCH_STEPS} lr_blend_start={TRACK3_LR_BLEND_START} lr_blend_end={TRACK3_LR_BLEND_END} lr_blend_target={TRACK3_LR_BLEND_TARGET} lr_blend_target_power={TRACK3_LR_BLEND_TARGET_POWER} lr_blend_target_steps={TRACK3_LR_BLEND_TARGET_STEPS} soft_muon={TRACK3_SOFT_MUON} soft_blend={TRACK3_SOFT_MUON_BLEND} soft_start={TRACK3_SOFT_MUON_START_STEP} soft_end={TRACK3_SOFT_MUON_END_STEP} soft_ceil={TRACK3_SOFT_MUON_CEIL} soft_norm_restore={TRACK3_SOFT_MUON_NORM_RESTORE} resume_checkpoint={TRACK3_RESUME_CHECKPOINT} resume_load_optimizers={TRACK3_RESUME_LOAD_OPTIMIZERS}")\n'
+        'print0(f"LocoM enabled={LOCO_M_ENABLED} layers={LOCO_M_LAYERS_SPEC} steps={LOCO_M_LOCAL_STEPS} sample_tokens={LOCO_M_SAMPLE_TOKENS} gather={LOCO_M_GATHER_SAMPLES} accum={LOCO_M_ACCUM_SAMPLES} micro_sample_tokens={LOCO_M_MICRO_SAMPLE_TOKENS} aux_capture={LOCO_M_AUX_CAPTURE} aux_seqs={LOCO_M_AUX_SEQS} batched_prep={LOCO_M_BATCHED_PREP} local_opt={LOCO_M_LOCAL_OPT} target_space={LOCO_M_TARGET_SPACE} true_post_grad={LOCO_M_TRUE_POST_GRAD} random_correction={LOCO_M_RANDOM_CORRECTION} correction_mode={LOCO_M_CORRECTION_MODE} diag_steps={LOCO_M_DIAG_STEPS} lr_decay={LOCO_M_LOCAL_LR_DECAY} rms_beta1={LOCO_M_RMS_BETA1} rms_beta2={LOCO_M_RMS_BETA2} rms_eps={LOCO_M_RMS_EPS} rms_reset_each_step={LOCO_M_RMS_RESET_EACH_STEP} require_loss_decrease={LOCO_M_REQUIRE_LOSS_DECREASE} min_cos_desc={LOCO_M_MIN_COS_DESC} inner_lr={LOCO_M_INNER_LR} target_gamma={LOCO_M_TARGET_GAMMA} prox={LOCO_M_PROX} alpha={LOCO_M_ALPHA} norm_to_base={LOCO_M_NORM_TO_BASE} norm_target={LOCO_M_NORM_TARGET} norm_cap={LOCO_M_NORM_CAP} norm_cap_windows={LOCO_M_NORM_CAP_WINDOWS_SPEC} active_windows={LOCO_M_ACTIVE_WINDOWS_SPEC} start_step={LOCO_M_START_STEP} end_step={LOCO_M_END_STEP} interval={LOCO_M_INTERVAL} target_loss={TRACK3_TARGET_LOSS} seed_base={TRACK3_SEED_BASE} seed_offset={TRACK3_SEED_OFFSET} cooldown_frac={TRACK3_COOLDOWN_FRAC} lr_schedule={TRACK3_LR_SCHEDULE} lr_power={TRACK3_LR_POWER} lr_schedule_steps={TRACK3_LR_SCHEDULE_STEPS} lr_min_eta={TRACK3_LR_MIN_ETA} lr_min_eta_windows={TRACK3_LR_MIN_ETA_WINDOWS_SPEC} lr_bump_windows={TRACK3_LR_BUMP_WINDOWS_SPEC} lr_adam_bump_windows={TRACK3_LR_ADAM_BUMP_WINDOWS_SPEC} lr_muon_bump_windows={TRACK3_LR_MUON_BUMP_WINDOWS_SPEC} lr_switch_step={TRACK3_LR_SWITCH_STEP} lr_after_switch={TRACK3_LR_AFTER_SWITCH} lr_after_switch_power={TRACK3_LR_AFTER_SWITCH_POWER} lr_after_switch_steps={TRACK3_LR_AFTER_SWITCH_STEPS} lr_blend_start={TRACK3_LR_BLEND_START} lr_blend_end={TRACK3_LR_BLEND_END} lr_blend_target={TRACK3_LR_BLEND_TARGET} lr_blend_target_power={TRACK3_LR_BLEND_TARGET_POWER} lr_blend_target_steps={TRACK3_LR_BLEND_TARGET_STEPS} soft_muon={TRACK3_SOFT_MUON} soft_blend={TRACK3_SOFT_MUON_BLEND} soft_start={TRACK3_SOFT_MUON_START_STEP} soft_end={TRACK3_SOFT_MUON_END_STEP} soft_ceil={TRACK3_SOFT_MUON_CEIL} soft_norm_restore={TRACK3_SOFT_MUON_NORM_RESTORE} resume_checkpoint={TRACK3_RESUME_CHECKPOINT} resume_load_optimizers={TRACK3_RESUME_LOAD_OPTIMIZERS}")\n'
         'print0(f"Running PyTorch {torch.version.__version__} compiled for CUDA {torch.version.cuda}"',
     )
     if "for _ in range(num_trials):\n" in text:
@@ -1290,7 +1329,7 @@ def muon_update(grad, momentum, mu=0.95, nesterov=True):
         f"{body_indent}    eta = (1 - progress) / TRACK3_COOLDOWN_FRAC\n"
         f"{body_indent}    if lr_schedule == \"power\":\n"
         f"{body_indent}        eta = eta ** lr_power\n"
-        f"{body_indent}    eta = max(eta, TRACK3_LR_MIN_ETA)\n"
+        f"{body_indent}    eta = max(eta, _track3_lr_eta_floor(step))\n"
         f"{body_indent}return group[\"initial_lr\"] * eta\n\n"
         f"{fn_indent}def _track3_blend_lr(step, group, base_lr, lr_mult):\n"
         f"{body_indent}if not TRACK3_LR_BLEND_TARGET or TRACK3_LR_BLEND_START < 0:\n"
@@ -1348,7 +1387,7 @@ def muon_update(grad, momentum, mu=0.95, nesterov=True):
             f"{body_indent}    eta = (1 - progress) / cooldown_frac\n"
             f"{body_indent}    if lr_schedule == \"power\":\n"
             f"{body_indent}        eta = eta ** lr_power\n"
-            f"{body_indent}    eta = max(eta, TRACK3_LR_MIN_ETA)\n",
+            f"{body_indent}    eta = max(eta, _track3_lr_eta_floor(step))\n",
         )
         text = replace_exact(
             text,

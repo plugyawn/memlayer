@@ -46,6 +46,7 @@ def _header_with_lr(
     norm_target: float = 0.0,
     lr_bump: str = "",
     lr_min_eta: float = 0.0,
+    lr_min_eta_windows: str = "",
     min_cos_desc: float = 0.0,
     alpha: float = 1.0,
     active_windows: str = "0:1800",
@@ -63,7 +64,8 @@ def _header_with_lr(
         f"norm_cap_windows= active_windows={active_windows} start_step=0 end_step={end_step} "
         f"interval=1 target_loss=3.28 seed_base=0 seed_offset=3710 "
         f"cooldown_frac=1.0 lr_schedule=power lr_power=2.0 "
-        f"lr_schedule_steps=3000 lr_min_eta={lr_min_eta} lr_bump_windows={lr_bump} "
+        f"lr_schedule_steps=3000 lr_min_eta={lr_min_eta} "
+        f"lr_min_eta_windows={lr_min_eta_windows} lr_bump_windows={lr_bump} "
         f"lr_switch_step=-1 lr_after_switch= lr_after_switch_power=2.0 "
         f"lr_after_switch_steps=0 lr_blend_start=-1 lr_blend_end=-1 "
         f"lr_blend_target= lr_blend_target_power=2.0 lr_blend_target_steps=0 "
@@ -303,6 +305,32 @@ def test_lr_slope_join_reads_power_tail(tmp: Path) -> None:
     _assert_contains(out, "0.111111")
     _assert_contains(out, "2000->2100")
     _assert_contains(out, "first cold `2100->2125`")
+
+
+def test_lr_slope_join_reads_ramped_eta_floor(tmp: Path) -> None:
+    path = tmp / "track3_suffix_floor006_from2400_seed3710.log"
+    path.write_text(
+        _runner(steps=3000)
+        + _header_with_lr(
+            enabled=False,
+            active_windows="2400:2400",
+            end_step=2400,
+            lr_min_eta_windows="2400:2500:3000:3000:0.06",
+        )
+        + "step:2400/3000 val_loss:3.34500 train_time:0.000s step_avg:nanms\n"
+        + "step:2500/3000 val_loss:3.33500 train_time:0.000s step_avg:nanms\n"
+        + "step:2600/3000 val_loss:3.32400 train_time:0.000s step_avg:nanms\n"
+    )
+    out = _run(
+        [
+            "tools/analyze_track3_locom_lr_slope.py",
+            str(tmp),
+            "--steps",
+            "2400,2500,2600",
+        ]
+    )
+    _assert_contains(out, "6.0%")
+    _assert_contains(out, "2400->2500")
 
 
 def test_mechanism_k5_read(tmp: Path) -> None:

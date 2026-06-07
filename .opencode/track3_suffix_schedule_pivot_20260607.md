@@ -1,167 +1,119 @@
 # Track 3 Suffix Schedule Pivot - 2026-06-07
 
-Decision: stop spending runs on the `1600-2000` bracket.
+Current user decision:
 
-Reason: active natural true-post `c_fc` LocoProp-M matched alpha-zero by
-`2000`, so the visible prefix is not LocoProp-specific. The remaining live
-hypothesis is schedule/optimizer-state handling after the run has already
-reached the `3.36/3.32` band.
+```text
+Stop spending runs on the 1600-2000 bracket.
+Treat the remaining problem as a landing schedule from an already-good state.
+```
 
-## Required Slope
+The live hypothesis is:
 
-| state | target | required drop/100 |
-| --- | --- | ---: |
+```text
+There exists a suffix schedule that carries a 3.36/3.32 state to 3.28.
+```
+
+## Why This Is Plausible
+
+The absolute loss is not the blocker:
+
+| state | target | required drop / 100 steps |
+| --- | ---: | ---: |
 | `3.36216 @2125` | `3.28 @3000` | `0.00939` |
-| `3.34514 @2400` | `3.28 @3000` | `0.01086` |
+| `3.34512 @2400` | `3.28 @3000` | `0.01085` |
 | `3.33472 @2600` | `3.28 @3000` | `0.01368` |
-| `3.33472 @2600` | `3.28 @3100` | `0.01094` |
 
-Read: a `2600` branch is probably too late for a 3000-step landing unless the
-schedule materially improves terminal slope. The best probe point is `2125` or
-`2400`.
+Those numbers are not impossible. The problem is that the observed suffix loses
+slope as the LR cools.
 
-## What Failed
+## What Not To Run
 
-- Direct LR floors from `2125` did not clear the straight-line gate.
-- Direct PR287 from `2600` spiked.
-- Stretching to `3300` kept the state smooth but slope-starved.
-- Continuing or reactivating the current `c_fc` LocoProp correction was neutral
-  or worse.
-
-## Next Probe
-
-Use:
-
-```bash
-tools/run_track3_suffix_bridge_probe.sh
-```
-
-Default lanes:
+Do not run more broad probes in:
 
 ```text
-cold3000
-bump125_2250_2650
-bump150_2250_2650
-blend_p15_2250_2650
-blend_p13_2300_2750
-pulse175_2400_2750
+1600-2000 prefix/bracket
+c_fc K-depth
+c_fc sample_tokens
+c_fc random/orthogonal/parallel scale controls
 ```
 
-These are delayed bridge schedules: preserve the cold prefix state, then add a
-bounded tail bridge around the region where the curve starts missing target
-slope. They explicitly avoid recreating or retesting `1600-2000`.
+Those answered mechanism questions but did not solve the landing.
 
-## Gates
+## What Already Failed
 
-From `2125`, stop the family if no lane is near:
+Plain global heat from 2400 failed:
 
-```text
-2400 <= 3.3365
-2600 <= 3.3150
-2800 <= 3.2975
-```
-
-From `2400`, stop if no lane is near:
-
-```text
-2600 <= 3.3235
-2800 <= 3.3018
-```
-
-The important metric is not just absolute loss. The lane must preserve slope
-without a validation spike at the bridge start.
-
-## 2026-06-07 Suffix Bridge Probe
-
-Prime pod `29eb17f5760742a1a4bab682a23cb8ec` tested the two most direct
-`2125 -> 2400` bridge lanes from
-`track3_noloco_ckpt2125_seed3710_seed3710_step2125.pt`.
-
-| lane | 2250 | 2400 | gate |
-| --- | ---: | ---: | --- |
-| `bump150_2250_2650` | 3.35306 | 3.34638 | fail vs 3.33650 |
-| `blend_p15_2250_2650` | 3.35305 | 3.34595 | fail vs 3.33650 |
-
-Read: these delayed LR bridges did not change the slope class. The 2250-2400
-drop stayed around `0.007` loss, roughly half of the target slope needed to
-land at `3.28 @3000`. Do not spend more on this exact `2125` bridge family.
-The remaining schedule work should start from an actually later state
-(`2400+`) or change the optimizer substrate, not replay the prefix.
-
-## 2026-06-07 Late Linear Probe
-
-Prime pod `432c024310cb4fa79c1ea28036f50d1b` tested a no-LocoProp suffix from
-the saved step-2400 state
-`track3_short2000_wr3105p120_mult035_hold2400_seed3710_step2400.pt`.
-
-Configuration:
-
-```text
-resume_step: 2400
-resume_val: 3.34500
-train_stop: 2600
-lr_schedule: linear
-lr_schedule_steps: 3000
-locoprop: off
-gate: 2500 <= 3.33450
-```
-
-Observed:
-
-| step | val_loss |
+| step | linear3000 no-Loco |
 | ---: | ---: |
 | 2400 | 3.34500 |
 | 2425 | 3.36474 |
 | 2450 | 3.36852 |
 | 2475 | 3.36917 |
 | 2500 | 3.36791 |
-| 2525 | 3.36620 |
 
-Read: the missing suffix is not simply "LR too low after 2400." A true
-3000-horizon linear tail shocks this optimizer/model state immediately. The
-productive state appears to require a compatible late optimizer substrate or a
-careful cold-to-hot transition that does not disturb the stored optimizer
-dynamics. Do not repeat plain hotter-linear suffixes from this 2400 checkpoint.
+Read: jumping from the cold p2 tail directly to a much hotter global linear
+suffix shocks the stored optimizer state.
 
-## 2026-06-07 Hard Pivot: Landing Schedules Only
+The old `floor111` family also failed because it was an immediate high floor.
+It did not test a continuity-preserving floor.
 
-Decision: do not launch more runs whose main question is the `1600-2000`
-bracket. The bracket has enough evidence: active `c_fc` LocoProp, same-harness
-alpha-zero, and random/suffix controls converge to the same visible trajectory
-there. The remaining hypothesis is exactly:
+## New Schedule Lever
+
+Add `TRACK3_LR_MIN_ETA_WINDOWS`:
 
 ```text
-Can a schedule/late-optimizer state carry an already-good 3.36/3.32 state to 3.28?
+start:ramp_end:hold_end:fade_end:eta
 ```
 
-The next runnable probe is:
+This is an LR floor, not a multiplier. It ramps the minimum eta smoothly, then
+applies:
 
-```bash
-tools/run_track3_suffix_landing_probe.sh
+```python
+eta = max(base_eta, static_min_eta, window_floor_eta)
 ```
 
-It starts from a saved late checkpoint, keeps LocoProp disabled by default, and
-tests group-specific suffix LR shaping:
+Primary examples:
 
 ```text
-control_p2
-muon125_2400_2800
-adam125_2400_2800
-split_muon150_adam085_2400_2800
+2400:2500:3000:3000:0.04
+2400:2500:3000:3000:0.06
+2400:2600:3000:3000:0.06
 ```
 
-Reason for group-specific schedule: global heat already failed. The
-`linear3000` suffix from step 2400 immediately spiked validation from `3.34500`
-to `3.36791 @2500`. If a schedule is hiding here, it is probably not "all
-groups hotter"; it is more likely a Muon/Adam balance issue in the late state.
+Why this is the right form:
 
-Gate from a `2400` checkpoint:
+```text
+p2 eta at 2400 on a 3000 schedule is 0.04.
+So a ramped floor can start without an immediate LR jump.
+By 2600, p2 eta is only about 0.0178.
+By 2800, p2 eta is only about 0.0044.
+```
+
+The floor directly targets the tail collapse while avoiding the first-step
+validation spike from the linear suffix.
+
+## Gate
+
+From the 2400 checkpoint:
 
 ```text
 2600 <= 3.3260
+2800 <= 3.3018
+3000 <= 3.2800
 ```
 
-If the family cannot get close to that, stop. Reaching `3.28 @3000` from
-`3.345 @2400` requires a drop of about `0.0109` per 100 steps, while the known
-plain cold suffix is far below that. A useful lane must visibly change the
-slope class by `2600`, not merely look smooth.
+Reject immediately if the first post-switch validation spikes by more than
+about `0.005`.
+
+## Launcher
+
+Use:
+
+```bash
+TRACK3_SUFFIX_CHECKPOINT=/home/ubuntu/.cache/track3_checkpoints/track3_locom_2000_control_seed3710_seed3710_step2400.pt \
+TRACK3_SUFFIX_LANES=control_p2,floor004_r2500,floor006_r2500,floor006_r2600 \
+bash tools/run_track3_suffix_landing_probe.sh
+```
+
+The defaults now match this lane set. The group-bump lanes are still available
+for deliberate follow-up, but they are no longer the default spend.
