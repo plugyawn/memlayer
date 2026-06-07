@@ -456,3 +456,75 @@
     - Resumed exact step2400 checkpoint at `3.34500`; no LocoProp active.
     - True 3000-horizon linear tail worsened immediately: `3.36474 @2425`, `3.36852 @2450`, `3.36917 @2475`, `3.36791 @2500`, missing gate `<=3.33450`.
     - Logs pulled to `.opencode/current_track3_ledger_20260607_logs/late_linear_432c02/`.
+- pod_id: a7eb7c5aa9af4f01987d4fdde11bc226
+  name: oc-main-track3-floor-20260607-1036
+  owner: current-agent
+  purpose: Track 3 suffix floor landing probe from 2400 checkpoint
+  gpu: H100_80GB SXM5 spot/datacrunch availability 365368
+  price_per_hour: 1.138 USD
+  created_at: 2026-06-07T10:36:08Z
+  expected_stop: after floor probe gates at 2600/2800/3000 or earlier failure
+  status: terminated_transfer_too_slow
+  termination_policy: terminate if setup fails or after queued suffix probes finish
+
+- pod_id: pending
+  name: oc-main-track3-floor-gh200-20260607-1050
+  owner: current-agent
+  purpose: Track 3 suffix floor landing probe from 2400 checkpoint after FI H100 transfer bottleneck
+  gpu: GH200_96GB SXM5 vultr availability 5ba376
+  price_per_hour: 1.99 USD
+  created_at: 2026-06-07T10:50:11Z
+  expected_stop: after floor probe gates at 2600/2800/3000 or earlier failure
+  status: create_failed_provider_400
+  termination_policy: none_created
+
+- pod_id: d9f1d50e2cc844dd83c28ff92185c653
+  name: oc-main-track3-floor-h100us-20260607-1050
+  owner: current-agent
+  purpose: Track 3 suffix floor landing probe from 2400 checkpoint after GH200 create failure
+  gpu: H100_80GB PCIe US/massedcompute availability 6bd7c8
+  price_per_hour: 2.35 USD
+  created_at: 2026-06-07T10:50:53Z
+  expected_stop: after floor probe gates at 2600/2800/3000 or earlier failure
+  status: terminated_after_checkpoint_suffix_floor_failed_gate_prime_active_pods_0
+  termination_policy: terminate if setup fails or after queued suffix probes finish
+  notes:
+    - Checkpoint upload to the earlier FI H100 SXM pod and this US pod was unusably slow, so this lane is replaying from step 0 despite the suffix-only intent.
+    - Active command: `/home/ubuntu/prime_track3_floor_end2end_logs/run_floor_e2e.sh`; log `/home/ubuntu/prime_track3_floor_end2end_logs/floor006_r2600_e2e.log`.
+    - Run is `floor006_r2600`: LocoProp active `0:1800`, power schedule horizon `3000`, `TRACK3_LR_MIN_ETA_WINDOWS=2400:2600:3000:3000:0.06`.
+    - 2026-06-07T11:16Z: alive on `NVIDIA H100 PCIe`, `100%` utilization, `32923 MiB`; latest visible screen `4.49356 @150/3000`, active-prefix step time about `5.4s`.
+    - 2026-06-07T11:30Z: stopped end-to-end replay after user correction. GPU was freed (`0 MiB`).
+    - Copied local checkpoint `/Users/progyan/speedrun/tmp/prime_ckpt_transfer/track3_fast_noloco_from2125_seed3710_seed3710_step2400.pt` to remote `/home/ubuntu/.cache/track3_checkpoints/track3_locom_2000_control_seed3710_seed3710_step2400.pt`; SHA256 verified as `a02cacd423f809e89c90082343978fc7deae7a8dc5843a87d79e7f92049bb31b`.
+    - Launched checkpoint-native suffix probe in `/home/ubuntu/prime_track3_suffix_landing_probe_logs/` with lanes `control_p2,floor004_r2500,floor006_r2500,floor006_r2600`.
+    - First suffix log confirmed `track3_checkpoint_loaded ... step:2400 seed:3710`, `load_optimizers:True`, `track3_resume_advanced_data steps:2400`, and `3.34512 @2400`.
+    - Stopped the sequential control lane after it missed the 2600 gate: control `3.33826 @2600` versus threshold `3.3260`; did not let it run to 3000.
+    - Ran only `floor006_r2600` to the 2600 gate from the same checkpoint. It failed harder: `3.34042 @2600`; slope from 2500 to 2600 collapsed to `0.000007/step`, about `0.06x` required target slope.
+    - Pulled logs to `.opencode/current_track3_ledger_20260607_logs/floor_h100us_d9f1d50/`.
+    - Terminated pod successfully; follow-up `prime pods list` showed zero active pods.
+
+- pod_id: 7a5c570e4582487a82b6a8c78fac26fb
+  name: oc-main-track3-copyckpt-h100sxm-20260607-1215
+  owner: current-agent
+  purpose: Track 3 checkpoint-native suffix run; copy step2400 checkpoint before any training
+  gpu: H100_80GB SXM5 spot/datacrunch availability ec854a
+  price_per_hour: 1.138 USD
+  created_at: 2026-06-07T12:15Z
+  expected_stop: after checkpoint-native suffix gate or setup failure
+  status: terminated_after_checkpoint_native_suffix_gates_logs_pulled_prime_active_pods_0
+  termination_policy: terminate if checkpoint copy/setup fails or after queued suffix gate finishes
+  notes:
+    - Active pod `7a5c570e4582487a82b6a8c78fac26fb` is `H100 80GB HBM3` SXM5 at `root@86.38.238.33`.
+    - Copied local `/Users/progyan/speedrun/tmp/prime_ckpt_transfer/track3_fast_noloco_from2125_seed3710_seed3710_step2400.pt` to remote `/home/ubuntu/.cache/track3_checkpoints/track3_locom_2000_control_seed3710_seed3710_step2400.pt`.
+    - Remote SHA256 verified: `a02cacd423f809e89c90082343978fc7deae7a8dc5843a87d79e7f92049bb31b`.
+    - Copied local `/Users/progyan/speedrun/tmp/prime_ckpt_transfer/track3_noloco_ckpt2125_seed3710_seed3710_step2125.pt` to remote `/home/ubuntu/.cache/track3_checkpoints/track3_locom_2000_control_seed3710_seed3710_step2125.pt`.
+    - Remote SHA256 verified: `aa47660c30a596d64fa05dfbd3bc2b388008f43c5f64da5e26504b44b109cfb1`.
+    - Immediate 2125->3300 power continuation loaded the checkpoint correctly (`3.36215 @2125`) but diverged to `val_loss:nan @2150`; stopped it.
+    - Launched safer no-LocoProp suffix from the 2125 checkpoint: original power h3000 blended to power h3300 from 2125->2400, train/gate to 2600; remote log `/home/ubuntu/prime_track3_2125_blend3300_logs/run.nohup.log`.
+    - The safer blend also hit `val_loss:nan @2150`; stopped it. Root cause looked like fresh pod package drift: `requirements.txt` installed `torch 2.10.0+cu128`, whereas prior successful Prime Track 3 scripts used `torch 2.7.1+cu126`.
+    - Downgraded pod venv to `torch 2.7.1+cu126`, `triton 3.3.1`; GPU is `NVIDIA H100 80GB HBM3`.
+    - Relaunched checkpoint-native no-LocoProp sanity lane from step2125, cold h3000/p2, to step2400. It loaded optimizer/RNG state and stayed finite: `3.36004 @2150`, `3.35627 @2200`, `3.35306 @2250`, `3.34996 @2300`, `3.34513 @2400`.
+    - Saved branchable checkpoint `/home/ubuntu/.cache/track3_checkpoints/track3_suffix_cold3000_from2125_seed3710_to2400_seed3710_step2400.pt`.
+    - Tested no-LocoProp h3300/p2 from the same step2125 checkpoint. It was stable but clearly worse by the early gate: `3.36292 @2150`, `3.36026 @2200`, versus cold sanity `3.35627 @2200`; killed it at 2200 to avoid wasting compute.
+    - Tested no-LocoProp bridge bump `1.50x` from `2250:2400:2650:3000`; it failed the 2400 gate: `3.34638 @2400`, worse than cold sanity `3.34513 @2400`.
+    - Pulled logs to `.opencode/current_track3_ledger_20260607_logs/copyckpt_h100sxm_7a5c57/`.
+    - Terminated pod successfully; follow-up `prime pods list` showed zero active pods.
