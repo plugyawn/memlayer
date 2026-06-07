@@ -22,6 +22,7 @@ Evidence:
 
 ```text
 .opencode/track3_locom_prefix_effect_size_20260607.md
+.opencode/track3_locom_tick_requirements_20260607.md
 .opencode/current_track3_ledger_20260607_logs/prime_track3_locom_tick_ladder_20260607T022549Z.tar.gz
 ```
 
@@ -341,3 +342,14 @@ The remaining speedrun problem is preserving the healthy 1900->2000 slope after
 2000, or finding a materially different LocoProp expression whose nonzero
 correction beats alpha-zero before we spend on suffix tuning.
 ```
+
+The next minimal LocoProp-specific probe is scale, not more local iterations:
+
+```text
+tools/run_track3_locom_prefix_scale_probe.sh
+```
+
+It tests alpha-zero, natural K5, true-post K5 normalized to 2% and 5% of the
+base step, and a same-shape random 2% control from the same step-1600
+checkpoint. Promote only if a normalized active lane beats alpha-zero by at
+least `0.001` at `2000` and random does not match it.
