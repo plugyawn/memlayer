@@ -201,6 +201,7 @@ observed healthy `1900->2000` reference:
 
 ```text
 reference_drop_per_100 = 0.01140
+line_start_step = 2000
 preserved = lane_drop_per_100 >= 0.90 * reference_drop_per_100
 ```
 
@@ -214,7 +215,19 @@ Current saved readout:
 .opencode/track3_locom_2000_suffix_slope_decision_20260607.md
 ```
 
-It says the available `2000+` logs did not preserve the reference slope:
+Corrected analyzer read, anchored at `2000`:
+
+```text
+control @2100 is 3.36420
+straight-line target @2100 is 3.36400
+control - target is +0.00020
+```
+
+So the `2000->2100` segment is almost enough for the final target, but it is
+already below the healthy `1900->2000` rate. The `2100->2125` segment is the
+first visibly cold segment.
+
+The available `2000+` logs did not preserve the reference slope:
 
 ```text
 best slope preservation: 0.80x on 2000->2100

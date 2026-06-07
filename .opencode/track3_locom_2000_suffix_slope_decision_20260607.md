@@ -1,5 +1,13 @@
 # Track 3 LocoProp-M 2000 Suffix Decision
 
+Correction note, 2026-06-07:
+
+The original required-line table below was produced from logs that included
+prefix validation points, so the target line was anchored at the earliest
+parsed control point (`1800`). The suffix analyzer now anchors this check at
+`2000` by default. The slope-preservation table remains the relevant read:
+existing saved suffix lanes did not preserve the observed `1900->2000` rate.
+
 Control lane: `track3_noloco_ckpt2000_2100_from1800_212259` from `.opencode/current_track3_ledger_20260606_logs/kdepth_461e/suffix_from2000/track3_noloco_ckpt2000_2100_from1800_212259.log`
 
 ## Validation Table

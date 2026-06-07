@@ -236,6 +236,8 @@ def print_report(
     tie_eps: float,
     target_step: int,
     target_loss: float,
+    line_start_step: int,
+    line_start_loss: float | None,
     reference_drop_per_100: float,
     preserve_threshold: float,
     slope_windows: list[tuple[int, int]],
@@ -280,8 +282,15 @@ def print_report(
     if control is None or not control.vals:
         print("No control start loss available.")
     else:
-        start_step = min(control.vals)
-        start_loss = control.vals[start_step]
+        if line_start_loss is not None:
+            start_step = line_start_step
+            start_loss = line_start_loss
+        elif line_start_step in control.vals:
+            start_step = line_start_step
+            start_loss = control.vals[line_start_step]
+        else:
+            start_step = min(control.vals)
+            start_loss = control.vals[start_step]
         print(f"Target line: from `{start_loss:.5f} @ {start_step}` to `{target_loss:.5f} @ {target_step}`.")
         print()
         print("| step | required | control | control - required |")
@@ -415,6 +424,8 @@ def main() -> int:
     parser.add_argument("--tie-eps", type=float, default=0.0005)
     parser.add_argument("--target-step", type=int, default=3000)
     parser.add_argument("--target-loss", type=float, default=3.28)
+    parser.add_argument("--line-start-step", type=int, default=2000)
+    parser.add_argument("--line-start-loss", type=float, default=None)
     parser.add_argument("--reference-drop-per-100", type=float, default=0.01140)
     parser.add_argument("--preserve-threshold", type=float, default=0.90)
     parser.add_argument("--slope-windows", default="2000:2100,2100:2125,2000:2250")
@@ -436,6 +447,8 @@ def main() -> int:
         tie_eps=args.tie_eps,
         target_step=args.target_step,
         target_loss=args.target_loss,
+        line_start_step=args.line_start_step,
+        line_start_loss=args.line_start_loss,
         reference_drop_per_100=args.reference_drop_per_100,
         preserve_threshold=args.preserve_threshold,
         slope_windows=_parse_slope_windows(args.slope_windows),

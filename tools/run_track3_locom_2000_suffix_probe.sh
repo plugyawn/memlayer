@@ -11,10 +11,11 @@ set -euo pipefail
 #   MODE=suffixes tools/run_track3_locom_2000_suffix_probe.sh
 #   MODE=all      tools/run_track3_locom_2000_suffix_probe.sh
 #
-# The current mechanism read says 1900->2000 is healthy, then the power tail
-# cools from eta=0.111111 @2000 to eta=0.090000 @2100 and the slope turns cold.
-# The default suffix lanes therefore focus on preserving the step-2000 LR
-# regime and asking whether LocoProp adds anything after that schedule control.
+# The current mechanism read says 1900->2000 is healthy: 3.38474 -> 3.37334,
+# about 0.01140 loss per 100 steps. From 3.37334 @2000, target 3.28 @3000
+# needs only 0.00933 loss per 100. The default suffix lanes therefore protect
+# the 2000 state and ask whether LR continuity, LocoProp, or perturbation
+# controls can preserve that already-observed descent rate after 2000.
 
 mode="${MODE:-save2000}"
 base_checkpoint="${TRACK3_BASE_CHECKPOINT:-/root/.cache/track3_checkpoints/track3_cd500red_softmerge_pr2872000_p110_ckpt1600_seed3710_step1600.pt}"
@@ -251,6 +252,8 @@ run_suffixes() {
       "${suffix_logs[@]}" | tee "${log_dir}/track3_locom_2000_suffix_manifest_check.md"
     python3 tools/analyze_track3_locom_suffix_probe.py \
       --steps "2000,2025,2050,2075,2100,2125,2200,2250,2325,2400" \
+      --line-start-step 2000 \
+      --slope-windows "2000:2100,2100:2125,2000:2250,2000:2400" \
       "${suffix_logs[@]}" | tee "${log_dir}/track3_locom_2000_suffix_decision.md" || true
   fi
 }
