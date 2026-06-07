@@ -528,3 +528,34 @@
     - Tested no-LocoProp bridge bump `1.50x` from `2250:2400:2650:3000`; it failed the 2400 gate: `3.34638 @2400`, worse than cold sanity `3.34513 @2400`.
     - Pulled logs to `.opencode/current_track3_ledger_20260607_logs/copyckpt_h100sxm_7a5c57/`.
     - Terminated pod successfully; follow-up `prime pods list` showed zero active pods.
+
+- pod_id: 45a63f7f45a5471fa42669792d146237
+  name: oc-main-track3-copyckpt-h100sxm-20260607-1306
+  owner: current-agent
+  purpose: Copy local Track 3 seed3710 step1600 checkpoint first, then run only checkpoint-backed suffix probes
+  gpu: 1x H100_80GB SXM5 datacrunch spot
+  price_per_hour: 1.138 USD
+  created_at: 2026-06-07T13:06Z
+  expected_stop: after checkpoint-backed probe finishes/fails and artifacts are pulled
+  status: terminated_after_c_proj_active_matched_alpha_zero_artifacts_pulled_prime_active_pods_0
+  termination_policy: keep only while actively copying checkpoint/running queued probe; terminate on setup failure or after artifacts are pulled
+  notes:
+    - local checkpoint source: `/Users/progyan/speedrun/tmp/modal_ckpt_transfer/track3_cd500red_softmerge_pr2872000_p110_ckpt1600_seed3710_step1600.pt`
+    - local sha256: `430dc1d871ad177e9675679174d5ee84d3f02e6ebdf8aba6bec72093210debf2`
+    - prior copy lane showed checkpoint resumes require `torch 2.7.1+cu126`, `triton 3.3.1`; avoid default `torch 2.10.0+cu128`.
+    - Active pod SSH: `root@86.38.238.33 -p 22`.
+    - Copied checkpoint to `/root/.cache/track3_checkpoints/track3_cd500red_softmerge_pr2872000_p110_ckpt1600_seed3710_step1600.pt`.
+    - Remote SHA256 verified: `430dc1d871ad177e9675679174d5ee84d3f02e6ebdf8aba6bec72093210debf2`.
+    - Remote GPU confirmed: `NVIDIA H100 80GB HBM3`, `81559 MiB`.
+    - Synced tracked worktree files to `/root/wr-track3-locom-20260606`.
+    - Installed pinned resume-safe stack: `torch 2.7.1+cu126`, `triton 3.3.1`.
+    - Cached FineWeb10B with `python data/cached_fineweb10B.py 20`: 21 bin files, about 4.0 GB.
+    - Initial run failed before data cache with `RuntimeError: generator raised StopIteration`; fixed by caching FineWeb.
+    - Relaunched clean pair log dir `/root/prime_track3_locom_proj_specificity_logs_retry`, PID `5331`.
+    - Confirmed checkpoint-native resume: `track3_checkpoint_loaded ... step:1600 seed:3710 load_optimizers:True`, `track3_resume_advanced_data steps:1600`.
+    - First validation matches expected checkpoint trajectory: `3.48241 @1600`.
+    - Alpha-zero control completed to `3.37336 @2000`.
+    - Active c_proj K5 matched alpha-zero through the 1800 gate: active `3.39870`, alpha-zero `3.39872`, delta `0.00002`.
+    - Stopped active lane at 1800 to avoid wasting compute; pulled artifact archive to `.opencode/current_track3_ledger_20260607_logs/proj_specificity_45a63/prime_track3_locom_proj_specificity_logs_retry.tgz`.
+    - Local decision report: `.opencode/current_track3_ledger_20260607_logs/proj_specificity_45a63/proj_specificity_decision_1800.md`.
+    - Terminated pod successfully; follow-up `prime pods list` showed zero active pods.

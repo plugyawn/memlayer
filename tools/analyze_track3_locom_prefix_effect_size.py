@@ -100,7 +100,14 @@ def _common_steps(active: LaneStats, control: LaneStats) -> list[int]:
     return sorted(set(active.vals) & set(control.vals))
 
 
-def print_report(active: LaneStats, control: LaneStats, *, k: int) -> None:
+def print_report(
+    active: LaneStats,
+    control: LaneStats,
+    *,
+    k: int,
+    decision_step: int,
+    material_gain: float,
+) -> None:
     steps = _common_steps(active, control)
     print("# Track 3 LocoProp-M Prefix Effect Size")
     print()
@@ -123,6 +130,31 @@ def print_report(active: LaneStats, control: LaneStats, *, k: int) -> None:
     final_delta = deltas[-1] if deltas else float("nan")
     print(f"Max absolute loss delta on shared screens: `{_fmt(max_abs, 5)}`")
     print(f"Final control-active delta: `{_fmt(final_delta, 5)}`")
+    print()
+
+    decision_delta = None
+    if decision_step in active.vals and decision_step in control.vals:
+        decision_delta = control.vals[decision_step] - active.vals[decision_step]
+    elif steps:
+        fallback_step = steps[-1]
+        decision_delta = control.vals[fallback_step] - active.vals[fallback_step]
+    print("## Gate")
+    print()
+    print(f"Decision step requested: `{decision_step}`")
+    if decision_delta is None:
+        print("Decision delta: `missing`")
+        print("Gate read: `missing shared validation screen`")
+    else:
+        print(f"Material gain threshold: `{material_gain:.5f}`")
+        print(f"Decision delta control-active: `{decision_delta:.5f}`")
+        if decision_delta >= material_gain:
+            print("Gate read: `active beats alpha-zero materially`")
+        elif abs(decision_delta) <= 5e-5:
+            print("Gate read: `active matches alpha-zero`")
+        elif decision_delta > 0:
+            print("Gate read: `active is better, but below material threshold`")
+        else:
+            print("Gate read: `active is worse than alpha-zero`")
     print()
 
     print("## Correction Geometry")
@@ -162,9 +194,17 @@ def main() -> int:
     parser.add_argument("--active", required=True, type=Path)
     parser.add_argument("--control", required=True, type=Path)
     parser.add_argument("--k", type=int, default=5)
+    parser.add_argument("--decision-step", type=int, default=2000)
+    parser.add_argument("--material-gain", type=float, default=0.001)
     args = parser.parse_args()
 
-    print_report(parse_log(args.active, k=args.k), parse_log(args.control, k=args.k), k=args.k)
+    print_report(
+        parse_log(args.active, k=args.k),
+        parse_log(args.control, k=args.k),
+        k=args.k,
+        decision_step=args.decision_step,
+        material_gain=args.material_gain,
+    )
     return 0
 
 

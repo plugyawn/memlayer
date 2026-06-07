@@ -108,7 +108,10 @@ elif [[ -f "${active_log}" && -f "${control_log}" ]]; then
   python3 tools/analyze_track3_locom_prefix_effect_size.py \
     --active "${active_log}" \
     --control "${control_log}" \
-    --k 5 | tee "${log_dir}/track3_proj_specificity_pair_decision.md" || true
+    --k 5 \
+    --decision-step "${TRACK3_PROJ_SPEC_DECISION_STEP:-2000}" \
+    --material-gain "${TRACK3_PROJ_SPEC_MATERIAL_GAIN:-0.001}" \
+    | tee "${log_dir}/track3_proj_specificity_pair_decision.md" || true
 fi
 
 echo "proj_specificity_done $(date -u +%Y-%m-%dT%H:%M:%SZ) mode=${mode}" | tee -a "${log_dir}/sequence.status"
