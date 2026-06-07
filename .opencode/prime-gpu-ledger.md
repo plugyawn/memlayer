@@ -389,7 +389,7 @@
   price_per_hour: selected by availability id ec854a
   created_at: 2026-06-07T03:17:02Z
   expected_stop: after full 3000 suffix ladder completes, setup failure, or artifact pull
-  status: active_running_real_nolocom_3300_schedule
+  status: active_running_prefix_scale_1800_probe
   termination_policy: keep warm until the queued full 3000 suffix ladder completes, then pull artifacts and terminate unless another concrete follow-up is queued
   notes:
     - Launcher synced commit `0ba916e`, copied local step1600 checkpoint to `/home/ubuntu/.cache/track3_checkpoints/`, and started `/home/ubuntu/prime_track3_2000_suffix_gate_logs/run_2000_suffix_gate.sh`.
@@ -403,3 +403,8 @@
     - Patched `tools/run_track3_locom_2000_suffix_probe.sh` so `TRACK3_LR_SCHEDULE_STEPS` is configurable, copied it remote, and launched the real 3300-schedule no-LocoProp control in `/home/ubuntu/prime_track3_2000_nolocom3300_real_logs/`.
     - Real 3300-schedule run is active and initially hotter/worse than the 3000-schedule continuation: `3.37335 @2000`, `3.37430 @2025`, `3.37307 @2050`, `3.37137 @2075`, `3.36882 @2100`, `3.36667 @2125`, `3.35982 @2200`, `3.35808 @2225`, `3.35198 @2300`; step time after warmup is about `1265ms`.
     - Real 3300-schedule run reached the first saved suffix checkpoint: `3.35037 @2325`, `3.34877 @2350`, `3.34715 @2375`, `3.34542 @2400`, checkpoint `/home/ubuntu/.cache/track3_checkpoints/track3_locom_2000_control_seed3710_seed3710_step2400.pt`. This did not create a breakout; it mostly confirmed that simply stretching the no-LocoProp schedule is not the missing late-tail fix.
+    - Stopped the real 3300-schedule no-LocoProp run after `3.33472 @2600`; required straight-line from the `3.37335 @2000` state was about `3.31734 @2600`, so the suffix was slope-starved. Final local logs pulled to `.opencode/current_track3_ledger_20260607_logs/prime_2000gate_9b33955/`.
+    - Reused the warm H100 for the aligned mechanism probe: `/home/ubuntu/run_prefix_scale_1800.sh`, PID `12791`, log root `/home/ubuntu/prime_track3_prefix_scale_1800_logs`. This tests K5 true-post c_fc normalized to `2%` and `5%` of base step against alpha-zero/natural/random controls through step `1800`.
+    - First prefix-scale launch failed immediately because it did not activate `/home/ubuntu/venv`, so `torchrun` was unavailable. Relaunched as `/home/ubuntu/run_prefix_scale_1800_v2.sh`, PID `13009`; alpha-zero/noloco lane completed and matched the known curve: `3.45136 @1625`, `3.43562 @1650`, `3.42614 @1675`, `3.41884 @1700`, `3.41288 @1725`, `3.40795 @1750`, `3.40361 @1775`, `3.39874 @1800`.
+    - Pruned the broad six-lane prefix-scale sequence after alpha-zero and killed the redundant natural-K5 lane. Launched focused decisive pair `/home/ubuntu/run_prefix_scale_pair1800.sh`, PID `14400`, log root `/home/ubuntu/prime_track3_prefix_scale_pair1800_logs`: `norm002_k5` vs same-scale `random_norm002`, both K5 true-post through step `1800`.
+    - 2026-06-07T07:08:04Z: user requested stopping 1600-2000 probes and focusing on a schedule that carries the existing `3.36/3.32` region to `3.28`. Killed the prefix pair and launched schedule-only no-LocoProp suffix screen from `/home/ubuntu/.cache/track3_checkpoints/track3_locom_2000_control_seed3710_seed3710_step2125.pt` to step `2400` in `/home/ubuntu/prime_track3_suffix_schedule_probe_2125_logs/`: lanes `floor004,floor006,floor008,h3200p2`. Straight-line gate from `3.36216 @2125` is `3.33634 @2400`; terminate/redirect if lanes remain near the known `~3.345` cold-control band.
