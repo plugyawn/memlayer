@@ -18,6 +18,24 @@ The good prefix window is real:
 drop: 0.01141 per 100 steps
 ```
 
+This makes step 2000 a real branch point, not a dead state:
+
+```text
+target from 2000: 3.37337 -> 3.28000 by 3000
+required drop:    0.00934 per 100 steps
+observed 1900-2000 drop / required: about 1.22x
+```
+
+But the slope starts failing immediately after that:
+
+```text
+2000->2100: 0.00914 per 100, about 0.98x required
+2100->2125: 0.00828 per 100, about 0.89x required
+```
+
+So the suffix problem is specifically preserving the 1900-2000 descent
+rate after step 2000. Pure 2950+ rescue is too late.
+
 But it is not caused by the natural K5 c_fc LocoProp correction:
 
 ```text
@@ -105,6 +123,7 @@ active_k5:     natural K5 c_fc correction
 norm002_k5:    same direction normalized to 2% of base step
 norm005_k5:    same direction normalized to 5% of base step
 random_norm002: same-shape random 2% control
+random_norm005: same-shape random 5% control
 ```
 
 Decision:
@@ -116,7 +135,7 @@ norm002/norm005 beats alpha-zero and random:
 norm002/norm005 match alpha-zero:
   c_fc true-post direction is not the causal lever in this state.
 
-random_norm002 matches active:
+same-scale random matches active:
   effect is generic perturbation/noise, not local solve.
 
 norm005 hurts while norm002 matches:
@@ -132,3 +151,9 @@ c_fc LocoProp idea to survive is if a deliberately visible correction scale
 beats alpha-zero in the prefix. If that fails, the next search should move to a
 different LocoProp expression or surface rather than spending more on K,
 sample tokens, or suffix-only tuning.
+
+For suffix work, the target is narrower: start from the saved/recreated step
+2000 state and preserve at least the required line to step 3000. The current
+post-2000 ladder therefore has matched 2% and 5% random controls; any active
+LocoProp win must beat the same-scale perturbation, not just the no-correction
+suffix.

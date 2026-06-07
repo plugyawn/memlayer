@@ -28,7 +28,7 @@ save_prefix="${TRACK3_2000_PREFIX:-track3_locom_good2000}"
 state2000="${TRACK3_2000_CHECKPOINT:-${checkpoint_dir}/${save_prefix}_seed${seed_offset}_step2000.pt}"
 suffix_steps="${TRACK3_SUFFIX_STEPS:-2400}"
 suffix_active_end="${TRACK3_SUFFIX_ACTIVE_END:-2250}"
-suffix_lanes="${TRACK3_SUFFIX_LANES:-control,floor111,floor111_norm002,floor111_random002,ramp111}"
+suffix_lanes="${TRACK3_SUFFIX_LANES:-control,floor111,floor111_norm002,floor111_random002,floor111_norm005,floor111_random005,ramp111}"
 
 mkdir -p "${log_dir}" "${checkpoint_dir}"
 python3 tools/check_track3_locom_suffix_manifest.py --manifest-only \
@@ -223,6 +223,26 @@ run_suffixes() {
       TRACK3_LOCOM_ACTIVE_WINDOWS="2000:${suffix_active_end}" \
       TRACK3_LOCOM_END_STEP="${suffix_active_end}" \
       TRACK3_LOCOM_NORM_TARGET=0.02 \
+      TRACK3_LR_MIN_ETA=0.1111111111
+  fi
+
+  if want_lane floor111_norm005; then
+    suffix_common "floor111_norm005_k5" \
+      TRACK3_LOCOM_ENABLED=1 \
+      TRACK3_LOCOM_ACTIVE_WINDOWS="2000:${suffix_active_end}" \
+      TRACK3_LOCOM_END_STEP="${suffix_active_end}" \
+      TRACK3_LOCOM_NORM_TARGET=0.05 \
+      TRACK3_LR_MIN_ETA=0.1111111111
+  fi
+
+  if want_lane floor111_random005; then
+    suffix_common "floor111_random005" \
+      TRACK3_LOCOM_ENABLED=1 \
+      TRACK3_LOCOM_LOCAL_OPT=random \
+      TRACK3_LOCOM_RANDOM_CORRECTION=1 \
+      TRACK3_LOCOM_ACTIVE_WINDOWS="2000:${suffix_active_end}" \
+      TRACK3_LOCOM_END_STEP="${suffix_active_end}" \
+      TRACK3_LOCOM_NORM_TARGET=0.05 \
       TRACK3_LR_MIN_ETA=0.1111111111
   fi
 

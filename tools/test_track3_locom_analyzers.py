@@ -432,6 +432,8 @@ def test_suffix_manifest_checker_and_lr_preview(tmp: Path) -> None:
         ("floor111", False, "sgd", False, "normal", 0.0, 0.1111111111, ""),
         ("floor111_norm002_k5", True, "sgd", False, "normal", 0.02, 0.1111111111, ""),
         ("floor111_random002", True, "random", True, "normal", 0.02, 0.1111111111, ""),
+        ("floor111_norm005_k5", True, "sgd", False, "normal", 0.05, 0.1111111111, ""),
+        ("floor111_random005", True, "random", True, "normal", 0.05, 0.1111111111, ""),
         ("ramp111", False, "sgd", False, "normal", 0.0, 0.0, "2000:2250:2250:2400:1.7777777778"),
     ]
     for lane, enabled, local_opt, random, mode, norm_target, lr_min_eta, lr_bump in lanes:

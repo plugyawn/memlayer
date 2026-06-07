@@ -7,7 +7,8 @@ set -euo pipefail
 # This is deliberately separate from run_track3_locom_prefix_specificity.sh,
 # because the natural K5 lane has already matched alpha-zero. These lanes ask
 # whether forcing the same true-post K5 correction to a visible base-step
-# fraction beats the same-harness alpha-zero control and a random perturbation.
+# fraction beats the same-harness alpha-zero control and same-scale random
+# perturbations.
 
 checkpoint="${TRACK3_RESUME_CHECKPOINT:-/root/.cache/track3_checkpoints/track3_cd500red_softmerge_pr2872000_p110_ckpt1600_seed3710_step1600.pt}"
 seed_offset="${TRACK3_SEED_OFFSET:-3710}"
@@ -89,6 +90,7 @@ fi
 run_lane "norm002_k5" 1 "sgd" "normal" "0.02" "0.0"
 run_lane "norm005_k5" 1 "sgd" "normal" "0.05" "0.0"
 run_lane "random_norm002" 1 "random" "normal" "0.02" "0.0"
+run_lane "random_norm005" 1 "random" "normal" "0.05" "0.0"
 
 prefix_logs=("${log_dir}"/track3_prefix_*.log)
 if [[ "${TRACK3_DRY_RUN:-0}" == "1" ]]; then

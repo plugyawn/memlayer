@@ -17,6 +17,8 @@ DEFAULT_REQUIRED_LANES = (
     "floor111",
     "floor111_norm002_k5",
     "floor111_random002",
+    "floor111_norm005_k5",
+    "floor111_random005",
     "ramp111",
 )
 FLOAT_KEYS = {
@@ -80,6 +82,8 @@ LANES = {
     "floor111": LaneSpec("floor111", False, "sgd", False, "normal", 0.0, 0.1111111111, "", "LR floor at the step-2000 eta"),
     "floor111_norm002_k5": LaneSpec("floor111_norm002_k5", True, "sgd", False, "normal", 0.02, 0.1111111111, "", "LR floor plus true-post c_fc K5 at 2% base-step norm"),
     "floor111_random002": LaneSpec("floor111_random002", True, "random", True, "normal", 0.02, 0.1111111111, "", "LR floor plus same-shape random 2% correction"),
+    "floor111_norm005_k5": LaneSpec("floor111_norm005_k5", True, "sgd", False, "normal", 0.05, 0.1111111111, "", "LR floor plus true-post c_fc K5 at 5% base-step norm"),
+    "floor111_random005": LaneSpec("floor111_random005", True, "random", True, "normal", 0.05, 0.1111111111, "", "LR floor plus same-shape random 5% correction"),
     "ramp111": LaneSpec("ramp111", False, "sgd", False, "normal", 0.0, 0.0, "2000:2250:2250:2400:1.7777777778", "smooth LR multiplier ramp targeting step-2000 eta near 2250"),
     "floor111_orthogonal002": LaneSpec("floor111_orthogonal002", True, "sgd", False, "orthogonal", 0.02, 0.1111111111, "", "optional LR floor plus orthogonalized 2% correction"),
     "natural_k5": LaneSpec("natural_k5", True, "sgd", False, "normal", 0.0, 0.0, "", "optional natural-scale true-post c_fc K5"),

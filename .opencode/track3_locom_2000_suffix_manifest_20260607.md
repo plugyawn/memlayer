@@ -6,6 +6,8 @@
 | floor111 | 0 | sgd | 0 | normal | 0.00 | 0.1111111111 | `` | LR floor at the step-2000 eta |
 | floor111_norm002_k5 | 1 | sgd | 0 | normal | 0.02 | 0.1111111111 | `` | LR floor plus true-post c_fc K5 at 2% base-step norm |
 | floor111_random002 | 1 | random | 1 | normal | 0.02 | 0.1111111111 | `` | LR floor plus same-shape random 2% correction |
+| floor111_norm005_k5 | 1 | sgd | 0 | normal | 0.05 | 0.1111111111 | `` | LR floor plus true-post c_fc K5 at 5% base-step norm |
+| floor111_random005 | 1 | random | 1 | normal | 0.05 | 0.1111111111 | `` | LR floor plus same-shape random 5% correction |
 | ramp111 | 0 | sgd | 0 | normal | 0.00 | 0.0000000000 | `2000:2250:2250:2400:1.7777777778` | smooth LR multiplier ramp targeting step-2000 eta near 2250 |
 
 ## LR Preview
@@ -16,6 +18,8 @@
 | floor111 | 0.111111 | 0.111111 | 0.111111 | 0.111111 | 0.111111 | 0.111111 | 0.111111 | 0.111111 | 0.111111 | 0.111111 |
 | floor111_norm002_k5 | 0.111111 | 0.111111 | 0.111111 | 0.111111 | 0.111111 | 0.111111 | 0.111111 | 0.111111 | 0.111111 | 0.111111 |
 | floor111_random002 | 0.111111 | 0.111111 | 0.111111 | 0.111111 | 0.111111 | 0.111111 | 0.111111 | 0.111111 | 0.111111 | 0.111111 |
+| floor111_norm005_k5 | 0.111111 | 0.111111 | 0.111111 | 0.111111 | 0.111111 | 0.111111 | 0.111111 | 0.111111 | 0.111111 | 0.111111 |
+| floor111_random005 | 0.111111 | 0.111111 | 0.111111 | 0.111111 | 0.111111 | 0.111111 | 0.111111 | 0.111111 | 0.111111 | 0.111111 |
 | ramp111 | 0.111111 | 0.113840 | 0.115877 | 0.117252 | 0.118000 | 0.118152 | 0.115358 | 0.111111 | 0.070313 | 0.040000 |
 
 Common invariants:
