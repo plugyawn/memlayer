@@ -1,0 +1,22 @@
+| profile | step | k | layers | med loss/loss0 | med corr_norm | med cos | bad loss | nonfinite | bad cos |
+| --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: |
+| track3_locom_tail2500_ungated_softpolar_norm005_seed3710_to2600 | 2500 | 1 | 12 | 9.769e-01 | 3.771e+01 | 0.009 | 0 | 0 | 0 |
+| track3_locom_tail2500_ungated_softpolar_norm005_seed3710_to2600 | 2500 | 2 | 12 | 9.555e-01 | 3.775e+01 | 0.009 | 0 | 0 | 0 |
+| track3_locom_tail2500_ungated_softpolar_norm005_seed3710_to2600 | 2500 | 4 | 12 | 9.246e-01 | 3.780e+01 | 0.009 | 0 | 0 | 0 |
+| track3_locom_tail2500_ungated_softpolar_norm005_seed3710_to2600 | 2500 | 5 | 12 | 9.142e-01 | 3.783e+01 | 0.009 | 0 | 0 | 0 |
+| track3_locom_tail2500_ungated_softpolar_norm005_seed3710_to2600 | 2501 | 1 | 12 | 9.776e-01 | 3.775e+01 | 0.009 | 0 | 0 | 0 |
+| track3_locom_tail2500_ungated_softpolar_norm005_seed3710_to2600 | 2501 | 2 | 12 | 9.575e-01 | 3.802e+01 | 0.009 | 0 | 0 | 0 |
+| track3_locom_tail2500_ungated_softpolar_norm005_seed3710_to2600 | 2501 | 4 | 12 | 9.325e-01 | 3.809e+01 | 0.009 | 0 | 0 | 0 |
+| track3_locom_tail2500_ungated_softpolar_norm005_seed3710_to2600 | 2501 | 5 | 12 | 9.216e-01 | 3.812e+01 | 0.009 | 0 | 0 | 0 |
+| track3_locom_tail2500_ungated_softpolar_norm005_seed3710_to2600 | 2525 | 1 | 12 | 9.752e-01 | 3.658e+01 | 0.007 | 0 | 0 | 1 |
+| track3_locom_tail2500_ungated_softpolar_norm005_seed3710_to2600 | 2525 | 2 | 12 | 9.536e-01 | 3.734e+01 | 0.007 | 0 | 0 | 0 |
+| track3_locom_tail2500_ungated_softpolar_norm005_seed3710_to2600 | 2525 | 4 | 12 | 9.293e-01 | 3.742e+01 | 0.007 | 0 | 0 | 0 |
+| track3_locom_tail2500_ungated_softpolar_norm005_seed3710_to2600 | 2525 | 5 | 12 | 9.186e-01 | 3.745e+01 | 0.007 | 0 | 0 | 0 |
+| track3_locom_tail2500_ungated_softpolar_norm005_seed3710_to2600 | 2550 | 1 | 12 | 9.689e-01 | 3.697e+01 | 0.008 | 0 | 0 | 0 |
+| track3_locom_tail2500_ungated_softpolar_norm005_seed3710_to2600 | 2550 | 2 | 12 | 9.479e-01 | 3.723e+01 | 0.008 | 0 | 0 | 0 |
+| track3_locom_tail2500_ungated_softpolar_norm005_seed3710_to2600 | 2550 | 4 | 12 | 9.224e-01 | 3.750e+01 | 0.008 | 0 | 0 | 0 |
+| track3_locom_tail2500_ungated_softpolar_norm005_seed3710_to2600 | 2550 | 5 | 12 | 9.110e-01 | 3.754e+01 | 0.008 | 0 | 0 | 0 |
+| track3_locom_tail2500_ungated_softpolar_norm005_seed3710_to2600 | 2575 | 1 | 12 | 9.760e-01 | 3.679e+01 | 0.009 | 0 | 0 | 0 |
+| track3_locom_tail2500_ungated_softpolar_norm005_seed3710_to2600 | 2575 | 2 | 12 | 9.552e-01 | 3.738e+01 | 0.009 | 0 | 0 | 0 |
+| track3_locom_tail2500_ungated_softpolar_norm005_seed3710_to2600 | 2575 | 4 | 12 | 9.259e-01 | 3.761e+01 | 0.009 | 0 | 0 | 0 |
+| track3_locom_tail2500_ungated_softpolar_norm005_seed3710_to2600 | 2575 | 5 | 12 | 9.150e-01 | 3.767e+01 | 0.009 | 0 | 0 | 0 |

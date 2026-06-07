@@ -559,3 +559,51 @@
     - Stopped active lane at 1800 to avoid wasting compute; pulled artifact archive to `.opencode/current_track3_ledger_20260607_logs/proj_specificity_45a63/prime_track3_locom_proj_specificity_logs_retry.tgz`.
     - Local decision report: `.opencode/current_track3_ledger_20260607_logs/proj_specificity_45a63/proj_specificity_decision_1800.md`.
     - Terminated pod successfully; follow-up `prime pods list` showed zero active pods.
+
+- pod_id: 43ad3702f6e843d397f1e5e2d1d6dbb1
+  name: oc-main-track3-tailcopy-h100sxm-20260607-1515
+  owner: current-agent
+  purpose: Copy seed3710 step1600 checkpoint first, then run targeted Track 3 tail schedule probe
+  gpu: 1x H100_80GB SXM5 datacrunch spot
+  price_per_hour: 1.138 USD
+  created_at: 2026-06-07T15:15Z
+  expected_stop: after checkpoint-backed tail probe finishes/fails and artifacts are pulled
+  status: active_idle_after_tail2500_locom_and_softpolar_tied_control
+  termination_policy: keep only while actively copying checkpoint/running queued probe; terminate on setup failure or after artifacts are pulled
+  notes:
+    - local checkpoint source: `/Users/progyan/speedrun/tmp/modal_ckpt_transfer/track3_cd500red_softmerge_pr2872000_p110_ckpt1600_seed3710_step1600.pt`
+    - local sha256: `430dc1d871ad177e9675679174d5ee84d3f02e6ebdf8aba6bec72093210debf2`
+    - selected cheapest adequate H100 SXM/HBM-class offer: availability `ec854a`, datacrunch spot, `$1.138/hr`.
+    - Active pod SSH: `root@86.38.238.33 -p 22`.
+    - Remote GPU confirmed: `NVIDIA H100 80GB HBM3`, `81559 MiB`.
+    - Copied checkpoint to `/root/.cache/track3_checkpoints/track3_cd500red_softmerge_pr2872000_p110_ckpt1600_seed3710_step1600.pt`.
+    - Remote SHA256 verified: `430dc1d871ad177e9675679174d5ee84d3f02e6ebdf8aba6bec72093210debf2`.
+    - Synced worktree to `/root/wr-track3-locom-20260606`.
+    - Installed resume-safe stack: `torch 2.7.1+cu126`, `triton 3.3.1`, `numpy 2.2.6`.
+    - Cached FineWeb10B with `python data/cached_fineweb10B.py 20`: 21 bin files, about 4.0 GB.
+    - Launched checkpoint-backed `MODE=save2000` via `/root/prime_track3_locom_2000_suffix_logs_43ad37/run_save2000.sh`, PID `4229`.
+    - First launch loaded checkpoint correctly (`step:1600`, `3.48241`) but failed at first Triton compile because `/usr/include/python3.10/Python.h` was missing.
+    - Installed `python3.10-dev` and `build-essential`; verified `Python.h` exists before relaunch.
+    - Relaunched checkpoint-backed `MODE=save2000`, PID `4785`.
+    - Save-2000 replay reached `3.37605 @1975` and wrote `/root/.cache/track3_checkpoints/track3_locom_good2000_tailcopy43ad37_seed3710_step2000.pt`.
+    - Remote step-2000 SHA256: `53ee13b38d5b3f12279d02031fc1100c0c2467c2fc56daf34af642f750f4577b`.
+    - Launched minimal step-2000 suffix probe to 2250 with lanes `control,natural`, PID `6016`.
+    - Control suffix from step 2000 reached `3.35306 @2250` and saved `/root/.cache/track3_checkpoints/track3_locom_2000_control_seed3710_seed3710_step2250.pt`.
+    - Natural K5 suffix was stopped after matching/worsening control: `3.37102 @2025` vs control `3.37099`, `3.36871 @2050` vs control `3.36869`.
+    - User explicitly instructed not to terminate the pod; keep it warm for tail-end probes from the remote step-2000 checkpoint.
+    - Launched no-LocoProp tail schedule probe from step 2000 to 2500, lanes `cold3000,floor006,floor010,pr287_h3105p120`, PID `8118`.
+    - Cold3000 tail from step 2000 finished at `3.34114 @2500`.
+    - `floor006` was worse after the floor became active: `3.34631 @2400` vs cold `3.34512`; stopped the floor sweep before `floor010`.
+    - Launched single PR287 h3105,p1.20 tail lane from the same step-2000 checkpoint, PID `9362`.
+    - PR287 h3105,p1.20 was catastrophically discontinuous from this checkpoint: `3.42081 @2025`, `3.40944 @2250`; stopped it.
+    - Launched smooth horizon extension lanes `h3200p2,h3300p2` from the same step-2000 checkpoint, PID `9957`.
+    - `h3200p2` was also worse early: `3.36497 @2125` vs cold `3.36215`; stopped before `h3300p2`.
+    - Launched cold continuation from the saved cold `2500` checkpoint to `3000`, PID `10560`.
+    - Cold continuation from `2500` to `3000` flatlined: `3.34114 @2500`, `3.33513 @2800`, `3.33472 @2875`, `3.33457 @3000`; checkpoints saved at `2750`, `2875`, `3000`.
+    - Launched terminal SoftMuon suffix from the cold `2500` checkpoint with `TRACK3_SOFT_MUON=1`, `TRACK3_SOFT_MUON_BLEND=1.0`, `START_STEP=2500`, `END_STEP=3010`, `CEIL=0.80`, `NORM_RESTORE=1`.
+    - Terminal SoftMuon finished and did not rescue the tail: `3.34114 @2500`, `3.33513 @2800`, `3.33472 @2875`, `3.33453 @3000`; essentially tied with cold control. Logs pulled to `.opencode/current_track3_ledger_20260607_logs/tailcopy_43ad37/soft2500_to3000/`.
+    - User explicitly instructed not to terminate this pod after the tail run; pod is intentionally left up for immediate follow-up work.
+    - Launched short LocoProp tick probe from cold `2500` checkpoint, lane `ungated_norm005`, active `2500:2600`, no loss/cos gate, norm target `0.05`, PID `12588`. Script: `.opencode/prime_scripts/run_prime_track3_locom_tail2500_tick.sh`.
+    - `ungated_norm005` finished at `3.33829 @2600`, matching the cold tail and not improving slope. Apply diagnostics confirm nonzero correction with `eff_frac_med=0.05`; logs pulled to `.opencode/current_track3_ledger_20260607_logs/tailcopy_43ad37/tail2500_tick/`.
+    - Launched `ungated_softpolar_norm005` from the same cold `2500` checkpoint, PID `13208`, to test spectral shaping of the LocoProp correction after normal correction tied control.
+    - `ungated_softpolar_norm005` finished at `3.33830 @2600`, also matching/worsening cold and normal LocoProp. Apply diagnostics confirm nonzero correction with `eff_frac_med=0.05`; raw softpolar correction norm is huge (`raw_frac_med` hundreds of base-step norms) and is scaled down by the norm target. Logs pulled to `.opencode/current_track3_ledger_20260607_logs/tailcopy_43ad37/tail2500_tick/`.

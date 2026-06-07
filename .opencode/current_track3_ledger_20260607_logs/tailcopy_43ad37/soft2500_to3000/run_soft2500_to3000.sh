@@ -1,0 +1,19 @@
+#!/usr/bin/env bash
+set -euo pipefail
+cd /root/wr-track3-locom-20260606
+source .venv/bin/activate
+export TRACK3_SUFFIX_CHECKPOINT=/root/.cache/track3_checkpoints/track3_suffix_cold3000_from2000_seed3710_to2500_seed3710_step2500.pt
+export TRACK3_SUFFIX_FROM_STEP=2500
+export TRACK3_SUFFIX_LOG_DIR=/root/prime_track3_soft2500_to3000_logs_43ad37
+export TRACK3_CHECKPOINT_DIR=/root/.cache/track3_checkpoints
+export TRACK3_SEED_OFFSET=3710
+export TRACK3_TRAIN_STEPS=3000
+export TRACK3_CHECKPOINT_STEPS=2750,2875,3000
+export TRACK3_SUFFIX_LANES=cold3000
+export TRACK3_SOFT_MUON=1
+export TRACK3_SOFT_MUON_BLEND=1.0
+export TRACK3_SOFT_MUON_START_STEP=2500
+export TRACK3_SOFT_MUON_END_STEP=3010
+export TRACK3_SOFT_MUON_CEIL=0.80
+export TRACK3_SOFT_MUON_NORM_RESTORE=1
+bash tools/run_track3_suffix_schedule_probe.sh

@@ -1,0 +1,119 @@
+track3_locom_runner source=records/track_3_optimization/train_gpt_simple.py generated=/tmp/track3_locom_save2000_seed3710.py steps=2000 trials=1 nproc=1 mbs=16 trial_arg_mode=positional-count
+track3_locom_source_sha source=3191da541544c96aa4a4a9dfdde8a8e1fa674620583b69c61f10818c74c1436b generator=1f2aba256e8c0784674092a34bcec2b6faf9e7920af69a3218504a1fdebecc71 generated=8c3638b93f7c88aa4d6d19f610611a4fc7c1e0e0f34a7e8397b3527d960b8725
+logs/9cd6ed20-1263-452e-b9eb-026249f50d85.txt
+track3_trial_seed=3710 trial=0
+locoprop_m_owner rank=0 world=1 owned_layers=[0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11] surface=fc sample_tokens=1024 gather_samples=True accum_samples=False micro_sample_tokens=32 aux_capture=False aux_seqs=16 batched_prep=False
+track3_checkpoint_loaded path:/root/.cache/track3_checkpoints/track3_cd500red_softmerge_pr2872000_p110_ckpt1600_seed3710_step1600.pt step:1600 seed:3710 val_loss:None load_optimizers:True
+track3_resume_advanced_data steps:1600
+step:1600/2000 val_loss:3.48241 train_time:0.000s step_avg:nanms
+locoprop_m_kdiag step=1600 l0 k1:loss=4.735e-05,ratio=9.989e-01,corr_norm=1.756e-04,raw_cos=0.035,cos=0.035 | k2:loss=4.730e-05,ratio=9.979e-01,corr_norm=3.507e-04,raw_cos=0.035,cos=0.035 | k4:loss=4.720e-05,ratio=9.958e-01,corr_norm=6.991e-04,raw_cos=0.035,cos=0.035 | k5:loss=4.715e-05,ratio=9.948e-01,corr_norm=8.724e-04,raw_cos=0.035,cos=0.035
+locoprop_m_kdiag step=1600 l1 k1:loss=1.983e-05,ratio=9.817e-01,corr_norm=4.891e-04,raw_cos=-0.012,cos=-0.012 | k2:loss=1.952e-05,ratio=9.667e-01,corr_norm=9.305e-04,raw_cos=-0.011,cos=-0.011 | k4:loss=1.907e-05,ratio=9.441e-01,corr_norm=1.694e-03,raw_cos=-0.009,cos=-0.009 | k5:loss=1.889e-05,ratio=9.354e-01,corr_norm=2.026e-03,raw_cos=-0.008,cos=-0.008
+locoprop_m_kdiag step=1600 l2 k1:loss=3.681e-05,ratio=8.943e-01,corr_norm=1.872e-03,raw_cos=-0.110,cos=-0.110 | k2:loss=3.523e-05,ratio=8.561e-01,corr_norm=2.884e-03,raw_cos=-0.099,cos=-0.099 | k4:loss=3.361e-05,ratio=8.167e-01,corr_norm=4.137e-03,raw_cos=-0.078,cos=-0.078 | k5:loss=3.304e-05,ratio=8.028e-01,corr_norm=4.634e-03,raw_cos=-0.070,cos=-0.070
+locoprop_m_kdiag step=1600 l3 k1:loss=2.217e-05,ratio=9.884e-01,corr_norm=4.105e-04,raw_cos=0.018,cos=0.018 | k2:loss=2.195e-05,ratio=9.790e-01,corr_norm=7.785e-04,raw_cos=0.018,cos=0.018 | k4:loss=2.162e-05,ratio=9.640e-01,corr_norm=1.424e-03,raw_cos=0.018,cos=0.018 | k5:loss=2.148e-05,ratio=9.578e-01,corr_norm=1.715e-03,raw_cos=0.018,cos=0.018
+locoprop_m_kdiag step=1600 l4 k1:loss=2.808e-05,ratio=9.863e-01,corr_norm=5.039e-04,raw_cos=0.001,cos=0.001 | k2:loss=2.776e-05,ratio=9.750e-01,corr_norm=9.555e-04,raw_cos=0.002,cos=0.002 | k4:loss=2.723e-05,ratio=9.563e-01,corr_norm=1.761e-03,raw_cos=0.004,cos=0.004 | k5:loss=2.700e-05,ratio=9.482e-01,corr_norm=2.133e-03,raw_cos=0.005,cos=0.005
+locoprop_m_kdiag step=1600 l5 k1:loss=3.657e-05,ratio=9.870e-01,corr_norm=5.519e-04,raw_cos=-0.011,cos=-0.011 | k2:loss=3.613e-05,ratio=9.752e-01,corr_norm=1.073e-03,raw_cos=-0.010,cos=-0.010 | k4:loss=3.532e-05,ratio=9.533e-01,corr_norm=2.070e-03,raw_cos=-0.008,cos=-0.008 | k5:loss=3.494e-05,ratio=9.429e-01,corr_norm=2.553e-03,raw_cos=-0.007,cos=-0.007
+locoprop_m_kdiag step=1600 l6 k1:loss=5.037e-05,ratio=9.817e-01,corr_norm=7.642e-04,raw_cos=0.017,cos=0.017 | k2:loss=4.948e-05,ratio=9.645e-01,corr_norm=1.506e-03,raw_cos=0.017,cos=0.017 | k4:loss=4.786e-05,ratio=9.328e-01,corr_norm=2.929e-03,raw_cos=0.016,cos=0.016 | k5:loss=4.710e-05,ratio=9.181e-01,corr_norm=3.612e-03,raw_cos=0.016,cos=0.016
+locoprop_m_kdiag step=1600 l7 k1:loss=7.496e-05,ratio=9.742e-01,corr_norm=1.116e-03,raw_cos=0.002,cos=0.002 | k2:loss=7.314e-05,ratio=9.506e-01,corr_norm=2.184e-03,raw_cos=0.002,cos=0.002 | k4:loss=6.990e-05,ratio=9.084e-01,corr_norm=4.195e-03,raw_cos=0.002,cos=0.002 | k5:loss=6.844e-05,ratio=8.895e-01,corr_norm=5.145e-03,raw_cos=0.002,cos=0.002
+locoprop_m_kdiag step=1600 l8 k1:loss=9.713e-05,ratio=9.693e-01,corr_norm=1.390e-03,raw_cos=0.004,cos=0.004 | k2:loss=9.430e-05,ratio=9.410e-01,corr_norm=2.723e-03,raw_cos=0.004,cos=0.004 | k4:loss=8.927e-05,ratio=8.907e-01,corr_norm=5.231e-03,raw_cos=0.004,cos=0.004 | k5:loss=8.702e-05,ratio=8.683e-01,corr_norm=6.415e-03,raw_cos=0.004,cos=0.004
+locoprop_m_kdiag step=1600 l9 k1:loss=1.469e-04,ratio=9.596e-01,corr_norm=1.979e-03,raw_cos=0.012,cos=0.012 | k2:loss=1.414e-04,ratio=9.239e-01,corr_norm=3.838e-03,raw_cos=0.012,cos=0.012 | k4:loss=1.321e-04,ratio=8.633e-01,corr_norm=7.248e-03,raw_cos=0.011,cos=0.011 | k5:loss=1.282e-04,ratio=8.373e-01,corr_norm=8.821e-03,raw_cos=0.011,cos=0.011
+locoprop_m_kdiag step=1600 l10 k1:loss=2.288e-04,ratio=9.557e-01,corr_norm=2.634e-03,raw_cos=0.009,cos=0.009 | k2:loss=2.201e-04,ratio=9.193e-01,corr_norm=4.968e-03,raw_cos=0.009,cos=0.009 | k4:loss=2.056e-04,ratio=8.591e-01,corr_norm=9.175e-03,raw_cos=0.009,cos=0.009 | k5:loss=1.995e-04,ratio=8.333e-01,corr_norm=1.111e-02,raw_cos=0.009,cos=0.009
+locoprop_m_kdiag step=1600 l11 k1:loss=4.582e-04,ratio=9.526e-01,corr_norm=4.546e-03,raw_cos=-0.007,cos=-0.007 | k2:loss=4.400e-04,ratio=9.148e-01,corr_norm=7.340e-03,raw_cos=-0.003,cos=-0.003 | k4:loss=4.120e-04,ratio=8.565e-01,corr_norm=1.337e-02,raw_cos=-0.002,cos=-0.002 | k5:loss=4.008e-04,ratio=8.332e-01,corr_norm=1.631e-02,raw_cos=-0.003,cos=-0.003
+locoprop_m_prepare step=1600 l0:loss0=4.740e-05,lossK=4.715e-05,corr_norm=8.724e-04,grad_norm=3.012e+03,raw_cos_desc=0.035,cos_desc=0.035,accepted=1,tokens=1024,opt=sgd,mode=normal,true_post_grad=1 | l1:loss0=2.020e-05,lossK=1.889e-05,corr_norm=2.026e-03,grad_norm=2.636e+03,raw_cos_desc=-0.008,cos_desc=-0.008,accepted=0,tokens=1024,opt=sgd,mode=normal,true_post_grad=1 | l2:loss0=4.116e-05,lossK=3.304e-05,corr_norm=4.634e-03,grad_norm=2.807e+03,raw_cos_desc=-0.070,cos_desc=-0.070,accepted=0,tokens=1024,opt=sgd,mode=normal,true_post_grad=1 | l3:loss0=2.243e-05,lossK=2.148e-05,corr_norm=1.715e-03,grad_norm=2.916e+03,raw_cos_desc=0.018,cos_desc=0.018,accepted=1,tokens=1024,opt=sgd,mode=normal,true_post_grad=1
+/tmp/tmp26hlxbk5/main.c:5:10: fatal error: Python.h: No such file or directory
+    5 | #include <Python.h>
+      |          ^~~~~~~~~~
+compilation terminated.
+[rank0]: Traceback (most recent call last):
+[rank0]:   File "/tmp/track3_locom_save2000_seed3710.py", line 1664, in <module>
+[rank0]:     opt.step()
+[rank0]:   File "/root/wr-track3-locom-20260606/.venv/lib/python3.10/site-packages/torch/optim/optimizer.py", line 485, in wrapper
+[rank0]:     out = func(*args, **kwargs)
+[rank0]:   File "/root/wr-track3-locom-20260606/.venv/lib/python3.10/site-packages/torch/utils/_contextlib.py", line 116, in decorate_context
+[rank0]:     return func(*args, **kwargs)
+[rank0]:   File "/tmp/track3_locom_save2000_seed3710.py", line 1422, in step
+[rank0]:     update = muon_update(p.grad, state["momentum"], mu=group["mu"])
+[rank0]:   File "/root/wr-track3-locom-20260606/.venv/lib/python3.10/site-packages/torch/_dynamo/eval_frame.py", line 663, in _fn
+[rank0]:     raise e.remove_dynamo_frames() from None  # see TORCHDYNAMO_VERBOSE=1
+[rank0]:   File "/root/wr-track3-locom-20260606/.venv/lib/python3.10/site-packages/torch/_inductor/compile_fx.py", line 760, in _compile_fx_inner
+[rank0]:     raise InductorError(e, currentframe()).with_traceback(
+[rank0]:   File "/root/wr-track3-locom-20260606/.venv/lib/python3.10/site-packages/torch/_inductor/compile_fx.py", line 745, in _compile_fx_inner
+[rank0]:     mb_compiled_graph = fx_codegen_and_compile(
+[rank0]:   File "/root/wr-track3-locom-20260606/.venv/lib/python3.10/site-packages/torch/_inductor/compile_fx.py", line 1295, in fx_codegen_and_compile
+[rank0]:     return scheme.codegen_and_compile(gm, example_inputs, inputs_to_check, graph_kwargs)
+[rank0]:   File "/root/wr-track3-locom-20260606/.venv/lib/python3.10/site-packages/torch/_inductor/compile_fx.py", line 1197, in codegen_and_compile
+[rank0]:     compiled_fn = graph.compile_to_module().call
+[rank0]:   File "/root/wr-track3-locom-20260606/.venv/lib/python3.10/site-packages/torch/_inductor/graph.py", line 2083, in compile_to_module
+[rank0]:     return self._compile_to_module()
+[rank0]:   File "/root/wr-track3-locom-20260606/.venv/lib/python3.10/site-packages/torch/_inductor/graph.py", line 2091, in _compile_to_module
+[rank0]:     self.codegen_with_cpp_wrapper() if self.cpp_wrapper else self.codegen()
+[rank0]:   File "/root/wr-track3-locom-20260606/.venv/lib/python3.10/site-packages/torch/_inductor/graph.py", line 2002, in codegen
+[rank0]:     self.scheduler.codegen()
+[rank0]:   File "/root/wr-track3-locom-20260606/.venv/lib/python3.10/site-packages/torch/_inductor/scheduler.py", line 4135, in codegen
+[rank0]:     else self._codegen(self.nodes)
+[rank0]:   File "/root/wr-track3-locom-20260606/.venv/lib/python3.10/site-packages/torch/_inductor/scheduler.py", line 4264, in _codegen
+[rank0]:     self.get_backend(device).codegen_node(node)
+[rank0]:   File "/root/wr-track3-locom-20260606/.venv/lib/python3.10/site-packages/torch/_inductor/codegen/cuda_combined_scheduling.py", line 104, in codegen_node
+[rank0]:     return self._triton_scheduling.codegen_node(node)
+[rank0]:   File "/root/wr-track3-locom-20260606/.venv/lib/python3.10/site-packages/torch/_inductor/codegen/simd.py", line 1320, in codegen_node
+[rank0]:     return self.codegen_node_schedule(
+[rank0]:   File "/root/wr-track3-locom-20260606/.venv/lib/python3.10/site-packages/torch/_inductor/codegen/simd.py", line 1365, in codegen_node_schedule
+[rank0]:     src_code = kernel.codegen_kernel()
+[rank0]:   File "/root/wr-track3-locom-20260606/.venv/lib/python3.10/site-packages/torch/_inductor/codegen/triton.py", line 3603, in codegen_kernel
+[rank0]:     **self.inductor_meta_common(),
+[rank0]:   File "/root/wr-track3-locom-20260606/.venv/lib/python3.10/site-packages/torch/_inductor/codegen/triton.py", line 3427, in inductor_meta_common
+[rank0]:     "backend_hash": torch.utils._triton.triton_hash_with_backend(),
+[rank0]:   File "/root/wr-track3-locom-20260606/.venv/lib/python3.10/site-packages/torch/utils/_triton.py", line 111, in triton_hash_with_backend
+[rank0]:     backend = triton_backend()
+[rank0]:   File "/root/wr-track3-locom-20260606/.venv/lib/python3.10/site-packages/torch/utils/_triton.py", line 103, in triton_backend
+[rank0]:     target = driver.active.get_current_target()
+[rank0]:   File "/root/wr-track3-locom-20260606/.venv/lib/python3.10/site-packages/triton/runtime/driver.py", line 23, in __getattr__
+[rank0]:     self._initialize_obj()
+[rank0]:   File "/root/wr-track3-locom-20260606/.venv/lib/python3.10/site-packages/triton/runtime/driver.py", line 20, in _initialize_obj
+[rank0]:     self._obj = self._init_fn()
+[rank0]:   File "/root/wr-track3-locom-20260606/.venv/lib/python3.10/site-packages/triton/runtime/driver.py", line 9, in _create_driver
+[rank0]:     return actives[0]()
+[rank0]:   File "/root/wr-track3-locom-20260606/.venv/lib/python3.10/site-packages/triton/backends/nvidia/driver.py", line 535, in __init__
+[rank0]:     self.utils = CudaUtils()  # TODO: make static
+[rank0]:   File "/root/wr-track3-locom-20260606/.venv/lib/python3.10/site-packages/triton/backends/nvidia/driver.py", line 89, in __init__
+[rank0]:     mod = compile_module_from_src(Path(os.path.join(dirname, "driver.c")).read_text(), "cuda_utils")
+[rank0]:   File "/root/wr-track3-locom-20260606/.venv/lib/python3.10/site-packages/triton/backends/nvidia/driver.py", line 66, in compile_module_from_src
+[rank0]:     so = _build(name, src_path, tmpdir, library_dirs(), include_dir, libraries)
+[rank0]:   File "/root/wr-track3-locom-20260606/.venv/lib/python3.10/site-packages/triton/runtime/build.py", line 36, in _build
+[rank0]:     subprocess.check_call(cc_cmd, stdout=subprocess.DEVNULL)
+[rank0]:   File "/usr/lib/python3.10/subprocess.py", line 369, in check_call
+[rank0]:     raise CalledProcessError(retcode, cmd)
+[rank0]: torch._inductor.exc.InductorError: CalledProcessError: Command '['/usr/bin/gcc', '/tmp/tmp26hlxbk5/main.c', '-O3', '-shared', '-fPIC', '-Wno-psabi', '-o', '/tmp/tmp26hlxbk5/cuda_utils.cpython-310-x86_64-linux-gnu.so', '-lcuda', '-L/root/wr-track3-locom-20260606/.venv/lib/python3.10/site-packages/triton/backends/nvidia/lib', '-L/lib/x86_64-linux-gnu', '-I/root/wr-track3-locom-20260606/.venv/lib/python3.10/site-packages/triton/backends/nvidia/include', '-I/tmp/tmp26hlxbk5', '-I/usr/include/python3.10']' returned non-zero exit status 1.
+
+[rank0]: Set TORCHDYNAMO_VERBOSE=1 for the internal stack trace (please do this especially if you're reporting a bug to PyTorch). For even more developer context, set TORCH_LOGS="+dynamo"
+
+[rank0]:[W607 15:32:43.495066391 ProcessGroupNCCL.cpp:1479] Warning: WARNING: destroy_process_group() was not called before program exit, which can leak resources. For more info, please see https://pytorch.org/docs/stable/distributed.html#shutdown (function operator())
+E0607 15:32:45.107000 4249 torch/distributed/elastic/multiprocessing/api.py:874] failed (exitcode: 1) local_rank: 0 (pid: 4284) of binary: /root/wr-track3-locom-20260606/.venv/bin/python
+Traceback (most recent call last):
+  File "/root/wr-track3-locom-20260606/.venv/bin/torchrun", line 6, in <module>
+    sys.exit(main())
+  File "/root/wr-track3-locom-20260606/.venv/lib/python3.10/site-packages/torch/distributed/elastic/multiprocessing/errors/__init__.py", line 355, in wrapper
+    return f(*args, **kwargs)
+  File "/root/wr-track3-locom-20260606/.venv/lib/python3.10/site-packages/torch/distributed/run.py", line 892, in main
+    run(args)
+  File "/root/wr-track3-locom-20260606/.venv/lib/python3.10/site-packages/torch/distributed/run.py", line 883, in run
+    elastic_launch(
+  File "/root/wr-track3-locom-20260606/.venv/lib/python3.10/site-packages/torch/distributed/launcher/api.py", line 139, in __call__
+    return launch_agent(self._config, self._entrypoint, list(args))
+  File "/root/wr-track3-locom-20260606/.venv/lib/python3.10/site-packages/torch/distributed/launcher/api.py", line 270, in launch_agent
+    raise ChildFailedError(
+torch.distributed.elastic.multiprocessing.errors.ChildFailedError: 
+============================================================
+/tmp/track3_locom_save2000_seed3710.py FAILED
+------------------------------------------------------------
+Failures:
+  <NO_OTHER_FAILURES>
+------------------------------------------------------------
+Root Cause (first observed failure):
+[0]:
+  time      : 2026-06-07_15:32:45
+  host      : oc-main-track3-tailcopy-h100sxm-20260607-1515.datacrunch.io
+  rank      : 0 (local_rank: 0)
+  exitcode  : 1 (pid: 4284)
+  error_file: <N/A>
+  traceback : To enable traceback see: https://pytorch.org/docs/stable/elastic/errors.html
+============================================================
