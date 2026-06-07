@@ -90,6 +90,10 @@ same c_fc correction later:
 
 natural K5 prefix:
   active and alpha-zero match through 2000
+
+visible c_fc correction scale:
+  norm_target=0.02 and norm_target=0.05 from the exact step-2000 state both
+  trailed the no-correction suffix and matched same-scale random perturbations
 ```
 
 ## Necessary Condition For A Positive LocoProp Mechanism
@@ -107,53 +111,53 @@ random/scheduler control does not match the gain
 If it does not beat alpha-zero, it is not evidence for LocoProp. It may still
 be a schedule/optimizer-state improvement.
 
-## Next Minimal Probe
+## Scale Probe Result
 
-The unresolved branch is scale, not K-depth:
-
-```text
-tools/run_track3_locom_prefix_scale_probe.sh
-```
-
-Lanes:
+The scale branch is now answered for this exact c_fc true-post variant.
 
 ```text
-noloco:        same harness, alpha=0
-active_k5:     natural K5 c_fc correction
-norm002_k5:    same direction normalized to 2% of base step
-norm005_k5:    same direction normalized to 5% of base step
-random_norm002: same-shape random 2% control
-random_norm005: same-shape random 5% control
+step 2000 control:          3.37335
+step 2000 norm002_k5:       3.37338
+step 2000 norm005_k5:       3.37338
+step 2000 random_norm002:   3.37338
+step 2000 random_norm005:   3.37338
+
+step 2125 control:          3.36216
+step 2125 norm002_k5:       3.36429
+step 2125 norm005_k5:       3.36430
+step 2125 random_norm002:   3.36429
+step 2125 random_norm005:   3.36429
 ```
+
+The active LocoProp direction did not beat alpha-zero/no-correction. It also
+did not beat same-scale random. Normalizing the correction to a visible 2% or
+5% of the base step made the suffix worse by about 0.002 at step 2125.
 
 Decision:
 
 ```text
-norm002/norm005 beats alpha-zero and random:
-  natural correction was too small; tune scale/window/layers.
-
-norm002/norm005 match alpha-zero:
-  c_fc true-post direction is not the causal lever in this state.
-
-same-scale random matches active:
-  effect is generic perturbation/noise, not local solve.
-
-norm005 hurts while norm002 matches:
-  direction may be weakly valid but scale window is very narrow; do not promote
-  without a positive replicate.
+close current c_fc true-post K5-10 additive line.
+do not spend more GPU on K-depth, sample tokens, or simple correction scale.
+only reopen LocoProp if the object/surface/integration changes.
 ```
 
 ## Current Synthesis
 
 The thing that currently "ticks" is the cold schedule/checkpoint trajectory,
-not the natural LocoProp displacement. The only remaining way for this exact
-c_fc LocoProp idea to survive is if a deliberately visible correction scale
-beats alpha-zero in the prefix. If that fails, the next search should move to a
-different LocoProp expression or surface rather than spending more on K,
-sample tokens, or suffix-only tuning.
+not the natural LocoProp displacement. The visible-scale probe failed too, so
+this exact c_fc LocoProp expression is not the causal lever in the current
+state.
 
-For suffix work, the target is narrower: start from the saved/recreated step
-2000 state and preserve at least the required line to step 3000. The current
-post-2000 ladder therefore has matched 2% and 5% random controls; any active
-LocoProp win must beat the same-scale perturbation, not just the no-correction
-suffix.
+For suffix work, the target is narrower: start from the saved/recreated 2000 or
+2400 state and preserve enough slope to step 3000. A useful next run should
+change the landing schedule or optimizer-group LR balance; it should not spend
+more budget on the 1600-2000 bracket or on c_fc K-depth.
+
+If LocoProp is reopened, the test must change at least one of:
+
+```text
+surface:        not only c_fc
+object:         not true-post additive c_fc displacement
+integration:    not a state-decoupled additive correction at 2-5% base norm
+state:          exact WR-stack suffix checkpoint, not the already-answered prefix
+```
