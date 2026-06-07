@@ -366,3 +366,32 @@
     - Pulled suffix logs to `.opencode/current_track3_ledger_20260606_logs/kdepth_461e/suffix_from2000/` and generated local `.kdiag.md` / `.apply_scale.md` for the normalized run.
     - Terminated pod successfully with `PRIME_API_KEY=$PRIME_KEY`; follow-up `prime pods list` showed zero active pods.
     - Caveat: remote `1800/2000/2075/2100` checkpoint blobs were not pulled before termination. Local preserved checkpoint blobs from this pod are the later `2125` and `2400` files in `/Users/progyan/speedrun/tmp/prime_ckpt_transfer/`; the exact earlier branch blobs would need to be regenerated from the local step-1600 provenance.
+
+- pod_id: 11341a1371174b539e4a7b7010574d14
+  name: oc-main-track3-2000gate-gh200-20260607-0305
+  owner: current-agent
+  purpose: Track 3 post-2000 LocoProp suffix gate to 2125 from seed3710 step1600 checkpoint
+  gpu: GH200 96GB SXM5 lambdalabs $2.29
+  price_per_hour: selected by availability id 0f1fb9
+  created_at: 2026-06-07T03:05:51Z
+  expected_stop: after 2125 gate, setup failure, or artifact pull
+  status: terminated_after_arm64_pytorch_wheel_mismatch_prime_active_pods_0
+  termination_policy: terminate after gate/artifact pull unless a concrete follow-up is queued
+  notes:
+    - Provider returned an ARM64 GH200 image; setup reached pip install but `torch==2.7.1` was unavailable for the required CUDA wheel/index on ARM64.
+    - Terminated owned pod manually with `prime --plain pods terminate --yes`; follow-up `prime pods list` reported zero active pods.
+
+- pod_id: 9b33955ad0cf4275813a590ff6ebd7c8
+  name: oc-main-track3-2000gate-gh200-20260607-0316
+  owner: current-agent
+  purpose: Track 3 post-2000 LocoProp suffix gate to 2125 from seed3710 step1600 checkpoint
+  gpu: H100 80GB (Spot) SXM5 datacrunch $1.14
+  price_per_hour: selected by availability id ec854a
+  created_at: 2026-06-07T03:17:02Z
+  expected_stop: after full 3000 suffix ladder completes, setup failure, or artifact pull
+  status: active_save2000_running_full3000_suffix_queued
+  termination_policy: keep warm until the queued full 3000 suffix ladder completes, then pull artifacts and terminate unless another concrete follow-up is queued
+  notes:
+    - Launcher synced commit `0ba916e`, copied local step1600 checkpoint to `/home/ubuntu/.cache/track3_checkpoints/`, and started `/home/ubuntu/prime_track3_2000_suffix_gate_logs/run_2000_suffix_gate.sh`.
+    - User requested letting the run go through rather than stopping at the short gate. Queued `/home/ubuntu/prime_track3_2000_suffix_gate_logs/run_full_after_gate.sh`, which waits for gate `DONE` and then runs the same suffix ladder to step 3000 in `/home/ubuntu/prime_track3_2000_suffix_full_logs/`.
+    - Current first lane is recreating/saving the step2000 checkpoint from the seed3710 step1600 checkpoint; early startup validated checkpoint load and training resumed at `3.48241 @1600`.
