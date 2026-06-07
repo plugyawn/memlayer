@@ -410,3 +410,14 @@
     - 2026-06-07T07:08:04Z: user requested stopping 1600-2000 probes and focusing on a schedule that carries the existing `3.36/3.32` region to `3.28`. Killed the prefix pair and launched schedule-only no-LocoProp suffix screen from `/home/ubuntu/.cache/track3_checkpoints/track3_locom_2000_control_seed3710_seed3710_step2125.pt` to step `2400` in `/home/ubuntu/prime_track3_suffix_schedule_probe_2125_logs/`: lanes `floor004,floor006,floor008,h3200p2`. Straight-line gate from `3.36216 @2125` is `3.33634 @2400`; terminate/redirect if lanes remain near the known `~3.345` cold-control band.
     - 2026-06-07T07:26:18Z: stopped the 2125 floor-family probe before `h3200p2` because `floor004` matched cold (`3.34512 @2400`), `floor006` worsened (`3.34630 @2400`), and `floor008` was already worse by `2225` (`3.35557`). Launched a later no-LocoProp terminal screen from `/home/ubuntu/.cache/track3_checkpoints/track3_locom_2000_control_seed3710_seed3710_step2600.pt` to `2800` in `/home/ubuntu/prime_track3_suffix_schedule_probe_2600_logs/`: lanes `h3300p2,pr287_h3075p110,pr287_h3105p120`. Straight-line gate from `3.33472 @2600` is `3.30736 @2800`.
     - 2026-06-07: stopped the 2600 terminal screen after `h3300p2` remained far too slow (`3.32745 @2800`) and direct `pr287_h3075p110` spiked (`3.33727 @2625`, `3.33722 @2650`). Did not run `pr287_h3105p120` because it is the stronger/hotter variant of the failed direct PR287 suffix. Pulled logs to `.opencode/current_track3_ledger_20260607_logs/prime_2000gate_9b33955/prime_track3_suffix_schedule_probe_{2125,2600}_logs/`. Terminated pod; Prime `pods list` returned zero active pods.
+
+- pod_id: 29eb17f5760742a1a4bab682a23cb8ec
+  name: oc-main-track3-suffixbridge-h100-20260607-0805
+  owner: current-agent
+  purpose: Track 3 suffix-only bridge screen from step2125 checkpoint; lanes=bump150_2250_2650,blend_p15_2250_2650
+  gpu: H100 80GB (Spot) SXM5 datacrunch $1.14
+  price_per_hour: selected by availability id 365368
+  created_at: 2026-06-07T08:05:59Z
+  expected_stop: after 2400 gate artifacts are pulled, setup failure, or spot interruption
+  status: launched_by_launch_prime_track3_suffix_bridge_probe.sh_head_2a38c33
+  termination_policy: terminate after gated suffix screen unless a lane clears the gate and user approves continuation
