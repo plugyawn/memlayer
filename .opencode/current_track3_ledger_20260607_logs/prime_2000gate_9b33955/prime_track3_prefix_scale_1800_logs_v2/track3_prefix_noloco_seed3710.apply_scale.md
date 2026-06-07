@@ -1,0 +1,10 @@
+| log | step | n | base_med | raw_frac_med | raw_frac_p90 | scale_med | eff_frac_med | eff_frac_p90 | cap |
+| --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: |
+| track3_prefix_noloco_seed3710.log | 1600 | 8 | 0.4224 | 0.01036 | 0.02631 | 0 | 0 | 0 | 0.2 |
+| track3_prefix_noloco_seed3710.log | 1625 | 8 | 0.4075 | 0.007097 | 0.02053 | 0 | 0 | 0 | 0.2 |
+| track3_prefix_noloco_seed3710.log | 1650 | 8 | 0.3929 | 0.00926 | 0.0213 | 0 | 0 | 0 | 0.2 |
+| track3_prefix_noloco_seed3710.log | 1675 | 7 | 0.3784 | 0.006218 | 0.03101 | 0 | 0 | 0 | 0.2 |
+| track3_prefix_noloco_seed3710.log | 1700 | 8 | 0.3643 | 0.007302 | 0.01481 | 0 | 0 | 0 | 0.2 |
+| track3_prefix_noloco_seed3710.log | 1725 | 8 | 0.3504 | 0.005873 | 0.02076 | 0 | 0 | 0 | 0.2 |
+| track3_prefix_noloco_seed3710.log | 1750 | 8 | 0.3368 | 0.006493 | 0.01769 | 0 | 0 | 0 | 0.2 |
+| track3_prefix_noloco_seed3710.log | 1775 | 7 | 0.3235 | 0.006418 | 0.03099 | 0 | 0 | 0 | 0.2 |

@@ -1,0 +1,1888 @@
+Hit:1 https://developer.download.nvidia.com/compute/cuda/repos/ubuntu2204/x86_64  InRelease
+Hit:2 https://download.docker.com/linux/ubuntu jammy InRelease
+Hit:3 http://security.ubuntu.com/ubuntu jammy-security InRelease
+Hit:4 http://fin-02.clouds.archive.ubuntu.com/ubuntu jammy InRelease
+Hit:5 http://fin-02.clouds.archive.ubuntu.com/ubuntu jammy-updates InRelease
+Hit:6 http://fin-02.clouds.archive.ubuntu.com/ubuntu jammy-backports InRelease
+Reading package lists...
+Reading package lists...
+Building dependency tree...
+Reading state information...
+build-essential is already the newest version (12.9ubuntu3).
+build-essential set to manually installed.
+ca-certificates is already the newest version (20240203~22.04.1).
+ca-certificates set to manually installed.
+python3 is already the newest version (3.10.6-1~22.04.1).
+python3 set to manually installed.
+The following additional packages will be installed:
+  libcurl4 libexpat1-dev libjs-jquery libjs-sphinxdoc libjs-underscore
+  libpython3-dev libpython3.10 libpython3.10-dev libpython3.10-minimal
+  libpython3.10-stdlib python3-pip-whl python3-setuptools-whl python3-wheel
+  python3.10 python3.10-dev python3.10-minimal python3.10-venv zlib1g-dev
+Suggested packages:
+  git-daemon-run | git-daemon-sysvinit git-doc git-email git-gui gitk gitweb
+  git-cvs git-mediawiki git-svn python3.10-doc binfmt-support
+Recommended packages:
+  javascript-common
+The following NEW packages will be installed:
+  libexpat1-dev libjs-jquery libjs-sphinxdoc libjs-underscore libpython3-dev
+  libpython3.10-dev python3-dev python3-pip python3-pip-whl
+  python3-setuptools-whl python3-venv python3-wheel python3.10-dev
+  python3.10-venv zlib1g-dev
+The following packages will be upgraded:
+  curl git libcurl4 libpython3.10 libpython3.10-minimal libpython3.10-stdlib
+  python3.10 python3.10-minimal
+8 upgraded, 15 newly installed, 0 to remove and 168 not upgraded.
+Need to get 21.1 MB of archives.
+After this operation, 34.6 MB of additional disk space will be used.
+Get:1 http://fin-02.clouds.archive.ubuntu.com/ubuntu jammy-updates/main amd64 libpython3.10 amd64 3.10.12-1~22.04.15 [1949 kB]
+Get:2 http://fin-02.clouds.archive.ubuntu.com/ubuntu jammy-updates/main amd64 python3.10 amd64 3.10.12-1~22.04.15 [508 kB]
+Get:3 http://fin-02.clouds.archive.ubuntu.com/ubuntu jammy-updates/main amd64 libpython3.10-stdlib amd64 3.10.12-1~22.04.15 [1850 kB]
+Get:4 http://fin-02.clouds.archive.ubuntu.com/ubuntu jammy-updates/main amd64 python3.10-minimal amd64 3.10.12-1~22.04.15 [2275 kB]
+Get:5 http://fin-02.clouds.archive.ubuntu.com/ubuntu jammy-updates/main amd64 libpython3.10-minimal amd64 3.10.12-1~22.04.15 [816 kB]
+Get:6 http://fin-02.clouds.archive.ubuntu.com/ubuntu jammy-updates/main amd64 curl amd64 7.81.0-1ubuntu1.24 [194 kB]
+Get:7 http://fin-02.clouds.archive.ubuntu.com/ubuntu jammy-updates/main amd64 libcurl4 amd64 7.81.0-1ubuntu1.24 [291 kB]
+Get:8 http://fin-02.clouds.archive.ubuntu.com/ubuntu jammy-updates/main amd64 git amd64 1:2.34.1-1ubuntu1.17 [3174 kB]
+Get:9 http://fin-02.clouds.archive.ubuntu.com/ubuntu jammy-updates/main amd64 libexpat1-dev amd64 2.4.7-1ubuntu0.7 [148 kB]
+Get:10 http://fin-02.clouds.archive.ubuntu.com/ubuntu jammy/main amd64 libjs-jquery all 3.6.0+dfsg+~3.5.13-1 [321 kB]
+Get:11 http://fin-02.clouds.archive.ubuntu.com/ubuntu jammy/main amd64 libjs-underscore all 1.13.2~dfsg-2 [118 kB]
+Get:12 http://fin-02.clouds.archive.ubuntu.com/ubuntu jammy/main amd64 libjs-sphinxdoc all 4.3.2-1 [139 kB]
+Get:13 http://fin-02.clouds.archive.ubuntu.com/ubuntu jammy-updates/main amd64 zlib1g-dev amd64 1:1.2.11.dfsg-2ubuntu9.2 [164 kB]
+Get:14 http://fin-02.clouds.archive.ubuntu.com/ubuntu jammy-updates/main amd64 libpython3.10-dev amd64 3.10.12-1~22.04.15 [4764 kB]
+Get:15 http://fin-02.clouds.archive.ubuntu.com/ubuntu jammy-updates/main amd64 libpython3-dev amd64 3.10.6-1~22.04.1 [7064 B]
+Get:16 http://fin-02.clouds.archive.ubuntu.com/ubuntu jammy-updates/main amd64 python3.10-dev amd64 3.10.12-1~22.04.15 [508 kB]
+Get:17 http://fin-02.clouds.archive.ubuntu.com/ubuntu jammy-updates/main amd64 python3-dev amd64 3.10.6-1~22.04.1 [26.0 kB]
+Get:18 http://fin-02.clouds.archive.ubuntu.com/ubuntu jammy-updates/universe amd64 python3-wheel all 0.37.1-2ubuntu0.22.04.1 [32.0 kB]
+Get:19 http://fin-02.clouds.archive.ubuntu.com/ubuntu jammy-updates/universe amd64 python3-pip all 22.0.2+dfsg-1ubuntu0.7 [1306 kB]
+Get:20 http://fin-02.clouds.archive.ubuntu.com/ubuntu jammy-updates/universe amd64 python3-pip-whl all 22.0.2+dfsg-1ubuntu0.7 [1683 kB]
+Get:21 http://fin-02.clouds.archive.ubuntu.com/ubuntu jammy-updates/universe amd64 python3-setuptools-whl all 59.6.0-1.2ubuntu0.22.04.3 [789 kB]
+Get:22 http://fin-02.clouds.archive.ubuntu.com/ubuntu jammy-updates/universe amd64 python3.10-venv amd64 3.10.12-1~22.04.15 [5714 B]
+Get:23 http://fin-02.clouds.archive.ubuntu.com/ubuntu jammy-updates/universe amd64 python3-venv amd64 3.10.6-1~22.04.1 [1042 B]
+Fetched 21.1 MB in 5s (3862 kB/s)
+(Reading database ... (Reading database ... 5%(Reading database ... 10%(Reading database ... 15%(Reading database ... 20%(Reading database ... 25%(Reading database ... 30%(Reading database ... 35%(Reading database ... 40%(Reading database ... 45%(Reading database ... 50%(Reading database ... 55%(Reading database ... 60%(Reading database ... 65%(Reading database ... 70%(Reading database ... 75%(Reading database ... 80%(Reading database ... 85%(Reading database ... 90%(Reading database ... 95%(Reading database ... 100%(Reading database ... 117205 files and directories currently installed.)
+Preparing to unpack .../00-libpython3.10_3.10.12-1~22.04.15_amd64.deb ...
+Unpacking libpython3.10:amd64 (3.10.12-1~22.04.15) over (3.10.12-1~22.04.14) ...
+Preparing to unpack .../01-python3.10_3.10.12-1~22.04.15_amd64.deb ...
+Unpacking python3.10 (3.10.12-1~22.04.15) over (3.10.12-1~22.04.14) ...
+Preparing to unpack .../02-libpython3.10-stdlib_3.10.12-1~22.04.15_amd64.deb ...
+Unpacking libpython3.10-stdlib:amd64 (3.10.12-1~22.04.15) over (3.10.12-1~22.04.14) ...
+Preparing to unpack .../03-python3.10-minimal_3.10.12-1~22.04.15_amd64.deb ...
+Unpacking python3.10-minimal (3.10.12-1~22.04.15) over (3.10.12-1~22.04.14) ...
+Preparing to unpack .../04-libpython3.10-minimal_3.10.12-1~22.04.15_amd64.deb ...
+Unpacking libpython3.10-minimal:amd64 (3.10.12-1~22.04.15) over (3.10.12-1~22.04.14) ...
+Preparing to unpack .../05-curl_7.81.0-1ubuntu1.24_amd64.deb ...
+Unpacking curl (7.81.0-1ubuntu1.24) over (7.81.0-1ubuntu1.21) ...
+Preparing to unpack .../06-libcurl4_7.81.0-1ubuntu1.24_amd64.deb ...
+Unpacking libcurl4:amd64 (7.81.0-1ubuntu1.24) over (7.81.0-1ubuntu1.21) ...
+Preparing to unpack .../07-git_1%3a2.34.1-1ubuntu1.17_amd64.deb ...
+Unpacking git (1:2.34.1-1ubuntu1.17) over (1:2.34.1-1ubuntu1.15) ...
+Selecting previously unselected package libexpat1-dev:amd64.
+Preparing to unpack .../08-libexpat1-dev_2.4.7-1ubuntu0.7_amd64.deb ...
+Unpacking libexpat1-dev:amd64 (2.4.7-1ubuntu0.7) ...
+Selecting previously unselected package libjs-jquery.
+Preparing to unpack .../09-libjs-jquery_3.6.0+dfsg+~3.5.13-1_all.deb ...
+Unpacking libjs-jquery (3.6.0+dfsg+~3.5.13-1) ...
+Selecting previously unselected package libjs-underscore.
+Preparing to unpack .../10-libjs-underscore_1.13.2~dfsg-2_all.deb ...
+Unpacking libjs-underscore (1.13.2~dfsg-2) ...
+Selecting previously unselected package libjs-sphinxdoc.
+Preparing to unpack .../11-libjs-sphinxdoc_4.3.2-1_all.deb ...
+Unpacking libjs-sphinxdoc (4.3.2-1) ...
+Selecting previously unselected package zlib1g-dev:amd64.
+Preparing to unpack .../12-zlib1g-dev_1%3a1.2.11.dfsg-2ubuntu9.2_amd64.deb ...
+Unpacking zlib1g-dev:amd64 (1:1.2.11.dfsg-2ubuntu9.2) ...
+Selecting previously unselected package libpython3.10-dev:amd64.
+Preparing to unpack .../13-libpython3.10-dev_3.10.12-1~22.04.15_amd64.deb ...
+Unpacking libpython3.10-dev:amd64 (3.10.12-1~22.04.15) ...
+Selecting previously unselected package libpython3-dev:amd64.
+Preparing to unpack .../14-libpython3-dev_3.10.6-1~22.04.1_amd64.deb ...
+Unpacking libpython3-dev:amd64 (3.10.6-1~22.04.1) ...
+Selecting previously unselected package python3.10-dev.
+Preparing to unpack .../15-python3.10-dev_3.10.12-1~22.04.15_amd64.deb ...
+Unpacking python3.10-dev (3.10.12-1~22.04.15) ...
+Selecting previously unselected package python3-dev.
+Preparing to unpack .../16-python3-dev_3.10.6-1~22.04.1_amd64.deb ...
+Unpacking python3-dev (3.10.6-1~22.04.1) ...
+Selecting previously unselected package python3-wheel.
+Preparing to unpack .../17-python3-wheel_0.37.1-2ubuntu0.22.04.1_all.deb ...
+Unpacking python3-wheel (0.37.1-2ubuntu0.22.04.1) ...
+Selecting previously unselected package python3-pip.
+Preparing to unpack .../18-python3-pip_22.0.2+dfsg-1ubuntu0.7_all.deb ...
+Unpacking python3-pip (22.0.2+dfsg-1ubuntu0.7) ...
+Selecting previously unselected package python3-pip-whl.
+Preparing to unpack .../19-python3-pip-whl_22.0.2+dfsg-1ubuntu0.7_all.deb ...
+Unpacking python3-pip-whl (22.0.2+dfsg-1ubuntu0.7) ...
+Selecting previously unselected package python3-setuptools-whl.
+Preparing to unpack .../20-python3-setuptools-whl_59.6.0-1.2ubuntu0.22.04.3_all.deb ...
+Unpacking python3-setuptools-whl (59.6.0-1.2ubuntu0.22.04.3) ...
+Selecting previously unselected package python3.10-venv.
+Preparing to unpack .../21-python3.10-venv_3.10.12-1~22.04.15_amd64.deb ...
+Unpacking python3.10-venv (3.10.12-1~22.04.15) ...
+Selecting previously unselected package python3-venv.
+Preparing to unpack .../22-python3-venv_3.10.6-1~22.04.1_amd64.deb ...
+Unpacking python3-venv (3.10.6-1~22.04.1) ...
+Setting up python3-setuptools-whl (59.6.0-1.2ubuntu0.22.04.3) ...
+Setting up python3-pip-whl (22.0.2+dfsg-1ubuntu0.7) ...
+Setting up python3-wheel (0.37.1-2ubuntu0.22.04.1) ...
+Setting up libexpat1-dev:amd64 (2.4.7-1ubuntu0.7) ...
+Setting up libpython3.10-minimal:amd64 (3.10.12-1~22.04.15) ...
+Setting up git (1:2.34.1-1ubuntu1.17) ...
+Setting up python3-pip (22.0.2+dfsg-1ubuntu0.7) ...
+Setting up zlib1g-dev:amd64 (1:1.2.11.dfsg-2ubuntu9.2) ...
+Setting up libcurl4:amd64 (7.81.0-1ubuntu1.24) ...
+Setting up curl (7.81.0-1ubuntu1.24) ...
+Setting up libjs-jquery (3.6.0+dfsg+~3.5.13-1) ...
+Setting up libjs-underscore (1.13.2~dfsg-2) ...
+Setting up python3.10-minimal (3.10.12-1~22.04.15) ...
+Setting up libpython3.10-stdlib:amd64 (3.10.12-1~22.04.15) ...
+Setting up libjs-sphinxdoc (4.3.2-1) ...
+Setting up libpython3.10:amd64 (3.10.12-1~22.04.15) ...
+Setting up python3.10 (3.10.12-1~22.04.15) ...
+Setting up libpython3.10-dev:amd64 (3.10.12-1~22.04.15) ...
+Setting up python3.10-dev (3.10.12-1~22.04.15) ...
+Setting up libpython3-dev:amd64 (3.10.6-1~22.04.1) ...
+Setting up python3.10-venv (3.10.12-1~22.04.15) ...
+Setting up python3-venv (3.10.6-1~22.04.1) ...
+Setting up python3-dev (3.10.6-1~22.04.1) ...
+Processing triggers for man-db (2.10.2-1) ...
+Processing triggers for libc-bin (2.35-0ubuntu3.13) ...
+
+Running kernel seems to be up-to-date.
+
+Services to be restarted:
+
+Service restarts being deferred:
+ systemctl restart networkd-dispatcher.service
+ systemctl restart unattended-upgrades.service
+
+No containers need to be restarted.
+
+No user sessions are running outdated binaries.
+
+No VM guests are running outdated hypervisor (qemu) binaries on this host.
+# Track 3 Post-2000 Suffix Manifest
+
+| lane | enabled | local_opt | random | mode | norm_target | lr_min_eta | lr_bump_windows | intent |
+| --- | ---: | --- | ---: | --- | ---: | ---: | --- | --- |
+| control | 0 | sgd | 0 | normal | 0.00 | 0.0000000000 | `` | no-correction cold-schedule control |
+| floor111 | 0 | sgd | 0 | normal | 0.00 | 0.1111111111 | `` | LR floor at the step-2000 eta |
+| floor111_norm002_k5 | 1 | sgd | 0 | normal | 0.02 | 0.1111111111 | `` | LR floor plus true-post c_fc K5 at 2% base-step norm |
+| floor111_random002 | 1 | random | 1 | normal | 0.02 | 0.1111111111 | `` | LR floor plus same-shape random 2% correction |
+| floor111_norm005_k5 | 1 | sgd | 0 | normal | 0.05 | 0.1111111111 | `` | LR floor plus true-post c_fc K5 at 5% base-step norm |
+| floor111_random005 | 1 | random | 1 | normal | 0.05 | 0.1111111111 | `` | LR floor plus same-shape random 5% correction |
+| ramp111 | 0 | sgd | 0 | normal | 0.00 | 0.0000000000 | `2000:2250:2250:2400:1.7777777778` | smooth LR multiplier ramp targeting step-2000 eta near 2250 |
+
+## LR Preview
+
+| lane | 2000 | 2025 | 2050 | 2075 | 2100 | 2125 | 2200 | 2250 | 2325 | 2400 |
+| --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: |
+| control | 0.111111 | 0.105625 | 0.100278 | 0.095069 | 0.090000 | 0.085069 | 0.071111 | 0.062500 | 0.050625 | 0.040000 |
+| floor111 | 0.111111 | 0.111111 | 0.111111 | 0.111111 | 0.111111 | 0.111111 | 0.111111 | 0.111111 | 0.111111 | 0.111111 |
+| floor111_norm002_k5 | 0.111111 | 0.111111 | 0.111111 | 0.111111 | 0.111111 | 0.111111 | 0.111111 | 0.111111 | 0.111111 | 0.111111 |
+| floor111_random002 | 0.111111 | 0.111111 | 0.111111 | 0.111111 | 0.111111 | 0.111111 | 0.111111 | 0.111111 | 0.111111 | 0.111111 |
+| floor111_norm005_k5 | 0.111111 | 0.111111 | 0.111111 | 0.111111 | 0.111111 | 0.111111 | 0.111111 | 0.111111 | 0.111111 | 0.111111 |
+| floor111_random005 | 0.111111 | 0.111111 | 0.111111 | 0.111111 | 0.111111 | 0.111111 | 0.111111 | 0.111111 | 0.111111 | 0.111111 |
+| ramp111 | 0.111111 | 0.113840 | 0.115877 | 0.117252 | 0.118000 | 0.118152 | 0.115358 | 0.111111 | 0.070313 | 0.040000 |
+
+Common invariants:
+
+- `layers=all`
+- `steps=5`
+- `sample_tokens=1024`
+- `target_space=post`
+- `true_post_grad=True`
+- `require_loss_decrease=True`
+- `min_cos_desc=0.0`
+- `inner_lr=0.0002`
+- `prox=0.1`
+- `alpha=1.0`
+- `norm_to_base=False`
+- `norm_cap=0.2`
+- `target_loss=3.28`
+- `seed_base=0`
+- `seed_offset=3710`
+- `cooldown_frac=1.0`
+- `lr_schedule=power`
+- `lr_power=2.0`
+- `lr_schedule_steps=3000`
+- `lr_switch_step=-1`
+- `lr_after_switch=`
+- `resume_load_optimizers=True`
+===== track3_locom_save2000_seed3710 =====
+track3_locom_runner source=records/track_3_optimization/train_gpt_simple.py generated=/tmp/track3_locom_save2000_seed3710.py steps=2000 trials=1 nproc=1 mbs=16 trial_arg_mode=positional-count
+track3_locom_source_sha source=3191da541544c96aa4a4a9dfdde8a8e1fa674620583b69c61f10818c74c1436b generator=d531e33ce23d51002c957fcc78dd20b60f95396fc2b6045993de8c47bd3c047d generated=6c245cd98f082d87065004a85c5abf386d8f35dcdbbee8ca338f3a29dd8a4f13
+logs/2060153a-9003-4e77-a583-8bb1c85fed33.txt
+track3_trial_seed=3710 trial=0
+locoprop_m_owner rank=0 world=1 owned_layers=[0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11] sample_tokens=1024 gather_samples=True accum_samples=False micro_sample_tokens=32 aux_capture=False aux_seqs=16 batched_prep=False
+track3_checkpoint_loaded path:/home/ubuntu/.cache/track3_checkpoints/track3_cd500red_softmerge_pr2872000_p110_ckpt1600_seed3710_step1600.pt step:1600 seed:3710 val_loss:None load_optimizers:True
+track3_resume_advanced_data steps:1600
+step:1600/2000 val_loss:3.48241 train_time:0.000s step_avg:nanms
+locoprop_m_kdiag step=1600 l0 k1:loss=4.735e-05,ratio=9.989e-01,corr_norm=1.756e-04,raw_cos=0.035,cos=0.035 | k2:loss=4.730e-05,ratio=9.979e-01,corr_norm=3.507e-04,raw_cos=0.035,cos=0.035 | k4:loss=4.721e-05,ratio=9.958e-01,corr_norm=6.991e-04,raw_cos=0.035,cos=0.035 | k5:loss=4.716e-05,ratio=9.948e-01,corr_norm=8.724e-04,raw_cos=0.035,cos=0.035
+locoprop_m_kdiag step=1600 l1 k1:loss=1.983e-05,ratio=9.817e-01,corr_norm=4.894e-04,raw_cos=-0.012,cos=-0.012 | k2:loss=1.953e-05,ratio=9.667e-01,corr_norm=9.310e-04,raw_cos=-0.011,cos=-0.011 | k4:loss=1.907e-05,ratio=9.440e-01,corr_norm=1.695e-03,raw_cos=-0.009,cos=-0.009 | k5:loss=1.889e-05,ratio=9.353e-01,corr_norm=2.027e-03,raw_cos=-0.008,cos=-0.008
+locoprop_m_kdiag step=1600 l2 k1:loss=3.680e-05,ratio=8.942e-01,corr_norm=1.873e-03,raw_cos=-0.110,cos=-0.110 | k2:loss=3.523e-05,ratio=8.560e-01,corr_norm=2.885e-03,raw_cos=-0.099,cos=-0.099 | k4:loss=3.361e-05,ratio=8.166e-01,corr_norm=4.138e-03,raw_cos=-0.078,cos=-0.078 | k5:loss=3.304e-05,ratio=8.027e-01,corr_norm=4.634e-03,raw_cos=-0.070,cos=-0.070
+locoprop_m_kdiag step=1600 l3 k1:loss=2.217e-05,ratio=9.884e-01,corr_norm=4.104e-04,raw_cos=0.018,cos=0.018 | k2:loss=2.195e-05,ratio=9.790e-01,corr_norm=7.783e-04,raw_cos=0.018,cos=0.018 | k4:loss=2.162e-05,ratio=9.640e-01,corr_norm=1.424e-03,raw_cos=0.018,cos=0.018 | k5:loss=2.148e-05,ratio=9.578e-01,corr_norm=1.715e-03,raw_cos=0.018,cos=0.018
+locoprop_m_kdiag step=1600 l4 k1:loss=2.808e-05,ratio=9.863e-01,corr_norm=5.038e-04,raw_cos=0.001,cos=0.001 | k2:loss=2.776e-05,ratio=9.750e-01,corr_norm=9.555e-04,raw_cos=0.002,cos=0.002 | k4:loss=2.723e-05,ratio=9.563e-01,corr_norm=1.761e-03,raw_cos=0.004,cos=0.004 | k5:loss=2.700e-05,ratio=9.482e-01,corr_norm=2.133e-03,raw_cos=0.005,cos=0.005
+locoprop_m_kdiag step=1600 l5 k1:loss=3.657e-05,ratio=9.870e-01,corr_norm=5.519e-04,raw_cos=-0.011,cos=-0.011 | k2:loss=3.614e-05,ratio=9.752e-01,corr_norm=1.073e-03,raw_cos=-0.009,cos=-0.009 | k4:loss=3.532e-05,ratio=9.533e-01,corr_norm=2.070e-03,raw_cos=-0.008,cos=-0.008 | k5:loss=3.494e-05,ratio=9.429e-01,corr_norm=2.553e-03,raw_cos=-0.007,cos=-0.007
+locoprop_m_kdiag step=1600 l6 k1:loss=5.037e-05,ratio=9.817e-01,corr_norm=7.642e-04,raw_cos=0.017,cos=0.017 | k2:loss=4.948e-05,ratio=9.645e-01,corr_norm=1.506e-03,raw_cos=0.017,cos=0.017 | k4:loss=4.786e-05,ratio=9.328e-01,corr_norm=2.929e-03,raw_cos=0.016,cos=0.016 | k5:loss=4.710e-05,ratio=9.181e-01,corr_norm=3.612e-03,raw_cos=0.016,cos=0.016
+locoprop_m_kdiag step=1600 l7 k1:loss=7.496e-05,ratio=9.742e-01,corr_norm=1.116e-03,raw_cos=0.002,cos=0.002 | k2:loss=7.314e-05,ratio=9.506e-01,corr_norm=2.184e-03,raw_cos=0.002,cos=0.002 | k4:loss=6.990e-05,ratio=9.084e-01,corr_norm=4.195e-03,raw_cos=0.002,cos=0.002 | k5:loss=6.844e-05,ratio=8.895e-01,corr_norm=5.145e-03,raw_cos=0.002,cos=0.002
+locoprop_m_kdiag step=1600 l8 k1:loss=9.713e-05,ratio=9.693e-01,corr_norm=1.390e-03,raw_cos=0.004,cos=0.004 | k2:loss=9.430e-05,ratio=9.410e-01,corr_norm=2.723e-03,raw_cos=0.004,cos=0.004 | k4:loss=8.927e-05,ratio=8.907e-01,corr_norm=5.231e-03,raw_cos=0.004,cos=0.004 | k5:loss=8.702e-05,ratio=8.683e-01,corr_norm=6.415e-03,raw_cos=0.004,cos=0.004
+locoprop_m_kdiag step=1600 l9 k1:loss=1.469e-04,ratio=9.596e-01,corr_norm=1.979e-03,raw_cos=0.012,cos=0.012 | k2:loss=1.414e-04,ratio=9.239e-01,corr_norm=3.838e-03,raw_cos=0.012,cos=0.012 | k4:loss=1.321e-04,ratio=8.633e-01,corr_norm=7.248e-03,raw_cos=0.011,cos=0.011 | k5:loss=1.282e-04,ratio=8.373e-01,corr_norm=8.821e-03,raw_cos=0.011,cos=0.011
+locoprop_m_kdiag step=1600 l10 k1:loss=2.288e-04,ratio=9.557e-01,corr_norm=2.634e-03,raw_cos=0.009,cos=0.009 | k2:loss=2.201e-04,ratio=9.193e-01,corr_norm=4.968e-03,raw_cos=0.009,cos=0.009 | k4:loss=2.056e-04,ratio=8.591e-01,corr_norm=9.175e-03,raw_cos=0.009,cos=0.009 | k5:loss=1.995e-04,ratio=8.333e-01,corr_norm=1.111e-02,raw_cos=0.009,cos=0.009
+locoprop_m_kdiag step=1600 l11 k1:loss=4.582e-04,ratio=9.526e-01,corr_norm=4.546e-03,raw_cos=-0.007,cos=-0.007 | k2:loss=4.400e-04,ratio=9.148e-01,corr_norm=7.340e-03,raw_cos=-0.003,cos=-0.003 | k4:loss=4.120e-04,ratio=8.565e-01,corr_norm=1.337e-02,raw_cos=-0.002,cos=-0.002 | k5:loss=4.008e-04,ratio=8.332e-01,corr_norm=1.631e-02,raw_cos=-0.003,cos=-0.003
+locoprop_m_prepare step=1600 l0:loss0=4.740e-05,lossK=4.716e-05,corr_norm=8.724e-04,grad_norm=3.012e+03,raw_cos_desc=0.035,cos_desc=0.035,accepted=1,tokens=1024,opt=sgd,mode=normal,true_post_grad=1 | l1:loss0=2.020e-05,lossK=1.889e-05,corr_norm=2.027e-03,grad_norm=2.636e+03,raw_cos_desc=-0.008,cos_desc=-0.008,accepted=0,tokens=1024,opt=sgd,mode=normal,true_post_grad=1 | l2:loss0=4.116e-05,lossK=3.304e-05,corr_norm=4.634e-03,grad_norm=2.807e+03,raw_cos_desc=-0.070,cos_desc=-0.070,accepted=0,tokens=1024,opt=sgd,mode=normal,true_post_grad=1 | l3:loss0=2.243e-05,lossK=2.148e-05,corr_norm=1.715e-03,grad_norm=2.916e+03,raw_cos_desc=0.018,cos_desc=0.018,accepted=1,tokens=1024,opt=sgd,mode=normal,true_post_grad=1
+locoprop_m_apply step=1600 shape=(3072, 768):base_step=4.225e-01,corr_norm=8.724e-04,cap=0.200,scale=1.000e+00 | shape=(3072, 768):base_step=4.224e-01,corr_norm=1.715e-03,cap=0.200,scale=1.000e+00 | shape=(3072, 768):base_step=4.224e-01,corr_norm=2.133e-03,cap=0.200,scale=1.000e+00 | shape=(3072, 768):base_step=4.225e-01,corr_norm=3.612e-03,cap=0.200,scale=1.000e+00 | shape=(3072, 768):base_step=4.226e-01,corr_norm=5.145e-03,cap=0.200,scale=1.000e+00 | shape=(3072, 768):base_step=4.226e-01,corr_norm=6.415e-03,cap=0.200,scale=1.000e+00 | shape=(3072, 768):base_step=4.223e-01,corr_norm=8.821e-03,cap=0.200,scale=1.000e+00 | shape=(3072, 768):base_step=4.223e-01,corr_norm=1.111e-02,cap=0.200,scale=1.000e+00
+step:1601/2000 train_time:11.615s step_avg:7.25ms
+step:1602/2000 train_time:16.173s step_avg:10.10ms
+step:1603/2000 train_time:20.730s step_avg:12.93ms
+step:1604/2000 train_time:25.286s step_avg:15.76ms
+step:1605/2000 train_time:29.845s step_avg:18.59ms
+step:1606/2000 train_time:34.403s step_avg:21.42ms
+step:1607/2000 train_time:38.961s step_avg:24.24ms
+step:1608/2000 train_time:43.520s step_avg:27.06ms
+step:1609/2000 train_time:48.079s step_avg:29.88ms
+step:1610/2000 train_time:52.637s step_avg:32.69ms
+step:1611/2000 train_time:57.195s step_avg:35.50ms
+step:1612/2000 train_time:61.754s step_avg:38.31ms
+step:1613/2000 train_time:66.313s step_avg:41.11ms
+step:1614/2000 train_time:70.871s step_avg:43.91ms
+step:1615/2000 train_time:75.430s step_avg:46.71ms
+step:1616/2000 train_time:79.988s step_avg:49.50ms
+step:1617/2000 train_time:84.547s step_avg:52.29ms
+step:1618/2000 train_time:89.106s step_avg:55.07ms
+step:1619/2000 train_time:93.664s step_avg:57.85ms
+step:1620/2000 train_time:98.223s step_avg:60.63ms
+step:1621/2000 train_time:102.783s step_avg:63.41ms
+step:1622/2000 train_time:107.345s step_avg:66.18ms
+step:1623/2000 train_time:111.905s step_avg:68.95ms
+step:1624/2000 train_time:116.467s step_avg:71.72ms
+step:1625/2000 train_time:121.029s step_avg:74.48ms
+step:1625/2000 val_loss:3.45136 train_time:121.029s step_avg:4841.17ms
+locoprop_m_kdiag step=1625 l0 k1:loss=3.771e-05,ratio=9.991e-01,corr_norm=1.452e-04,raw_cos=0.020,cos=0.020 | k2:loss=3.768e-05,ratio=9.982e-01,corr_norm=2.901e-04,raw_cos=0.020,cos=0.020 | k4:loss=3.761e-05,ratio=9.964e-01,corr_norm=5.790e-04,raw_cos=0.020,cos=0.020 | k5:loss=3.758e-05,ratio=9.955e-01,corr_norm=7.231e-04,raw_cos=0.020,cos=0.020
+locoprop_m_kdiag step=1625 l1 k1:loss=1.705e-05,ratio=9.954e-01,corr_norm=2.208e-04,raw_cos=0.030,cos=0.030 | k2:loss=1.698e-05,ratio=9.910e-01,corr_norm=4.378e-04,raw_cos=0.030,cos=0.030 | k4:loss=1.683e-05,ratio=9.825e-01,corr_norm=8.616e-04,raw_cos=0.030,cos=0.030 | k5:loss=1.676e-05,ratio=9.785e-01,corr_norm=1.069e-03,raw_cos=0.031,cos=0.031
+locoprop_m_kdiag step=1625 l2 k1:loss=3.007e-05,ratio=9.618e-01,corr_norm=8.903e-04,raw_cos=0.017,cos=0.017 | k2:loss=2.913e-05,ratio=9.319e-01,corr_norm=1.657e-03,raw_cos=0.019,cos=0.019 | k4:loss=2.758e-05,ratio=8.822e-01,corr_norm=3.022e-03,raw_cos=0.023,cos=0.023 | k5:loss=2.690e-05,ratio=8.605e-01,corr_norm=3.657e-03,raw_cos=0.024,cos=0.024
+locoprop_m_kdiag step=1625 l3 k1:loss=2.270e-05,ratio=9.850e-01,corr_norm=4.814e-04,raw_cos=0.012,cos=0.012 | k2:loss=2.245e-05,ratio=9.740e-01,corr_norm=8.861e-04,raw_cos=0.012,cos=0.012 | k4:loss=2.209e-05,ratio=9.584e-01,corr_norm=1.551e-03,raw_cos=0.012,cos=0.012 | k5:loss=2.195e-05,ratio=9.523e-01,corr_norm=1.838e-03,raw_cos=0.012,cos=0.012
+locoprop_m_kdiag step=1625 l4 k1:loss=2.611e-05,ratio=9.905e-01,corr_norm=3.985e-04,raw_cos=0.027,cos=0.027 | k2:loss=2.589e-05,ratio=9.820e-01,corr_norm=7.727e-04,raw_cos=0.027,cos=0.027 | k4:loss=2.549e-05,ratio=9.668e-01,corr_norm=1.474e-03,raw_cos=0.025,cos=0.025 | k5:loss=2.530e-05,ratio=9.598e-01,corr_norm=1.809e-03,raw_cos=0.025,cos=0.025
+locoprop_m_kdiag step=1625 l5 k1:loss=3.288e-05,ratio=9.878e-01,corr_norm=5.058e-04,raw_cos=-0.011,cos=-0.011 | k2:loss=3.250e-05,ratio=9.766e-01,corr_norm=9.882e-04,raw_cos=-0.009,cos=-0.009 | k4:loss=3.181e-05,ratio=9.558e-01,corr_norm=1.909e-03,raw_cos=-0.006,cos=-0.006 | k5:loss=3.149e-05,ratio=9.461e-01,corr_norm=2.355e-03,raw_cos=-0.005,cos=-0.005
+locoprop_m_kdiag step=1625 l6 k1:loss=4.930e-05,ratio=9.822e-01,corr_norm=7.466e-04,raw_cos=0.008,cos=0.008 | k2:loss=4.846e-05,ratio=9.654e-01,corr_norm=1.472e-03,raw_cos=0.008,cos=0.008 | k4:loss=4.691e-05,ratio=9.345e-01,corr_norm=2.861e-03,raw_cos=0.008,cos=0.008 | k5:loss=4.619e-05,ratio=9.202e-01,corr_norm=3.528e-03,raw_cos=0.008,cos=0.008
+locoprop_m_kdiag step=1625 l7 k1:loss=7.127e-05,ratio=9.770e-01,corr_norm=1.025e-03,raw_cos=0.014,cos=0.014 | k2:loss=6.971e-05,ratio=9.557e-01,corr_norm=2.011e-03,raw_cos=0.014,cos=0.014 | k4:loss=6.691e-05,ratio=9.173e-01,corr_norm=3.880e-03,raw_cos=0.014,cos=0.014 | k5:loss=6.564e-05,ratio=8.998e-01,corr_norm=4.768e-03,raw_cos=0.014,cos=0.014
+locoprop_m_kdiag step=1625 l8 k1:loss=9.197e-05,ratio=9.715e-01,corr_norm=1.301e-03,raw_cos=-0.000,cos=-0.000 | k2:loss=8.950e-05,ratio=9.455e-01,corr_norm=2.545e-03,raw_cos=-0.000,cos=-0.000 | k4:loss=8.511e-05,ratio=8.991e-01,corr_norm=4.884e-03,raw_cos=-0.000,cos=-0.000 | k5:loss=8.314e-05,ratio=8.783e-01,corr_norm=5.990e-03,raw_cos=-0.000,cos=-0.000
+locoprop_m_kdiag step=1625 l9 k1:loss=1.454e-04,ratio=9.630e-01,corr_norm=1.886e-03,raw_cos=0.020,cos=0.020 | k2:loss=1.405e-04,ratio=9.305e-01,corr_norm=3.645e-03,raw_cos=0.019,cos=0.019 | k4:loss=1.322e-04,ratio=8.754e-01,corr_norm=6.868e-03,raw_cos=0.018,cos=0.018 | k5:loss=1.286e-04,ratio=8.515e-01,corr_norm=8.360e-03,raw_cos=0.018,cos=0.018
+locoprop_m_kdiag step=1625 l10 k1:loss=2.276e-04,ratio=9.580e-01,corr_norm=2.536e-03,raw_cos=-0.000,cos=-0.000 | k2:loss=2.192e-04,ratio=9.229e-01,corr_norm=4.835e-03,raw_cos=-0.001,cos=-0.001 | k4:loss=2.055e-04,ratio=8.652e-01,corr_norm=8.957e-03,raw_cos=-0.001,cos=-0.001 | k5:loss=1.997e-04,ratio=8.408e-01,corr_norm=1.084e-02,raw_cos=-0.001,cos=-0.001
+locoprop_m_kdiag step=1625 l11 k1:loss=4.073e-04,ratio=9.470e-01,corr_norm=4.043e-03,raw_cos=0.010,cos=0.010 | k2:loss=3.906e-04,ratio=9.080e-01,corr_norm=7.133e-03,raw_cos=0.005,cos=0.005 | k4:loss=3.650e-04,ratio=8.485e-01,corr_norm=1.269e-02,raw_cos=0.005,cos=0.005 | k5:loss=3.545e-04,ratio=8.241e-01,corr_norm=1.519e-02,raw_cos=0.005,cos=0.005
+locoprop_m_prepare step=1625 l0:loss0=3.775e-05,lossK=3.758e-05,corr_norm=7.231e-04,grad_norm=2.367e+03,raw_cos_desc=0.020,cos_desc=0.020,accepted=1,tokens=1024,opt=sgd,mode=normal,true_post_grad=1 | l1:loss0=1.713e-05,lossK=1.676e-05,corr_norm=1.069e-03,grad_norm=1.723e+03,raw_cos_desc=0.031,cos_desc=0.031,accepted=1,tokens=1024,opt=sgd,mode=normal,true_post_grad=1 | l2:loss0=3.126e-05,lossK=2.690e-05,corr_norm=3.657e-03,grad_norm=1.852e+03,raw_cos_desc=0.024,cos_desc=0.024,accepted=1,tokens=1024,opt=sgd,mode=normal,true_post_grad=1 | l3:loss0=2.305e-05,lossK=2.195e-05,corr_norm=1.838e-03,grad_norm=1.981e+03,raw_cos_desc=0.012,cos_desc=0.012,accepted=1,tokens=1024,opt=sgd,mode=normal,true_post_grad=1
+locoprop_m_apply step=1625 shape=(3072, 768):base_step=4.075e-01,corr_norm=7.231e-04,cap=0.200,scale=1.000e+00 | shape=(3072, 768):base_step=4.075e-01,corr_norm=1.069e-03,cap=0.200,scale=1.000e+00 | shape=(3072, 768):base_step=4.074e-01,corr_norm=3.657e-03,cap=0.200,scale=1.000e+00 | shape=(3072, 768):base_step=4.075e-01,corr_norm=1.838e-03,cap=0.200,scale=1.000e+00 | shape=(3072, 768):base_step=4.075e-01,corr_norm=1.809e-03,cap=0.200,scale=1.000e+00 | shape=(3072, 768):base_step=4.076e-01,corr_norm=3.528e-03,cap=0.200,scale=1.000e+00 | shape=(3072, 768):base_step=4.076e-01,corr_norm=4.768e-03,cap=0.200,scale=1.000e+00 | shape=(3072, 768):base_step=4.074e-01,corr_norm=8.360e-03,cap=0.200,scale=1.000e+00
+step:1626/2000 train_time:125.609s step_avg:77.25ms
+step:1627/2000 train_time:130.170s step_avg:80.01ms
+step:1628/2000 train_time:134.731s step_avg:82.76ms
+step:1629/2000 train_time:139.291s step_avg:85.51ms
+step:1630/2000 train_time:143.852s step_avg:88.25ms
+step:1631/2000 train_time:148.413s step_avg:91.00ms
+step:1632/2000 train_time:152.973s step_avg:93.73ms
+step:1633/2000 train_time:157.533s step_avg:96.47ms
+step:1634/2000 train_time:162.093s step_avg:99.20ms
+step:1635/2000 train_time:166.652s step_avg:101.93ms
+step:1636/2000 train_time:171.212s step_avg:104.65ms
+step:1637/2000 train_time:175.772s step_avg:107.37ms
+step:1638/2000 train_time:180.332s step_avg:110.09ms
+step:1639/2000 train_time:184.892s step_avg:112.81ms
+step:1640/2000 train_time:189.453s step_avg:115.52ms
+step:1641/2000 train_time:194.014s step_avg:118.23ms
+step:1642/2000 train_time:198.574s step_avg:120.93ms
+step:1643/2000 train_time:203.135s step_avg:123.64ms
+step:1644/2000 train_time:207.695s step_avg:126.34ms
+step:1645/2000 train_time:212.256s step_avg:129.03ms
+step:1646/2000 train_time:216.817s step_avg:131.72ms
+step:1647/2000 train_time:221.377s step_avg:134.41ms
+step:1648/2000 train_time:225.938s step_avg:137.10ms
+step:1649/2000 train_time:230.499s step_avg:139.78ms
+step:1650/2000 train_time:235.058s step_avg:142.46ms
+step:1650/2000 val_loss:3.43562 train_time:235.058s step_avg:4561.17ms
+step:1651/2000 train_time:239.618s step_avg:145.14ms
+step:1652/2000 train_time:244.180s step_avg:147.81ms
+step:1653/2000 train_time:248.741s step_avg:150.48ms
+step:1654/2000 train_time:253.302s step_avg:153.14ms
+step:1655/2000 train_time:257.864s step_avg:155.81ms
+step:1656/2000 train_time:262.424s step_avg:158.47ms
+step:1657/2000 train_time:266.985s step_avg:161.13ms
+step:1658/2000 train_time:271.548s step_avg:163.78ms
+step:1659/2000 train_time:276.110s step_avg:166.43ms
+step:1660/2000 train_time:280.671s step_avg:169.08ms
+step:1661/2000 train_time:285.233s step_avg:171.72ms
+step:1662/2000 train_time:289.793s step_avg:174.36ms
+step:1663/2000 train_time:294.354s step_avg:177.00ms
+step:1664/2000 train_time:298.915s step_avg:179.64ms
+step:1665/2000 train_time:303.474s step_avg:182.27ms
+step:1666/2000 train_time:308.035s step_avg:184.90ms
+step:1667/2000 train_time:312.594s step_avg:187.52ms
+step:1668/2000 train_time:317.155s step_avg:190.14ms
+step:1669/2000 train_time:321.715s step_avg:192.76ms
+step:1670/2000 train_time:326.277s step_avg:195.38ms
+step:1671/2000 train_time:330.837s step_avg:197.99ms
+step:1672/2000 train_time:335.397s step_avg:200.60ms
+step:1673/2000 train_time:339.958s step_avg:203.20ms
+step:1674/2000 train_time:344.518s step_avg:205.80ms
+step:1675/2000 train_time:349.078s step_avg:208.40ms
+step:1675/2000 val_loss:3.42614 train_time:349.078s step_avg:4560.80ms
+step:1676/2000 train_time:353.639s step_avg:211.00ms
+step:1677/2000 train_time:358.200s step_avg:213.60ms
+step:1678/2000 train_time:362.760s step_avg:216.19ms
+step:1679/2000 train_time:367.321s step_avg:218.77ms
+step:1680/2000 train_time:371.881s step_avg:221.36ms
+step:1681/2000 train_time:376.442s step_avg:223.94ms
+step:1682/2000 train_time:381.003s step_avg:226.52ms
+step:1683/2000 train_time:385.562s step_avg:229.09ms
+step:1684/2000 train_time:390.122s step_avg:231.66ms
+step:1685/2000 train_time:394.683s step_avg:234.23ms
+step:1686/2000 train_time:399.244s step_avg:236.80ms
+step:1687/2000 train_time:403.804s step_avg:239.36ms
+step:1688/2000 train_time:408.364s step_avg:241.92ms
+step:1689/2000 train_time:412.925s step_avg:244.48ms
+step:1690/2000 train_time:417.486s step_avg:247.03ms
+step:1691/2000 train_time:422.048s step_avg:249.58ms
+step:1692/2000 train_time:426.607s step_avg:252.13ms
+step:1693/2000 train_time:431.168s step_avg:254.68ms
+step:1694/2000 train_time:435.728s step_avg:257.22ms
+step:1695/2000 train_time:440.289s step_avg:259.76ms
+step:1696/2000 train_time:444.848s step_avg:262.29ms
+step:1697/2000 train_time:449.408s step_avg:264.82ms
+step:1698/2000 train_time:453.969s step_avg:267.36ms
+step:1699/2000 train_time:458.530s step_avg:269.88ms
+step:1700/2000 train_time:463.091s step_avg:272.41ms
+step:1700/2000 val_loss:3.41884 train_time:463.091s step_avg:4560.52ms
+locoprop_m_kdiag step=1700 l0 k1:loss=4.179e-05,ratio=9.991e-01,corr_norm=1.505e-04,raw_cos=0.039,cos=0.039 | k2:loss=4.175e-05,ratio=9.982e-01,corr_norm=3.006e-04,raw_cos=0.039,cos=0.039 | k4:loss=4.168e-05,ratio=9.965e-01,corr_norm=5.997e-04,raw_cos=0.039,cos=0.039 | k5:loss=4.164e-05,ratio=9.957e-01,corr_norm=7.487e-04,raw_cos=0.039,cos=0.039
+locoprop_m_kdiag step=1700 l1 k1:loss=1.491e-05,ratio=9.967e-01,corr_norm=1.756e-04,raw_cos=0.035,cos=0.035 | k2:loss=1.487e-05,ratio=9.934e-01,corr_norm=3.490e-04,raw_cos=0.035,cos=0.035 | k4:loss=1.477e-05,ratio=9.872e-01,corr_norm=6.895e-04,raw_cos=0.035,cos=0.035 | k5:loss=1.473e-05,ratio=9.841e-01,corr_norm=8.567e-04,raw_cos=0.035,cos=0.035
+locoprop_m_kdiag step=1700 l2 k1:loss=3.824e-05,ratio=9.453e-01,corr_norm=1.248e-03,raw_cos=0.045,cos=0.045 | k2:loss=3.692e-05,ratio=9.126e-01,corr_norm=2.190e-03,raw_cos=0.043,cos=0.043 | k4:loss=3.536e-05,ratio=8.741e-01,corr_norm=3.563e-03,raw_cos=0.038,cos=0.038 | k5:loss=3.483e-05,ratio=8.610e-01,corr_norm=4.104e-03,raw_cos=0.036,cos=0.036
+locoprop_m_kdiag step=1700 l3 k1:loss=2.156e-05,ratio=9.829e-01,corr_norm=5.039e-04,raw_cos=0.026,cos=0.026 | k2:loss=2.129e-05,ratio=9.709e-01,corr_norm=9.177e-04,raw_cos=0.028,cos=0.028 | k4:loss=2.092e-05,ratio=9.541e-01,corr_norm=1.588e-03,raw_cos=0.031,cos=0.031 | k5:loss=2.078e-05,ratio=9.475e-01,corr_norm=1.876e-03,raw_cos=0.032,cos=0.032
+locoprop_m_kdiag step=1700 l4 k1:loss=2.429e-05,ratio=9.743e-01,corr_norm=6.748e-04,raw_cos=0.042,cos=0.042 | k2:loss=2.391e-05,ratio=9.593e-01,corr_norm=1.172e-03,raw_cos=0.040,cos=0.040 | k4:loss=2.345e-05,ratio=9.406e-01,corr_norm=1.907e-03,raw_cos=0.037,cos=0.037 | k5:loss=2.327e-05,ratio=9.334e-01,corr_norm=2.213e-03,raw_cos=0.036,cos=0.036
+locoprop_m_kdiag step=1700 l5 k1:loss=2.702e-05,ratio=9.876e-01,corr_norm=4.610e-04,raw_cos=0.015,cos=0.015 | k2:loss=2.670e-05,ratio=9.760e-01,corr_norm=9.051e-04,raw_cos=0.015,cos=0.015 | k4:loss=2.612e-05,ratio=9.550e-01,corr_norm=1.751e-03,raw_cos=0.015,cos=0.015 | k5:loss=2.586e-05,ratio=9.453e-01,corr_norm=2.155e-03,raw_cos=0.016,cos=0.016
+locoprop_m_kdiag step=1700 l6 k1:loss=3.888e-05,ratio=9.819e-01,corr_norm=6.697e-04,raw_cos=0.002,cos=0.002 | k2:loss=3.822e-05,ratio=9.652e-01,corr_norm=1.313e-03,raw_cos=0.002,cos=0.002 | k4:loss=3.703e-05,ratio=9.351e-01,corr_norm=2.532e-03,raw_cos=0.003,cos=0.003 | k5:loss=3.649e-05,ratio=9.214e-01,corr_norm=3.112e-03,raw_cos=0.003,cos=0.003
+locoprop_m_kdiag step=1700 l7 k1:loss=5.572e-05,ratio=9.754e-01,corr_norm=9.413e-04,raw_cos=0.017,cos=0.017 | k2:loss=5.444e-05,ratio=9.530e-01,corr_norm=1.837e-03,raw_cos=0.017,cos=0.017 | k4:loss=5.220e-05,ratio=9.138e-01,corr_norm=3.511e-03,raw_cos=0.017,cos=0.017 | k5:loss=5.121e-05,ratio=8.964e-01,corr_norm=4.296e-03,raw_cos=0.017,cos=0.017
+locoprop_m_kdiag step=1700 l8 k1:loss=7.102e-05,ratio=9.688e-01,corr_norm=1.205e-03,raw_cos=0.008,cos=0.008 | k2:loss=6.901e-05,ratio=9.414e-01,corr_norm=2.331e-03,raw_cos=0.008,cos=0.008 | k4:loss=6.559e-05,ratio=8.947e-01,corr_norm=4.398e-03,raw_cos=0.008,cos=0.008 | k5:loss=6.410e-05,ratio=8.744e-01,corr_norm=5.357e-03,raw_cos=0.008,cos=0.008
+locoprop_m_kdiag step=1700 l9 k1:loss=1.139e-04,ratio=9.633e-01,corr_norm=1.667e-03,raw_cos=0.005,cos=0.005 | k2:loss=1.102e-04,ratio=9.319e-01,corr_norm=3.200e-03,raw_cos=0.005,cos=0.005 | k4:loss=1.040e-04,ratio=8.800e-01,corr_norm=5.969e-03,raw_cos=0.006,cos=0.006 | k5:loss=1.014e-04,ratio=8.580e-01,corr_norm=7.235e-03,raw_cos=0.006,cos=0.006
+locoprop_m_kdiag step=1700 l10 k1:loss=2.091e-04,ratio=9.541e-01,corr_norm=2.707e-03,raw_cos=0.000,cos=0.000 | k2:loss=2.017e-04,ratio=9.203e-01,corr_norm=4.720e-03,raw_cos=0.005,cos=0.005 | k4:loss=1.901e-04,ratio=8.676e-01,corr_norm=8.457e-03,raw_cos=0.003,cos=0.003 | k5:loss=1.854e-04,ratio=8.460e-01,corr_norm=1.014e-02,raw_cos=0.002,cos=0.002
+locoprop_m_kdiag step=1700 l11 k1:loss=3.918e-04,ratio=9.492e-01,corr_norm=3.842e-03,raw_cos=0.016,cos=0.016 | k2:loss=3.774e-04,ratio=9.143e-01,corr_norm=6.854e-03,raw_cos=0.019,cos=0.019 | k4:loss=3.586e-04,ratio=8.686e-01,corr_norm=1.196e-02,raw_cos=0.019,cos=0.019 | k5:loss=3.547e-04,ratio=8.592e-01,corr_norm=1.430e-02,raw_cos=0.009,cos=0.009
+locoprop_m_prepare step=1700 l0:loss0=4.182e-05,lossK=4.164e-05,corr_norm=7.487e-04,grad_norm=2.405e+03,raw_cos_desc=0.039,cos_desc=0.039,accepted=1,tokens=1024,opt=sgd,mode=normal,true_post_grad=1 | l1:loss0=1.496e-05,lossK=1.473e-05,corr_norm=8.567e-04,grad_norm=1.924e+03,raw_cos_desc=0.035,cos_desc=0.035,accepted=1,tokens=1024,opt=sgd,mode=normal,true_post_grad=1 | l2:loss0=4.046e-05,lossK=3.483e-05,corr_norm=4.104e-03,grad_norm=1.915e+03,raw_cos_desc=0.036,cos_desc=0.036,accepted=1,tokens=1024,opt=sgd,mode=normal,true_post_grad=1 | l3:loss0=2.193e-05,lossK=2.078e-05,corr_norm=1.876e-03,grad_norm=2.145e+03,raw_cos_desc=0.032,cos_desc=0.032,accepted=1,tokens=1024,opt=sgd,mode=normal,true_post_grad=1
+locoprop_m_apply step=1700 shape=(3072, 768):base_step=3.643e-01,corr_norm=7.487e-04,cap=0.200,scale=1.000e+00 | shape=(3072, 768):base_step=3.643e-01,corr_norm=8.567e-04,cap=0.200,scale=1.000e+00 | shape=(3072, 768):base_step=3.642e-01,corr_norm=4.104e-03,cap=0.200,scale=1.000e+00 | shape=(3072, 768):base_step=3.642e-01,corr_norm=1.876e-03,cap=0.200,scale=1.000e+00 | shape=(3072, 768):base_step=3.642e-01,corr_norm=2.213e-03,cap=0.200,scale=1.000e+00 | shape=(3072, 768):base_step=3.643e-01,corr_norm=2.155e-03,cap=0.200,scale=1.000e+00 | shape=(3072, 768):base_step=3.643e-01,corr_norm=3.112e-03,cap=0.200,scale=1.000e+00 | shape=(3072, 768):base_step=3.643e-01,corr_norm=4.296e-03,cap=0.200,scale=1.000e+00
+step:1701/2000 train_time:467.672s step_avg:274.94ms
+step:1702/2000 train_time:472.234s step_avg:277.46ms
+step:1703/2000 train_time:476.794s step_avg:279.97ms
+step:1704/2000 train_time:481.354s step_avg:282.48ms
+step:1705/2000 train_time:485.914s step_avg:284.99ms
+step:1706/2000 train_time:490.474s step_avg:287.50ms
+step:1707/2000 train_time:495.036s step_avg:290.00ms
+step:1708/2000 train_time:499.595s step_avg:292.50ms
+step:1709/2000 train_time:504.156s step_avg:295.00ms
+step:1710/2000 train_time:508.716s step_avg:297.49ms
+step:1711/2000 train_time:513.292s step_avg:300.00ms
+step:1712/2000 train_time:517.854s step_avg:302.48ms
+step:1713/2000 train_time:522.415s step_avg:304.97ms
+step:1714/2000 train_time:526.976s step_avg:307.45ms
+step:1715/2000 train_time:531.537s step_avg:309.93ms
+step:1716/2000 train_time:536.097s step_avg:312.41ms
+step:1717/2000 train_time:540.658s step_avg:314.89ms
+step:1718/2000 train_time:545.218s step_avg:317.36ms
+step:1719/2000 train_time:549.779s step_avg:319.82ms
+step:1720/2000 train_time:554.340s step_avg:322.29ms
+step:1721/2000 train_time:558.901s step_avg:324.75ms
+step:1722/2000 train_time:563.461s step_avg:327.21ms
+step:1723/2000 train_time:568.022s step_avg:329.67ms
+step:1724/2000 train_time:572.582s step_avg:332.12ms
+step:1725/2000 train_time:577.142s step_avg:334.57ms
+step:1725/2000 val_loss:3.41287 train_time:577.142s step_avg:4562.03ms
+step:1726/2000 train_time:581.703s step_avg:337.02ms
+step:1727/2000 train_time:586.263s step_avg:339.47ms
+step:1728/2000 train_time:590.823s step_avg:341.91ms
+step:1729/2000 train_time:595.384s step_avg:344.35ms
+step:1730/2000 train_time:599.944s step_avg:346.79ms
+step:1731/2000 train_time:604.504s step_avg:349.22ms
+step:1732/2000 train_time:609.064s step_avg:351.65ms
+step:1733/2000 train_time:613.625s step_avg:354.08ms
+step:1734/2000 train_time:618.185s step_avg:356.51ms
+step:1735/2000 train_time:622.744s step_avg:358.93ms
+step:1736/2000 train_time:627.304s step_avg:361.35ms
+step:1737/2000 train_time:631.863s step_avg:363.77ms
+step:1738/2000 train_time:636.423s step_avg:366.18ms
+step:1739/2000 train_time:640.982s step_avg:368.59ms
+step:1740/2000 train_time:645.543s step_avg:371.00ms
+step:1741/2000 train_time:650.102s step_avg:373.41ms
+step:1742/2000 train_time:654.663s step_avg:375.81ms
+step:1743/2000 train_time:659.222s step_avg:378.21ms
+step:1744/2000 train_time:663.783s step_avg:380.61ms
+step:1745/2000 train_time:668.344s step_avg:383.01ms
+step:1746/2000 train_time:672.904s step_avg:385.40ms
+step:1747/2000 train_time:677.463s step_avg:387.79ms
+step:1748/2000 train_time:682.023s step_avg:390.17ms
+step:1749/2000 train_time:686.583s step_avg:392.56ms
+step:1750/2000 train_time:691.143s step_avg:394.94ms
+step:1750/2000 val_loss:3.40795 train_time:691.143s step_avg:4560.05ms
+locoprop_m_kdiag step=1750 l0 k1:loss=4.072e-05,ratio=9.991e-01,corr_norm=1.461e-04,raw_cos=0.026,cos=0.026 | k2:loss=4.069e-05,ratio=9.983e-01,corr_norm=2.918e-04,raw_cos=0.026,cos=0.026 | k4:loss=4.062e-05,ratio=9.966e-01,corr_norm=5.824e-04,raw_cos=0.026,cos=0.026 | k5:loss=4.059e-05,ratio=9.958e-01,corr_norm=7.272e-04,raw_cos=0.026,cos=0.026
+locoprop_m_kdiag step=1750 l1 k1:loss=1.502e-05,ratio=9.952e-01,corr_norm=2.127e-04,raw_cos=0.031,cos=0.031 | k2:loss=1.495e-05,ratio=9.904e-01,corr_norm=4.219e-04,raw_cos=0.031,cos=0.031 | k4:loss=1.481e-05,ratio=9.815e-01,corr_norm=8.304e-04,raw_cos=0.031,cos=0.031 | k5:loss=1.475e-05,ratio=9.773e-01,corr_norm=1.030e-03,raw_cos=0.031,cos=0.031
+locoprop_m_kdiag step=1750 l2 k1:loss=3.031e-05,ratio=9.341e-01,corr_norm=1.235e-03,raw_cos=0.022,cos=0.022 | k2:loss=2.902e-05,ratio=8.943e-01,corr_norm=2.145e-03,raw_cos=0.017,cos=0.017 | k4:loss=2.722e-05,ratio=8.388e-01,corr_norm=3.573e-03,raw_cos=0.010,cos=0.010 | k5:loss=2.649e-05,ratio=8.164e-01,corr_norm=4.201e-03,raw_cos=0.007,cos=0.007
+locoprop_m_kdiag step=1750 l3 k1:loss=2.591e-05,ratio=9.785e-01,corr_norm=6.347e-04,raw_cos=0.035,cos=0.035 | k2:loss=2.557e-05,ratio=9.657e-01,corr_norm=1.107e-03,raw_cos=0.034,cos=0.034 | k4:loss=2.514e-05,ratio=9.495e-01,corr_norm=1.817e-03,raw_cos=0.032,cos=0.032 | k5:loss=2.498e-05,ratio=9.433e-01,corr_norm=2.112e-03,raw_cos=0.031,cos=0.031
+locoprop_m_kdiag step=1750 l4 k1:loss=2.804e-05,ratio=9.840e-01,corr_norm=5.523e-04,raw_cos=0.006,cos=0.006 | k2:loss=2.771e-05,ratio=9.723e-01,corr_norm=1.016e-03,raw_cos=0.007,cos=0.007 | k4:loss=2.720e-05,ratio=9.544e-01,corr_norm=1.798e-03,raw_cos=0.009,cos=0.009 | k5:loss=2.698e-05,ratio=9.468e-01,corr_norm=2.150e-03,raw_cos=0.009,cos=0.009
+locoprop_m_kdiag step=1750 l5 k1:loss=3.322e-05,ratio=9.879e-01,corr_norm=5.028e-04,raw_cos=0.019,cos=0.019 | k2:loss=3.283e-05,ratio=9.765e-01,corr_norm=9.920e-04,raw_cos=0.019,cos=0.019 | k4:loss=3.211e-05,ratio=9.552e-01,corr_norm=1.935e-03,raw_cos=0.019,cos=0.019 | k5:loss=3.178e-05,ratio=9.452e-01,corr_norm=2.391e-03,raw_cos=0.019,cos=0.019
+locoprop_m_kdiag step=1750 l6 k1:loss=4.636e-05,ratio=9.842e-01,corr_norm=6.805e-04,raw_cos=0.010,cos=0.010 | k2:loss=4.565e-05,ratio=9.692e-01,corr_norm=1.344e-03,raw_cos=0.010,cos=0.010 | k4:loss=4.434e-05,ratio=9.412e-01,corr_norm=2.623e-03,raw_cos=0.010,cos=0.010 | k5:loss=4.372e-05,ratio=9.282e-01,corr_norm=3.240e-03,raw_cos=0.010,cos=0.010
+locoprop_m_kdiag step=1750 l7 k1:loss=7.051e-05,ratio=9.751e-01,corr_norm=1.067e-03,raw_cos=0.008,cos=0.008 | k2:loss=6.888e-05,ratio=9.527e-01,corr_norm=2.075e-03,raw_cos=0.008,cos=0.008 | k4:loss=6.600e-05,ratio=9.128e-01,corr_norm=3.964e-03,raw_cos=0.008,cos=0.008 | k5:loss=6.470e-05,ratio=8.949e-01,corr_norm=4.859e-03,raw_cos=0.008,cos=0.008
+locoprop_m_kdiag step=1750 l8 k1:loss=9.339e-05,ratio=9.697e-01,corr_norm=1.358e-03,raw_cos=-0.005,cos=-0.005 | k2:loss=9.077e-05,ratio=9.425e-01,corr_norm=2.641e-03,raw_cos=-0.005,cos=-0.005 | k4:loss=8.618e-05,ratio=8.948e-01,corr_norm=5.032e-03,raw_cos=-0.006,cos=-0.006 | k5:loss=8.414e-05,ratio=8.737e-01,corr_norm=6.155e-03,raw_cos=-0.006,cos=-0.006
+locoprop_m_kdiag step=1750 l9 k1:loss=1.456e-04,ratio=9.636e-01,corr_norm=1.876e-03,raw_cos=-0.009,cos=-0.009 | k2:loss=1.408e-04,ratio=9.316e-01,corr_norm=3.615e-03,raw_cos=-0.008,cos=-0.008 | k4:loss=1.325e-04,ratio=8.770e-01,corr_norm=6.824e-03,raw_cos=-0.007,cos=-0.007 | k5:loss=1.290e-04,ratio=8.533e-01,corr_norm=8.312e-03,raw_cos=-0.007,cos=-0.007
+locoprop_m_kdiag step=1750 l10 k1:loss=2.356e-04,ratio=9.560e-01,corr_norm=2.649e-03,raw_cos=0.005,cos=0.005 | k2:loss=2.266e-04,ratio=9.196e-01,corr_norm=5.036e-03,raw_cos=0.006,cos=0.006 | k4:loss=2.121e-04,ratio=8.607e-01,corr_norm=9.280e-03,raw_cos=0.006,cos=0.006 | k5:loss=2.060e-04,ratio=8.361e-01,corr_norm=1.121e-02,raw_cos=0.005,cos=0.005
+locoprop_m_kdiag step=1750 l11 k1:loss=4.239e-04,ratio=9.348e-01,corr_norm=4.580e-03,raw_cos=0.003,cos=0.003 | k2:loss=4.051e-04,ratio=8.932e-01,corr_norm=8.014e-03,raw_cos=0.003,cos=0.003 | k4:loss=3.778e-04,ratio=8.329e-01,corr_norm=1.363e-02,raw_cos=0.003,cos=0.003 | k5:loss=3.667e-04,ratio=8.086e-01,corr_norm=1.612e-02,raw_cos=0.003,cos=0.003
+locoprop_m_prepare step=1750 l0:loss0=4.076e-05,lossK=4.059e-05,corr_norm=7.272e-04,grad_norm=2.388e+03,raw_cos_desc=0.026,cos_desc=0.026,accepted=1,tokens=1024,opt=sgd,mode=normal,true_post_grad=1 | l1:loss0=1.509e-05,lossK=1.475e-05,corr_norm=1.030e-03,grad_norm=1.888e+03,raw_cos_desc=0.031,cos_desc=0.031,accepted=1,tokens=1024,opt=sgd,mode=normal,true_post_grad=1 | l2:loss0=3.244e-05,lossK=2.649e-05,corr_norm=4.201e-03,grad_norm=1.991e+03,raw_cos_desc=0.007,cos_desc=0.007,accepted=1,tokens=1024,opt=sgd,mode=normal,true_post_grad=1 | l3:loss0=2.648e-05,lossK=2.498e-05,corr_norm=2.112e-03,grad_norm=2.140e+03,raw_cos_desc=0.031,cos_desc=0.031,accepted=1,tokens=1024,opt=sgd,mode=normal,true_post_grad=1
+locoprop_m_apply step=1750 shape=(3072, 768):base_step=3.369e-01,corr_norm=7.272e-04,cap=0.200,scale=1.000e+00 | shape=(3072, 768):base_step=3.368e-01,corr_norm=1.030e-03,cap=0.200,scale=1.000e+00 | shape=(3072, 768):base_step=3.367e-01,corr_norm=4.201e-03,cap=0.200,scale=1.000e+00 | shape=(3072, 768):base_step=3.367e-01,corr_norm=2.112e-03,cap=0.200,scale=1.000e+00 | shape=(3072, 768):base_step=3.368e-01,corr_norm=2.150e-03,cap=0.200,scale=1.000e+00 | shape=(3072, 768):base_step=3.368e-01,corr_norm=2.391e-03,cap=0.200,scale=1.000e+00 | shape=(3072, 768):base_step=3.369e-01,corr_norm=3.240e-03,cap=0.200,scale=1.000e+00 | shape=(3072, 768):base_step=3.367e-01,corr_norm=4.859e-03,cap=0.200,scale=1.000e+00
+step:1751/2000 train_time:695.724s step_avg:397.33ms
+step:1752/2000 train_time:700.284s step_avg:399.71ms
+step:1753/2000 train_time:704.847s step_avg:402.08ms
+step:1754/2000 train_time:709.408s step_avg:404.45ms
+step:1755/2000 train_time:713.970s step_avg:406.82ms
+step:1756/2000 train_time:718.531s step_avg:409.19ms
+step:1757/2000 train_time:723.093s step_avg:411.55ms
+step:1758/2000 train_time:727.654s step_avg:413.91ms
+step:1759/2000 train_time:732.216s step_avg:416.27ms
+step:1760/2000 train_time:736.778s step_avg:418.62ms
+step:1761/2000 train_time:741.339s step_avg:420.98ms
+step:1762/2000 train_time:745.901s step_avg:423.33ms
+step:1763/2000 train_time:750.463s step_avg:425.67ms
+step:1764/2000 train_time:755.024s step_avg:428.02ms
+step:1765/2000 train_time:759.586s step_avg:430.36ms
+step:1766/2000 train_time:764.148s step_avg:432.70ms
+step:1767/2000 train_time:768.708s step_avg:435.04ms
+step:1768/2000 train_time:773.268s step_avg:437.37ms
+step:1769/2000 train_time:777.829s step_avg:439.70ms
+step:1770/2000 train_time:782.389s step_avg:442.03ms
+step:1771/2000 train_time:786.950s step_avg:444.35ms
+step:1772/2000 train_time:791.510s step_avg:446.68ms
+step:1773/2000 train_time:796.070s step_avg:449.00ms
+step:1774/2000 train_time:800.630s step_avg:451.31ms
+step:1775/2000 train_time:805.190s step_avg:453.63ms
+step:1775/2000 val_loss:3.40359 train_time:805.191s step_avg:4561.89ms
+step:1776/2000 train_time:809.752s step_avg:455.94ms
+step:1777/2000 train_time:814.312s step_avg:458.25ms
+step:1778/2000 train_time:818.872s step_avg:460.56ms
+step:1779/2000 train_time:823.432s step_avg:462.86ms
+step:1780/2000 train_time:827.994s step_avg:465.16ms
+step:1781/2000 train_time:832.554s step_avg:467.46ms
+step:1782/2000 train_time:837.115s step_avg:469.76ms
+step:1783/2000 train_time:841.676s step_avg:472.06ms
+step:1784/2000 train_time:846.238s step_avg:474.35ms
+step:1785/2000 train_time:850.800s step_avg:476.64ms
+step:1786/2000 train_time:855.362s step_avg:478.93ms
+step:1787/2000 train_time:859.925s step_avg:481.21ms
+step:1788/2000 train_time:864.486s step_avg:483.49ms
+step:1789/2000 train_time:869.048s step_avg:485.77ms
+step:1790/2000 train_time:873.608s step_avg:488.05ms
+step:1791/2000 train_time:878.170s step_avg:490.32ms
+step:1792/2000 train_time:882.731s step_avg:492.60ms
+step:1793/2000 train_time:887.292s step_avg:494.86ms
+step:1794/2000 train_time:891.854s step_avg:497.13ms
+step:1795/2000 train_time:896.415s step_avg:499.40ms
+step:1796/2000 train_time:900.978s step_avg:501.66ms
+step:1797/2000 train_time:905.538s step_avg:503.92ms
+step:1798/2000 train_time:910.099s step_avg:506.17ms
+step:1799/2000 train_time:914.661s step_avg:508.43ms
+step:1800/2000 train_time:919.222s step_avg:510.68ms
+step:1800/2000 val_loss:3.39873 train_time:919.222s step_avg:4561.26ms
+step:1801/2000 train_time:923.743s step_avg:512.91ms
+step:1802/2000 train_time:928.264s step_avg:515.13ms
+step:1803/2000 train_time:932.784s step_avg:517.35ms
+step:1804/2000 train_time:937.306s step_avg:519.57ms
+step:1805/2000 train_time:941.829s step_avg:521.79ms
+step:1806/2000 train_time:946.351s step_avg:524.00ms
+step:1807/2000 train_time:950.871s step_avg:526.22ms
+step:1808/2000 train_time:955.392s step_avg:528.42ms
+step:1809/2000 train_time:959.912s step_avg:530.63ms
+step:1810/2000 train_time:964.433s step_avg:532.84ms
+step:1811/2000 train_time:968.954s step_avg:535.04ms
+step:1812/2000 train_time:973.475s step_avg:537.24ms
+step:1813/2000 train_time:977.996s step_avg:539.44ms
+step:1814/2000 train_time:982.516s step_avg:541.63ms
+step:1815/2000 train_time:987.036s step_avg:543.82ms
+step:1816/2000 train_time:991.556s step_avg:546.01ms
+step:1817/2000 train_time:996.077s step_avg:548.20ms
+step:1818/2000 train_time:1000.597s step_avg:550.38ms
+step:1819/2000 train_time:1005.118s step_avg:552.57ms
+step:1820/2000 train_time:1009.637s step_avg:554.75ms
+step:1821/2000 train_time:1014.156s step_avg:556.92ms
+step:1822/2000 train_time:1018.676s step_avg:559.10ms
+step:1823/2000 train_time:1023.197s step_avg:561.27ms
+step:1824/2000 train_time:1027.718s step_avg:563.44ms
+step:1825/2000 train_time:1032.238s step_avg:565.61ms
+step:1825/2000 val_loss:3.39519 train_time:1032.238s step_avg:4520.65ms
+step:1826/2000 train_time:1036.759s step_avg:567.78ms
+step:1827/2000 train_time:1041.279s step_avg:569.94ms
+step:1828/2000 train_time:1045.800s step_avg:572.10ms
+step:1829/2000 train_time:1050.320s step_avg:574.26ms
+step:1830/2000 train_time:1054.842s step_avg:576.42ms
+step:1831/2000 train_time:1059.363s step_avg:578.57ms
+step:1832/2000 train_time:1063.884s step_avg:580.72ms
+step:1833/2000 train_time:1068.405s step_avg:582.87ms
+step:1834/2000 train_time:1072.925s step_avg:585.02ms
+step:1835/2000 train_time:1077.444s step_avg:587.16ms
+step:1836/2000 train_time:1081.965s step_avg:589.31ms
+step:1837/2000 train_time:1086.486s step_avg:591.45ms
+step:1838/2000 train_time:1091.006s step_avg:593.58ms
+step:1839/2000 train_time:1095.526s step_avg:595.72ms
+step:1840/2000 train_time:1100.046s step_avg:597.85ms
+step:1841/2000 train_time:1104.566s step_avg:599.98ms
+step:1842/2000 train_time:1109.086s step_avg:602.11ms
+step:1843/2000 train_time:1113.607s step_avg:604.24ms
+step:1844/2000 train_time:1118.128s step_avg:606.36ms
+step:1845/2000 train_time:1122.649s step_avg:608.48ms
+step:1846/2000 train_time:1127.170s step_avg:610.60ms
+step:1847/2000 train_time:1131.690s step_avg:612.72ms
+step:1848/2000 train_time:1136.210s step_avg:614.83ms
+step:1849/2000 train_time:1140.731s step_avg:616.94ms
+step:1850/2000 train_time:1145.252s step_avg:619.06ms
+step:1850/2000 val_loss:3.39177 train_time:1145.253s step_avg:4520.57ms
+step:1851/2000 train_time:1149.774s step_avg:621.16ms
+step:1852/2000 train_time:1154.296s step_avg:623.27ms
+step:1853/2000 train_time:1158.816s step_avg:625.37ms
+step:1854/2000 train_time:1163.336s step_avg:627.47ms
+step:1855/2000 train_time:1167.856s step_avg:629.57ms
+step:1856/2000 train_time:1172.377s step_avg:631.67ms
+step:1857/2000 train_time:1176.897s step_avg:633.76ms
+step:1858/2000 train_time:1181.418s step_avg:635.85ms
+step:1859/2000 train_time:1185.938s step_avg:637.94ms
+step:1860/2000 train_time:1190.458s step_avg:640.03ms
+step:1861/2000 train_time:1194.978s step_avg:642.12ms
+step:1862/2000 train_time:1199.497s step_avg:644.20ms
+step:1863/2000 train_time:1204.017s step_avg:646.28ms
+step:1864/2000 train_time:1208.538s step_avg:648.36ms
+step:1865/2000 train_time:1213.058s step_avg:650.43ms
+step:1866/2000 train_time:1217.579s step_avg:652.51ms
+step:1867/2000 train_time:1222.099s step_avg:654.58ms
+step:1868/2000 train_time:1226.618s step_avg:656.65ms
+step:1869/2000 train_time:1231.137s step_avg:658.71ms
+step:1870/2000 train_time:1235.658s step_avg:660.78ms
+step:1871/2000 train_time:1240.179s step_avg:662.84ms
+step:1872/2000 train_time:1244.700s step_avg:664.90ms
+step:1873/2000 train_time:1249.220s step_avg:666.96ms
+step:1874/2000 train_time:1253.740s step_avg:669.02ms
+step:1875/2000 train_time:1258.260s step_avg:671.07ms
+step:1875/2000 val_loss:3.38819 train_time:1258.260s step_avg:4520.31ms
+step:1876/2000 train_time:1262.780s step_avg:673.12ms
+step:1877/2000 train_time:1267.303s step_avg:675.17ms
+step:1878/2000 train_time:1271.824s step_avg:677.22ms
+step:1879/2000 train_time:1276.345s step_avg:679.27ms
+step:1880/2000 train_time:1280.866s step_avg:681.31ms
+step:1881/2000 train_time:1285.386s step_avg:683.35ms
+step:1882/2000 train_time:1289.906s step_avg:685.39ms
+step:1883/2000 train_time:1294.426s step_avg:687.43ms
+step:1884/2000 train_time:1298.948s step_avg:689.46ms
+step:1885/2000 train_time:1303.469s step_avg:691.50ms
+step:1886/2000 train_time:1307.990s step_avg:693.53ms
+step:1887/2000 train_time:1312.509s step_avg:695.55ms
+step:1888/2000 train_time:1317.030s step_avg:697.58ms
+step:1889/2000 train_time:1321.551s step_avg:699.60ms
+step:1890/2000 train_time:1326.072s step_avg:701.63ms
+step:1891/2000 train_time:1330.592s step_avg:703.64ms
+step:1892/2000 train_time:1335.113s step_avg:705.66ms
+step:1893/2000 train_time:1339.633s step_avg:707.68ms
+step:1894/2000 train_time:1344.153s step_avg:709.69ms
+step:1895/2000 train_time:1348.672s step_avg:711.70ms
+step:1896/2000 train_time:1353.192s step_avg:713.71ms
+step:1897/2000 train_time:1357.713s step_avg:715.72ms
+step:1898/2000 train_time:1362.234s step_avg:717.72ms
+step:1899/2000 train_time:1366.755s step_avg:719.72ms
+step:1900/2000 train_time:1371.275s step_avg:721.72ms
+step:1900/2000 val_loss:3.38478 train_time:1371.276s step_avg:4520.61ms
+step:1901/2000 train_time:1375.812s step_avg:723.73ms
+step:1902/2000 train_time:1380.333s step_avg:725.73ms
+step:1903/2000 train_time:1384.854s step_avg:727.72ms
+step:1904/2000 train_time:1389.377s step_avg:729.71ms
+step:1905/2000 train_time:1393.898s step_avg:731.70ms
+step:1906/2000 train_time:1398.419s step_avg:733.69ms
+step:1907/2000 train_time:1402.939s step_avg:735.68ms
+step:1908/2000 train_time:1407.459s step_avg:737.66ms
+step:1909/2000 train_time:1411.980s step_avg:739.64ms
+step:1910/2000 train_time:1416.502s step_avg:741.62ms
+step:1911/2000 train_time:1421.022s step_avg:743.60ms
+step:1912/2000 train_time:1425.544s step_avg:745.58ms
+step:1913/2000 train_time:1430.066s step_avg:747.55ms
+step:1914/2000 train_time:1434.586s step_avg:749.52ms
+step:1915/2000 train_time:1439.106s step_avg:751.49ms
+step:1916/2000 train_time:1443.628s step_avg:753.46ms
+step:1917/2000 train_time:1448.148s step_avg:755.42ms
+step:1918/2000 train_time:1452.669s step_avg:757.39ms
+step:1919/2000 train_time:1457.189s step_avg:759.35ms
+step:1920/2000 train_time:1461.710s step_avg:761.31ms
+step:1921/2000 train_time:1466.231s step_avg:763.26ms
+step:1922/2000 train_time:1470.752s step_avg:765.22ms
+step:1923/2000 train_time:1475.274s step_avg:767.17ms
+step:1924/2000 train_time:1479.795s step_avg:769.12ms
+step:1925/2000 train_time:1484.316s step_avg:771.07ms
+step:1925/2000 val_loss:3.38174 train_time:1484.316s step_avg:4521.62ms
+step:1926/2000 train_time:1488.837s step_avg:773.02ms
+step:1927/2000 train_time:1493.357s step_avg:774.96ms
+step:1928/2000 train_time:1497.878s step_avg:776.91ms
+step:1929/2000 train_time:1502.400s step_avg:778.85ms
+step:1930/2000 train_time:1506.922s step_avg:780.79ms
+step:1931/2000 train_time:1511.442s step_avg:782.73ms
+step:1932/2000 train_time:1515.963s step_avg:784.66ms
+step:1933/2000 train_time:1520.483s step_avg:786.59ms
+step:1934/2000 train_time:1525.003s step_avg:788.52ms
+step:1935/2000 train_time:1529.524s step_avg:790.45ms
+step:1936/2000 train_time:1534.044s step_avg:792.38ms
+step:1937/2000 train_time:1538.566s step_avg:794.30ms
+step:1938/2000 train_time:1543.086s step_avg:796.23ms
+step:1939/2000 train_time:1547.606s step_avg:798.15ms
+step:1940/2000 train_time:1552.127s step_avg:800.07ms
+step:1941/2000 train_time:1556.648s step_avg:801.98ms
+step:1942/2000 train_time:1561.167s step_avg:803.90ms
+step:1943/2000 train_time:1565.688s step_avg:805.81ms
+step:1944/2000 train_time:1570.209s step_avg:807.72ms
+step:1945/2000 train_time:1574.729s step_avg:809.63ms
+step:1946/2000 train_time:1579.249s step_avg:811.54ms
+step:1947/2000 train_time:1583.769s step_avg:813.44ms
+step:1948/2000 train_time:1588.291s step_avg:815.34ms
+step:1949/2000 train_time:1592.811s step_avg:817.25ms
+step:1950/2000 train_time:1597.333s step_avg:819.15ms
+step:1950/2000 val_loss:3.37911 train_time:1597.334s step_avg:4520.70ms
+step:1951/2000 train_time:1601.855s step_avg:821.04ms
+step:1952/2000 train_time:1606.376s step_avg:822.94ms
+step:1953/2000 train_time:1610.896s step_avg:824.83ms
+step:1954/2000 train_time:1615.417s step_avg:826.72ms
+step:1955/2000 train_time:1619.939s step_avg:828.61ms
+step:1956/2000 train_time:1624.461s step_avg:830.50ms
+step:1957/2000 train_time:1628.981s step_avg:832.39ms
+step:1958/2000 train_time:1633.502s step_avg:834.27ms
+step:1959/2000 train_time:1638.023s step_avg:836.15ms
+step:1960/2000 train_time:1642.545s step_avg:838.03ms
+step:1961/2000 train_time:1647.067s step_avg:839.91ms
+step:1962/2000 train_time:1651.588s step_avg:841.79ms
+step:1963/2000 train_time:1656.109s step_avg:843.66ms
+step:1964/2000 train_time:1660.630s step_avg:845.53ms
+step:1965/2000 train_time:1665.151s step_avg:847.41ms
+step:1966/2000 train_time:1669.672s step_avg:849.27ms
+step:1967/2000 train_time:1674.193s step_avg:851.14ms
+step:1968/2000 train_time:1678.715s step_avg:853.01ms
+step:1969/2000 train_time:1683.236s step_avg:854.87ms
+step:1970/2000 train_time:1687.757s step_avg:856.73ms
+step:1971/2000 train_time:1692.277s step_avg:858.59ms
+step:1972/2000 train_time:1696.797s step_avg:860.44ms
+step:1973/2000 train_time:1701.318s step_avg:862.30ms
+step:1974/2000 train_time:1705.839s step_avg:864.15ms
+step:1975/2000 train_time:1710.360s step_avg:866.00ms
+step:1975/2000 val_loss:3.37606 train_time:1710.360s step_avg:4521.06ms
+step:1976/2000 train_time:1714.883s step_avg:867.86ms
+step:1977/2000 train_time:1719.404s step_avg:869.70ms
+step:1978/2000 train_time:1723.925s step_avg:871.55ms
+step:1979/2000 train_time:1728.446s step_avg:873.39ms
+step:1980/2000 train_time:1732.968s step_avg:875.24ms
+step:1981/2000 train_time:1737.489s step_avg:877.08ms
+step:1982/2000 train_time:1742.013s step_avg:878.92ms
+step:1983/2000 train_time:1746.533s step_avg:880.75ms
+step:1984/2000 train_time:1751.054s step_avg:882.59ms
+step:1985/2000 train_time:1755.574s step_avg:884.42ms
+step:1986/2000 train_time:1760.096s step_avg:886.25ms
+step:1987/2000 train_time:1764.618s step_avg:888.08ms
+step:1988/2000 train_time:1769.139s step_avg:889.91ms
+step:1989/2000 train_time:1773.660s step_avg:891.73ms
+step:1990/2000 train_time:1778.181s step_avg:893.56ms
+step:1991/2000 train_time:1782.701s step_avg:895.38ms
+step:1992/2000 train_time:1787.221s step_avg:897.20ms
+step:1993/2000 train_time:1791.742s step_avg:899.02ms
+step:1994/2000 train_time:1796.264s step_avg:900.83ms
+step:1995/2000 train_time:1800.785s step_avg:902.65ms
+step:1996/2000 train_time:1805.306s step_avg:904.46ms
+step:1997/2000 train_time:1809.828s step_avg:906.27ms
+step:1998/2000 train_time:1814.348s step_avg:908.08ms
+step:1999/2000 train_time:1818.870s step_avg:909.89ms
+track3_checkpoint_saved step:2000 path:/home/ubuntu/.cache/track3_checkpoints/track3_locom_good2000_seed3710_step2000.pt val_loss:None
+===== track3_locom_2000_control_seed3710 =====
+track3_locom_runner source=records/track_3_optimization/train_gpt_simple.py generated=/tmp/track3_locom_2000_control_seed3710.py steps=2125 trials=1 nproc=1 mbs=16 trial_arg_mode=positional-count
+track3_locom_source_sha source=3191da541544c96aa4a4a9dfdde8a8e1fa674620583b69c61f10818c74c1436b generator=d531e33ce23d51002c957fcc78dd20b60f95396fc2b6045993de8c47bd3c047d generated=c94a53d9da8ac23365fe9ed25bd635aa8176ff236224880112d7b389f8bc0a48
+logs/9b6522a7-4791-4cf9-a3ce-a88acb8183fc.txt
+track3_trial_seed=3710 trial=0
+locoprop_m_owner rank=0 world=1 owned_layers=[0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11] sample_tokens=1024 gather_samples=True accum_samples=False micro_sample_tokens=32 aux_capture=False aux_seqs=16 batched_prep=False
+track3_checkpoint_loaded path:/home/ubuntu/.cache/track3_checkpoints/track3_locom_good2000_seed3710_step2000.pt step:2000 seed:3710 val_loss:None load_optimizers:True
+track3_resume_advanced_data steps:2000
+step:2000/2125 val_loss:3.37335 train_time:0.000s step_avg:nanms
+step:2001/2125 train_time:20.501s step_avg:10.25ms
+step:2002/2125 train_time:21.753s step_avg:10.87ms
+step:2003/2125 train_time:23.007s step_avg:11.49ms
+step:2004/2125 train_time:24.266s step_avg:12.11ms
+step:2005/2125 train_time:25.523s step_avg:12.73ms
+step:2006/2125 train_time:26.784s step_avg:13.35ms
+step:2007/2125 train_time:28.045s step_avg:13.97ms
+step:2008/2125 train_time:29.304s step_avg:14.59ms
+step:2009/2125 train_time:30.567s step_avg:15.21ms
+step:2010/2125 train_time:31.828s step_avg:15.83ms
+step:2011/2125 train_time:33.090s step_avg:16.45ms
+step:2012/2125 train_time:34.350s step_avg:17.07ms
+step:2013/2125 train_time:35.609s step_avg:17.69ms
+step:2014/2125 train_time:36.874s step_avg:18.31ms
+step:2015/2125 train_time:38.134s step_avg:18.92ms
+step:2016/2125 train_time:39.396s step_avg:19.54ms
+step:2017/2125 train_time:40.656s step_avg:20.16ms
+step:2018/2125 train_time:41.922s step_avg:20.77ms
+step:2019/2125 train_time:43.187s step_avg:21.39ms
+step:2020/2125 train_time:44.450s step_avg:22.00ms
+step:2021/2125 train_time:45.712s step_avg:22.62ms
+step:2022/2125 train_time:46.975s step_avg:23.23ms
+step:2023/2125 train_time:48.239s step_avg:23.85ms
+step:2024/2125 train_time:49.501s step_avg:24.46ms
+step:2025/2125 train_time:50.768s step_avg:25.07ms
+step:2025/2125 val_loss:3.37099 train_time:50.768s step_avg:2030.72ms
+step:2026/2125 train_time:52.038s step_avg:25.69ms
+step:2027/2125 train_time:53.302s step_avg:26.30ms
+step:2028/2125 train_time:54.570s step_avg:26.91ms
+step:2029/2125 train_time:55.834s step_avg:27.52ms
+step:2030/2125 train_time:57.097s step_avg:28.13ms
+step:2031/2125 train_time:58.358s step_avg:28.73ms
+step:2032/2125 train_time:59.623s step_avg:29.34ms
+step:2033/2125 train_time:60.887s step_avg:29.95ms
+step:2034/2125 train_time:62.152s step_avg:30.56ms
+step:2035/2125 train_time:63.414s step_avg:31.16ms
+step:2036/2125 train_time:64.675s step_avg:31.77ms
+step:2037/2125 train_time:65.935s step_avg:32.37ms
+step:2038/2125 train_time:67.195s step_avg:32.97ms
+step:2039/2125 train_time:68.456s step_avg:33.57ms
+step:2040/2125 train_time:69.718s step_avg:34.18ms
+step:2041/2125 train_time:70.981s step_avg:34.78ms
+step:2042/2125 train_time:72.248s step_avg:35.38ms
+step:2043/2125 train_time:73.509s step_avg:35.98ms
+step:2044/2125 train_time:74.773s step_avg:36.58ms
+step:2045/2125 train_time:76.035s step_avg:37.18ms
+step:2046/2125 train_time:77.297s step_avg:37.78ms
+step:2047/2125 train_time:78.559s step_avg:38.38ms
+step:2048/2125 train_time:79.821s step_avg:38.98ms
+step:2049/2125 train_time:81.087s step_avg:39.57ms
+step:2050/2125 train_time:82.351s step_avg:40.17ms
+step:2050/2125 val_loss:3.36867 train_time:82.351s step_avg:1263.33ms
+step:2051/2125 train_time:83.618s step_avg:40.77ms
+step:2052/2125 train_time:84.882s step_avg:41.37ms
+step:2053/2125 train_time:86.145s step_avg:41.96ms
+step:2054/2125 train_time:87.405s step_avg:42.55ms
+step:2055/2125 train_time:88.667s step_avg:43.15ms
+step:2056/2125 train_time:89.937s step_avg:43.74ms
+step:2057/2125 train_time:91.202s step_avg:44.34ms
+step:2058/2125 train_time:92.464s step_avg:44.93ms
+step:2059/2125 train_time:93.723s step_avg:45.52ms
+step:2060/2125 train_time:94.984s step_avg:46.11ms
+step:2061/2125 train_time:96.249s step_avg:46.70ms
+step:2062/2125 train_time:97.514s step_avg:47.29ms
+step:2063/2125 train_time:98.780s step_avg:47.88ms
+step:2064/2125 train_time:100.041s step_avg:48.47ms
+step:2065/2125 train_time:101.304s step_avg:49.06ms
+step:2066/2125 train_time:102.567s step_avg:49.65ms
+step:2067/2125 train_time:103.831s step_avg:50.23ms
+step:2068/2125 train_time:105.097s step_avg:50.82ms
+step:2069/2125 train_time:106.364s step_avg:51.41ms
+step:2070/2125 train_time:107.629s step_avg:51.99ms
+step:2071/2125 train_time:108.897s step_avg:52.58ms
+step:2072/2125 train_time:110.162s step_avg:53.17ms
+step:2073/2125 train_time:111.429s step_avg:53.75ms
+step:2074/2125 train_time:112.694s step_avg:54.34ms
+step:2075/2125 train_time:113.959s step_avg:54.92ms
+step:2075/2125 val_loss:3.36657 train_time:113.960s step_avg:1264.34ms
+step:2076/2125 train_time:115.227s step_avg:55.50ms
+step:2077/2125 train_time:116.497s step_avg:56.09ms
+step:2078/2125 train_time:117.760s step_avg:56.67ms
+step:2079/2125 train_time:119.025s step_avg:57.25ms
+step:2080/2125 train_time:120.296s step_avg:57.83ms
+step:2081/2125 train_time:121.564s step_avg:58.42ms
+step:2082/2125 train_time:122.826s step_avg:58.99ms
+step:2083/2125 train_time:124.094s step_avg:59.57ms
+step:2084/2125 train_time:125.358s step_avg:60.15ms
+step:2085/2125 train_time:126.625s step_avg:60.73ms
+step:2086/2125 train_time:127.895s step_avg:61.31ms
+step:2087/2125 train_time:129.164s step_avg:61.89ms
+step:2088/2125 train_time:130.428s step_avg:62.47ms
+step:2089/2125 train_time:131.693s step_avg:63.04ms
+step:2090/2125 train_time:132.963s step_avg:63.62ms
+step:2091/2125 train_time:134.245s step_avg:64.20ms
+step:2092/2125 train_time:135.509s step_avg:64.77ms
+step:2093/2125 train_time:136.778s step_avg:65.35ms
+step:2094/2125 train_time:138.042s step_avg:65.92ms
+step:2095/2125 train_time:139.305s step_avg:66.49ms
+step:2096/2125 train_time:140.574s step_avg:67.07ms
+step:2097/2125 train_time:141.844s step_avg:67.64ms
+step:2098/2125 train_time:143.111s step_avg:68.21ms
+step:2099/2125 train_time:144.378s step_avg:68.78ms
+step:2100/2125 train_time:145.641s step_avg:69.35ms
+step:2100/2125 val_loss:3.36420 train_time:145.642s step_avg:1267.28ms
+step:2101/2125 train_time:146.910s step_avg:69.92ms
+step:2102/2125 train_time:148.178s step_avg:70.49ms
+step:2103/2125 train_time:149.445s step_avg:71.06ms
+step:2104/2125 train_time:150.708s step_avg:71.63ms
+step:2105/2125 train_time:151.976s step_avg:72.20ms
+step:2106/2125 train_time:153.246s step_avg:72.77ms
+step:2107/2125 train_time:154.518s step_avg:73.34ms
+step:2108/2125 train_time:155.788s step_avg:73.90ms
+step:2109/2125 train_time:157.057s step_avg:74.47ms
+step:2110/2125 train_time:158.326s step_avg:75.04ms
+step:2111/2125 train_time:159.593s step_avg:75.60ms
+step:2112/2125 train_time:160.868s step_avg:76.17ms
+step:2113/2125 train_time:162.144s step_avg:76.74ms
+step:2114/2125 train_time:163.411s step_avg:77.30ms
+step:2115/2125 train_time:164.684s step_avg:77.86ms
+step:2116/2125 train_time:165.950s step_avg:78.43ms
+step:2117/2125 train_time:167.220s step_avg:78.99ms
+step:2118/2125 train_time:168.488s step_avg:79.55ms
+step:2119/2125 train_time:169.756s step_avg:80.11ms
+step:2120/2125 train_time:171.023s step_avg:80.67ms
+step:2121/2125 train_time:172.293s step_avg:81.23ms
+step:2122/2125 train_time:173.565s step_avg:81.79ms
+step:2123/2125 train_time:174.832s step_avg:82.35ms
+step:2124/2125 train_time:176.101s step_avg:82.91ms
+track3_checkpoint_saved step:2125 path:/home/ubuntu/.cache/track3_checkpoints/track3_locom_2000_control_seed3710_seed3710_step2125.pt val_loss:None
+step:2125/2125 train_time:178.921s step_avg:84.20ms
+step:2125/2125 val_loss:3.36216 train_time:178.921s step_avg:1331.19ms
+===== track3_locom_2000_floor111_seed3710 =====
+track3_locom_runner source=records/track_3_optimization/train_gpt_simple.py generated=/tmp/track3_locom_2000_floor111_seed3710.py steps=2125 trials=1 nproc=1 mbs=16 trial_arg_mode=positional-count
+track3_locom_source_sha source=3191da541544c96aa4a4a9dfdde8a8e1fa674620583b69c61f10818c74c1436b generator=d531e33ce23d51002c957fcc78dd20b60f95396fc2b6045993de8c47bd3c047d generated=c94a53d9da8ac23365fe9ed25bd635aa8176ff236224880112d7b389f8bc0a48
+logs/c8721bdf-ac3a-4653-9815-d471621b2998.txt
+track3_trial_seed=3710 trial=0
+locoprop_m_owner rank=0 world=1 owned_layers=[0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11] sample_tokens=1024 gather_samples=True accum_samples=False micro_sample_tokens=32 aux_capture=False aux_seqs=16 batched_prep=False
+track3_checkpoint_loaded path:/home/ubuntu/.cache/track3_checkpoints/track3_locom_good2000_seed3710_step2000.pt step:2000 seed:3710 val_loss:None load_optimizers:True
+track3_resume_advanced_data steps:2000
+step:2000/2125 val_loss:3.37335 train_time:0.000s step_avg:nanms
+step:2001/2125 train_time:3.119s step_avg:1.56ms
+step:2002/2125 train_time:4.380s step_avg:2.19ms
+step:2003/2125 train_time:5.643s step_avg:2.82ms
+step:2004/2125 train_time:6.906s step_avg:3.45ms
+step:2005/2125 train_time:8.175s step_avg:4.08ms
+step:2006/2125 train_time:9.443s step_avg:4.71ms
+step:2007/2125 train_time:10.713s step_avg:5.34ms
+step:2008/2125 train_time:11.983s step_avg:5.97ms
+step:2009/2125 train_time:13.254s step_avg:6.60ms
+step:2010/2125 train_time:14.524s step_avg:7.23ms
+step:2011/2125 train_time:15.791s step_avg:7.85ms
+step:2012/2125 train_time:17.059s step_avg:8.48ms
+step:2013/2125 train_time:18.330s step_avg:9.11ms
+step:2014/2125 train_time:19.602s step_avg:9.73ms
+step:2015/2125 train_time:20.866s step_avg:10.36ms
+step:2016/2125 train_time:22.137s step_avg:10.98ms
+step:2017/2125 train_time:23.404s step_avg:11.60ms
+step:2018/2125 train_time:24.676s step_avg:12.23ms
+step:2019/2125 train_time:25.942s step_avg:12.85ms
+step:2020/2125 train_time:27.208s step_avg:13.47ms
+step:2021/2125 train_time:28.475s step_avg:14.09ms
+step:2022/2125 train_time:29.746s step_avg:14.71ms
+step:2023/2125 train_time:31.011s step_avg:15.33ms
+step:2024/2125 train_time:32.278s step_avg:15.95ms
+step:2025/2125 train_time:33.543s step_avg:16.56ms
+step:2025/2125 val_loss:3.37118 train_time:33.543s step_avg:1341.72ms
+step:2026/2125 train_time:34.817s step_avg:17.19ms
+step:2027/2125 train_time:36.078s step_avg:17.80ms
+step:2028/2125 train_time:37.349s step_avg:18.42ms
+step:2029/2125 train_time:38.610s step_avg:19.03ms
+step:2030/2125 train_time:39.875s step_avg:19.64ms
+step:2031/2125 train_time:41.140s step_avg:20.26ms
+step:2032/2125 train_time:42.405s step_avg:20.87ms
+step:2033/2125 train_time:43.673s step_avg:21.48ms
+step:2034/2125 train_time:44.934s step_avg:22.09ms
+step:2035/2125 train_time:46.200s step_avg:22.70ms
+step:2036/2125 train_time:47.464s step_avg:23.31ms
+step:2037/2125 train_time:48.732s step_avg:23.92ms
+step:2038/2125 train_time:49.998s step_avg:24.53ms
+step:2039/2125 train_time:51.260s step_avg:25.14ms
+step:2040/2125 train_time:52.524s step_avg:25.75ms
+step:2041/2125 train_time:53.794s step_avg:26.36ms
+step:2042/2125 train_time:55.065s step_avg:26.97ms
+step:2043/2125 train_time:56.331s step_avg:27.57ms
+step:2044/2125 train_time:57.592s step_avg:28.18ms
+step:2045/2125 train_time:58.857s step_avg:28.78ms
+step:2046/2125 train_time:60.120s step_avg:29.38ms
+step:2047/2125 train_time:61.384s step_avg:29.99ms
+step:2048/2125 train_time:62.654s step_avg:30.59ms
+step:2049/2125 train_time:63.919s step_avg:31.20ms
+step:2050/2125 train_time:65.181s step_avg:31.80ms
+step:2050/2125 val_loss:3.36930 train_time:65.182s step_avg:1265.55ms
+step:2051/2125 train_time:66.451s step_avg:32.40ms
+step:2052/2125 train_time:67.717s step_avg:33.00ms
+step:2053/2125 train_time:68.985s step_avg:33.60ms
+step:2054/2125 train_time:70.252s step_avg:34.20ms
+step:2055/2125 train_time:71.514s step_avg:34.80ms
+step:2056/2125 train_time:72.778s step_avg:35.40ms
+step:2057/2125 train_time:74.041s step_avg:35.99ms
+step:2058/2125 train_time:75.310s step_avg:36.59ms
+step:2059/2125 train_time:76.576s step_avg:37.19ms
+step:2060/2125 train_time:77.842s step_avg:37.79ms
+step:2061/2125 train_time:79.114s step_avg:38.39ms
+step:2062/2125 train_time:80.380s step_avg:38.98ms
+step:2063/2125 train_time:81.648s step_avg:39.58ms
+step:2064/2125 train_time:82.913s step_avg:40.17ms
+step:2065/2125 train_time:84.179s step_avg:40.76ms
+step:2066/2125 train_time:85.449s step_avg:41.36ms
+step:2067/2125 train_time:86.713s step_avg:41.95ms
+step:2068/2125 train_time:87.978s step_avg:42.54ms
+step:2069/2125 train_time:89.250s step_avg:43.14ms
+step:2070/2125 train_time:90.513s step_avg:43.73ms
+step:2071/2125 train_time:91.781s step_avg:44.32ms
+step:2072/2125 train_time:93.046s step_avg:44.91ms
+step:2073/2125 train_time:94.315s step_avg:45.50ms
+step:2074/2125 train_time:95.576s step_avg:46.08ms
+step:2075/2125 train_time:96.843s step_avg:46.67ms
+step:2075/2125 val_loss:3.36770 train_time:96.843s step_avg:1266.45ms
+step:2076/2125 train_time:98.114s step_avg:47.26ms
+step:2077/2125 train_time:99.385s step_avg:47.85ms
+step:2078/2125 train_time:100.652s step_avg:48.44ms
+step:2079/2125 train_time:101.918s step_avg:49.02ms
+step:2080/2125 train_time:103.190s step_avg:49.61ms
+step:2081/2125 train_time:104.453s step_avg:50.19ms
+step:2082/2125 train_time:105.724s step_avg:50.78ms
+step:2083/2125 train_time:106.994s step_avg:51.37ms
+step:2084/2125 train_time:108.262s step_avg:51.95ms
+step:2085/2125 train_time:109.531s step_avg:52.53ms
+step:2086/2125 train_time:110.798s step_avg:53.12ms
+step:2087/2125 train_time:112.069s step_avg:53.70ms
+step:2088/2125 train_time:113.338s step_avg:54.28ms
+step:2089/2125 train_time:114.610s step_avg:54.86ms
+step:2090/2125 train_time:115.881s step_avg:55.45ms
+step:2091/2125 train_time:117.173s step_avg:56.04ms
+step:2092/2125 train_time:118.438s step_avg:56.61ms
+step:2093/2125 train_time:119.712s step_avg:57.20ms
+step:2094/2125 train_time:120.975s step_avg:57.77ms
+step:2095/2125 train_time:122.241s step_avg:58.35ms
+step:2096/2125 train_time:123.510s step_avg:58.93ms
+step:2097/2125 train_time:124.777s step_avg:59.50ms
+step:2098/2125 train_time:126.052s step_avg:60.08ms
+step:2099/2125 train_time:127.316s step_avg:60.66ms
+step:2100/2125 train_time:128.589s step_avg:61.23ms
+step:2100/2125 val_loss:3.36579 train_time:128.590s step_avg:1269.87ms
+step:2101/2125 train_time:129.867s step_avg:61.81ms
+step:2102/2125 train_time:131.133s step_avg:62.38ms
+step:2103/2125 train_time:132.401s step_avg:62.96ms
+step:2104/2125 train_time:133.671s step_avg:63.53ms
+step:2105/2125 train_time:134.938s step_avg:64.10ms
+step:2106/2125 train_time:136.205s step_avg:64.67ms
+step:2107/2125 train_time:137.476s step_avg:65.25ms
+step:2108/2125 train_time:138.745s step_avg:65.82ms
+step:2109/2125 train_time:140.015s step_avg:66.39ms
+step:2110/2125 train_time:141.285s step_avg:66.96ms
+step:2111/2125 train_time:142.553s step_avg:67.53ms
+step:2112/2125 train_time:143.820s step_avg:68.10ms
+step:2113/2125 train_time:145.088s step_avg:68.66ms
+step:2114/2125 train_time:146.352s step_avg:69.23ms
+step:2115/2125 train_time:147.615s step_avg:69.79ms
+step:2116/2125 train_time:148.878s step_avg:70.36ms
+step:2117/2125 train_time:150.145s step_avg:70.92ms
+step:2118/2125 train_time:151.412s step_avg:71.49ms
+step:2119/2125 train_time:152.676s step_avg:72.05ms
+step:2120/2125 train_time:153.947s step_avg:72.62ms
+step:2121/2125 train_time:155.214s step_avg:73.18ms
+step:2122/2125 train_time:156.481s step_avg:73.74ms
+step:2123/2125 train_time:157.751s step_avg:74.31ms
+step:2124/2125 train_time:159.017s step_avg:74.87ms
+track3_checkpoint_saved step:2125 path:/home/ubuntu/.cache/track3_checkpoints/track3_locom_2000_floor111_seed3710_seed3710_step2125.pt val_loss:None
+step:2125/2125 train_time:162.152s step_avg:76.31ms
+step:2125/2125 val_loss:3.36425 train_time:162.152s step_avg:1342.50ms
+===== track3_locom_2000_floor111_norm002_k5_seed3710 =====
+track3_locom_runner source=records/track_3_optimization/train_gpt_simple.py generated=/tmp/track3_locom_2000_floor111_norm002_k5_seed3710.py steps=2125 trials=1 nproc=1 mbs=16 trial_arg_mode=positional-count
+track3_locom_source_sha source=3191da541544c96aa4a4a9dfdde8a8e1fa674620583b69c61f10818c74c1436b generator=d531e33ce23d51002c957fcc78dd20b60f95396fc2b6045993de8c47bd3c047d generated=c94a53d9da8ac23365fe9ed25bd635aa8176ff236224880112d7b389f8bc0a48
+logs/74b3a09c-7a81-4a5e-bb1c-f04886d11e0f.txt
+track3_trial_seed=3710 trial=0
+locoprop_m_owner rank=0 world=1 owned_layers=[0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11] sample_tokens=1024 gather_samples=True accum_samples=False micro_sample_tokens=32 aux_capture=False aux_seqs=16 batched_prep=False
+track3_checkpoint_loaded path:/home/ubuntu/.cache/track3_checkpoints/track3_locom_good2000_seed3710_step2000.pt step:2000 seed:3710 val_loss:None load_optimizers:True
+track3_resume_advanced_data steps:2000
+step:2000/2125 val_loss:3.37338 train_time:0.000s step_avg:nanms
+locoprop_m_kdiag step=2000 l0 k1:loss=3.771e-05,ratio=9.993e-01,corr_norm=1.260e-04,raw_cos=0.024,cos=0.024 | k2:loss=3.768e-05,ratio=9.986e-01,corr_norm=2.518e-04,raw_cos=0.024,cos=0.024 | k4:loss=3.763e-05,ratio=9.973e-01,corr_norm=5.029e-04,raw_cos=0.024,cos=0.024 | k5:loss=3.761e-05,ratio=9.966e-01,corr_norm=6.281e-04,raw_cos=0.024,cos=0.024
+locoprop_m_kdiag step=2000 l1 k1:loss=1.706e-05,ratio=9.966e-01,corr_norm=1.914e-04,raw_cos=0.021,cos=0.021 | k2:loss=1.700e-05,ratio=9.935e-01,corr_norm=3.748e-04,raw_cos=0.021,cos=0.021 | k4:loss=1.691e-05,ratio=9.878e-01,corr_norm=7.217e-04,raw_cos=0.022,cos=0.022 | k5:loss=1.686e-05,ratio=9.852e-01,corr_norm=8.868e-04,raw_cos=0.023,cos=0.023
+locoprop_m_kdiag step=2000 l2 k1:loss=3.130e-05,ratio=9.323e-01,corr_norm=1.262e-03,raw_cos=0.012,cos=0.012 | k2:loss=2.992e-05,ratio=8.910e-01,corr_norm=2.223e-03,raw_cos=0.013,cos=0.013 | k4:loss=2.824e-05,ratio=8.409e-01,corr_norm=3.650e-03,raw_cos=0.014,cos=0.014 | k5:loss=2.765e-05,ratio=8.235e-01,corr_norm=4.223e-03,raw_cos=0.014,cos=0.014
+locoprop_m_kdiag step=2000 l3 k1:loss=2.942e-05,ratio=9.552e-01,corr_norm=1.062e-03,raw_cos=-0.003,cos=-0.003 | k2:loss=2.894e-05,ratio=9.398e-01,corr_norm=1.612e-03,raw_cos=-0.002,cos=-0.002 | k4:loss=2.838e-05,ratio=9.216e-01,corr_norm=2.319e-03,raw_cos=0.000,cos=0.000 | k5:loss=2.816e-05,ratio=9.143e-01,corr_norm=2.626e-03,raw_cos=0.002,cos=0.002
+locoprop_m_kdiag step=2000 l4 k1:loss=2.622e-05,ratio=9.894e-01,corr_norm=4.320e-04,raw_cos=0.019,cos=0.019 | k2:loss=2.601e-05,ratio=9.812e-01,corr_norm=8.023e-04,raw_cos=0.019,cos=0.019 | k4:loss=2.566e-05,ratio=9.679e-01,corr_norm=1.451e-03,raw_cos=0.018,cos=0.018 | k5:loss=2.550e-05,ratio=9.620e-01,corr_norm=1.752e-03,raw_cos=0.018,cos=0.018
+locoprop_m_kdiag step=2000 l5 k1:loss=3.133e-05,ratio=9.896e-01,corr_norm=4.522e-04,raw_cos=0.023,cos=0.023 | k2:loss=3.101e-05,ratio=9.796e-01,corr_norm=8.952e-04,raw_cos=0.023,cos=0.023 | k4:loss=3.041e-05,ratio=9.607e-01,corr_norm=1.756e-03,raw_cos=0.023,cos=0.023 | k5:loss=3.013e-05,ratio=9.518e-01,corr_norm=2.174e-03,raw_cos=0.023,cos=0.023
+locoprop_m_kdiag step=2000 l6 k1:loss=4.413e-05,ratio=9.847e-01,corr_norm=6.528e-04,raw_cos=0.010,cos=0.010 | k2:loss=4.348e-05,ratio=9.703e-01,corr_norm=1.288e-03,raw_cos=0.010,cos=0.010 | k4:loss=4.228e-05,ratio=9.434e-01,corr_norm=2.510e-03,raw_cos=0.010,cos=0.010 | k5:loss=4.172e-05,ratio=9.310e-01,corr_norm=3.098e-03,raw_cos=0.010,cos=0.010
+locoprop_m_kdiag step=2000 l7 k1:loss=6.428e-05,ratio=9.800e-01,corr_norm=9.064e-04,raw_cos=0.002,cos=0.002 | k2:loss=6.305e-05,ratio=9.612e-01,corr_norm=1.783e-03,raw_cos=0.002,cos=0.002 | k4:loss=6.080e-05,ratio=9.269e-01,corr_norm=3.457e-03,raw_cos=0.002,cos=0.002 | k5:loss=5.977e-05,ratio=9.111e-01,corr_norm=4.257e-03,raw_cos=0.002,cos=0.002
+locoprop_m_kdiag step=2000 l8 k1:loss=8.910e-05,ratio=9.689e-01,corr_norm=1.349e-03,raw_cos=0.014,cos=0.014 | k2:loss=8.660e-05,ratio=9.417e-01,corr_norm=2.605e-03,raw_cos=0.012,cos=0.012 | k4:loss=8.231e-05,ratio=8.951e-01,corr_norm=4.913e-03,raw_cos=0.010,cos=0.010 | k5:loss=8.043e-05,ratio=8.747e-01,corr_norm=5.988e-03,raw_cos=0.010,cos=0.010
+locoprop_m_kdiag step=2000 l9 k1:loss=1.340e-04,ratio=9.682e-01,corr_norm=1.668e-03,raw_cos=-0.014,cos=-0.014 | k2:loss=1.301e-04,ratio=9.396e-01,corr_norm=3.245e-03,raw_cos=-0.013,cos=-0.013 | k4:loss=1.232e-04,ratio=8.901e-01,corr_norm=6.173e-03,raw_cos=-0.012,cos=-0.012 | k5:loss=1.202e-04,ratio=8.683e-01,corr_norm=7.539e-03,raw_cos=-0.012,cos=-0.012
+locoprop_m_kdiag step=2000 l10 k1:loss=2.109e-04,ratio=9.605e-01,corr_norm=2.375e-03,raw_cos=0.010,cos=0.010 | k2:loss=2.037e-04,ratio=9.277e-01,corr_norm=4.500e-03,raw_cos=0.009,cos=0.009 | k4:loss=1.918e-04,ratio=8.737e-01,corr_norm=8.333e-03,raw_cos=0.009,cos=0.009 | k5:loss=1.868e-04,ratio=8.508e-01,corr_norm=1.009e-02,raw_cos=0.008,cos=0.008
+locoprop_m_kdiag step=2000 l11 k1:loss=3.949e-04,ratio=9.518e-01,corr_norm=3.671e-03,raw_cos=-0.002,cos=-0.002 | k2:loss=3.798e-04,ratio=9.156e-01,corr_norm=6.737e-03,raw_cos=-0.002,cos=-0.002 | k4:loss=3.567e-04,ratio=8.598e-01,corr_norm=1.205e-02,raw_cos=-0.002,cos=-0.002 | k5:loss=3.472e-04,ratio=8.369e-01,corr_norm=1.442e-02,raw_cos=-0.002,cos=-0.002
+locoprop_m_prepare step=2000 l0:loss0=3.774e-05,lossK=3.761e-05,corr_norm=6.281e-04,grad_norm=2.386e+03,raw_cos_desc=0.024,cos_desc=0.024,accepted=1,tokens=1024,opt=sgd,mode=normal,true_post_grad=1 | l1:loss0=1.712e-05,lossK=1.686e-05,corr_norm=8.868e-04,grad_norm=2.021e+03,raw_cos_desc=0.023,cos_desc=0.023,accepted=1,tokens=1024,opt=sgd,mode=normal,true_post_grad=1 | l2:loss0=3.358e-05,lossK=2.765e-05,corr_norm=4.223e-03,grad_norm=2.085e+03,raw_cos_desc=0.014,cos_desc=0.014,accepted=1,tokens=1024,opt=sgd,mode=normal,true_post_grad=1 | l3:loss0=3.080e-05,lossK=2.816e-05,corr_norm=2.626e-03,grad_norm=2.232e+03,raw_cos_desc=0.002,cos_desc=0.002,accepted=1,tokens=1024,opt=sgd,mode=normal,true_post_grad=1
+locoprop_m_apply step=2000 shape=(3072, 768):base_step=2.156e-01,corr_norm=6.281e-04,cap=0.200,scale=6.866e+00 | shape=(3072, 768):base_step=2.155e-01,corr_norm=8.868e-04,cap=0.200,scale=4.860e+00 | shape=(3072, 768):base_step=2.155e-01,corr_norm=4.223e-03,cap=0.200,scale=1.021e+00 | shape=(3072, 768):base_step=2.155e-01,corr_norm=2.626e-03,cap=0.200,scale=1.642e+00 | shape=(3072, 768):base_step=2.156e-01,corr_norm=1.752e-03,cap=0.200,scale=2.460e+00 | shape=(3072, 768):base_step=2.156e-01,corr_norm=2.174e-03,cap=0.200,scale=1.983e+00 | shape=(3072, 768):base_step=2.156e-01,corr_norm=3.098e-03,cap=0.200,scale=1.392e+00 | shape=(3072, 768):base_step=2.156e-01,corr_norm=4.257e-03,cap=0.200,scale=1.013e+00
+step:2001/2125 train_time:5.705s step_avg:2.85ms
+step:2002/2125 train_time:10.271s step_avg:5.13ms
+step:2003/2125 train_time:14.837s step_avg:7.41ms
+step:2004/2125 train_time:19.400s step_avg:9.68ms
+step:2005/2125 train_time:23.966s step_avg:11.95ms
+step:2006/2125 train_time:28.531s step_avg:14.22ms
+step:2007/2125 train_time:33.096s step_avg:16.49ms
+step:2008/2125 train_time:37.661s step_avg:18.76ms
+step:2009/2125 train_time:42.226s step_avg:21.02ms
+step:2010/2125 train_time:46.790s step_avg:23.28ms
+step:2011/2125 train_time:51.354s step_avg:25.54ms
+step:2012/2125 train_time:55.919s step_avg:27.79ms
+step:2013/2125 train_time:60.484s step_avg:30.05ms
+step:2014/2125 train_time:65.049s step_avg:32.30ms
+step:2015/2125 train_time:69.613s step_avg:34.55ms
+step:2016/2125 train_time:74.177s step_avg:36.79ms
+step:2017/2125 train_time:78.742s step_avg:39.04ms
+step:2018/2125 train_time:83.306s step_avg:41.28ms
+step:2019/2125 train_time:87.870s step_avg:43.52ms
+step:2020/2125 train_time:92.435s step_avg:45.76ms
+step:2021/2125 train_time:96.998s step_avg:47.99ms
+step:2022/2125 train_time:101.563s step_avg:50.23ms
+step:2023/2125 train_time:106.127s step_avg:52.46ms
+step:2024/2125 train_time:110.691s step_avg:54.69ms
+step:2025/2125 train_time:115.254s step_avg:56.92ms
+step:2025/2125 val_loss:3.37121 train_time:115.254s step_avg:4610.18ms
+locoprop_m_kdiag step=2025 l0 k1:loss=4.958e-05,ratio=9.991e-01,corr_norm=1.617e-04,raw_cos=0.056,cos=0.056 | k2:loss=4.954e-05,ratio=9.983e-01,corr_norm=3.229e-04,raw_cos=0.056,cos=0.056 | k4:loss=4.945e-05,ratio=9.966e-01,corr_norm=6.434e-04,raw_cos=0.056,cos=0.056 | k5:loss=4.941e-05,ratio=9.958e-01,corr_norm=8.028e-04,raw_cos=0.056,cos=0.056
+locoprop_m_kdiag step=2025 l1 k1:loss=1.438e-05,ratio=9.956e-01,corr_norm=1.997e-04,raw_cos=0.024,cos=0.024 | k2:loss=1.432e-05,ratio=9.912e-01,corr_norm=3.964e-04,raw_cos=0.024,cos=0.024 | k4:loss=1.420e-05,ratio=9.830e-01,corr_norm=7.811e-04,raw_cos=0.024,cos=0.024 | k5:loss=1.414e-05,ratio=9.790e-01,corr_norm=9.694e-04,raw_cos=0.024,cos=0.024
+locoprop_m_kdiag step=2025 l2 k1:loss=2.540e-05,ratio=9.678e-01,corr_norm=7.511e-04,raw_cos=-0.010,cos=-0.010 | k2:loss=2.475e-05,ratio=9.432e-01,corr_norm=1.389e-03,raw_cos=-0.005,cos=-0.005 | k4:loss=2.369e-05,ratio=9.027e-01,corr_norm=2.513e-03,raw_cos=0.002,cos=0.002 | k5:loss=2.322e-05,ratio=8.850e-01,corr_norm=3.035e-03,raw_cos=0.004,cos=0.004
+locoprop_m_kdiag step=2025 l3 k1:loss=2.387e-05,ratio=9.679e-01,corr_norm=7.881e-04,raw_cos=0.043,cos=0.043 | k2:loss=2.355e-05,ratio=9.549e-01,corr_norm=1.247e-03,raw_cos=0.042,cos=0.042 | k4:loss=2.320e-05,ratio=9.408e-01,corr_norm=1.841e-03,raw_cos=0.041,cos=0.041 | k5:loss=2.308e-05,ratio=9.358e-01,corr_norm=2.078e-03,raw_cos=0.041,cos=0.041
+locoprop_m_kdiag step=2025 l4 k1:loss=2.269e-05,ratio=9.864e-01,corr_norm=4.666e-04,raw_cos=-0.017,cos=-0.017 | k2:loss=2.248e-05,ratio=9.773e-01,corr_norm=8.299e-04,raw_cos=-0.010,cos=-0.010 | k4:loss=2.216e-05,ratio=9.634e-01,corr_norm=1.436e-03,raw_cos=0.002,cos=0.002 | k5:loss=2.202e-05,ratio=9.573e-01,corr_norm=1.714e-03,raw_cos=0.006,cos=0.006
+locoprop_m_kdiag step=2025 l5 k1:loss=2.481e-05,ratio=9.899e-01,corr_norm=3.969e-04,raw_cos=0.034,cos=0.034 | k2:loss=2.457e-05,ratio=9.803e-01,corr_norm=7.833e-04,raw_cos=0.033,cos=0.033 | k4:loss=2.412e-05,ratio=9.625e-01,corr_norm=1.528e-03,raw_cos=0.031,cos=0.031 | k5:loss=2.391e-05,ratio=9.542e-01,corr_norm=1.887e-03,raw_cos=0.031,cos=0.031
+locoprop_m_kdiag step=2025 l6 k1:loss=3.428e-05,ratio=9.853e-01,corr_norm=5.659e-04,raw_cos=0.027,cos=0.027 | k2:loss=3.380e-05,ratio=9.716e-01,corr_norm=1.112e-03,raw_cos=0.026,cos=0.026 | k4:loss=3.293e-05,ratio=9.466e-01,corr_norm=2.151e-03,raw_cos=0.025,cos=0.025 | k5:loss=3.253e-05,ratio=9.351e-01,corr_norm=2.648e-03,raw_cos=0.024,cos=0.024
+locoprop_m_kdiag step=2025 l7 k1:loss=5.138e-05,ratio=9.749e-01,corr_norm=9.199e-04,raw_cos=-0.008,cos=-0.008 | k2:loss=5.023e-05,ratio=9.533e-01,corr_norm=1.768e-03,raw_cos=-0.006,cos=-0.006 | k4:loss=4.830e-05,ratio=9.165e-01,corr_norm=3.317e-03,raw_cos=-0.004,cos=-0.004 | k5:loss=4.745e-05,ratio=9.005e-01,corr_norm=4.036e-03,raw_cos=-0.003,cos=-0.003
+locoprop_m_kdiag step=2025 l8 k1:loss=6.909e-05,ratio=9.724e-01,corr_norm=1.117e-03,raw_cos=-0.004,cos=-0.004 | k2:loss=6.736e-05,ratio=9.480e-01,corr_norm=2.161e-03,raw_cos=-0.003,cos=-0.003 | k4:loss=6.440e-05,ratio=9.063e-01,corr_norm=4.081e-03,raw_cos=-0.002,cos=-0.002 | k5:loss=6.310e-05,ratio=8.880e-01,corr_norm=4.975e-03,raw_cos=-0.001,cos=-0.001
+locoprop_m_kdiag step=2025 l9 k1:loss=1.128e-04,ratio=9.659e-01,corr_norm=1.601e-03,raw_cos=-0.001,cos=-0.001 | k2:loss=1.094e-04,ratio=9.370e-01,corr_norm=3.063e-03,raw_cos=-0.000,cos=-0.000 | k4:loss=1.038e-04,ratio=8.892e-01,corr_norm=5.695e-03,raw_cos=0.001,cos=0.001 | k5:loss=1.015e-04,ratio=8.688e-01,corr_norm=6.901e-03,raw_cos=0.001,cos=0.001
+locoprop_m_kdiag step=2025 l10 k1:loss=1.965e-04,ratio=9.526e-01,corr_norm=2.603e-03,raw_cos=0.005,cos=0.005 | k2:loss=1.895e-04,ratio=9.189e-01,corr_norm=4.667e-03,raw_cos=0.010,cos=0.010 | k4:loss=1.790e-04,ratio=8.680e-01,corr_norm=8.217e-03,raw_cos=0.011,cos=0.011 | k5:loss=1.748e-04,ratio=8.473e-01,corr_norm=9.799e-03,raw_cos=0.011,cos=0.011
+locoprop_m_kdiag step=2025 l11 k1:loss=4.165e-04,ratio=9.483e-01,corr_norm=4.058e-03,raw_cos=-0.005,cos=-0.005 | k2:loss=4.017e-04,ratio=9.147e-01,corr_norm=7.016e-03,raw_cos=-0.000,cos=-0.000 | k4:loss=3.805e-04,ratio=8.664e-01,corr_norm=1.204e-02,raw_cos=0.002,cos=0.002 | k5:loss=3.723e-04,ratio=8.477e-01,corr_norm=1.427e-02,raw_cos=-0.000,cos=-0.000
+locoprop_m_prepare step=2025 l0:loss0=4.962e-05,lossK=4.941e-05,corr_norm=8.028e-04,grad_norm=2.666e+03,raw_cos_desc=0.056,cos_desc=0.056,accepted=1,tokens=1024,opt=sgd,mode=normal,true_post_grad=1 | l1:loss0=1.445e-05,lossK=1.414e-05,corr_norm=9.694e-04,grad_norm=2.045e+03,raw_cos_desc=0.024,cos_desc=0.024,accepted=1,tokens=1024,opt=sgd,mode=normal,true_post_grad=1 | l2:loss0=2.624e-05,lossK=2.322e-05,corr_norm=3.035e-03,grad_norm=2.164e+03,raw_cos_desc=0.004,cos_desc=0.004,accepted=1,tokens=1024,opt=sgd,mode=normal,true_post_grad=1 | l3:loss0=2.466e-05,lossK=2.308e-05,corr_norm=2.078e-03,grad_norm=2.269e+03,raw_cos_desc=0.041,cos_desc=0.041,accepted=1,tokens=1024,opt=sgd,mode=normal,true_post_grad=1
+locoprop_m_apply step=2025 shape=(3072, 768):base_step=2.156e-01,corr_norm=8.028e-04,cap=0.200,scale=5.371e+00 | shape=(3072, 768):base_step=2.155e-01,corr_norm=9.694e-04,cap=0.200,scale=4.447e+00 | shape=(3072, 768):base_step=2.155e-01,corr_norm=3.035e-03,cap=0.200,scale=1.420e+00 | shape=(3072, 768):base_step=2.156e-01,corr_norm=2.078e-03,cap=0.200,scale=2.075e+00 | shape=(3072, 768):base_step=2.155e-01,corr_norm=1.714e-03,cap=0.200,scale=2.515e+00 | shape=(3072, 768):base_step=2.155e-01,corr_norm=1.887e-03,cap=0.200,scale=2.284e+00 | shape=(3072, 768):base_step=2.156e-01,corr_norm=2.648e-03,cap=0.200,scale=1.629e+00 | shape=(3072, 768):base_step=2.155e-01,corr_norm=6.901e-03,cap=0.200,scale=6.245e-01
+step:2026/2125 train_time:119.838s step_avg:59.15ms
+step:2027/2125 train_time:124.402s step_avg:61.37ms
+step:2028/2125 train_time:128.967s step_avg:63.59ms
+step:2029/2125 train_time:133.529s step_avg:65.81ms
+step:2030/2125 train_time:138.093s step_avg:68.03ms
+step:2031/2125 train_time:142.656s step_avg:70.24ms
+step:2032/2125 train_time:147.219s step_avg:72.45ms
+step:2033/2125 train_time:151.784s step_avg:74.66ms
+step:2034/2125 train_time:156.348s step_avg:76.87ms
+step:2035/2125 train_time:160.914s step_avg:79.07ms
+step:2036/2125 train_time:165.476s step_avg:81.28ms
+step:2037/2125 train_time:170.042s step_avg:83.48ms
+step:2038/2125 train_time:174.607s step_avg:85.68ms
+step:2039/2125 train_time:179.172s step_avg:87.87ms
+step:2040/2125 train_time:183.738s step_avg:90.07ms
+step:2041/2125 train_time:188.302s step_avg:92.26ms
+step:2042/2125 train_time:192.867s step_avg:94.45ms
+step:2043/2125 train_time:197.431s step_avg:96.64ms
+step:2044/2125 train_time:201.995s step_avg:98.82ms
+step:2045/2125 train_time:206.560s step_avg:101.01ms
+step:2046/2125 train_time:211.124s step_avg:103.19ms
+step:2047/2125 train_time:215.686s step_avg:105.37ms
+step:2048/2125 train_time:220.250s step_avg:107.54ms
+step:2049/2125 train_time:224.814s step_avg:109.72ms
+step:2050/2125 train_time:229.377s step_avg:111.89ms
+step:2050/2125 val_loss:3.36932 train_time:229.378s step_avg:4564.93ms
+locoprop_m_kdiag step=2050 l0 k1:loss=4.185e-05,ratio=9.993e-01,corr_norm=1.322e-04,raw_cos=0.018,cos=0.018 | k2:loss=4.182e-05,ratio=9.986e-01,corr_norm=2.642e-04,raw_cos=0.018,cos=0.018 | k4:loss=4.176e-05,ratio=9.973e-01,corr_norm=5.275e-04,raw_cos=0.019,cos=0.019 | k5:loss=4.173e-05,ratio=9.966e-01,corr_norm=6.588e-04,raw_cos=0.019,cos=0.019
+locoprop_m_kdiag step=2050 l1 k1:loss=1.781e-05,ratio=9.923e-01,corr_norm=2.940e-04,raw_cos=-0.013,cos=-0.013 | k2:loss=1.768e-05,ratio=9.852e-01,corr_norm=5.765e-04,raw_cos=-0.013,cos=-0.013 | k4:loss=1.745e-05,ratio=9.726e-01,corr_norm=1.110e-03,raw_cos=-0.012,cos=-0.012 | k5:loss=1.735e-05,ratio=9.669e-01,corr_norm=1.362e-03,raw_cos=-0.012,cos=-0.012
+locoprop_m_kdiag step=2050 l2 k1:loss=2.977e-05,ratio=9.772e-01,corr_norm=6.720e-04,raw_cos=0.008,cos=0.008 | k2:loss=2.921e-05,ratio=9.590e-01,corr_norm=1.269e-03,raw_cos=0.006,cos=0.006 | k4:loss=2.835e-05,ratio=9.308e-01,corr_norm=2.306e-03,raw_cos=0.004,cos=0.004 | k5:loss=2.801e-05,ratio=9.195e-01,corr_norm=2.766e-03,raw_cos=0.003,cos=0.003
+locoprop_m_kdiag step=2050 l3 k1:loss=3.222e-05,ratio=9.525e-01,corr_norm=1.174e-03,raw_cos=0.008,cos=0.008 | k2:loss=3.180e-05,ratio=9.401e-01,corr_norm=1.695e-03,raw_cos=0.008,cos=0.008 | k4:loss=3.134e-05,ratio=9.265e-01,corr_norm=2.288e-03,raw_cos=0.008,cos=0.008 | k5:loss=3.115e-05,ratio=9.209e-01,corr_norm=2.547e-03,raw_cos=0.007,cos=0.007
+locoprop_m_kdiag step=2050 l4 k1:loss=2.560e-05,ratio=9.824e-01,corr_norm=5.820e-04,raw_cos=0.001,cos=0.001 | k2:loss=2.536e-05,ratio=9.730e-01,corr_norm=9.770e-04,raw_cos=0.005,cos=0.005 | k4:loss=2.502e-05,ratio=9.600e-01,corr_norm=1.577e-03,raw_cos=0.011,cos=0.011 | k5:loss=2.487e-05,ratio=9.543e-01,corr_norm=1.848e-03,raw_cos=0.013,cos=0.013
+locoprop_m_kdiag step=2050 l5 k1:loss=3.085e-05,ratio=9.892e-01,corr_norm=4.571e-04,raw_cos=0.004,cos=0.004 | k2:loss=3.053e-05,ratio=9.791e-01,corr_norm=9.018e-04,raw_cos=0.005,cos=0.005 | k4:loss=2.994e-05,ratio=9.601e-01,corr_norm=1.759e-03,raw_cos=0.006,cos=0.006 | k5:loss=2.966e-05,ratio=9.512e-01,corr_norm=2.173e-03,raw_cos=0.006,cos=0.006
+locoprop_m_kdiag step=2050 l6 k1:loss=4.363e-05,ratio=9.852e-01,corr_norm=6.383e-04,raw_cos=-0.009,cos=-0.009 | k2:loss=4.301e-05,ratio=9.711e-01,corr_norm=1.261e-03,raw_cos=-0.009,cos=-0.009 | k4:loss=4.184e-05,ratio=9.448e-01,corr_norm=2.464e-03,raw_cos=-0.009,cos=-0.009 | k5:loss=4.129e-05,ratio=9.325e-01,corr_norm=3.046e-03,raw_cos=-0.008,cos=-0.008
+locoprop_m_kdiag step=2050 l7 k1:loss=6.337e-05,ratio=9.805e-01,corr_norm=8.873e-04,raw_cos=-0.001,cos=-0.001 | k2:loss=6.219e-05,ratio=9.624e-01,corr_norm=1.743e-03,raw_cos=-0.001,cos=-0.001 | k4:loss=6.005e-05,ratio=9.292e-01,corr_norm=3.375e-03,raw_cos=-0.001,cos=-0.001 | k5:loss=5.907e-05,ratio=9.139e-01,corr_norm=4.156e-03,raw_cos=-0.000,cos=-0.000
+locoprop_m_kdiag step=2050 l8 k1:loss=9.350e-05,ratio=9.664e-01,corr_norm=1.448e-03,raw_cos=0.007,cos=0.007 | k2:loss=9.074e-05,ratio=9.380e-01,corr_norm=2.763e-03,raw_cos=0.007,cos=0.007 | k4:loss=8.609e-05,ratio=8.899e-01,corr_norm=5.158e-03,raw_cos=0.006,cos=0.006 | k5:loss=8.407e-05,ratio=8.689e-01,corr_norm=6.269e-03,raw_cos=0.006,cos=0.006
+locoprop_m_kdiag step=2050 l9 k1:loss=1.295e-04,ratio=9.683e-01,corr_norm=1.640e-03,raw_cos=0.005,cos=0.005 | k2:loss=1.258e-04,ratio=9.401e-01,corr_norm=3.181e-03,raw_cos=0.006,cos=0.006 | k4:loss=1.193e-04,ratio=8.917e-01,corr_norm=6.023e-03,raw_cos=0.006,cos=0.006 | k5:loss=1.165e-04,ratio=8.706e-01,corr_norm=7.346e-03,raw_cos=0.006,cos=0.006
+locoprop_m_kdiag step=2050 l10 k1:loss=2.159e-04,ratio=9.583e-01,corr_norm=2.490e-03,raw_cos=0.007,cos=0.007 | k2:loss=2.083e-04,ratio=9.244e-01,corr_norm=4.665e-03,raw_cos=0.006,cos=0.006 | k4:loss=1.957e-04,ratio=8.689e-01,corr_norm=8.588e-03,raw_cos=0.005,cos=0.005 | k5:loss=1.904e-04,ratio=8.453e-01,corr_norm=1.038e-02,raw_cos=0.004,cos=0.004
+locoprop_m_kdiag step=2050 l11 k1:loss=3.935e-04,ratio=9.493e-01,corr_norm=4.083e-03,raw_cos=0.018,cos=0.018 | k2:loss=3.790e-04,ratio=9.143e-01,corr_norm=6.696e-03,raw_cos=0.016,cos=0.016 | k4:loss=3.569e-04,ratio=8.610e-01,corr_norm=1.182e-02,raw_cos=0.014,cos=0.014 | k5:loss=3.477e-04,ratio=8.390e-01,corr_norm=1.413e-02,raw_cos=0.013,cos=0.013
+locoprop_m_prepare step=2050 l0:loss0=4.188e-05,lossK=4.173e-05,corr_norm=6.588e-04,grad_norm=2.503e+03,raw_cos_desc=0.019,cos_desc=0.019,accepted=1,tokens=1024,opt=sgd,mode=normal,true_post_grad=1 | l1:loss0=1.794e-05,lossK=1.735e-05,corr_norm=1.362e-03,grad_norm=2.062e+03,raw_cos_desc=-0.012,cos_desc=-0.012,accepted=0,tokens=1024,opt=sgd,mode=normal,true_post_grad=1 | l2:loss0=3.046e-05,lossK=2.801e-05,corr_norm=2.766e-03,grad_norm=2.161e+03,raw_cos_desc=0.003,cos_desc=0.003,accepted=1,tokens=1024,opt=sgd,mode=normal,true_post_grad=1 | l3:loss0=3.383e-05,lossK=3.115e-05,corr_norm=2.547e-03,grad_norm=2.396e+03,raw_cos_desc=0.007,cos_desc=0.007,accepted=1,tokens=1024,opt=sgd,mode=normal,true_post_grad=1
+locoprop_m_apply step=2050 shape=(3072, 768):base_step=2.156e-01,corr_norm=6.588e-04,cap=0.200,scale=6.546e+00 | shape=(3072, 768):base_step=2.155e-01,corr_norm=2.766e-03,cap=0.200,scale=1.559e+00 | shape=(3072, 768):base_step=2.155e-01,corr_norm=2.547e-03,cap=0.200,scale=1.693e+00 | shape=(3072, 768):base_step=2.156e-01,corr_norm=1.848e-03,cap=0.200,scale=2.333e+00 | shape=(3072, 768):base_step=2.155e-01,corr_norm=2.173e-03,cap=0.200,scale=1.984e+00 | shape=(3072, 768):base_step=2.155e-01,corr_norm=6.269e-03,cap=0.200,scale=6.875e-01 | shape=(3072, 768):base_step=2.155e-01,corr_norm=7.346e-03,cap=0.200,scale=5.867e-01 | shape=(3072, 768):base_step=2.155e-01,corr_norm=1.038e-02,cap=0.200,scale=4.150e-01
+step:2051/2125 train_time:233.961s step_avg:114.07ms
+step:2052/2125 train_time:238.524s step_avg:116.24ms
+step:2053/2125 train_time:243.088s step_avg:118.41ms
+step:2054/2125 train_time:247.651s step_avg:120.57ms
+step:2055/2125 train_time:252.217s step_avg:122.73ms
+step:2056/2125 train_time:256.781s step_avg:124.89ms
+step:2057/2125 train_time:261.344s step_avg:127.05ms
+step:2058/2125 train_time:265.908s step_avg:129.21ms
+step:2059/2125 train_time:270.471s step_avg:131.36ms
+step:2060/2125 train_time:275.037s step_avg:133.51ms
+step:2061/2125 train_time:279.600s step_avg:135.66ms
+step:2062/2125 train_time:284.163s step_avg:137.81ms
+step:2063/2125 train_time:288.727s step_avg:139.95ms
+step:2064/2125 train_time:293.290s step_avg:142.10ms
+step:2065/2125 train_time:297.854s step_avg:144.24ms
+step:2066/2125 train_time:302.417s step_avg:146.38ms
+step:2067/2125 train_time:306.983s step_avg:148.52ms
+step:2068/2125 train_time:311.545s step_avg:150.65ms
+step:2069/2125 train_time:316.110s step_avg:152.78ms
+step:2070/2125 train_time:320.673s step_avg:154.91ms
+step:2071/2125 train_time:325.237s step_avg:157.04ms
+step:2072/2125 train_time:329.801s step_avg:159.17ms
+step:2073/2125 train_time:334.364s step_avg:161.29ms
+step:2074/2125 train_time:338.929s step_avg:163.42ms
+step:2075/2125 train_time:343.492s step_avg:165.54ms
+step:2075/2125 val_loss:3.36774 train_time:343.493s step_avg:4564.61ms
+locoprop_m_kdiag step=2075 l0 k1:loss=4.624e-05,ratio=9.992e-01,corr_norm=1.503e-04,raw_cos=0.036,cos=0.036 | k2:loss=4.620e-05,ratio=9.984e-01,corr_norm=3.003e-04,raw_cos=0.036,cos=0.036 | k4:loss=4.613e-05,ratio=9.968e-01,corr_norm=5.990e-04,raw_cos=0.036,cos=0.036 | k5:loss=4.609e-05,ratio=9.961e-01,corr_norm=7.478e-04,raw_cos=0.036,cos=0.036
+locoprop_m_kdiag step=2075 l1 k1:loss=1.585e-05,ratio=9.946e-01,corr_norm=2.311e-04,raw_cos=0.009,cos=0.009 | k2:loss=1.577e-05,ratio=9.896e-01,corr_norm=4.556e-04,raw_cos=0.010,cos=0.010 | k4:loss=1.562e-05,ratio=9.802e-01,corr_norm=8.856e-04,raw_cos=0.010,cos=0.010 | k5:loss=1.555e-05,ratio=9.759e-01,corr_norm=1.092e-03,raw_cos=0.010,cos=0.010
+locoprop_m_kdiag step=2075 l2 k1:loss=2.391e-05,ratio=9.350e-01,corr_norm=1.093e-03,raw_cos=-0.004,cos=-0.004 | k2:loss=2.299e-05,ratio=8.991e-01,corr_norm=1.876e-03,raw_cos=-0.002,cos=-0.002 | k4:loss=2.191e-05,ratio=8.569e-01,corr_norm=2.995e-03,raw_cos=0.001,cos=0.001 | k5:loss=2.152e-05,ratio=8.417e-01,corr_norm=3.446e-03,raw_cos=0.002,cos=0.002
+locoprop_m_kdiag step=2075 l3 k1:loss=2.653e-05,ratio=9.820e-01,corr_norm=5.985e-04,raw_cos=-0.004,cos=-0.004 | k2:loss=2.627e-05,ratio=9.722e-01,corr_norm=1.006e-03,raw_cos=0.001,cos=0.001 | k4:loss=2.592e-05,ratio=9.593e-01,corr_norm=1.628e-03,raw_cos=0.008,cos=0.008 | k5:loss=2.578e-05,ratio=9.542e-01,corr_norm=1.896e-03,raw_cos=0.011,cos=0.011
+locoprop_m_kdiag step=2075 l4 k1:loss=2.477e-05,ratio=9.804e-01,corr_norm=5.880e-04,raw_cos=0.031,cos=0.031 | k2:loss=2.446e-05,ratio=9.682e-01,corr_norm=1.038e-03,raw_cos=0.030,cos=0.030 | k4:loss=2.405e-05,ratio=9.518e-01,corr_norm=1.734e-03,raw_cos=0.027,cos=0.027 | k5:loss=2.388e-05,ratio=9.452e-01,corr_norm=2.032e-03,raw_cos=0.025,cos=0.025
+locoprop_m_kdiag step=2075 l5 k1:loss=2.799e-05,ratio=9.894e-01,corr_norm=4.309e-04,raw_cos=0.037,cos=0.037 | k2:loss=2.770e-05,ratio=9.793e-01,corr_norm=8.528e-04,raw_cos=0.037,cos=0.037 | k4:loss=2.716e-05,ratio=9.602e-01,corr_norm=1.671e-03,raw_cos=0.036,cos=0.036 | k5:loss=2.690e-05,ratio=9.511e-01,corr_norm=2.069e-03,raw_cos=0.036,cos=0.036
+locoprop_m_kdiag step=2075 l6 k1:loss=4.036e-05,ratio=9.842e-01,corr_norm=6.363e-04,raw_cos=0.015,cos=0.015 | k2:loss=3.976e-05,ratio=9.695e-01,corr_norm=1.250e-03,raw_cos=0.015,cos=0.015 | k4:loss=3.866e-05,ratio=9.426e-01,corr_norm=2.421e-03,raw_cos=0.015,cos=0.015 | k5:loss=3.815e-05,ratio=9.303e-01,corr_norm=2.980e-03,raw_cos=0.015,cos=0.015
+locoprop_m_kdiag step=2075 l7 k1:loss=5.689e-05,ratio=9.799e-01,corr_norm=8.547e-04,raw_cos=0.011,cos=0.011 | k2:loss=5.580e-05,ratio=9.611e-01,corr_norm=1.680e-03,raw_cos=0.011,cos=0.011 | k4:loss=5.382e-05,ratio=9.270e-01,corr_norm=3.250e-03,raw_cos=0.011,cos=0.011 | k5:loss=5.291e-05,ratio=9.113e-01,corr_norm=4.000e-03,raw_cos=0.011,cos=0.011
+locoprop_m_kdiag step=2075 l8 k1:loss=8.091e-05,ratio=9.693e-01,corr_norm=1.274e-03,raw_cos=0.007,cos=0.007 | k2:loss=7.865e-05,ratio=9.422e-01,corr_norm=2.470e-03,raw_cos=0.007,cos=0.007 | k4:loss=7.476e-05,ratio=8.957e-01,corr_norm=4.672e-03,raw_cos=0.006,cos=0.006 | k5:loss=7.308e-05,ratio=8.754e-01,corr_norm=5.694e-03,raw_cos=0.006,cos=0.006
+locoprop_m_kdiag step=2075 l9 k1:loss=1.275e-04,ratio=9.654e-01,corr_norm=1.709e-03,raw_cos=-0.007,cos=-0.007 | k2:loss=1.236e-04,ratio=9.353e-01,corr_norm=3.292e-03,raw_cos=-0.007,cos=-0.007 | k4:loss=1.168e-04,ratio=8.846e-01,corr_norm=6.181e-03,raw_cos=-0.005,cos=-0.005 | k5:loss=1.139e-04,ratio=8.626e-01,corr_norm=7.517e-03,raw_cos=-0.005,cos=-0.005
+locoprop_m_kdiag step=2075 l10 k1:loss=2.135e-04,ratio=9.553e-01,corr_norm=2.662e-03,raw_cos=0.023,cos=0.023 | k2:loss=2.060e-04,ratio=9.216e-01,corr_norm=4.722e-03,raw_cos=0.012,cos=0.012 | k4:loss=1.938e-04,ratio=8.672e-01,corr_norm=8.555e-03,raw_cos=0.007,cos=0.007 | k5:loss=1.887e-04,ratio=8.443e-01,corr_norm=1.031e-02,raw_cos=0.005,cos=0.005
+locoprop_m_kdiag step=2075 l11 k1:loss=4.284e-04,ratio=9.279e-01,corr_norm=5.455e-03,raw_cos=-0.004,cos=-0.004 | k2:loss=4.127e-04,ratio=8.940e-01,corr_norm=7.885e-03,raw_cos=-0.005,cos=-0.005 | k4:loss=3.886e-04,ratio=8.418e-01,corr_norm=1.287e-02,raw_cos=-0.003,cos=-0.003 | k5:loss=3.787e-04,ratio=8.203e-01,corr_norm=1.520e-02,raw_cos=-0.003,cos=-0.003
+locoprop_m_prepare step=2075 l0:loss0=4.627e-05,lossK=4.609e-05,corr_norm=7.478e-04,grad_norm=2.482e+03,raw_cos_desc=0.036,cos_desc=0.036,accepted=1,tokens=1024,opt=sgd,mode=normal,true_post_grad=1 | l1:loss0=1.594e-05,lossK=1.555e-05,corr_norm=1.092e-03,grad_norm=2.070e+03,raw_cos_desc=0.010,cos_desc=0.010,accepted=1,tokens=1024,opt=sgd,mode=normal,true_post_grad=1 | l2:loss0=2.557e-05,lossK=2.152e-05,corr_norm=3.446e-03,grad_norm=2.175e+03,raw_cos_desc=0.002,cos_desc=0.002,accepted=1,tokens=1024,opt=sgd,mode=normal,true_post_grad=1 | l3:loss0=2.702e-05,lossK=2.578e-05,corr_norm=1.896e-03,grad_norm=2.353e+03,raw_cos_desc=0.011,cos_desc=0.011,accepted=1,tokens=1024,opt=sgd,mode=normal,true_post_grad=1
+locoprop_m_apply step=2075 shape=(3072, 768):base_step=2.156e-01,corr_norm=7.478e-04,cap=0.200,scale=5.767e+00 | shape=(3072, 768):base_step=2.155e-01,corr_norm=1.092e-03,cap=0.200,scale=3.948e+00 | shape=(3072, 768):base_step=2.155e-01,corr_norm=3.446e-03,cap=0.200,scale=1.251e+00 | shape=(3072, 768):base_step=2.155e-01,corr_norm=1.896e-03,cap=0.200,scale=2.273e+00 | shape=(3072, 768):base_step=2.156e-01,corr_norm=2.032e-03,cap=0.200,scale=2.121e+00 | shape=(3072, 768):base_step=2.156e-01,corr_norm=2.069e-03,cap=0.200,scale=2.084e+00 | shape=(3072, 768):base_step=2.156e-01,corr_norm=2.980e-03,cap=0.200,scale=1.447e+00 | shape=(3072, 768):base_step=2.156e-01,corr_norm=4.000e-03,cap=0.200,scale=1.078e+00
+step:2076/2125 train_time:348.076s step_avg:167.67ms
+step:2077/2125 train_time:352.639s step_avg:169.78ms
+step:2078/2125 train_time:357.203s step_avg:171.90ms
+step:2079/2125 train_time:361.766s step_avg:174.01ms
+step:2080/2125 train_time:366.329s step_avg:176.12ms
+step:2081/2125 train_time:370.892s step_avg:178.23ms
+step:2082/2125 train_time:375.456s step_avg:180.33ms
+step:2083/2125 train_time:380.020s step_avg:182.44ms
+step:2084/2125 train_time:384.584s step_avg:184.54ms
+step:2085/2125 train_time:389.146s step_avg:186.64ms
+step:2086/2125 train_time:393.710s step_avg:188.74ms
+step:2087/2125 train_time:398.273s step_avg:190.84ms
+step:2088/2125 train_time:402.836s step_avg:192.93ms
+step:2089/2125 train_time:407.401s step_avg:195.02ms
+step:2090/2125 train_time:411.963s step_avg:197.11ms
+step:2091/2125 train_time:416.544s step_avg:199.21ms
+step:2092/2125 train_time:421.108s step_avg:201.29ms
+step:2093/2125 train_time:425.671s step_avg:203.38ms
+step:2094/2125 train_time:430.235s step_avg:205.46ms
+step:2095/2125 train_time:434.798s step_avg:207.54ms
+step:2096/2125 train_time:439.361s step_avg:209.62ms
+step:2097/2125 train_time:443.925s step_avg:211.70ms
+step:2098/2125 train_time:448.488s step_avg:213.77ms
+step:2099/2125 train_time:453.052s step_avg:215.84ms
+step:2100/2125 train_time:457.615s step_avg:217.91ms
+step:2100/2125 val_loss:3.36582 train_time:457.615s step_avg:4564.90ms
+locoprop_m_kdiag step=2100 l0 k1:loss=3.717e-05,ratio=9.993e-01,corr_norm=1.232e-04,raw_cos=0.020,cos=0.020 | k2:loss=3.714e-05,ratio=9.987e-01,corr_norm=2.462e-04,raw_cos=0.020,cos=0.020 | k4:loss=3.709e-05,ratio=9.974e-01,corr_norm=4.916e-04,raw_cos=0.020,cos=0.020 | k5:loss=3.707e-05,ratio=9.967e-01,corr_norm=6.140e-04,raw_cos=0.020,cos=0.020
+locoprop_m_kdiag step=2100 l1 k1:loss=1.588e-05,ratio=9.979e-01,corr_norm=1.453e-04,raw_cos=0.012,cos=0.012 | k2:loss=1.585e-05,ratio=9.957e-01,corr_norm=2.896e-04,raw_cos=0.012,cos=0.012 | k4:loss=1.578e-05,ratio=9.916e-01,corr_norm=5.755e-04,raw_cos=0.012,cos=0.012 | k5:loss=1.575e-05,ratio=9.895e-01,corr_norm=7.170e-04,raw_cos=0.012,cos=0.012
+locoprop_m_kdiag step=2100 l2 k1:loss=2.485e-05,ratio=9.762e-01,corr_norm=6.259e-04,raw_cos=0.016,cos=0.016 | k2:loss=2.434e-05,ratio=9.559e-01,corr_norm=1.195e-03,raw_cos=0.018,cos=0.018 | k4:loss=2.347e-05,ratio=9.220e-01,corr_norm=2.226e-03,raw_cos=0.020,cos=0.020 | k5:loss=2.310e-05,ratio=9.072e-01,corr_norm=2.705e-03,raw_cos=0.021,cos=0.021
+locoprop_m_kdiag step=2100 l3 k1:loss=2.962e-05,ratio=9.819e-01,corr_norm=6.353e-04,raw_cos=0.022,cos=0.022 | k2:loss=2.934e-05,ratio=9.728e-01,corr_norm=1.061e-03,raw_cos=0.022,cos=0.022 | k4:loss=2.899e-05,ratio=9.611e-01,corr_norm=1.675e-03,raw_cos=0.022,cos=0.022 | k5:loss=2.884e-05,ratio=9.563e-01,corr_norm=1.940e-03,raw_cos=0.021,cos=0.021
+locoprop_m_kdiag step=2100 l4 k1:loss=2.661e-05,ratio=9.799e-01,corr_norm=6.269e-04,raw_cos=0.017,cos=0.017 | k2:loss=2.630e-05,ratio=9.685e-01,corr_norm=1.076e-03,raw_cos=0.018,cos=0.018 | k4:loss=2.589e-05,ratio=9.534e-01,corr_norm=1.750e-03,raw_cos=0.021,cos=0.021 | k5:loss=2.572e-05,ratio=9.471e-01,corr_norm=2.045e-03,raw_cos=0.021,cos=0.021
+locoprop_m_kdiag step=2100 l5 k1:loss=3.211e-05,ratio=9.891e-01,corr_norm=4.698e-04,raw_cos=-0.002,cos=-0.002 | k2:loss=3.177e-05,ratio=9.787e-01,corr_norm=9.284e-04,raw_cos=-0.002,cos=-0.002 | k4:loss=3.114e-05,ratio=9.591e-01,corr_norm=1.816e-03,raw_cos=-0.001,cos=-0.001 | k5:loss=3.084e-05,ratio=9.499e-01,corr_norm=2.246e-03,raw_cos=-0.001,cos=-0.001
+locoprop_m_kdiag step=2100 l6 k1:loss=4.599e-05,ratio=9.854e-01,corr_norm=6.497e-04,raw_cos=-0.002,cos=-0.002 | k2:loss=4.534e-05,ratio=9.715e-01,corr_norm=1.285e-03,raw_cos=-0.002,cos=-0.002 | k4:loss=4.412e-05,ratio=9.454e-01,corr_norm=2.515e-03,raw_cos=-0.002,cos=-0.002 | k5:loss=4.354e-05,ratio=9.331e-01,corr_norm=3.111e-03,raw_cos=-0.002,cos=-0.002
+locoprop_m_kdiag step=2100 l7 k1:loss=6.921e-05,ratio=9.789e-01,corr_norm=9.668e-04,raw_cos=0.007,cos=0.007 | k2:loss=6.781e-05,ratio=9.591e-01,corr_norm=1.901e-03,raw_cos=0.007,cos=0.007 | k4:loss=6.527e-05,ratio=9.231e-01,corr_norm=3.680e-03,raw_cos=0.007,cos=0.007 | k5:loss=6.411e-05,ratio=9.067e-01,corr_norm=4.530e-03,raw_cos=0.007,cos=0.007
+locoprop_m_kdiag step=2100 l8 k1:loss=8.950e-05,ratio=9.728e-01,corr_norm=1.253e-03,raw_cos=0.008,cos=0.008 | k2:loss=8.720e-05,ratio=9.477e-01,corr_norm=2.455e-03,raw_cos=0.007,cos=0.007 | k4:loss=8.308e-05,ratio=9.030e-01,corr_norm=4.722e-03,raw_cos=0.007,cos=0.007 | k5:loss=8.123e-05,ratio=8.829e-01,corr_norm=5.794e-03,raw_cos=0.007,cos=0.007
+locoprop_m_kdiag step=2100 l9 k1:loss=1.418e-04,ratio=9.654e-01,corr_norm=1.792e-03,raw_cos=0.015,cos=0.015 | k2:loss=1.373e-04,ratio=9.345e-01,corr_norm=3.484e-03,raw_cos=0.015,cos=0.015 | k4:loss=1.295e-04,ratio=8.812e-01,corr_norm=6.612e-03,raw_cos=0.014,cos=0.014 | k5:loss=1.260e-04,ratio=8.579e-01,corr_norm=8.069e-03,raw_cos=0.014,cos=0.014
+locoprop_m_kdiag step=2100 l10 k1:loss=2.307e-04,ratio=9.585e-01,corr_norm=2.555e-03,raw_cos=0.006,cos=0.006 | k2:loss=2.224e-04,ratio=9.239e-01,corr_norm=4.829e-03,raw_cos=0.005,cos=0.005 | k4:loss=2.086e-04,ratio=8.665e-01,corr_norm=8.964e-03,raw_cos=0.005,cos=0.005 | k5:loss=2.027e-04,ratio=8.422e-01,corr_norm=1.086e-02,raw_cos=0.005,cos=0.005
+locoprop_m_kdiag step=2100 l11 k1:loss=4.181e-04,ratio=9.515e-01,corr_norm=3.774e-03,raw_cos=-0.002,cos=-0.002 | k2:loss=4.018e-04,ratio=9.145e-01,corr_norm=6.978e-03,raw_cos=-0.001,cos=-0.001 | k4:loss=3.764e-04,ratio=8.567e-01,corr_norm=1.253e-02,raw_cos=-0.000,cos=-0.000 | k5:loss=3.659e-04,ratio=8.327e-01,corr_norm=1.504e-02,raw_cos=-0.000,cos=-0.000
+locoprop_m_prepare step=2100 l0:loss0=3.719e-05,lossK=3.707e-05,corr_norm=6.140e-04,grad_norm=3.059e+03,raw_cos_desc=0.020,cos_desc=0.020,accepted=1,tokens=1024,opt=sgd,mode=normal,true_post_grad=1 | l1:loss0=1.592e-05,lossK=1.575e-05,corr_norm=7.170e-04,grad_norm=2.175e+03,raw_cos_desc=0.012,cos_desc=0.012,accepted=1,tokens=1024,opt=sgd,mode=normal,true_post_grad=1 | l2:loss0=2.546e-05,lossK=2.310e-05,corr_norm=2.705e-03,grad_norm=2.398e+03,raw_cos_desc=0.021,cos_desc=0.021,accepted=1,tokens=1024,opt=sgd,mode=normal,true_post_grad=1 | l3:loss0=3.016e-05,lossK=2.884e-05,corr_norm=1.940e-03,grad_norm=2.638e+03,raw_cos_desc=0.021,cos_desc=0.021,accepted=1,tokens=1024,opt=sgd,mode=normal,true_post_grad=1
+locoprop_m_apply step=2100 shape=(3072, 768):base_step=2.156e-01,corr_norm=6.140e-04,cap=0.200,scale=7.022e+00 | shape=(3072, 768):base_step=2.155e-01,corr_norm=7.170e-04,cap=0.200,scale=6.011e+00 | shape=(3072, 768):base_step=2.155e-01,corr_norm=2.705e-03,cap=0.200,scale=1.593e+00 | shape=(3072, 768):base_step=2.155e-01,corr_norm=1.940e-03,cap=0.200,scale=2.222e+00 | shape=(3072, 768):base_step=2.155e-01,corr_norm=2.045e-03,cap=0.200,scale=2.108e+00 | shape=(3072, 768):base_step=2.156e-01,corr_norm=4.530e-03,cap=0.200,scale=9.518e-01 | shape=(3072, 768):base_step=2.156e-01,corr_norm=5.794e-03,cap=0.200,scale=7.441e-01 | shape=(3072, 768):base_step=2.155e-01,corr_norm=8.069e-03,cap=0.200,scale=5.341e-01
+step:2101/2125 train_time:462.199s step_avg:219.99ms
+step:2102/2125 train_time:466.764s step_avg:222.06ms
+step:2103/2125 train_time:471.328s step_avg:224.12ms
+step:2104/2125 train_time:475.891s step_avg:226.18ms
+step:2105/2125 train_time:480.454s step_avg:228.24ms
+step:2106/2125 train_time:485.017s step_avg:230.30ms
+step:2107/2125 train_time:489.580s step_avg:232.36ms
+step:2108/2125 train_time:494.143s step_avg:234.41ms
+step:2109/2125 train_time:498.707s step_avg:236.47ms
+step:2110/2125 train_time:503.270s step_avg:238.52ms
+step:2111/2125 train_time:507.834s step_avg:240.57ms
+step:2112/2125 train_time:512.397s step_avg:242.61ms
+step:2113/2125 train_time:516.960s step_avg:244.66ms
+step:2114/2125 train_time:521.523s step_avg:246.70ms
+step:2115/2125 train_time:526.087s step_avg:248.74ms
+step:2116/2125 train_time:530.651s step_avg:250.78ms
+step:2117/2125 train_time:535.214s step_avg:252.82ms
+step:2118/2125 train_time:539.777s step_avg:254.85ms
+step:2119/2125 train_time:544.340s step_avg:256.89ms
+step:2120/2125 train_time:548.905s step_avg:258.92ms
+step:2121/2125 train_time:553.469s step_avg:260.95ms
+step:2122/2125 train_time:558.032s step_avg:262.97ms
+step:2123/2125 train_time:562.595s step_avg:265.00ms
+step:2124/2125 train_time:567.158s step_avg:267.02ms
+track3_checkpoint_saved step:2125 path:/home/ubuntu/.cache/track3_checkpoints/track3_locom_2000_floor111_norm002_k5_seed3710_seed3710_step2125.pt val_loss:None
+step:2125/2125 train_time:573.658s step_avg:269.96ms
+step:2125/2125 val_loss:3.36429 train_time:573.659s step_avg:4641.73ms
+===== track3_locom_2000_floor111_random002_seed3710 =====
+track3_locom_runner source=records/track_3_optimization/train_gpt_simple.py generated=/tmp/track3_locom_2000_floor111_random002_seed3710.py steps=2125 trials=1 nproc=1 mbs=16 trial_arg_mode=positional-count
+track3_locom_source_sha source=3191da541544c96aa4a4a9dfdde8a8e1fa674620583b69c61f10818c74c1436b generator=d531e33ce23d51002c957fcc78dd20b60f95396fc2b6045993de8c47bd3c047d generated=c94a53d9da8ac23365fe9ed25bd635aa8176ff236224880112d7b389f8bc0a48
+logs/531c43d1-f990-4404-b254-25a5071bab3b.txt
+track3_trial_seed=3710 trial=0
+locoprop_m_owner rank=0 world=1 owned_layers=[0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11] sample_tokens=1024 gather_samples=True accum_samples=False micro_sample_tokens=32 aux_capture=False aux_seqs=16 batched_prep=False
+track3_checkpoint_loaded path:/home/ubuntu/.cache/track3_checkpoints/track3_locom_good2000_seed3710_step2000.pt step:2000 seed:3710 val_loss:None load_optimizers:True
+track3_resume_advanced_data steps:2000
+step:2000/2125 val_loss:3.37338 train_time:0.000s step_avg:nanms
+locoprop_m_prepare step=2000 l0:random=1,corr_norm=1.534e+03,grad_norm=2.386e+03,raw_cos_desc=0.000,cos_desc=0.000,accepted=1,opt=random,mode=normal | l1:random=1,corr_norm=1.536e+03,grad_norm=2.021e+03,raw_cos_desc=-0.002,cos_desc=-0.002,accepted=1,opt=random,mode=normal | l2:random=1,corr_norm=1.535e+03,grad_norm=2.085e+03,raw_cos_desc=0.001,cos_desc=0.001,accepted=1,opt=random,mode=normal | l3:random=1,corr_norm=1.537e+03,grad_norm=2.232e+03,raw_cos_desc=0.001,cos_desc=0.001,accepted=1,opt=random,mode=normal
+locoprop_m_apply step=2000 shape=(3072, 768):base_step=2.156e-01,corr_norm=1.534e+03,cap=0.200,scale=2.811e-06 | shape=(3072, 768):base_step=2.155e-01,corr_norm=1.536e+03,cap=0.200,scale=2.806e-06 | shape=(3072, 768):base_step=2.155e-01,corr_norm=1.535e+03,cap=0.200,scale=2.808e-06 | shape=(3072, 768):base_step=2.155e-01,corr_norm=1.537e+03,cap=0.200,scale=2.805e-06 | shape=(3072, 768):base_step=2.156e-01,corr_norm=1.535e+03,cap=0.200,scale=2.808e-06 | shape=(3072, 768):base_step=2.156e-01,corr_norm=1.536e+03,cap=0.200,scale=2.808e-06 | shape=(3072, 768):base_step=2.156e-01,corr_norm=1.535e+03,cap=0.200,scale=2.808e-06 | shape=(3072, 768):base_step=2.156e-01,corr_norm=1.536e+03,cap=0.200,scale=2.808e-06
+step:2001/2125 train_time:5.620s step_avg:2.81ms
+step:2002/2125 train_time:10.159s step_avg:5.07ms
+step:2003/2125 train_time:14.697s step_avg:7.34ms
+step:2004/2125 train_time:19.235s step_avg:9.60ms
+step:2005/2125 train_time:23.773s step_avg:11.86ms
+step:2006/2125 train_time:28.311s step_avg:14.11ms
+step:2007/2125 train_time:32.848s step_avg:16.37ms
+step:2008/2125 train_time:37.386s step_avg:18.62ms
+step:2009/2125 train_time:41.925s step_avg:20.87ms
+step:2010/2125 train_time:46.464s step_avg:23.12ms
+step:2011/2125 train_time:51.004s step_avg:25.36ms
+step:2012/2125 train_time:55.544s step_avg:27.61ms
+step:2013/2125 train_time:60.083s step_avg:29.85ms
+step:2014/2125 train_time:64.624s step_avg:32.09ms
+step:2015/2125 train_time:69.165s step_avg:34.32ms
+step:2016/2125 train_time:73.704s step_avg:36.56ms
+step:2017/2125 train_time:78.245s step_avg:38.79ms
+step:2018/2125 train_time:82.787s step_avg:41.02ms
+step:2019/2125 train_time:87.327s step_avg:43.25ms
+step:2020/2125 train_time:91.867s step_avg:45.48ms
+step:2021/2125 train_time:96.406s step_avg:47.70ms
+step:2022/2125 train_time:100.946s step_avg:49.92ms
+step:2023/2125 train_time:105.485s step_avg:52.14ms
+step:2024/2125 train_time:110.023s step_avg:54.36ms
+step:2025/2125 train_time:114.563s step_avg:56.57ms
+step:2025/2125 val_loss:3.37120 train_time:114.564s step_avg:4582.55ms
+locoprop_m_prepare step=2025 l0:random=1,corr_norm=1.535e+03,grad_norm=2.654e+03,raw_cos_desc=0.000,cos_desc=0.000,accepted=1,opt=random,mode=normal | l1:random=1,corr_norm=1.537e+03,grad_norm=2.036e+03,raw_cos_desc=-0.001,cos_desc=-0.001,accepted=1,opt=random,mode=normal | l2:random=1,corr_norm=1.535e+03,grad_norm=2.161e+03,raw_cos_desc=0.000,cos_desc=0.000,accepted=1,opt=random,mode=normal | l3:random=1,corr_norm=1.537e+03,grad_norm=2.266e+03,raw_cos_desc=-0.000,cos_desc=-0.000,accepted=1,opt=random,mode=normal
+locoprop_m_apply step=2025 shape=(3072, 768):base_step=2.156e-01,corr_norm=1.535e+03,cap=0.200,scale=2.809e-06 | shape=(3072, 768):base_step=2.155e-01,corr_norm=1.537e+03,cap=0.200,scale=2.805e-06 | shape=(3072, 768):base_step=2.155e-01,corr_norm=1.535e+03,cap=0.200,scale=2.807e-06 | shape=(3072, 768):base_step=2.155e-01,corr_norm=1.537e+03,cap=0.200,scale=2.805e-06 | shape=(3072, 768):base_step=2.155e-01,corr_norm=1.536e+03,cap=0.200,scale=2.805e-06 | shape=(3072, 768):base_step=2.155e-01,corr_norm=1.535e+03,cap=0.200,scale=2.807e-06 | shape=(3072, 768):base_step=2.156e-01,corr_norm=1.536e+03,cap=0.200,scale=2.808e-06 | shape=(3072, 768):base_step=2.155e-01,corr_norm=1.536e+03,cap=0.200,scale=2.806e-06
+step:2026/2125 train_time:119.104s step_avg:58.79ms
+step:2027/2125 train_time:123.643s step_avg:61.00ms
+step:2028/2125 train_time:128.182s step_avg:63.21ms
+step:2029/2125 train_time:132.723s step_avg:65.41ms
+step:2030/2125 train_time:137.262s step_avg:67.62ms
+step:2031/2125 train_time:141.802s step_avg:69.82ms
+step:2032/2125 train_time:146.342s step_avg:72.02ms
+step:2033/2125 train_time:150.883s step_avg:74.22ms
+step:2034/2125 train_time:155.423s step_avg:76.41ms
+step:2035/2125 train_time:159.964s step_avg:78.61ms
+step:2036/2125 train_time:164.504s step_avg:80.80ms
+step:2037/2125 train_time:169.045s step_avg:82.99ms
+step:2038/2125 train_time:173.585s step_avg:85.17ms
+step:2039/2125 train_time:178.126s step_avg:87.36ms
+step:2040/2125 train_time:182.666s step_avg:89.54ms
+step:2041/2125 train_time:187.205s step_avg:91.72ms
+step:2042/2125 train_time:191.746s step_avg:93.90ms
+step:2043/2125 train_time:196.285s step_avg:96.08ms
+step:2044/2125 train_time:200.825s step_avg:98.25ms
+step:2045/2125 train_time:205.365s step_avg:100.42ms
+step:2046/2125 train_time:209.905s step_avg:102.59ms
+step:2047/2125 train_time:214.445s step_avg:104.76ms
+step:2048/2125 train_time:218.985s step_avg:106.93ms
+step:2049/2125 train_time:223.524s step_avg:109.09ms
+step:2050/2125 train_time:228.064s step_avg:111.25ms
+step:2050/2125 val_loss:3.36931 train_time:228.065s step_avg:4540.03ms
+locoprop_m_prepare step=2050 l0:random=1,corr_norm=1.535e+03,grad_norm=2.499e+03,raw_cos_desc=-0.000,cos_desc=-0.000,accepted=1,opt=random,mode=normal | l1:random=1,corr_norm=1.536e+03,grad_norm=2.066e+03,raw_cos_desc=-0.000,cos_desc=-0.000,accepted=1,opt=random,mode=normal | l2:random=1,corr_norm=1.536e+03,grad_norm=2.166e+03,raw_cos_desc=0.001,cos_desc=0.001,accepted=1,opt=random,mode=normal | l3:random=1,corr_norm=1.535e+03,grad_norm=2.404e+03,raw_cos_desc=-0.000,cos_desc=-0.000,accepted=1,opt=random,mode=normal
+locoprop_m_apply step=2050 shape=(3072, 768):base_step=2.156e-01,corr_norm=1.535e+03,cap=0.200,scale=2.810e-06 | shape=(3072, 768):base_step=2.155e-01,corr_norm=1.536e+03,cap=0.200,scale=2.806e-06 | shape=(3072, 768):base_step=2.155e-01,corr_norm=1.536e+03,cap=0.200,scale=2.806e-06 | shape=(3072, 768):base_step=2.155e-01,corr_norm=1.535e+03,cap=0.200,scale=2.808e-06 | shape=(3072, 768):base_step=2.156e-01,corr_norm=1.536e+03,cap=0.200,scale=2.807e-06 | shape=(3072, 768):base_step=2.155e-01,corr_norm=1.536e+03,cap=0.200,scale=2.807e-06 | shape=(3072, 768):base_step=2.156e-01,corr_norm=1.535e+03,cap=0.200,scale=2.808e-06 | shape=(3072, 768):base_step=2.155e-01,corr_norm=1.534e+03,cap=0.200,scale=2.810e-06
+step:2051/2125 train_time:232.606s step_avg:113.41ms
+step:2052/2125 train_time:237.145s step_avg:115.57ms
+step:2053/2125 train_time:241.684s step_avg:117.72ms
+step:2054/2125 train_time:246.223s step_avg:119.87ms
+step:2055/2125 train_time:250.762s step_avg:122.03ms
+step:2056/2125 train_time:255.301s step_avg:124.17ms
+step:2057/2125 train_time:259.840s step_avg:126.32ms
+step:2058/2125 train_time:264.380s step_avg:128.46ms
+step:2059/2125 train_time:268.920s step_avg:130.61ms
+step:2060/2125 train_time:273.459s step_avg:132.75ms
+step:2061/2125 train_time:277.999s step_avg:134.89ms
+step:2062/2125 train_time:282.538s step_avg:137.02ms
+step:2063/2125 train_time:287.079s step_avg:139.16ms
+step:2064/2125 train_time:291.618s step_avg:141.29ms
+step:2065/2125 train_time:296.157s step_avg:143.42ms
+step:2066/2125 train_time:300.696s step_avg:145.55ms
+step:2067/2125 train_time:305.236s step_avg:147.67ms
+step:2068/2125 train_time:309.775s step_avg:149.79ms
+step:2069/2125 train_time:314.314s step_avg:151.92ms
+step:2070/2125 train_time:318.854s step_avg:154.04ms
+step:2071/2125 train_time:323.393s step_avg:156.15ms
+step:2072/2125 train_time:327.932s step_avg:158.27ms
+step:2073/2125 train_time:332.471s step_avg:160.38ms
+step:2074/2125 train_time:337.012s step_avg:162.49ms
+step:2075/2125 train_time:341.551s step_avg:164.60ms
+step:2075/2125 val_loss:3.36774 train_time:341.551s step_avg:4539.47ms
+locoprop_m_prepare step=2075 l0:random=1,corr_norm=1.537e+03,grad_norm=2.485e+03,raw_cos_desc=-0.000,cos_desc=-0.000,accepted=1,opt=random,mode=normal | l1:random=1,corr_norm=1.536e+03,grad_norm=2.071e+03,raw_cos_desc=-0.000,cos_desc=-0.000,accepted=1,opt=random,mode=normal | l2:random=1,corr_norm=1.536e+03,grad_norm=2.175e+03,raw_cos_desc=-0.000,cos_desc=-0.000,accepted=1,opt=random,mode=normal | l3:random=1,corr_norm=1.536e+03,grad_norm=2.354e+03,raw_cos_desc=-0.000,cos_desc=-0.000,accepted=1,opt=random,mode=normal
+locoprop_m_apply step=2075 shape=(3072, 768):base_step=2.156e-01,corr_norm=1.537e+03,cap=0.200,scale=2.806e-06 | shape=(3072, 768):base_step=2.155e-01,corr_norm=1.536e+03,cap=0.200,scale=2.806e-06 | shape=(3072, 768):base_step=2.155e-01,corr_norm=1.536e+03,cap=0.200,scale=2.806e-06 | shape=(3072, 768):base_step=2.155e-01,corr_norm=1.536e+03,cap=0.200,scale=2.805e-06 | shape=(3072, 768):base_step=2.156e-01,corr_norm=1.536e+03,cap=0.200,scale=2.807e-06 | shape=(3072, 768):base_step=2.156e-01,corr_norm=1.536e+03,cap=0.200,scale=2.807e-06 | shape=(3072, 768):base_step=2.156e-01,corr_norm=1.536e+03,cap=0.200,scale=2.808e-06 | shape=(3072, 768):base_step=2.156e-01,corr_norm=1.537e+03,cap=0.200,scale=2.804e-06
+step:2076/2125 train_time:346.092s step_avg:166.71ms
+step:2077/2125 train_time:350.631s step_avg:168.82ms
+step:2078/2125 train_time:355.170s step_avg:170.92ms
+step:2079/2125 train_time:359.710s step_avg:173.02ms
+step:2080/2125 train_time:364.250s step_avg:175.12ms
+step:2081/2125 train_time:368.789s step_avg:177.22ms
+step:2082/2125 train_time:373.329s step_avg:179.31ms
+step:2083/2125 train_time:377.870s step_avg:181.41ms
+step:2084/2125 train_time:382.410s step_avg:183.50ms
+step:2085/2125 train_time:386.950s step_avg:185.59ms
+step:2086/2125 train_time:391.489s step_avg:187.67ms
+step:2087/2125 train_time:396.030s step_avg:189.76ms
+step:2088/2125 train_time:400.570s step_avg:191.84ms
+step:2089/2125 train_time:405.110s step_avg:193.93ms
+step:2090/2125 train_time:409.650s step_avg:196.00ms
+step:2091/2125 train_time:414.205s step_avg:198.09ms
+step:2092/2125 train_time:418.746s step_avg:200.17ms
+step:2093/2125 train_time:423.285s step_avg:202.24ms
+step:2094/2125 train_time:427.825s step_avg:204.31ms
+step:2095/2125 train_time:432.366s step_avg:206.38ms
+step:2096/2125 train_time:436.906s step_avg:208.45ms
+step:2097/2125 train_time:441.446s step_avg:210.51ms
+step:2098/2125 train_time:445.986s step_avg:212.58ms
+step:2099/2125 train_time:450.526s step_avg:214.64ms
+step:2100/2125 train_time:455.066s step_avg:216.70ms
+step:2100/2125 val_loss:3.36582 train_time:455.067s step_avg:4540.61ms
+locoprop_m_prepare step=2100 l0:random=1,corr_norm=1.537e+03,grad_norm=3.054e+03,raw_cos_desc=0.001,cos_desc=0.001,accepted=1,opt=random,mode=normal | l1:random=1,corr_norm=1.538e+03,grad_norm=2.172e+03,raw_cos_desc=0.001,cos_desc=0.001,accepted=1,opt=random,mode=normal | l2:random=1,corr_norm=1.536e+03,grad_norm=2.396e+03,raw_cos_desc=0.001,cos_desc=0.001,accepted=1,opt=random,mode=normal | l3:random=1,corr_norm=1.535e+03,grad_norm=2.633e+03,raw_cos_desc=-0.000,cos_desc=-0.000,accepted=1,opt=random,mode=normal
+locoprop_m_apply step=2100 shape=(3072, 768):base_step=2.155e-01,corr_norm=1.537e+03,cap=0.200,scale=2.805e-06 | shape=(3072, 768):base_step=2.155e-01,corr_norm=1.538e+03,cap=0.200,scale=2.803e-06 | shape=(3072, 768):base_step=2.155e-01,corr_norm=1.536e+03,cap=0.200,scale=2.806e-06 | shape=(3072, 768):base_step=2.155e-01,corr_norm=1.535e+03,cap=0.200,scale=2.807e-06 | shape=(3072, 768):base_step=2.155e-01,corr_norm=1.536e+03,cap=0.200,scale=2.806e-06 | shape=(3072, 768):base_step=2.156e-01,corr_norm=1.537e+03,cap=0.200,scale=2.806e-06 | shape=(3072, 768):base_step=2.156e-01,corr_norm=1.537e+03,cap=0.200,scale=2.806e-06 | shape=(3072, 768):base_step=2.156e-01,corr_norm=1.535e+03,cap=0.200,scale=2.808e-06
+step:2101/2125 train_time:459.606s step_avg:218.76ms
+step:2102/2125 train_time:464.144s step_avg:220.81ms
+step:2103/2125 train_time:468.683s step_avg:222.86ms
+step:2104/2125 train_time:473.221s step_avg:224.91ms
+step:2105/2125 train_time:477.759s step_avg:226.96ms
+step:2106/2125 train_time:482.298s step_avg:229.01ms
+step:2107/2125 train_time:486.837s step_avg:231.06ms
+step:2108/2125 train_time:491.378s step_avg:233.10ms
+step:2109/2125 train_time:495.919s step_avg:235.14ms
+step:2110/2125 train_time:500.459s step_avg:237.18ms
+step:2111/2125 train_time:504.999s step_avg:239.22ms
+step:2112/2125 train_time:509.540s step_avg:241.26ms
+step:2113/2125 train_time:514.080s step_avg:243.29ms
+step:2114/2125 train_time:518.620s step_avg:245.33ms
+step:2115/2125 train_time:523.159s step_avg:247.36ms
+step:2116/2125 train_time:527.697s step_avg:249.38ms
+step:2117/2125 train_time:532.236s step_avg:251.41ms
+step:2118/2125 train_time:536.775s step_avg:253.44ms
+step:2119/2125 train_time:541.314s step_avg:255.46ms
+step:2120/2125 train_time:545.854s step_avg:257.48ms
+step:2121/2125 train_time:550.393s step_avg:259.50ms
+step:2122/2125 train_time:554.931s step_avg:261.51ms
+step:2123/2125 train_time:559.471s step_avg:263.53ms
+step:2124/2125 train_time:564.010s step_avg:265.54ms
+track3_checkpoint_saved step:2125 path:/home/ubuntu/.cache/track3_checkpoints/track3_locom_2000_floor111_random002_seed3710_seed3710_step2125.pt val_loss:None
+step:2125/2125 train_time:570.470s step_avg:268.46ms
+step:2125/2125 val_loss:3.36429 train_time:570.470s step_avg:4616.15ms
+===== track3_locom_2000_floor111_norm005_k5_seed3710 =====
+track3_locom_runner source=records/track_3_optimization/train_gpt_simple.py generated=/tmp/track3_locom_2000_floor111_norm005_k5_seed3710.py steps=2125 trials=1 nproc=1 mbs=16 trial_arg_mode=positional-count
+track3_locom_source_sha source=3191da541544c96aa4a4a9dfdde8a8e1fa674620583b69c61f10818c74c1436b generator=d531e33ce23d51002c957fcc78dd20b60f95396fc2b6045993de8c47bd3c047d generated=c94a53d9da8ac23365fe9ed25bd635aa8176ff236224880112d7b389f8bc0a48
+logs/e2f83e2f-a204-49ba-b931-c4060de82efe.txt
+track3_trial_seed=3710 trial=0
+locoprop_m_owner rank=0 world=1 owned_layers=[0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11] sample_tokens=1024 gather_samples=True accum_samples=False micro_sample_tokens=32 aux_capture=False aux_seqs=16 batched_prep=False
+track3_checkpoint_loaded path:/home/ubuntu/.cache/track3_checkpoints/track3_locom_good2000_seed3710_step2000.pt step:2000 seed:3710 val_loss:None load_optimizers:True
+track3_resume_advanced_data steps:2000
+step:2000/2125 val_loss:3.37338 train_time:0.000s step_avg:nanms
+locoprop_m_kdiag step=2000 l0 k1:loss=3.772e-05,ratio=9.993e-01,corr_norm=1.260e-04,raw_cos=0.024,cos=0.024 | k2:loss=3.769e-05,ratio=9.986e-01,corr_norm=2.519e-04,raw_cos=0.024,cos=0.024 | k4:loss=3.764e-05,ratio=9.973e-01,corr_norm=5.030e-04,raw_cos=0.024,cos=0.024 | k5:loss=3.762e-05,ratio=9.966e-01,corr_norm=6.282e-04,raw_cos=0.024,cos=0.024
+locoprop_m_kdiag step=2000 l1 k1:loss=1.706e-05,ratio=9.966e-01,corr_norm=1.915e-04,raw_cos=0.021,cos=0.021 | k2:loss=1.700e-05,ratio=9.935e-01,corr_norm=3.749e-04,raw_cos=0.021,cos=0.021 | k4:loss=1.691e-05,ratio=9.878e-01,corr_norm=7.217e-04,raw_cos=0.022,cos=0.022 | k5:loss=1.686e-05,ratio=9.852e-01,corr_norm=8.869e-04,raw_cos=0.023,cos=0.023
+locoprop_m_kdiag step=2000 l2 k1:loss=3.130e-05,ratio=9.323e-01,corr_norm=1.262e-03,raw_cos=0.013,cos=0.013 | k2:loss=2.991e-05,ratio=8.911e-01,corr_norm=2.222e-03,raw_cos=0.013,cos=0.013 | k4:loss=2.823e-05,ratio=8.410e-01,corr_norm=3.649e-03,raw_cos=0.014,cos=0.014 | k5:loss=2.765e-05,ratio=8.236e-01,corr_norm=4.222e-03,raw_cos=0.015,cos=0.015
+locoprop_m_kdiag step=2000 l3 k1:loss=2.942e-05,ratio=9.552e-01,corr_norm=1.063e-03,raw_cos=-0.003,cos=-0.003 | k2:loss=2.894e-05,ratio=9.397e-01,corr_norm=1.612e-03,raw_cos=-0.002,cos=-0.002 | k4:loss=2.838e-05,ratio=9.216e-01,corr_norm=2.319e-03,raw_cos=0.001,cos=0.001 | k5:loss=2.816e-05,ratio=9.143e-01,corr_norm=2.626e-03,raw_cos=0.002,cos=0.002
+locoprop_m_kdiag step=2000 l4 k1:loss=2.622e-05,ratio=9.894e-01,corr_norm=4.320e-04,raw_cos=0.019,cos=0.019 | k2:loss=2.601e-05,ratio=9.812e-01,corr_norm=8.024e-04,raw_cos=0.019,cos=0.019 | k4:loss=2.565e-05,ratio=9.679e-01,corr_norm=1.452e-03,raw_cos=0.018,cos=0.018 | k5:loss=2.550e-05,ratio=9.620e-01,corr_norm=1.752e-03,raw_cos=0.018,cos=0.018
+locoprop_m_kdiag step=2000 l5 k1:loss=3.133e-05,ratio=9.896e-01,corr_norm=4.522e-04,raw_cos=0.023,cos=0.023 | k2:loss=3.101e-05,ratio=9.796e-01,corr_norm=8.952e-04,raw_cos=0.023,cos=0.023 | k4:loss=3.041e-05,ratio=9.607e-01,corr_norm=1.756e-03,raw_cos=0.023,cos=0.023 | k5:loss=3.013e-05,ratio=9.518e-01,corr_norm=2.174e-03,raw_cos=0.023,cos=0.023
+locoprop_m_kdiag step=2000 l6 k1:loss=4.413e-05,ratio=9.847e-01,corr_norm=6.528e-04,raw_cos=0.010,cos=0.010 | k2:loss=4.348e-05,ratio=9.703e-01,corr_norm=1.288e-03,raw_cos=0.010,cos=0.010 | k4:loss=4.228e-05,ratio=9.434e-01,corr_norm=2.510e-03,raw_cos=0.010,cos=0.010 | k5:loss=4.172e-05,ratio=9.310e-01,corr_norm=3.099e-03,raw_cos=0.010,cos=0.010
+locoprop_m_kdiag step=2000 l7 k1:loss=6.428e-05,ratio=9.800e-01,corr_norm=9.064e-04,raw_cos=0.002,cos=0.002 | k2:loss=6.305e-05,ratio=9.612e-01,corr_norm=1.783e-03,raw_cos=0.002,cos=0.002 | k4:loss=6.080e-05,ratio=9.269e-01,corr_norm=3.457e-03,raw_cos=0.002,cos=0.002 | k5:loss=5.977e-05,ratio=9.111e-01,corr_norm=4.257e-03,raw_cos=0.002,cos=0.002
+locoprop_m_kdiag step=2000 l8 k1:loss=8.910e-05,ratio=9.689e-01,corr_norm=1.349e-03,raw_cos=0.014,cos=0.014 | k2:loss=8.660e-05,ratio=9.417e-01,corr_norm=2.605e-03,raw_cos=0.012,cos=0.012 | k4:loss=8.231e-05,ratio=8.951e-01,corr_norm=4.913e-03,raw_cos=0.010,cos=0.010 | k5:loss=8.043e-05,ratio=8.747e-01,corr_norm=5.988e-03,raw_cos=0.010,cos=0.010
+locoprop_m_kdiag step=2000 l9 k1:loss=1.340e-04,ratio=9.682e-01,corr_norm=1.668e-03,raw_cos=-0.014,cos=-0.014 | k2:loss=1.301e-04,ratio=9.396e-01,corr_norm=3.245e-03,raw_cos=-0.013,cos=-0.013 | k4:loss=1.232e-04,ratio=8.901e-01,corr_norm=6.173e-03,raw_cos=-0.012,cos=-0.012 | k5:loss=1.202e-04,ratio=8.683e-01,corr_norm=7.539e-03,raw_cos=-0.012,cos=-0.012
+locoprop_m_kdiag step=2000 l10 k1:loss=2.109e-04,ratio=9.605e-01,corr_norm=2.375e-03,raw_cos=0.010,cos=0.010 | k2:loss=2.037e-04,ratio=9.277e-01,corr_norm=4.500e-03,raw_cos=0.009,cos=0.009 | k4:loss=1.918e-04,ratio=8.737e-01,corr_norm=8.333e-03,raw_cos=0.009,cos=0.009 | k5:loss=1.868e-04,ratio=8.508e-01,corr_norm=1.009e-02,raw_cos=0.008,cos=0.008
+locoprop_m_kdiag step=2000 l11 k1:loss=3.949e-04,ratio=9.518e-01,corr_norm=3.671e-03,raw_cos=-0.002,cos=-0.002 | k2:loss=3.798e-04,ratio=9.156e-01,corr_norm=6.737e-03,raw_cos=-0.002,cos=-0.002 | k4:loss=3.567e-04,ratio=8.598e-01,corr_norm=1.205e-02,raw_cos=-0.002,cos=-0.002 | k5:loss=3.472e-04,ratio=8.369e-01,corr_norm=1.442e-02,raw_cos=-0.002,cos=-0.002
+locoprop_m_prepare step=2000 l0:loss0=3.774e-05,lossK=3.762e-05,corr_norm=6.282e-04,grad_norm=2.386e+03,raw_cos_desc=0.024,cos_desc=0.024,accepted=1,tokens=1024,opt=sgd,mode=normal,true_post_grad=1 | l1:loss0=1.712e-05,lossK=1.686e-05,corr_norm=8.869e-04,grad_norm=2.021e+03,raw_cos_desc=0.023,cos_desc=0.023,accepted=1,tokens=1024,opt=sgd,mode=normal,true_post_grad=1 | l2:loss0=3.357e-05,lossK=2.765e-05,corr_norm=4.222e-03,grad_norm=2.085e+03,raw_cos_desc=0.015,cos_desc=0.015,accepted=1,tokens=1024,opt=sgd,mode=normal,true_post_grad=1 | l3:loss0=3.080e-05,lossK=2.816e-05,corr_norm=2.626e-03,grad_norm=2.232e+03,raw_cos_desc=0.002,cos_desc=0.002,accepted=1,tokens=1024,opt=sgd,mode=normal,true_post_grad=1
+locoprop_m_apply step=2000 shape=(3072, 768):base_step=2.156e-01,corr_norm=6.282e-04,cap=0.200,scale=1.716e+01 | shape=(3072, 768):base_step=2.155e-01,corr_norm=8.869e-04,cap=0.200,scale=1.215e+01 | shape=(3072, 768):base_step=2.155e-01,corr_norm=4.222e-03,cap=0.200,scale=2.552e+00 | shape=(3072, 768):base_step=2.155e-01,corr_norm=2.626e-03,cap=0.200,scale=4.104e+00 | shape=(3072, 768):base_step=2.156e-01,corr_norm=1.752e-03,cap=0.200,scale=6.150e+00 | shape=(3072, 768):base_step=2.156e-01,corr_norm=2.174e-03,cap=0.200,scale=4.958e+00 | shape=(3072, 768):base_step=2.156e-01,corr_norm=3.099e-03,cap=0.200,scale=3.479e+00 | shape=(3072, 768):base_step=2.156e-01,corr_norm=4.257e-03,cap=0.200,scale=2.532e+00
+step:2001/2125 train_time:5.670s step_avg:2.83ms
+step:2002/2125 train_time:10.234s step_avg:5.11ms
+step:2003/2125 train_time:14.800s step_avg:7.39ms
+step:2004/2125 train_time:19.364s step_avg:9.66ms
+step:2005/2125 train_time:23.930s step_avg:11.93ms
+step:2006/2125 train_time:28.495s step_avg:14.21ms
+step:2007/2125 train_time:33.062s step_avg:16.47ms
+step:2008/2125 train_time:37.626s step_avg:18.74ms
+step:2009/2125 train_time:42.192s step_avg:21.00ms
+step:2010/2125 train_time:46.755s step_avg:23.26ms
+step:2011/2125 train_time:51.322s step_avg:25.52ms
+step:2012/2125 train_time:55.887s step_avg:27.78ms
+step:2013/2125 train_time:60.451s step_avg:30.03ms
+step:2014/2125 train_time:65.016s step_avg:32.28ms
+step:2015/2125 train_time:69.580s step_avg:34.53ms
+step:2016/2125 train_time:74.145s step_avg:36.78ms
+step:2017/2125 train_time:78.708s step_avg:39.02ms
+step:2018/2125 train_time:83.273s step_avg:41.27ms
+step:2019/2125 train_time:87.838s step_avg:43.51ms
+step:2020/2125 train_time:92.402s step_avg:45.74ms
+step:2021/2125 train_time:96.966s step_avg:47.98ms
+step:2022/2125 train_time:101.530s step_avg:50.21ms
+step:2023/2125 train_time:106.095s step_avg:52.44ms
+step:2024/2125 train_time:110.660s step_avg:54.67ms
+step:2025/2125 train_time:115.223s step_avg:56.90ms
+step:2025/2125 val_loss:3.37121 train_time:115.224s step_avg:4608.96ms
+locoprop_m_kdiag step=2025 l0 k1:loss=4.959e-05,ratio=9.991e-01,corr_norm=1.620e-04,raw_cos=0.056,cos=0.056 | k2:loss=4.955e-05,ratio=9.983e-01,corr_norm=3.234e-04,raw_cos=0.056,cos=0.056 | k4:loss=4.946e-05,ratio=9.966e-01,corr_norm=6.445e-04,raw_cos=0.056,cos=0.056 | k5:loss=4.942e-05,ratio=9.958e-01,corr_norm=8.043e-04,raw_cos=0.056,cos=0.056
+locoprop_m_kdiag step=2025 l1 k1:loss=1.348e-05,ratio=9.963e-01,corr_norm=1.754e-04,raw_cos=0.018,cos=0.018 | k2:loss=1.343e-05,ratio=9.928e-01,corr_norm=3.480e-04,raw_cos=0.018,cos=0.018 | k4:loss=1.334e-05,ratio=9.860e-01,corr_norm=6.851e-04,raw_cos=0.018,cos=0.018 | k5:loss=1.329e-05,ratio=9.828e-01,corr_norm=8.498e-04,raw_cos=0.019,cos=0.019
+locoprop_m_kdiag step=2025 l2 k1:loss=2.806e-05,ratio=8.750e-01,corr_norm=1.735e-03,raw_cos=0.039,cos=0.039 | k2:loss=2.628e-05,ratio=8.195e-01,corr_norm=2.849e-03,raw_cos=0.037,cos=0.037 | k4:loss=2.453e-05,ratio=7.649e-01,corr_norm=4.242e-03,raw_cos=0.031,cos=0.031 | k5:loss=2.393e-05,ratio=7.460e-01,corr_norm=4.762e-03,raw_cos=0.029,cos=0.029
+locoprop_m_kdiag step=2025 l3 k1:loss=2.444e-05,ratio=9.860e-01,corr_norm=4.938e-04,raw_cos=0.028,cos=0.028 | k2:loss=2.422e-05,ratio=9.770e-01,corr_norm=8.726e-04,raw_cos=0.027,cos=0.027 | k4:loss=2.392e-05,ratio=9.649e-01,corr_norm=1.467e-03,raw_cos=0.027,cos=0.027 | k5:loss=2.380e-05,ratio=9.600e-01,corr_norm=1.723e-03,raw_cos=0.027,cos=0.027
+locoprop_m_kdiag step=2025 l4 k1:loss=2.341e-05,ratio=9.875e-01,corr_norm=4.480e-04,raw_cos=-0.011,cos=-0.011 | k2:loss=2.319e-05,ratio=9.784e-01,corr_norm=8.167e-04,raw_cos=-0.007,cos=-0.007 | k4:loss=2.285e-05,ratio=9.640e-01,corr_norm=1.452e-03,raw_cos=-0.002,cos=-0.002 | k5:loss=2.270e-05,ratio=9.577e-01,corr_norm=1.745e-03,raw_cos=-0.000,cos=-0.000
+locoprop_m_kdiag step=2025 l5 k1:loss=2.488e-05,ratio=9.896e-01,corr_norm=4.047e-04,raw_cos=0.033,cos=0.033 | k2:loss=2.463e-05,ratio=9.797e-01,corr_norm=7.979e-04,raw_cos=0.033,cos=0.033 | k4:loss=2.417e-05,ratio=9.614e-01,corr_norm=1.553e-03,raw_cos=0.033,cos=0.033 | k5:loss=2.396e-05,ratio=9.529e-01,corr_norm=1.917e-03,raw_cos=0.033,cos=0.033
+locoprop_m_kdiag step=2025 l6 k1:loss=3.387e-05,ratio=9.861e-01,corr_norm=5.472e-04,raw_cos=0.016,cos=0.016 | k2:loss=3.343e-05,ratio=9.730e-01,corr_norm=1.076e-03,raw_cos=0.016,cos=0.016 | k4:loss=3.261e-05,ratio=9.492e-01,corr_norm=2.083e-03,raw_cos=0.016,cos=0.016 | k5:loss=3.223e-05,ratio=9.383e-01,corr_norm=2.565e-03,raw_cos=0.015,cos=0.015
+locoprop_m_kdiag step=2025 l7 k1:loss=5.058e-05,ratio=9.737e-01,corr_norm=9.367e-04,raw_cos=-0.006,cos=-0.006 | k2:loss=4.941e-05,ratio=9.512e-01,corr_norm=1.796e-03,raw_cos=-0.005,cos=-0.005 | k4:loss=4.744e-05,ratio=9.132e-01,corr_norm=3.357e-03,raw_cos=-0.002,cos=-0.002 | k5:loss=4.658e-05,ratio=8.967e-01,corr_norm=4.081e-03,raw_cos=-0.001,cos=-0.001
+locoprop_m_kdiag step=2025 l8 k1:loss=6.798e-05,ratio=9.718e-01,corr_norm=1.120e-03,raw_cos=0.002,cos=0.002 | k2:loss=6.625e-05,ratio=9.471e-01,corr_norm=2.165e-03,raw_cos=0.002,cos=0.002 | k4:loss=6.331e-05,ratio=9.051e-01,corr_norm=4.078e-03,raw_cos=0.002,cos=0.002 | k5:loss=6.204e-05,ratio=8.869e-01,corr_norm=4.965e-03,raw_cos=0.003,cos=0.003
+locoprop_m_kdiag step=2025 l9 k1:loss=1.158e-04,ratio=9.631e-01,corr_norm=1.693e-03,raw_cos=-0.000,cos=-0.000 | k2:loss=1.121e-04,ratio=9.323e-01,corr_norm=3.226e-03,raw_cos=-0.000,cos=-0.000 | k4:loss=1.060e-04,ratio=8.820e-01,corr_norm=5.964e-03,raw_cos=-0.000,cos=-0.000 | k5:loss=1.035e-04,ratio=8.609e-01,corr_norm=7.212e-03,raw_cos=-0.000,cos=-0.000
+locoprop_m_kdiag step=2025 l10 k1:loss=1.949e-04,ratio=9.491e-01,corr_norm=2.715e-03,raw_cos=0.003,cos=0.003 | k2:loss=1.878e-04,ratio=9.148e-01,corr_norm=4.788e-03,raw_cos=0.003,cos=0.003 | k4:loss=1.773e-04,ratio=8.633e-01,corr_norm=8.315e-03,raw_cos=0.003,cos=0.003 | k5:loss=1.730e-04,ratio=8.424e-01,corr_norm=9.890e-03,raw_cos=0.003,cos=0.003
+locoprop_m_kdiag step=2025 l11 k1:loss=4.141e-04,ratio=9.431e-01,corr_norm=4.331e-03,raw_cos=0.019,cos=0.019 | k2:loss=3.987e-04,ratio=9.079e-01,corr_norm=7.288e-03,raw_cos=0.015,cos=0.015 | k4:loss=3.770e-04,ratio=8.585e-01,corr_norm=1.231e-02,raw_cos=0.012,cos=0.012 | k5:loss=3.684e-04,ratio=8.389e-01,corr_norm=1.451e-02,raw_cos=0.012,cos=0.012
+locoprop_m_prepare step=2025 l0:loss0=4.963e-05,lossK=4.942e-05,corr_norm=8.043e-04,grad_norm=2.658e+03,raw_cos_desc=0.056,cos_desc=0.056,accepted=1,tokens=1024,opt=sgd,mode=normal,true_post_grad=1 | l1:loss0=1.353e-05,lossK=1.329e-05,corr_norm=8.498e-04,grad_norm=2.038e+03,raw_cos_desc=0.019,cos_desc=0.019,accepted=1,tokens=1024,opt=sgd,mode=normal,true_post_grad=1 | l2:loss0=3.207e-05,lossK=2.393e-05,corr_norm=4.762e-03,grad_norm=2.164e+03,raw_cos_desc=0.029,cos_desc=0.029,accepted=1,tokens=1024,opt=sgd,mode=normal,true_post_grad=1 | l3:loss0=2.479e-05,lossK=2.380e-05,corr_norm=1.723e-03,grad_norm=2.271e+03,raw_cos_desc=0.027,cos_desc=0.027,accepted=1,tokens=1024,opt=sgd,mode=normal,true_post_grad=1
+locoprop_m_apply step=2025 shape=(3072, 768):base_step=2.156e-01,corr_norm=8.043e-04,cap=0.200,scale=1.340e+01 | shape=(3072, 768):base_step=2.155e-01,corr_norm=8.498e-04,cap=0.200,scale=1.268e+01 | shape=(3072, 768):base_step=2.155e-01,corr_norm=4.762e-03,cap=0.200,scale=2.263e+00 | shape=(3072, 768):base_step=2.155e-01,corr_norm=1.723e-03,cap=0.200,scale=6.255e+00 | shape=(3072, 768):base_step=2.155e-01,corr_norm=1.917e-03,cap=0.200,scale=5.622e+00 | shape=(3072, 768):base_step=2.156e-01,corr_norm=2.565e-03,cap=0.200,scale=4.202e+00 | shape=(3072, 768):base_step=2.155e-01,corr_norm=4.965e-03,cap=0.200,scale=2.170e+00 | shape=(3072, 768):base_step=2.155e-01,corr_norm=9.890e-03,cap=0.200,scale=1.089e+00
+step:2026/2125 train_time:119.809s step_avg:59.14ms
+step:2027/2125 train_time:124.374s step_avg:61.36ms
+step:2028/2125 train_time:128.939s step_avg:63.58ms
+step:2029/2125 train_time:133.504s step_avg:65.80ms
+step:2030/2125 train_time:138.068s step_avg:68.01ms
+step:2031/2125 train_time:142.633s step_avg:70.23ms
+step:2032/2125 train_time:147.197s step_avg:72.44ms
+step:2033/2125 train_time:151.761s step_avg:74.65ms
+step:2034/2125 train_time:156.325s step_avg:76.86ms
+step:2035/2125 train_time:160.888s step_avg:79.06ms
+step:2036/2125 train_time:165.452s step_avg:81.26ms
+step:2037/2125 train_time:170.016s step_avg:83.46ms
+step:2038/2125 train_time:174.580s step_avg:85.66ms
+step:2039/2125 train_time:179.144s step_avg:87.86ms
+step:2040/2125 train_time:183.709s step_avg:90.05ms
+step:2041/2125 train_time:188.272s step_avg:92.25ms
+step:2042/2125 train_time:192.836s step_avg:94.44ms
+step:2043/2125 train_time:197.399s step_avg:96.62ms
+step:2044/2125 train_time:201.963s step_avg:98.81ms
+step:2045/2125 train_time:206.528s step_avg:100.99ms
+step:2046/2125 train_time:211.095s step_avg:103.17ms
+step:2047/2125 train_time:215.660s step_avg:105.35ms
+step:2048/2125 train_time:220.223s step_avg:107.53ms
+step:2049/2125 train_time:224.786s step_avg:109.71ms
+step:2050/2125 train_time:229.351s step_avg:111.88ms
+step:2050/2125 val_loss:3.36931 train_time:229.352s step_avg:4565.11ms
+locoprop_m_kdiag step=2050 l0 k1:loss=4.152e-05,ratio=9.993e-01,corr_norm=1.305e-04,raw_cos=0.022,cos=0.022 | k2:loss=4.149e-05,ratio=9.987e-01,corr_norm=2.607e-04,raw_cos=0.022,cos=0.022 | k4:loss=4.144e-05,ratio=9.973e-01,corr_norm=5.207e-04,raw_cos=0.022,cos=0.022 | k5:loss=4.141e-05,ratio=9.967e-01,corr_norm=6.503e-04,raw_cos=0.022,cos=0.022
+locoprop_m_kdiag step=2050 l1 k1:loss=1.979e-05,ratio=9.931e-01,corr_norm=2.930e-04,raw_cos=-0.027,cos=-0.027 | k2:loss=1.966e-05,ratio=9.869e-01,corr_norm=5.725e-04,raw_cos=-0.027,cos=-0.027 | k4:loss=1.945e-05,ratio=9.760e-01,corr_norm=1.095e-03,raw_cos=-0.026,cos=-0.026 | k5:loss=1.935e-05,ratio=9.711e-01,corr_norm=1.339e-03,raw_cos=-0.025,cos=-0.025
+locoprop_m_kdiag step=2050 l2 k1:loss=2.836e-05,ratio=9.379e-01,corr_norm=1.113e-03,raw_cos=0.011,cos=0.011 | k2:loss=2.695e-05,ratio=8.913e-01,corr_norm=2.074e-03,raw_cos=0.012,cos=0.012 | k4:loss=2.502e-05,ratio=8.276e-01,corr_norm=3.646e-03,raw_cos=0.013,cos=0.013 | k5:loss=2.435e-05,ratio=8.054e-01,corr_norm=4.296e-03,raw_cos=0.014,cos=0.014
+locoprop_m_kdiag step=2050 l3 k1:loss=3.249e-05,ratio=9.745e-01,corr_norm=7.984e-04,raw_cos=0.008,cos=0.008 | k2:loss=3.210e-05,ratio=9.627e-01,corr_norm=1.314e-03,raw_cos=0.011,cos=0.011 | k4:loss=3.167e-05,ratio=9.498e-01,corr_norm=1.996e-03,raw_cos=0.017,cos=0.017 | k5:loss=3.151e-05,ratio=9.450e-01,corr_norm=2.268e-03,raw_cos=0.019,cos=0.019
+locoprop_m_kdiag step=2050 l4 k1:loss=2.677e-05,ratio=9.826e-01,corr_norm=5.840e-04,raw_cos=0.013,cos=0.013 | k2:loss=2.650e-05,ratio=9.725e-01,corr_norm=1.007e-03,raw_cos=0.014,cos=0.014 | k4:loss=2.612e-05,ratio=9.586e-01,corr_norm=1.656e-03,raw_cos=0.017,cos=0.017 | k5:loss=2.596e-05,ratio=9.527e-01,corr_norm=1.942e-03,raw_cos=0.017,cos=0.017
+locoprop_m_kdiag step=2050 l5 k1:loss=3.007e-05,ratio=9.899e-01,corr_norm=4.368e-04,raw_cos=-0.014,cos=-0.014 | k2:loss=2.977e-05,ratio=9.802e-01,corr_norm=8.646e-04,raw_cos=-0.013,cos=-0.013 | k4:loss=2.922e-05,ratio=9.619e-01,corr_norm=1.695e-03,raw_cos=-0.012,cos=-0.012 | k5:loss=2.896e-05,ratio=9.532e-01,corr_norm=2.098e-03,raw_cos=-0.012,cos=-0.012
+locoprop_m_kdiag step=2050 l6 k1:loss=4.382e-05,ratio=9.854e-01,corr_norm=6.361e-04,raw_cos=0.011,cos=0.011 | k2:loss=4.320e-05,ratio=9.714e-01,corr_norm=1.257e-03,raw_cos=0.012,cos=0.012 | k4:loss=4.204e-05,ratio=9.453e-01,corr_norm=2.458e-03,raw_cos=0.012,cos=0.012 | k5:loss=4.149e-05,ratio=9.330e-01,corr_norm=3.039e-03,raw_cos=0.012,cos=0.012
+locoprop_m_kdiag step=2050 l7 k1:loss=6.404e-05,ratio=9.779e-01,corr_norm=9.610e-04,raw_cos=0.009,cos=0.009 | k2:loss=6.276e-05,ratio=9.583e-01,corr_norm=1.855e-03,raw_cos=0.010,cos=0.010 | k4:loss=6.048e-05,ratio=9.236e-01,corr_norm=3.527e-03,raw_cos=0.012,cos=0.012 | k5:loss=5.944e-05,ratio=9.077e-01,corr_norm=4.322e-03,raw_cos=0.012,cos=0.012
+locoprop_m_kdiag step=2050 l8 k1:loss=9.000e-05,ratio=9.708e-01,corr_norm=1.311e-03,raw_cos=0.003,cos=0.003 | k2:loss=8.759e-05,ratio=9.449e-01,corr_norm=2.539e-03,raw_cos=0.003,cos=0.003 | k4:loss=8.339e-05,ratio=8.996e-01,corr_norm=4.820e-03,raw_cos=0.002,cos=0.002 | k5:loss=8.153e-05,ratio=8.795e-01,corr_norm=5.892e-03,raw_cos=0.002,cos=0.002
+locoprop_m_kdiag step=2050 l9 k1:loss=1.301e-04,ratio=9.685e-01,corr_norm=1.638e-03,raw_cos=-0.001,cos=-0.001 | k2:loss=1.263e-04,ratio=9.405e-01,corr_norm=3.177e-03,raw_cos=-0.001,cos=-0.001 | k4:loss=1.198e-04,ratio=8.922e-01,corr_norm=6.020e-03,raw_cos=-0.000,cos=-0.000 | k5:loss=1.170e-04,ratio=8.710e-01,corr_norm=7.346e-03,raw_cos=-0.000,cos=-0.000
+locoprop_m_kdiag step=2050 l10 k1:loss=2.135e-04,ratio=9.565e-01,corr_norm=2.537e-03,raw_cos=0.004,cos=0.004 | k2:loss=2.057e-04,ratio=9.217e-01,corr_norm=4.734e-03,raw_cos=0.002,cos=0.002 | k4:loss=1.932e-04,ratio=8.657e-01,corr_norm=8.653e-03,raw_cos=0.002,cos=0.002 | k5:loss=1.880e-04,ratio=8.424e-01,corr_norm=1.043e-02,raw_cos=0.002,cos=0.002
+locoprop_m_kdiag step=2050 l11 k1:loss=3.904e-04,ratio=9.513e-01,corr_norm=3.865e-03,raw_cos=0.019,cos=0.019 | k2:loss=3.763e-04,ratio=9.170e-01,corr_norm=6.599e-03,raw_cos=0.017,cos=0.017 | k4:loss=3.548e-04,ratio=8.646e-01,corr_norm=1.166e-02,raw_cos=0.016,cos=0.016 | k5:loss=3.460e-04,ratio=8.430e-01,corr_norm=1.394e-02,raw_cos=0.016,cos=0.016
+locoprop_m_prepare step=2050 l0:loss0=4.155e-05,lossK=4.141e-05,corr_norm=6.503e-04,grad_norm=2.494e+03,raw_cos_desc=0.022,cos_desc=0.022,accepted=1,tokens=1024,opt=sgd,mode=normal,true_post_grad=1 | l1:loss0=1.992e-05,lossK=1.935e-05,corr_norm=1.339e-03,grad_norm=2.061e+03,raw_cos_desc=-0.025,cos_desc=-0.025,accepted=0,tokens=1024,opt=sgd,mode=normal,true_post_grad=1 | l2:loss0=3.023e-05,lossK=2.435e-05,corr_norm=4.296e-03,grad_norm=2.160e+03,raw_cos_desc=0.014,cos_desc=0.014,accepted=1,tokens=1024,opt=sgd,mode=normal,true_post_grad=1 | l3:loss0=3.334e-05,lossK=3.151e-05,corr_norm=2.268e-03,grad_norm=2.398e+03,raw_cos_desc=0.019,cos_desc=0.019,accepted=1,tokens=1024,opt=sgd,mode=normal,true_post_grad=1
+locoprop_m_apply step=2050 shape=(3072, 768):base_step=2.156e-01,corr_norm=6.503e-04,cap=0.200,scale=1.658e+01 | shape=(3072, 768):base_step=2.155e-01,corr_norm=4.296e-03,cap=0.200,scale=2.508e+00 | shape=(3072, 768):base_step=2.155e-01,corr_norm=2.268e-03,cap=0.200,scale=4.751e+00 | shape=(3072, 768):base_step=2.155e-01,corr_norm=1.942e-03,cap=0.200,scale=5.550e+00 | shape=(3072, 768):base_step=2.156e-01,corr_norm=3.039e-03,cap=0.200,scale=3.547e+00 | shape=(3072, 768):base_step=2.155e-01,corr_norm=4.322e-03,cap=0.200,scale=2.493e+00 | shape=(3072, 768):base_step=2.155e-01,corr_norm=5.892e-03,cap=0.200,scale=1.829e+00 | shape=(3072, 768):base_step=2.155e-01,corr_norm=1.043e-02,cap=0.200,scale=1.033e+00
+step:2051/2125 train_time:233.936s step_avg:114.06ms
+step:2052/2125 train_time:238.501s step_avg:116.23ms
+step:2053/2125 train_time:243.066s step_avg:118.40ms
+step:2054/2125 train_time:247.632s step_avg:120.56ms
+step:2055/2125 train_time:252.198s step_avg:122.72ms
+step:2056/2125 train_time:256.763s step_avg:124.88ms
+step:2057/2125 train_time:261.329s step_avg:127.04ms
+step:2058/2125 train_time:265.893s step_avg:129.20ms
+step:2059/2125 train_time:270.459s step_avg:131.35ms
+step:2060/2125 train_time:275.024s step_avg:133.51ms
+step:2061/2125 train_time:279.590s step_avg:135.66ms
+step:2062/2125 train_time:284.155s step_avg:137.81ms
+step:2063/2125 train_time:288.720s step_avg:139.95ms
+step:2064/2125 train_time:293.285s step_avg:142.10ms
+step:2065/2125 train_time:297.848s step_avg:144.24ms
+step:2066/2125 train_time:302.413s step_avg:146.38ms
+step:2067/2125 train_time:306.980s step_avg:148.51ms
+step:2068/2125 train_time:311.545s step_avg:150.65ms
+step:2069/2125 train_time:316.109s step_avg:152.78ms
+step:2070/2125 train_time:320.674s step_avg:154.91ms
+step:2071/2125 train_time:325.239s step_avg:157.04ms
+step:2072/2125 train_time:329.804s step_avg:159.17ms
+step:2073/2125 train_time:334.369s step_avg:161.30ms
+step:2074/2125 train_time:338.934s step_avg:163.42ms
+step:2075/2125 train_time:343.498s step_avg:165.54ms
+step:2075/2125 val_loss:3.36773 train_time:343.499s step_avg:4565.88ms
+locoprop_m_kdiag step=2075 l0 k1:loss=4.636e-05,ratio=9.992e-01,corr_norm=1.519e-04,raw_cos=0.033,cos=0.033 | k2:loss=4.632e-05,ratio=9.984e-01,corr_norm=3.034e-04,raw_cos=0.033,cos=0.033 | k4:loss=4.625e-05,ratio=9.968e-01,corr_norm=6.051e-04,raw_cos=0.033,cos=0.033 | k5:loss=4.621e-05,ratio=9.960e-01,corr_norm=7.553e-04,raw_cos=0.033,cos=0.033
+locoprop_m_kdiag step=2075 l1 k1:loss=1.534e-05,ratio=9.948e-01,corr_norm=2.221e-04,raw_cos=0.017,cos=0.017 | k2:loss=1.526e-05,ratio=9.900e-01,corr_norm=4.387e-04,raw_cos=0.017,cos=0.017 | k4:loss=1.512e-05,ratio=9.809e-01,corr_norm=8.560e-04,raw_cos=0.018,cos=0.018 | k5:loss=1.506e-05,ratio=9.767e-01,corr_norm=1.057e-03,raw_cos=0.018,cos=0.018
+locoprop_m_kdiag step=2075 l2 k1:loss=2.822e-05,ratio=9.572e-01,corr_norm=9.000e-04,raw_cos=-0.008,cos=-0.008 | k2:loss=2.717e-05,ratio=9.214e-01,corr_norm=1.722e-03,raw_cos=-0.008,cos=-0.008 | k4:loss=2.549e-05,ratio=8.647e-01,corr_norm=3.175e-03,raw_cos=-0.007,cos=-0.007 | k5:loss=2.482e-05,ratio=8.419e-01,corr_norm=3.823e-03,raw_cos=-0.007,cos=-0.007
+locoprop_m_kdiag step=2075 l3 k1:loss=2.476e-05,ratio=9.571e-01,corr_norm=9.763e-04,raw_cos=0.005,cos=0.005 | k2:loss=2.448e-05,ratio=9.462e-01,corr_norm=1.410e-03,raw_cos=0.002,cos=0.002 | k4:loss=2.419e-05,ratio=9.348e-01,corr_norm=1.883e-03,raw_cos=-0.001,cos=-0.001 | k5:loss=2.406e-05,ratio=9.301e-01,corr_norm=2.084e-03,raw_cos=-0.002,cos=-0.002
+locoprop_m_kdiag step=2075 l4 k1:loss=2.434e-05,ratio=9.802e-01,corr_norm=6.010e-04,raw_cos=-0.006,cos=-0.006 | k2:loss=2.407e-05,ratio=9.695e-01,corr_norm=1.014e-03,raw_cos=-0.005,cos=-0.005 | k4:loss=2.372e-05,ratio=9.552e-01,corr_norm=1.632e-03,raw_cos=-0.002,cos=-0.002 | k5:loss=2.357e-05,ratio=9.492e-01,corr_norm=1.905e-03,raw_cos=-0.002,cos=-0.002
+locoprop_m_kdiag step=2075 l5 k1:loss=2.851e-05,ratio=9.891e-01,corr_norm=4.426e-04,raw_cos=0.005,cos=0.005 | k2:loss=2.821e-05,ratio=9.786e-01,corr_norm=8.749e-04,raw_cos=0.005,cos=0.005 | k4:loss=2.765e-05,ratio=9.591e-01,corr_norm=1.711e-03,raw_cos=0.005,cos=0.005 | k5:loss=2.739e-05,ratio=9.499e-01,corr_norm=2.115e-03,raw_cos=0.005,cos=0.005
+locoprop_m_kdiag step=2075 l6 k1:loss=4.082e-05,ratio=9.839e-01,corr_norm=6.455e-04,raw_cos=0.009,cos=0.009 | k2:loss=4.019e-05,ratio=9.688e-01,corr_norm=1.271e-03,raw_cos=0.009,cos=0.009 | k4:loss=3.904e-05,ratio=9.410e-01,corr_norm=2.468e-03,raw_cos=0.009,cos=0.009 | k5:loss=3.851e-05,ratio=9.282e-01,corr_norm=3.042e-03,raw_cos=0.009,cos=0.009
+locoprop_m_kdiag step=2075 l7 k1:loss=5.817e-05,ratio=9.790e-01,corr_norm=8.830e-04,raw_cos=-0.004,cos=-0.004 | k2:loss=5.701e-05,ratio=9.596e-01,corr_norm=1.733e-03,raw_cos=-0.003,cos=-0.003 | k4:loss=5.492e-05,ratio=9.244e-01,corr_norm=3.347e-03,raw_cos=-0.002,cos=-0.002 | k5:loss=5.397e-05,ratio=9.083e-01,corr_norm=4.115e-03,raw_cos=-0.002,cos=-0.002
+locoprop_m_kdiag step=2075 l8 k1:loss=7.934e-05,ratio=9.719e-01,corr_norm=1.205e-03,raw_cos=-0.011,cos=-0.011 | k2:loss=7.728e-05,ratio=9.466e-01,corr_norm=2.344e-03,raw_cos=-0.011,cos=-0.011 | k4:loss=7.369e-05,ratio=9.026e-01,corr_norm=4.459e-03,raw_cos=-0.010,cos=-0.010 | k5:loss=7.210e-05,ratio=8.832e-01,corr_norm=5.449e-03,raw_cos=-0.009,cos=-0.009
+locoprop_m_kdiag step=2075 l9 k1:loss=1.313e-04,ratio=9.644e-01,corr_norm=1.759e-03,raw_cos=-0.012,cos=-0.012 | k2:loss=1.271e-04,ratio=9.334e-01,corr_norm=3.391e-03,raw_cos=-0.011,cos=-0.011 | k4:loss=1.200e-04,ratio=8.810e-01,corr_norm=6.372e-03,raw_cos=-0.010,cos=-0.010 | k5:loss=1.169e-04,ratio=8.583e-01,corr_norm=7.751e-03,raw_cos=-0.010,cos=-0.010
+locoprop_m_kdiag step=2075 l10 k1:loss=2.154e-04,ratio=9.561e-01,corr_norm=2.571e-03,raw_cos=0.022,cos=0.022 | k2:loss=2.076e-04,ratio=9.216e-01,corr_norm=4.765e-03,raw_cos=0.019,cos=0.019 | k4:loss=1.952e-04,ratio=8.665e-01,corr_norm=8.660e-03,raw_cos=0.018,cos=0.018 | k5:loss=1.900e-04,ratio=8.435e-01,corr_norm=1.043e-02,raw_cos=0.018,cos=0.018
+locoprop_m_kdiag step=2075 l11 k1:loss=4.217e-04,ratio=9.147e-01,corr_norm=6.141e-03,raw_cos=-0.004,cos=-0.004 | k2:loss=4.059e-04,ratio=8.805e-01,corr_norm=8.315e-03,raw_cos=-0.004,cos=-0.004 | k4:loss=3.816e-04,ratio=8.277e-01,corr_norm=1.318e-02,raw_cos=-0.004,cos=-0.004 | k5:loss=3.716e-04,ratio=8.059e-01,corr_norm=1.549e-02,raw_cos=-0.004,cos=-0.004
+locoprop_m_prepare step=2075 l0:loss0=4.639e-05,lossK=4.621e-05,corr_norm=7.553e-04,grad_norm=2.484e+03,raw_cos_desc=0.033,cos_desc=0.033,accepted=1,tokens=1024,opt=sgd,mode=normal,true_post_grad=1 | l1:loss0=1.542e-05,lossK=1.506e-05,corr_norm=1.057e-03,grad_norm=2.066e+03,raw_cos_desc=0.018,cos_desc=0.018,accepted=1,tokens=1024,opt=sgd,mode=normal,true_post_grad=1 | l2:loss0=2.948e-05,lossK=2.482e-05,corr_norm=3.823e-03,grad_norm=2.175e+03,raw_cos_desc=-0.007,cos_desc=-0.007,accepted=0,tokens=1024,opt=sgd,mode=normal,true_post_grad=1 | l3:loss0=2.587e-05,lossK=2.406e-05,corr_norm=2.084e-03,grad_norm=2.354e+03,raw_cos_desc=-0.002,cos_desc=-0.002,accepted=0,tokens=1024,opt=sgd,mode=normal,true_post_grad=1
+locoprop_m_apply step=2075 shape=(3072, 768):base_step=2.156e-01,corr_norm=7.553e-04,cap=0.200,scale=1.427e+01 | shape=(3072, 768):base_step=2.155e-01,corr_norm=1.057e-03,cap=0.200,scale=1.019e+01 | shape=(3072, 768):base_step=2.156e-01,corr_norm=2.115e-03,cap=0.200,scale=5.096e+00 | shape=(3072, 768):base_step=2.156e-01,corr_norm=3.042e-03,cap=0.200,scale=3.544e+00 | shape=(3072, 768):base_step=2.154e-01,corr_norm=1.043e-02,cap=0.200,scale=1.033e+00
+step:2076/2125 train_time:348.081s step_avg:167.67ms
+step:2077/2125 train_time:352.645s step_avg:169.79ms
+step:2078/2125 train_time:357.209s step_avg:171.90ms
+step:2079/2125 train_time:361.773s step_avg:174.01ms
+step:2080/2125 train_time:366.338s step_avg:176.12ms
+step:2081/2125 train_time:370.904s step_avg:178.23ms
+step:2082/2125 train_time:375.470s step_avg:180.34ms
+step:2083/2125 train_time:380.036s step_avg:182.45ms
+step:2084/2125 train_time:384.600s step_avg:184.55ms
+step:2085/2125 train_time:389.166s step_avg:186.65ms
+step:2086/2125 train_time:393.733s step_avg:188.75ms
+step:2087/2125 train_time:398.297s step_avg:190.85ms
+step:2088/2125 train_time:402.862s step_avg:192.94ms
+step:2089/2125 train_time:407.426s step_avg:195.03ms
+step:2090/2125 train_time:411.991s step_avg:197.12ms
+step:2091/2125 train_time:416.572s step_avg:199.22ms
+step:2092/2125 train_time:421.136s step_avg:201.31ms
+step:2093/2125 train_time:425.700s step_avg:203.39ms
+step:2094/2125 train_time:430.264s step_avg:205.47ms
+step:2095/2125 train_time:434.828s step_avg:207.56ms
+step:2096/2125 train_time:439.393s step_avg:209.63ms
+step:2097/2125 train_time:443.956s step_avg:211.71ms
+step:2098/2125 train_time:448.522s step_avg:213.79ms
+step:2099/2125 train_time:453.089s step_avg:215.86ms
+step:2100/2125 train_time:457.654s step_avg:217.93ms
+step:2100/2125 val_loss:3.36582 train_time:457.654s step_avg:4566.22ms
+locoprop_m_kdiag step=2100 l0 k1:loss=3.738e-05,ratio=9.993e-01,corr_norm=1.245e-04,raw_cos=0.022,cos=0.022 | k2:loss=3.736e-05,ratio=9.987e-01,corr_norm=2.488e-04,raw_cos=0.022,cos=0.022 | k4:loss=3.731e-05,ratio=9.973e-01,corr_norm=4.968e-04,raw_cos=0.022,cos=0.022 | k5:loss=3.728e-05,ratio=9.967e-01,corr_norm=6.204e-04,raw_cos=0.022,cos=0.022
+locoprop_m_kdiag step=2100 l1 k1:loss=1.643e-05,ratio=9.976e-01,corr_norm=1.562e-04,raw_cos=-0.009,cos=-0.009 | k2:loss=1.639e-05,ratio=9.952e-01,corr_norm=3.113e-04,raw_cos=-0.009,cos=-0.009 | k4:loss=1.631e-05,ratio=9.906e-01,corr_norm=6.181e-04,raw_cos=-0.009,cos=-0.009 | k5:loss=1.628e-05,ratio=9.883e-01,corr_norm=7.698e-04,raw_cos=-0.009,cos=-0.009
+locoprop_m_kdiag step=2100 l2 k1:loss=2.551e-05,ratio=9.660e-01,corr_norm=7.665e-04,raw_cos=-0.000,cos=-0.000 | k2:loss=2.478e-05,ratio=9.382e-01,corr_norm=1.447e-03,raw_cos=0.001,cos=0.001 | k4:loss=2.358e-05,ratio=8.929e-01,corr_norm=2.657e-03,raw_cos=0.003,cos=0.003 | k5:loss=2.307e-05,ratio=8.736e-01,corr_norm=3.212e-03,raw_cos=0.004,cos=0.004
+locoprop_m_kdiag step=2100 l3 k1:loss=2.961e-05,ratio=9.767e-01,corr_norm=7.253e-04,raw_cos=-0.007,cos=-0.007 | k2:loss=2.925e-05,ratio=9.648e-01,corr_norm=1.209e-03,raw_cos=-0.004,cos=-0.004 | k4:loss=2.880e-05,ratio=9.501e-01,corr_norm=1.904e-03,raw_cos=0.002,cos=0.002 | k5:loss=2.863e-05,ratio=9.444e-01,corr_norm=2.197e-03,raw_cos=0.004,cos=0.004
+locoprop_m_kdiag step=2100 l4 k1:loss=2.699e-05,ratio=9.885e-01,corr_norm=4.623e-04,raw_cos=0.018,cos=0.018 | k2:loss=2.676e-05,ratio=9.801e-01,corr_norm=8.410e-04,raw_cos=0.018,cos=0.018 | k4:loss=2.639e-05,ratio=9.664e-01,corr_norm=1.500e-03,raw_cos=0.018,cos=0.018 | k5:loss=2.622e-05,ratio=9.603e-01,corr_norm=1.808e-03,raw_cos=0.018,cos=0.018
+locoprop_m_kdiag step=2100 l5 k1:loss=3.233e-05,ratio=9.892e-01,corr_norm=4.679e-04,raw_cos=0.024,cos=0.024 | k2:loss=3.199e-05,ratio=9.788e-01,corr_norm=9.266e-04,raw_cos=0.024,cos=0.024 | k4:loss=3.135e-05,ratio=9.592e-01,corr_norm=1.818e-03,raw_cos=0.025,cos=0.025 | k5:loss=3.105e-05,ratio=9.499e-01,corr_norm=2.252e-03,raw_cos=0.025,cos=0.025
+locoprop_m_kdiag step=2100 l6 k1:loss=4.594e-05,ratio=9.852e-01,corr_norm=6.556e-04,raw_cos=0.001,cos=0.001 | k2:loss=4.529e-05,ratio=9.711e-01,corr_norm=1.295e-03,raw_cos=0.001,cos=0.001 | k4:loss=4.406e-05,ratio=9.447e-01,corr_norm=2.530e-03,raw_cos=0.001,cos=0.001 | k5:loss=4.348e-05,ratio=9.324e-01,corr_norm=3.127e-03,raw_cos=0.001,cos=0.001
+locoprop_m_kdiag step=2100 l7 k1:loss=6.838e-05,ratio=9.798e-01,corr_norm=9.376e-04,raw_cos=0.015,cos=0.015 | k2:loss=6.705e-05,ratio=9.609e-01,corr_norm=1.846e-03,raw_cos=0.014,cos=0.014 | k4:loss=6.463e-05,ratio=9.262e-01,corr_norm=3.581e-03,raw_cos=0.014,cos=0.014 | k5:loss=6.352e-05,ratio=9.103e-01,corr_norm=4.411e-03,raw_cos=0.014,cos=0.014
+locoprop_m_kdiag step=2100 l8 k1:loss=9.052e-05,ratio=9.731e-01,corr_norm=1.252e-03,raw_cos=0.013,cos=0.013 | k2:loss=8.821e-05,ratio=9.483e-01,corr_norm=2.455e-03,raw_cos=0.013,cos=0.013 | k4:loss=8.407e-05,ratio=9.037e-01,corr_norm=4.729e-03,raw_cos=0.012,cos=0.012 | k5:loss=8.220e-05,ratio=8.837e-01,corr_norm=5.806e-03,raw_cos=0.012,cos=0.012
+locoprop_m_kdiag step=2100 l9 k1:loss=1.388e-04,ratio=9.671e-01,corr_norm=1.728e-03,raw_cos=0.013,cos=0.013 | k2:loss=1.346e-04,ratio=9.374e-01,corr_norm=3.364e-03,raw_cos=0.013,cos=0.013 | k4:loss=1.272e-04,ratio=8.860e-01,corr_norm=6.402e-03,raw_cos=0.013,cos=0.013 | k5:loss=1.240e-04,ratio=8.634e-01,corr_norm=7.820e-03,raw_cos=0.013,cos=0.013
+locoprop_m_kdiag step=2100 l10 k1:loss=2.285e-04,ratio=9.563e-01,corr_norm=2.609e-03,raw_cos=-0.000,cos=-0.000 | k2:loss=2.198e-04,ratio=9.199e-01,corr_norm=4.939e-03,raw_cos=-0.001,cos=-0.001 | k4:loss=2.056e-04,ratio=8.603e-01,corr_norm=9.147e-03,raw_cos=-0.001,cos=-0.001 | k5:loss=1.996e-04,ratio=8.354e-01,corr_norm=1.106e-02,raw_cos=-0.001,cos=-0.001
+locoprop_m_kdiag step=2100 l11 k1:loss=4.151e-04,ratio=9.513e-01,corr_norm=3.777e-03,raw_cos=-0.001,cos=-0.001 | k2:loss=3.991e-04,ratio=9.147e-01,corr_norm=6.951e-03,raw_cos=-0.001,cos=-0.001 | k4:loss=3.742e-04,ratio=8.575e-01,corr_norm=1.244e-02,raw_cos=-0.000,cos=-0.000 | k5:loss=3.637e-04,ratio=8.335e-01,corr_norm=1.492e-02,raw_cos=0.000,cos=0.000
+locoprop_m_prepare step=2100 l0:loss0=3.741e-05,lossK=3.728e-05,corr_norm=6.204e-04,grad_norm=3.056e+03,raw_cos_desc=0.022,cos_desc=0.022,accepted=1,tokens=1024,opt=sgd,mode=normal,true_post_grad=1 | l1:loss0=1.647e-05,lossK=1.628e-05,corr_norm=7.698e-04,grad_norm=2.179e+03,raw_cos_desc=-0.009,cos_desc=-0.009,accepted=0,tokens=1024,opt=sgd,mode=normal,true_post_grad=1 | l2:loss0=2.641e-05,lossK=2.307e-05,corr_norm=3.212e-03,grad_norm=2.397e+03,raw_cos_desc=0.004,cos_desc=0.004,accepted=1,tokens=1024,opt=sgd,mode=normal,true_post_grad=1 | l3:loss0=3.031e-05,lossK=2.863e-05,corr_norm=2.197e-03,grad_norm=2.639e+03,raw_cos_desc=0.004,cos_desc=0.004,accepted=1,tokens=1024,opt=sgd,mode=normal,true_post_grad=1
+locoprop_m_apply step=2100 shape=(3072, 768):base_step=2.156e-01,corr_norm=6.204e-04,cap=0.200,scale=1.737e+01 | shape=(3072, 768):base_step=2.155e-01,corr_norm=3.212e-03,cap=0.200,scale=3.355e+00 | shape=(3072, 768):base_step=2.155e-01,corr_norm=2.197e-03,cap=0.200,scale=4.905e+00 | shape=(3072, 768):base_step=2.155e-01,corr_norm=1.808e-03,cap=0.200,scale=5.960e+00 | shape=(3072, 768):base_step=2.156e-01,corr_norm=2.252e-03,cap=0.200,scale=4.787e+00 | shape=(3072, 768):base_step=2.156e-01,corr_norm=3.127e-03,cap=0.200,scale=3.448e+00 | shape=(3072, 768):base_step=2.156e-01,corr_norm=4.411e-03,cap=0.200,scale=2.444e+00 | shape=(3072, 768):base_step=2.156e-01,corr_norm=5.806e-03,cap=0.200,scale=1.856e+00
+step:2101/2125 train_time:462.240s step_avg:220.01ms
+step:2102/2125 train_time:466.804s step_avg:222.08ms
+step:2103/2125 train_time:471.368s step_avg:224.14ms
+step:2104/2125 train_time:475.934s step_avg:226.20ms
+step:2105/2125 train_time:480.498s step_avg:228.26ms
+step:2106/2125 train_time:485.062s step_avg:230.32ms
+step:2107/2125 train_time:489.626s step_avg:232.38ms
+step:2108/2125 train_time:494.190s step_avg:234.44ms
+step:2109/2125 train_time:498.754s step_avg:236.49ms
+step:2110/2125 train_time:503.318s step_avg:238.54ms
+step:2111/2125 train_time:507.883s step_avg:240.59ms
+step:2112/2125 train_time:512.446s step_avg:242.64ms
+step:2113/2125 train_time:517.009s step_avg:244.68ms
+step:2114/2125 train_time:521.572s step_avg:246.72ms
+step:2115/2125 train_time:526.138s step_avg:248.76ms
+step:2116/2125 train_time:530.701s step_avg:250.80ms
+step:2117/2125 train_time:535.265s step_avg:252.84ms
+step:2118/2125 train_time:539.829s step_avg:254.88ms
+step:2119/2125 train_time:544.393s step_avg:256.91ms
+step:2120/2125 train_time:548.958s step_avg:258.94ms
+step:2121/2125 train_time:553.523s step_avg:260.97ms
+step:2122/2125 train_time:558.087s step_avg:263.00ms
+step:2123/2125 train_time:562.653s step_avg:265.03ms
+step:2124/2125 train_time:567.217s step_avg:267.05ms
+track3_checkpoint_saved step:2125 path:/home/ubuntu/.cache/track3_checkpoints/track3_locom_2000_floor111_norm005_k5_seed3710_seed3710_step2125.pt val_loss:None
+step:2125/2125 train_time:573.689s step_avg:269.97ms
+step:2125/2125 val_loss:3.36430 train_time:573.689s step_avg:4641.40ms
+===== track3_locom_2000_floor111_random005_seed3710 =====
+track3_locom_runner source=records/track_3_optimization/train_gpt_simple.py generated=/tmp/track3_locom_2000_floor111_random005_seed3710.py steps=2125 trials=1 nproc=1 mbs=16 trial_arg_mode=positional-count
+track3_locom_source_sha source=3191da541544c96aa4a4a9dfdde8a8e1fa674620583b69c61f10818c74c1436b generator=d531e33ce23d51002c957fcc78dd20b60f95396fc2b6045993de8c47bd3c047d generated=c94a53d9da8ac23365fe9ed25bd635aa8176ff236224880112d7b389f8bc0a48
+logs/87fa27af-0efa-4a81-8580-a6b27023029d.txt
+track3_trial_seed=3710 trial=0
+locoprop_m_owner rank=0 world=1 owned_layers=[0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11] sample_tokens=1024 gather_samples=True accum_samples=False micro_sample_tokens=32 aux_capture=False aux_seqs=16 batched_prep=False
+track3_checkpoint_loaded path:/home/ubuntu/.cache/track3_checkpoints/track3_locom_good2000_seed3710_step2000.pt step:2000 seed:3710 val_loss:None load_optimizers:True
+track3_resume_advanced_data steps:2000
+step:2000/2125 val_loss:3.37338 train_time:0.000s step_avg:nanms
+locoprop_m_prepare step=2000 l0:random=1,corr_norm=1.534e+03,grad_norm=2.386e+03,raw_cos_desc=0.000,cos_desc=0.000,accepted=1,opt=random,mode=normal | l1:random=1,corr_norm=1.536e+03,grad_norm=2.022e+03,raw_cos_desc=-0.002,cos_desc=-0.002,accepted=1,opt=random,mode=normal | l2:random=1,corr_norm=1.535e+03,grad_norm=2.085e+03,raw_cos_desc=0.001,cos_desc=0.001,accepted=1,opt=random,mode=normal | l3:random=1,corr_norm=1.537e+03,grad_norm=2.233e+03,raw_cos_desc=0.001,cos_desc=0.001,accepted=1,opt=random,mode=normal
+locoprop_m_apply step=2000 shape=(3072, 768):base_step=2.156e-01,corr_norm=1.534e+03,cap=0.200,scale=7.027e-06 | shape=(3072, 768):base_step=2.155e-01,corr_norm=1.536e+03,cap=0.200,scale=7.015e-06 | shape=(3072, 768):base_step=2.155e-01,corr_norm=1.535e+03,cap=0.200,scale=7.019e-06 | shape=(3072, 768):base_step=2.155e-01,corr_norm=1.537e+03,cap=0.200,scale=7.012e-06 | shape=(3072, 768):base_step=2.156e-01,corr_norm=1.535e+03,cap=0.200,scale=7.021e-06 | shape=(3072, 768):base_step=2.156e-01,corr_norm=1.536e+03,cap=0.200,scale=7.019e-06 | shape=(3072, 768):base_step=2.156e-01,corr_norm=1.535e+03,cap=0.200,scale=7.020e-06 | shape=(3072, 768):base_step=2.156e-01,corr_norm=1.536e+03,cap=0.200,scale=7.020e-06
+step:2001/2125 train_time:5.610s step_avg:2.80ms
+step:2002/2125 train_time:10.160s step_avg:5.08ms
+step:2003/2125 train_time:14.711s step_avg:7.34ms
+step:2004/2125 train_time:19.263s step_avg:9.61ms
+step:2005/2125 train_time:23.813s step_avg:11.88ms
+step:2006/2125 train_time:28.365s step_avg:14.14ms
+step:2007/2125 train_time:32.916s step_avg:16.40ms
+step:2008/2125 train_time:37.467s step_avg:18.66ms
+step:2009/2125 train_time:42.018s step_avg:20.91ms
+step:2010/2125 train_time:46.568s step_avg:23.17ms
+step:2011/2125 train_time:51.118s step_avg:25.42ms
+step:2012/2125 train_time:55.671s step_avg:27.67ms
+step:2013/2125 train_time:60.222s step_avg:29.92ms
+step:2014/2125 train_time:64.774s step_avg:32.16ms
+step:2015/2125 train_time:69.325s step_avg:34.40ms
+step:2016/2125 train_time:73.876s step_avg:36.64ms
+step:2017/2125 train_time:78.427s step_avg:38.88ms
+step:2018/2125 train_time:82.979s step_avg:41.12ms
+step:2019/2125 train_time:87.530s step_avg:43.35ms
+step:2020/2125 train_time:92.080s step_avg:45.58ms
+step:2021/2125 train_time:96.631s step_avg:47.81ms
+step:2022/2125 train_time:101.182s step_avg:50.04ms
+step:2023/2125 train_time:105.733s step_avg:52.27ms
+step:2024/2125 train_time:110.283s step_avg:54.49ms
+step:2025/2125 train_time:114.834s step_avg:56.71ms
+step:2025/2125 val_loss:3.37121 train_time:114.834s step_avg:4593.36ms
+locoprop_m_prepare step=2025 l0:random=1,corr_norm=1.535e+03,grad_norm=2.659e+03,raw_cos_desc=0.000,cos_desc=0.000,accepted=1,opt=random,mode=normal | l1:random=1,corr_norm=1.537e+03,grad_norm=2.040e+03,raw_cos_desc=-0.001,cos_desc=-0.001,accepted=1,opt=random,mode=normal | l2:random=1,corr_norm=1.535e+03,grad_norm=2.163e+03,raw_cos_desc=0.000,cos_desc=0.000,accepted=1,opt=random,mode=normal | l3:random=1,corr_norm=1.537e+03,grad_norm=2.269e+03,raw_cos_desc=-0.000,cos_desc=-0.000,accepted=1,opt=random,mode=normal
+locoprop_m_apply step=2025 shape=(3072, 768):base_step=2.156e-01,corr_norm=1.535e+03,cap=0.200,scale=7.020e-06 | shape=(3072, 768):base_step=2.155e-01,corr_norm=1.537e+03,cap=0.200,scale=7.012e-06 | shape=(3072, 768):base_step=2.155e-01,corr_norm=1.535e+03,cap=0.200,scale=7.019e-06 | shape=(3072, 768):base_step=2.155e-01,corr_norm=1.537e+03,cap=0.200,scale=7.012e-06 | shape=(3072, 768):base_step=2.155e-01,corr_norm=1.536e+03,cap=0.200,scale=7.013e-06 | shape=(3072, 768):base_step=2.155e-01,corr_norm=1.535e+03,cap=0.200,scale=7.019e-06 | shape=(3072, 768):base_step=2.156e-01,corr_norm=1.536e+03,cap=0.200,scale=7.020e-06 | shape=(3072, 768):base_step=2.156e-01,corr_norm=1.536e+03,cap=0.200,scale=7.017e-06
+step:2026/2125 train_time:119.385s step_avg:58.93ms
+step:2027/2125 train_time:123.935s step_avg:61.14ms
+step:2028/2125 train_time:128.484s step_avg:63.36ms
+step:2029/2125 train_time:133.033s step_avg:65.57ms
+step:2030/2125 train_time:137.583s step_avg:67.78ms
+step:2031/2125 train_time:142.132s step_avg:69.98ms
+step:2032/2125 train_time:146.682s step_avg:72.19ms
+step:2033/2125 train_time:151.231s step_avg:74.39ms
+step:2034/2125 train_time:155.781s step_avg:76.59ms
+step:2035/2125 train_time:160.331s step_avg:78.79ms
+step:2036/2125 train_time:164.880s step_avg:80.98ms
+step:2037/2125 train_time:169.430s step_avg:83.18ms
+step:2038/2125 train_time:173.979s step_avg:85.37ms
+step:2039/2125 train_time:178.528s step_avg:87.56ms
+step:2040/2125 train_time:183.077s step_avg:89.74ms
+step:2041/2125 train_time:187.627s step_avg:91.93ms
+step:2042/2125 train_time:192.176s step_avg:94.11ms
+step:2043/2125 train_time:196.725s step_avg:96.29ms
+step:2044/2125 train_time:201.274s step_avg:98.47ms
+step:2045/2125 train_time:205.824s step_avg:100.65ms
+step:2046/2125 train_time:210.373s step_avg:102.82ms
+step:2047/2125 train_time:214.922s step_avg:104.99ms
+step:2048/2125 train_time:219.472s step_avg:107.16ms
+step:2049/2125 train_time:224.021s step_avg:109.33ms
+step:2050/2125 train_time:228.570s step_avg:111.50ms
+step:2050/2125 val_loss:3.36932 train_time:228.571s step_avg:4549.47ms
+locoprop_m_prepare step=2050 l0:random=1,corr_norm=1.535e+03,grad_norm=2.499e+03,raw_cos_desc=-0.000,cos_desc=-0.000,accepted=1,opt=random,mode=normal | l1:random=1,corr_norm=1.536e+03,grad_norm=2.062e+03,raw_cos_desc=-0.000,cos_desc=-0.000,accepted=1,opt=random,mode=normal | l2:random=1,corr_norm=1.536e+03,grad_norm=2.165e+03,raw_cos_desc=0.001,cos_desc=0.001,accepted=1,opt=random,mode=normal | l3:random=1,corr_norm=1.535e+03,grad_norm=2.403e+03,raw_cos_desc=-0.000,cos_desc=-0.000,accepted=1,opt=random,mode=normal
+locoprop_m_apply step=2050 shape=(3072, 768):base_step=2.156e-01,corr_norm=1.535e+03,cap=0.200,scale=7.024e-06 | shape=(3072, 768):base_step=2.155e-01,corr_norm=1.536e+03,cap=0.200,scale=7.014e-06 | shape=(3072, 768):base_step=2.155e-01,corr_norm=1.536e+03,cap=0.200,scale=7.013e-06 | shape=(3072, 768):base_step=2.155e-01,corr_norm=1.535e+03,cap=0.200,scale=7.020e-06 | shape=(3072, 768):base_step=2.155e-01,corr_norm=1.536e+03,cap=0.200,scale=7.016e-06 | shape=(3072, 768):base_step=2.156e-01,corr_norm=1.536e+03,cap=0.200,scale=7.018e-06 | shape=(3072, 768):base_step=2.156e-01,corr_norm=1.535e+03,cap=0.200,scale=7.021e-06 | shape=(3072, 768):base_step=2.155e-01,corr_norm=1.534e+03,cap=0.200,scale=7.025e-06
+step:2051/2125 train_time:233.123s step_avg:113.66ms
+step:2052/2125 train_time:237.672s step_avg:115.82ms
+step:2053/2125 train_time:242.221s step_avg:117.98ms
+step:2054/2125 train_time:246.771s step_avg:120.14ms
+step:2055/2125 train_time:251.321s step_avg:122.30ms
+step:2056/2125 train_time:255.871s step_avg:124.45ms
+step:2057/2125 train_time:260.421s step_avg:126.60ms
+step:2058/2125 train_time:264.971s step_avg:128.75ms
+step:2059/2125 train_time:269.522s step_avg:130.90ms
+step:2060/2125 train_time:274.073s step_avg:133.05ms
+step:2061/2125 train_time:278.622s step_avg:135.19ms
+step:2062/2125 train_time:283.172s step_avg:137.33ms
+step:2063/2125 train_time:287.722s step_avg:139.47ms
+step:2064/2125 train_time:292.271s step_avg:141.60ms
+step:2065/2125 train_time:296.820s step_avg:143.74ms
+step:2066/2125 train_time:301.371s step_avg:145.87ms
+step:2067/2125 train_time:305.920s step_avg:148.00ms
+step:2068/2125 train_time:310.469s step_avg:150.13ms
+step:2069/2125 train_time:315.018s step_avg:152.26ms
+step:2070/2125 train_time:319.569s step_avg:154.38ms
+step:2071/2125 train_time:324.118s step_avg:156.50ms
+step:2072/2125 train_time:328.667s step_avg:158.62ms
+step:2073/2125 train_time:333.216s step_avg:160.74ms
+step:2074/2125 train_time:337.765s step_avg:162.86ms
+step:2075/2125 train_time:342.314s step_avg:164.97ms
+step:2075/2125 val_loss:3.36773 train_time:342.315s step_avg:4549.75ms
+locoprop_m_prepare step=2075 l0:random=1,corr_norm=1.537e+03,grad_norm=2.480e+03,raw_cos_desc=-0.000,cos_desc=-0.000,accepted=1,opt=random,mode=normal | l1:random=1,corr_norm=1.536e+03,grad_norm=2.066e+03,raw_cos_desc=-0.000,cos_desc=-0.000,accepted=1,opt=random,mode=normal | l2:random=1,corr_norm=1.536e+03,grad_norm=2.176e+03,raw_cos_desc=-0.000,cos_desc=-0.000,accepted=1,opt=random,mode=normal | l3:random=1,corr_norm=1.536e+03,grad_norm=2.351e+03,raw_cos_desc=-0.000,cos_desc=-0.000,accepted=1,opt=random,mode=normal
+locoprop_m_apply step=2075 shape=(3072, 768):base_step=2.156e-01,corr_norm=1.537e+03,cap=0.200,scale=7.016e-06 | shape=(3072, 768):base_step=2.155e-01,corr_norm=1.536e+03,cap=0.200,scale=7.015e-06 | shape=(3072, 768):base_step=2.155e-01,corr_norm=1.536e+03,cap=0.200,scale=7.016e-06 | shape=(3072, 768):base_step=2.155e-01,corr_norm=1.536e+03,cap=0.200,scale=7.013e-06 | shape=(3072, 768):base_step=2.155e-01,corr_norm=1.536e+03,cap=0.200,scale=7.016e-06 | shape=(3072, 768):base_step=2.156e-01,corr_norm=1.536e+03,cap=0.200,scale=7.018e-06 | shape=(3072, 768):base_step=2.156e-01,corr_norm=1.536e+03,cap=0.200,scale=7.019e-06 | shape=(3072, 768):base_step=2.156e-01,corr_norm=1.537e+03,cap=0.200,scale=7.012e-06
+step:2076/2125 train_time:346.867s step_avg:167.08ms
+step:2077/2125 train_time:351.416s step_avg:169.19ms
+step:2078/2125 train_time:355.967s step_avg:171.30ms
+step:2079/2125 train_time:360.516s step_avg:173.41ms
+step:2080/2125 train_time:365.067s step_avg:175.51ms
+step:2081/2125 train_time:369.617s step_avg:177.62ms
+step:2082/2125 train_time:374.167s step_avg:179.72ms
+step:2083/2125 train_time:378.717s step_avg:181.81ms
+step:2084/2125 train_time:383.266s step_avg:183.91ms
+step:2085/2125 train_time:387.815s step_avg:186.00ms
+step:2086/2125 train_time:392.365s step_avg:188.09ms
+step:2087/2125 train_time:396.914s step_avg:190.18ms
+step:2088/2125 train_time:401.465s step_avg:192.27ms
+step:2089/2125 train_time:406.015s step_avg:194.36ms
+step:2090/2125 train_time:410.565s step_avg:196.44ms
+step:2091/2125 train_time:415.132s step_avg:198.53ms
+step:2092/2125 train_time:419.682s step_avg:200.61ms
+step:2093/2125 train_time:424.232s step_avg:202.69ms
+step:2094/2125 train_time:428.781s step_avg:204.77ms
+step:2095/2125 train_time:433.331s step_avg:206.84ms
+step:2096/2125 train_time:437.880s step_avg:208.91ms
+step:2097/2125 train_time:442.431s step_avg:210.98ms
+step:2098/2125 train_time:446.980s step_avg:213.05ms
+step:2099/2125 train_time:451.531s step_avg:215.12ms
+step:2100/2125 train_time:456.081s step_avg:217.18ms
+step:2100/2125 val_loss:3.36581 train_time:456.082s step_avg:4550.69ms
+locoprop_m_prepare step=2100 l0:random=1,corr_norm=1.537e+03,grad_norm=3.053e+03,raw_cos_desc=0.001,cos_desc=0.001,accepted=1,opt=random,mode=normal | l1:random=1,corr_norm=1.538e+03,grad_norm=2.173e+03,raw_cos_desc=0.001,cos_desc=0.001,accepted=1,opt=random,mode=normal | l2:random=1,corr_norm=1.536e+03,grad_norm=2.391e+03,raw_cos_desc=0.001,cos_desc=0.001,accepted=1,opt=random,mode=normal | l3:random=1,corr_norm=1.535e+03,grad_norm=2.627e+03,raw_cos_desc=-0.000,cos_desc=-0.000,accepted=1,opt=random,mode=normal
+locoprop_m_apply step=2100 shape=(3072, 768):base_step=2.156e-01,corr_norm=1.537e+03,cap=0.200,scale=7.014e-06 | shape=(3072, 768):base_step=2.155e-01,corr_norm=1.538e+03,cap=0.200,scale=7.008e-06 | shape=(3072, 768):base_step=2.155e-01,corr_norm=1.536e+03,cap=0.200,scale=7.013e-06 | shape=(3072, 768):base_step=2.155e-01,corr_norm=1.535e+03,cap=0.200,scale=7.018e-06 | shape=(3072, 768):base_step=2.155e-01,corr_norm=1.536e+03,cap=0.200,scale=7.015e-06 | shape=(3072, 768):base_step=2.156e-01,corr_norm=1.537e+03,cap=0.200,scale=7.015e-06 | shape=(3072, 768):base_step=2.156e-01,corr_norm=1.537e+03,cap=0.200,scale=7.015e-06 | shape=(3072, 768):base_step=2.156e-01,corr_norm=1.535e+03,cap=0.200,scale=7.021e-06
+step:2101/2125 train_time:460.633s step_avg:219.24ms
+step:2102/2125 train_time:465.183s step_avg:221.30ms
+step:2103/2125 train_time:469.733s step_avg:223.36ms
+step:2104/2125 train_time:474.284s step_avg:225.42ms
+step:2105/2125 train_time:478.834s step_avg:227.47ms
+step:2106/2125 train_time:483.384s step_avg:229.53ms
+step:2107/2125 train_time:487.935s step_avg:231.58ms
+step:2108/2125 train_time:492.486s step_avg:233.63ms
+step:2109/2125 train_time:497.037s step_avg:235.67ms
+step:2110/2125 train_time:501.587s step_avg:237.72ms
+step:2111/2125 train_time:506.137s step_avg:239.76ms
+step:2112/2125 train_time:510.687s step_avg:241.80ms
+step:2113/2125 train_time:515.238s step_avg:243.84ms
+step:2114/2125 train_time:519.789s step_avg:245.88ms
+step:2115/2125 train_time:524.339s step_avg:247.91ms
+step:2116/2125 train_time:528.889s step_avg:249.95ms
+step:2117/2125 train_time:533.440s step_avg:251.98ms
+step:2118/2125 train_time:537.991s step_avg:254.01ms
+step:2119/2125 train_time:542.542s step_avg:256.04ms
+step:2120/2125 train_time:547.092s step_avg:258.06ms
+step:2121/2125 train_time:551.645s step_avg:260.09ms
+step:2122/2125 train_time:556.195s step_avg:262.11ms
+step:2123/2125 train_time:560.745s step_avg:264.13ms
+step:2124/2125 train_time:565.294s step_avg:266.15ms
+track3_checkpoint_saved step:2125 path:/home/ubuntu/.cache/track3_checkpoints/track3_locom_2000_floor111_random005_seed3710_seed3710_step2125.pt val_loss:None
+step:2125/2125 train_time:571.771s step_avg:269.07ms
+step:2125/2125 val_loss:3.36429 train_time:571.771s step_avg:4627.56ms
+===== track3_locom_2000_ramp111_seed3710 =====
+track3_locom_runner source=records/track_3_optimization/train_gpt_simple.py generated=/tmp/track3_locom_2000_ramp111_seed3710.py steps=2125 trials=1 nproc=1 mbs=16 trial_arg_mode=positional-count
+track3_locom_source_sha source=3191da541544c96aa4a4a9dfdde8a8e1fa674620583b69c61f10818c74c1436b generator=d531e33ce23d51002c957fcc78dd20b60f95396fc2b6045993de8c47bd3c047d generated=c94a53d9da8ac23365fe9ed25bd635aa8176ff236224880112d7b389f8bc0a48
+logs/3a6ffce6-c0c1-4f31-9b1c-8fb9b97f518d.txt
+track3_trial_seed=3710 trial=0
+locoprop_m_owner rank=0 world=1 owned_layers=[0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11] sample_tokens=1024 gather_samples=True accum_samples=False micro_sample_tokens=32 aux_capture=False aux_seqs=16 batched_prep=False
+track3_checkpoint_loaded path:/home/ubuntu/.cache/track3_checkpoints/track3_locom_good2000_seed3710_step2000.pt step:2000 seed:3710 val_loss:None load_optimizers:True
+track3_resume_advanced_data steps:2000
+step:2000/2125 val_loss:3.37335 train_time:0.000s step_avg:nanms
+step:2001/2125 train_time:3.124s step_avg:1.56ms
+step:2002/2125 train_time:4.384s step_avg:2.19ms
+step:2003/2125 train_time:5.649s step_avg:2.82ms
+step:2004/2125 train_time:6.908s step_avg:3.45ms
+step:2005/2125 train_time:8.172s step_avg:4.08ms
+step:2006/2125 train_time:9.438s step_avg:4.70ms
+step:2007/2125 train_time:10.706s step_avg:5.33ms
+step:2008/2125 train_time:11.967s step_avg:5.96ms
+step:2009/2125 train_time:13.231s step_avg:6.59ms
+step:2010/2125 train_time:14.497s step_avg:7.21ms
+step:2011/2125 train_time:15.764s step_avg:7.84ms
+step:2012/2125 train_time:17.029s step_avg:8.46ms
+step:2013/2125 train_time:18.293s step_avg:9.09ms
+step:2014/2125 train_time:19.560s step_avg:9.71ms
+step:2015/2125 train_time:20.824s step_avg:10.33ms
+step:2016/2125 train_time:22.090s step_avg:10.96ms
+step:2017/2125 train_time:23.357s step_avg:11.58ms
+step:2018/2125 train_time:24.623s step_avg:12.20ms
+step:2019/2125 train_time:25.890s step_avg:12.82ms
+step:2020/2125 train_time:27.155s step_avg:13.44ms
+step:2021/2125 train_time:28.420s step_avg:14.06ms
+step:2022/2125 train_time:29.688s step_avg:14.68ms
+step:2023/2125 train_time:30.950s step_avg:15.30ms
+step:2024/2125 train_time:32.215s step_avg:15.92ms
+step:2025/2125 train_time:33.484s step_avg:16.54ms
+step:2025/2125 val_loss:3.37129 train_time:33.485s step_avg:1339.38ms
+step:2026/2125 train_time:34.752s step_avg:17.15ms
+step:2027/2125 train_time:36.020s step_avg:17.77ms
+step:2028/2125 train_time:37.284s step_avg:18.38ms
+step:2029/2125 train_time:38.548s step_avg:19.00ms
+step:2030/2125 train_time:39.815s step_avg:19.61ms
+step:2031/2125 train_time:41.079s step_avg:20.23ms
+step:2032/2125 train_time:42.345s step_avg:20.84ms
+step:2033/2125 train_time:43.608s step_avg:21.45ms
+step:2034/2125 train_time:44.869s step_avg:22.06ms
+step:2035/2125 train_time:46.131s step_avg:22.67ms
+step:2036/2125 train_time:47.392s step_avg:23.28ms
+step:2037/2125 train_time:48.661s step_avg:23.89ms
+step:2038/2125 train_time:49.920s step_avg:24.49ms
+step:2039/2125 train_time:51.185s step_avg:25.10ms
+step:2040/2125 train_time:52.446s step_avg:25.71ms
+step:2041/2125 train_time:53.709s step_avg:26.32ms
+step:2042/2125 train_time:54.970s step_avg:26.92ms
+step:2043/2125 train_time:56.231s step_avg:27.52ms
+step:2044/2125 train_time:57.492s step_avg:28.13ms
+step:2045/2125 train_time:58.754s step_avg:28.73ms
+step:2046/2125 train_time:60.023s step_avg:29.34ms
+step:2047/2125 train_time:61.289s step_avg:29.94ms
+step:2048/2125 train_time:62.551s step_avg:30.54ms
+step:2049/2125 train_time:63.813s step_avg:31.14ms
+step:2050/2125 train_time:65.081s step_avg:31.75ms
+step:2050/2125 val_loss:3.36960 train_time:65.082s step_avg:1263.89ms
+step:2051/2125 train_time:66.353s step_avg:32.35ms
+step:2052/2125 train_time:67.613s step_avg:32.95ms
+step:2053/2125 train_time:68.877s step_avg:33.55ms
+step:2054/2125 train_time:70.140s step_avg:34.15ms
+step:2055/2125 train_time:71.403s step_avg:34.75ms
+step:2056/2125 train_time:72.670s step_avg:35.35ms
+step:2057/2125 train_time:73.935s step_avg:35.94ms
+step:2058/2125 train_time:75.202s step_avg:36.54ms
+step:2059/2125 train_time:76.470s step_avg:37.14ms
+step:2060/2125 train_time:77.735s step_avg:37.74ms
+step:2061/2125 train_time:78.994s step_avg:38.33ms
+step:2062/2125 train_time:80.260s step_avg:38.92ms
+step:2063/2125 train_time:81.526s step_avg:39.52ms
+step:2064/2125 train_time:82.794s step_avg:40.11ms
+step:2065/2125 train_time:84.057s step_avg:40.71ms
+step:2066/2125 train_time:85.323s step_avg:41.30ms
+step:2067/2125 train_time:86.590s step_avg:41.89ms
+step:2068/2125 train_time:87.856s step_avg:42.48ms
+step:2069/2125 train_time:89.120s step_avg:43.07ms
+step:2070/2125 train_time:90.386s step_avg:43.66ms
+step:2071/2125 train_time:91.647s step_avg:44.25ms
+step:2072/2125 train_time:92.914s step_avg:44.84ms
+step:2073/2125 train_time:94.178s step_avg:45.43ms
+step:2074/2125 train_time:95.440s step_avg:46.02ms
+step:2075/2125 train_time:96.706s step_avg:46.61ms
+step:2075/2125 val_loss:3.36823 train_time:96.707s step_avg:1264.98ms
+step:2076/2125 train_time:97.971s step_avg:47.19ms
+step:2077/2125 train_time:99.242s step_avg:47.78ms
+step:2078/2125 train_time:100.507s step_avg:48.37ms
+step:2079/2125 train_time:101.770s step_avg:48.95ms
+step:2080/2125 train_time:103.040s step_avg:49.54ms
+step:2081/2125 train_time:104.307s step_avg:50.12ms
+step:2082/2125 train_time:105.570s step_avg:50.71ms
+step:2083/2125 train_time:106.831s step_avg:51.29ms
+step:2084/2125 train_time:108.100s step_avg:51.87ms
+step:2085/2125 train_time:109.360s step_avg:52.45ms
+step:2086/2125 train_time:110.625s step_avg:53.03ms
+step:2087/2125 train_time:111.886s step_avg:53.61ms
+step:2088/2125 train_time:113.145s step_avg:54.19ms
+step:2089/2125 train_time:114.404s step_avg:54.77ms
+step:2090/2125 train_time:115.665s step_avg:55.34ms
+step:2091/2125 train_time:116.945s step_avg:55.93ms
+step:2092/2125 train_time:118.212s step_avg:56.51ms
+step:2093/2125 train_time:119.481s step_avg:57.09ms
+step:2094/2125 train_time:120.745s step_avg:57.66ms
+step:2095/2125 train_time:122.012s step_avg:58.24ms
+step:2096/2125 train_time:123.281s step_avg:58.82ms
+step:2097/2125 train_time:124.545s step_avg:59.39ms
+step:2098/2125 train_time:125.810s step_avg:59.97ms
+step:2099/2125 train_time:127.080s step_avg:60.54ms
+step:2100/2125 train_time:128.347s step_avg:61.12ms
+step:2100/2125 val_loss:3.36643 train_time:128.347s step_avg:1265.63ms
+step:2101/2125 train_time:129.614s step_avg:61.69ms
+step:2102/2125 train_time:130.877s step_avg:62.26ms
+step:2103/2125 train_time:132.141s step_avg:62.83ms
+step:2104/2125 train_time:133.408s step_avg:63.41ms
+step:2105/2125 train_time:134.677s step_avg:63.98ms
+step:2106/2125 train_time:135.947s step_avg:64.55ms
+step:2107/2125 train_time:137.217s step_avg:65.12ms
+step:2108/2125 train_time:138.488s step_avg:65.70ms
+step:2109/2125 train_time:139.757s step_avg:66.27ms
+step:2110/2125 train_time:141.020s step_avg:66.83ms
+step:2111/2125 train_time:142.288s step_avg:67.40ms
+step:2112/2125 train_time:143.555s step_avg:67.97ms
+step:2113/2125 train_time:144.822s step_avg:68.54ms
+step:2114/2125 train_time:146.091s step_avg:69.11ms
+step:2115/2125 train_time:147.357s step_avg:69.67ms
+step:2116/2125 train_time:148.623s step_avg:70.24ms
+step:2117/2125 train_time:149.894s step_avg:70.80ms
+step:2118/2125 train_time:151.160s step_avg:71.37ms
+step:2119/2125 train_time:152.431s step_avg:71.94ms
+step:2120/2125 train_time:153.699s step_avg:72.50ms
+step:2121/2125 train_time:154.974s step_avg:73.07ms
+step:2122/2125 train_time:156.244s step_avg:73.63ms
+step:2123/2125 train_time:157.515s step_avg:74.19ms
+step:2124/2125 train_time:158.782s step_avg:74.76ms
+track3_checkpoint_saved step:2125 path:/home/ubuntu/.cache/track3_checkpoints/track3_locom_2000_ramp111_seed3710_seed3710_step2125.pt val_loss:None
+step:2125/2125 train_time:161.988s step_avg:76.23ms
+step:2125/2125 val_loss:3.36502 train_time:161.988s step_avg:1345.64ms
+# Track 3 Post-2000 Suffix Manifest
+
+| lane | enabled | local_opt | random | mode | norm_target | lr_min_eta | lr_bump_windows | intent |
+| --- | ---: | --- | ---: | --- | ---: | ---: | --- | --- |
+| control | 0 | sgd | 0 | normal | 0.00 | 0.0000000000 | `` | no-correction cold-schedule control |
+| floor111 | 0 | sgd | 0 | normal | 0.00 | 0.1111111111 | `` | LR floor at the step-2000 eta |
+| floor111_norm002_k5 | 1 | sgd | 0 | normal | 0.02 | 0.1111111111 | `` | LR floor plus true-post c_fc K5 at 2% base-step norm |
+| floor111_random002 | 1 | random | 1 | normal | 0.02 | 0.1111111111 | `` | LR floor plus same-shape random 2% correction |
+| floor111_norm005_k5 | 1 | sgd | 0 | normal | 0.05 | 0.1111111111 | `` | LR floor plus true-post c_fc K5 at 5% base-step norm |
+| floor111_random005 | 1 | random | 1 | normal | 0.05 | 0.1111111111 | `` | LR floor plus same-shape random 5% correction |
+| ramp111 | 0 | sgd | 0 | normal | 0.00 | 0.0000000000 | `2000:2250:2250:2400:1.7777777778` | smooth LR multiplier ramp targeting step-2000 eta near 2250 |
+
+## LR Preview
+
+| lane | 2000 | 2025 | 2050 | 2075 | 2100 | 2125 | 2200 | 2250 | 2325 | 2400 |
+| --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: |
+| control | 0.111111 | 0.105625 | 0.100278 | 0.095069 | 0.090000 | 0.085069 | 0.071111 | 0.062500 | 0.050625 | 0.040000 |
+| floor111 | 0.111111 | 0.111111 | 0.111111 | 0.111111 | 0.111111 | 0.111111 | 0.111111 | 0.111111 | 0.111111 | 0.111111 |
+| floor111_norm002_k5 | 0.111111 | 0.111111 | 0.111111 | 0.111111 | 0.111111 | 0.111111 | 0.111111 | 0.111111 | 0.111111 | 0.111111 |
+| floor111_random002 | 0.111111 | 0.111111 | 0.111111 | 0.111111 | 0.111111 | 0.111111 | 0.111111 | 0.111111 | 0.111111 | 0.111111 |
+| floor111_norm005_k5 | 0.111111 | 0.111111 | 0.111111 | 0.111111 | 0.111111 | 0.111111 | 0.111111 | 0.111111 | 0.111111 | 0.111111 |
+| floor111_random005 | 0.111111 | 0.111111 | 0.111111 | 0.111111 | 0.111111 | 0.111111 | 0.111111 | 0.111111 | 0.111111 | 0.111111 |
+| ramp111 | 0.111111 | 0.113840 | 0.115877 | 0.117252 | 0.118000 | 0.118152 | 0.115358 | 0.111111 | 0.070313 | 0.040000 |
+
+Common invariants:
+
+- `layers=all`
+- `steps=5`
+- `sample_tokens=1024`
+- `target_space=post`
+- `true_post_grad=True`
+- `require_loss_decrease=True`
+- `min_cos_desc=0.0`
+- `inner_lr=0.0002`
+- `prox=0.1`
+- `alpha=1.0`
+- `norm_to_base=False`
+- `norm_cap=0.2`
+- `target_loss=3.28`
+- `seed_base=0`
+- `seed_offset=3710`
+- `cooldown_frac=1.0`
+- `lr_schedule=power`
+- `lr_power=2.0`
+- `lr_schedule_steps=3000`
+- `lr_switch_step=-1`
+- `lr_after_switch=`
+- `resume_load_optimizers=True`
+
+Validation:
+- FAIL
+  - track3_locom_2000_control_seed3710.log: missing LocoM header
+  - track3_locom_2000_floor111_norm002_k5_seed3710.log: missing LocoM header
+  - track3_locom_2000_floor111_norm005_k5_seed3710.log: missing LocoM header
+  - track3_locom_2000_floor111_random002_seed3710.log: missing LocoM header
+  - track3_locom_2000_floor111_random005_seed3710.log: missing LocoM header
+  - track3_locom_2000_floor111_seed3710.log: missing LocoM header
+  - track3_locom_2000_ramp111_seed3710.log: missing LocoM header
