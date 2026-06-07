@@ -98,17 +98,28 @@ def _bump_multiplier(step: int, spec: str) -> float:
     return multiplier
 
 
-def lr_fraction(header: dict[str, str], step: int) -> float | None:
+def _schedule_fraction(
+    header: dict[str, str],
+    step: int,
+    *,
+    schedule_key: str = "lr_schedule",
+    steps_key: str = "lr_schedule_steps",
+    power_key: str = "lr_power",
+) -> float | None:
     schedule = header.get("lr_schedule", "linear")
+    if schedule_key != "lr_schedule":
+        schedule = header.get(schedule_key, "")
+    if not schedule:
+        return None
     if schedule == "pr287":
         # PR287 is group-dependent because it uses power_c and min(initial_lr, ...).
         # The generated header does not include the group power_c values.
         return None
-    schedule_steps = _int(header, "lr_schedule_steps", 0)
+    schedule_steps = _int(header, steps_key, 0)
     if schedule_steps <= 0:
         return None
     cooldown_frac = _float(header, "cooldown_frac", 0.7)
-    lr_power = _float(header, "lr_power", 1.0)
+    lr_power = _float(header, power_key, 1.0)
     lr_min_eta = _float(header, "lr_min_eta", 0.0)
     progress = step / schedule_steps
     if progress < 1.0 - cooldown_frac:
@@ -118,7 +129,40 @@ def lr_fraction(header: dict[str, str], step: int) -> float | None:
         if schedule == "power":
             eta = eta**lr_power
         eta = max(eta, lr_min_eta)
-    return eta * _bump_multiplier(step, header.get("lr_bump_windows", ""))
+    return eta
+
+
+def lr_fraction(header: dict[str, str], step: int) -> float | None:
+    lr_mult = _bump_multiplier(step, header.get("lr_bump_windows", ""))
+    base = _schedule_fraction(header, step)
+    if base is None:
+        return None
+
+    base *= lr_mult
+    blend_target = header.get("lr_blend_target", "")
+    blend_start = _int(header, "lr_blend_start", -1)
+    if not blend_target or blend_start < 0 or step < blend_start:
+        return base
+
+    target = _schedule_fraction(
+        header,
+        step,
+        schedule_key="lr_blend_target",
+        steps_key="lr_blend_target_steps",
+        power_key="lr_blend_target_power",
+    )
+    if target is None:
+        return None
+    target *= lr_mult
+
+    blend_end = _int(header, "lr_blend_end", -1)
+    if blend_end <= blend_start or step >= blend_end:
+        t = 1.0
+    else:
+        t = (step - blend_start) / (blend_end - blend_start)
+        t = max(0.0, min(1.0, t))
+        t = t * t * (3.0 - 2.0 * t)
+    return base + (target - base) * t
 
 
 def _required_slope(start_loss: float, start_step: int, target_step: int, target_loss: float) -> float | None:

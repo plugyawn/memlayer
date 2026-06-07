@@ -1,0 +1,72 @@
+# Track 3 Suffix Schedule Pivot - 2026-06-07
+
+Decision: stop spending runs on the `1600-2000` bracket.
+
+Reason: active natural true-post `c_fc` LocoProp-M matched alpha-zero by
+`2000`, so the visible prefix is not LocoProp-specific. The remaining live
+hypothesis is schedule/optimizer-state handling after the run has already
+reached the `3.36/3.32` band.
+
+## Required Slope
+
+| state | target | required drop/100 |
+| --- | --- | ---: |
+| `3.36216 @2125` | `3.28 @3000` | `0.00939` |
+| `3.34514 @2400` | `3.28 @3000` | `0.01086` |
+| `3.33472 @2600` | `3.28 @3000` | `0.01368` |
+| `3.33472 @2600` | `3.28 @3100` | `0.01094` |
+
+Read: a `2600` branch is probably too late for a 3000-step landing unless the
+schedule materially improves terminal slope. The best probe point is `2125` or
+`2400`.
+
+## What Failed
+
+- Direct LR floors from `2125` did not clear the straight-line gate.
+- Direct PR287 from `2600` spiked.
+- Stretching to `3300` kept the state smooth but slope-starved.
+- Continuing or reactivating the current `c_fc` LocoProp correction was neutral
+  or worse.
+
+## Next Probe
+
+Use:
+
+```bash
+tools/run_track3_suffix_bridge_probe.sh
+```
+
+Default lanes:
+
+```text
+cold3000
+bump125_2250_2650
+bump150_2250_2650
+blend_p15_2250_2650
+blend_p13_2300_2750
+pulse175_2400_2750
+```
+
+These are delayed bridge schedules: preserve the cold prefix state, then add a
+bounded tail bridge around the region where the curve starts missing target
+slope. They explicitly avoid recreating or retesting `1600-2000`.
+
+## Gates
+
+From `2125`, stop the family if no lane is near:
+
+```text
+2400 <= 3.3365
+2600 <= 3.3150
+2800 <= 3.2975
+```
+
+From `2400`, stop if no lane is near:
+
+```text
+2600 <= 3.3235
+2800 <= 3.3018
+```
+
+The important metric is not just absolute loss. The lane must preserve slope
+without a validation spike at the bridge start.

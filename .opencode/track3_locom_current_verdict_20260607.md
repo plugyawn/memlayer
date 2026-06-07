@@ -191,6 +191,56 @@ Not yet proven:
 which nonzero LocoProp-family correction, if any, beats alpha-zero.
 ```
 
-So the active goal remains open. The next experiment should be a prefix
-specificity screen for a materially different correction expression, not a
-suffix schedule probe.
+## 2026-06-07 Pivot: Stop Spending On 1600-2000
+
+User decision: stop wasting runs on the `1600-2000` bracket.
+
+This is consistent with the evidence above. The prefix has already answered
+the natural `c_fc` LocoProp question: active K5 and alpha-zero are identical by
+`2000`. The useful object is now the already-good state around `3.36/3.32` and
+whether a suffix schedule can carry it to `3.28`.
+
+Park these until a new mechanism is proposed:
+
+```text
+more K-depth in 1600-2000
+more sample-token screens in 1600-2000
+natural c_fc active-vs-alpha-zero in 1600-2000
+prefix layer subsets
+```
+
+Active schedule question:
+
+```text
+Can we preserve or re-accelerate descent after the cold state reaches
+3.36-ish / 3.32-ish, without a validation spike?
+```
+
+Known constraints:
+
+```text
+from 3.36216 @2125 -> 3.28 @3000 needs about 0.00939 loss/100 steps
+from 3.34514 @2400 -> 3.28 @3000 needs about 0.01086 loss/100 steps
+from 3.33472 @2600 -> 3.28 @3000 needs about 0.01368 loss/100 steps
+```
+
+The new bridge runner is:
+
+```text
+tools/run_track3_suffix_bridge_probe.sh
+```
+
+It starts only from an existing post-prefix checkpoint and tests delayed LR
+bridges such as:
+
+```text
+cold p2 control
+delayed 1.25/1.50 bumps after 2250
+delayed 1.75 pulse after 2400
+smooth blend from p2 to p1.5 / p1.3 after 2250-2300
+```
+
+Do not launch another 1600-2000 run unless a materially new correction
+expression exists. The next GPU spend should start from `2125`, `2400`, or
+`2600` checkpoints and should stop early if it cannot clear the required
+straight-line suffix gate.
