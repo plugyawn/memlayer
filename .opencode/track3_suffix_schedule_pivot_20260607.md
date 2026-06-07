@@ -70,3 +70,20 @@ From `2400`, stop if no lane is near:
 
 The important metric is not just absolute loss. The lane must preserve slope
 without a validation spike at the bridge start.
+
+## 2026-06-07 Suffix Bridge Probe
+
+Prime pod `29eb17f5760742a1a4bab682a23cb8ec` tested the two most direct
+`2125 -> 2400` bridge lanes from
+`track3_noloco_ckpt2125_seed3710_seed3710_step2125.pt`.
+
+| lane | 2250 | 2400 | gate |
+| --- | ---: | ---: | --- |
+| `bump150_2250_2650` | 3.35306 | 3.34638 | fail vs 3.33650 |
+| `blend_p15_2250_2650` | 3.35305 | 3.34595 | fail vs 3.33650 |
+
+Read: these delayed LR bridges did not change the slope class. The 2250-2400
+drop stayed around `0.007` loss, roughly half of the target slope needed to
+land at `3.28 @3000`. Do not spend more on this exact `2125` bridge family.
+The remaining schedule work should start from an actually later state
+(`2400+`) or change the optimizer substrate, not replay the prefix.

@@ -261,6 +261,23 @@
     - current post-approx and preactivation K>1 paths blew up; true post-gradient was stable but tiny.
     - pod terminated with `--yes`; `prime pods list` returned zero active pods.
 
+- pod_id: 29eb17f5760742a1a4bab682a23cb8ec
+  name: oc-main-track3-suffixbridge-h100-20260607-0805
+  owner: current-agent
+  purpose: Track 3 suffix schedule bridge probes from seed3710 step2125 checkpoint, avoiding more 1600-2000 prefix replay
+  gpu: 1x H100_80GB SXM5 datacrunch spot
+  price_per_hour: $1.14
+  created_at: 2026-06-07T08:05Z
+  expected_stop: after two 2400 gates, setup failure, or artifact pull
+  status: terminated_after_two_suffix_bridge_gates_failed_prime_active_pods_0
+  termination_policy: terminate after workload/failure unless a lane clears the 2400 gate
+  notes:
+    - checkpoint source: `track3_noloco_ckpt2125_seed3710_seed3710_step2125.pt`.
+    - `bump150_2250_2650` reached `3.34638 @2400`, failing the `3.33650` straight-line gate.
+    - `blend_p15_2250_2650` reached `3.34595 @2400`, also failing the gate.
+    - artifacts pulled to `.opencode/current_track3_ledger_20260607_logs/suffixbridge_29eb17/`.
+    - terminated pod with `--yes`; follow-up `prime pods list` showed zero active pods.
+
 - pod_id: 0357862775354f9b89186256e498af27
   name: oc-main-track3-kdiag-scale-20260606-0927
   owner: current-agent
