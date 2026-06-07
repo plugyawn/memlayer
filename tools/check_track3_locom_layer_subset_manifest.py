@@ -2,7 +2,9 @@
 """Validate the Track 3 LocoProp-M layer-subset probe manifest.
 
 This probe follows the prefix-specificity screen, but changes only the active
-LocoProp layer set:
+LocoProp layer set. The correction is active through 1800 and every lane then
+continues to 2000 without LocoProp, so the manifest requires the active window
+to stay fixed at 0:1800:
 
 * all c_fc layers,
 * robust core layers 7-10,

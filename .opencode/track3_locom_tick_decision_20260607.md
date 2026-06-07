@@ -63,6 +63,15 @@ avoid:     hard switch at 1900
 too late:  2400+ rescue-only suffixes
 ```
 
+Guarded mechanism ladder:
+
+```text
+tools/run_track3_locom_tick_ladder.sh
+```
+
+Default: prefix specificity at `2000`, then layer subset at `2000`. It stops
+before suffix probes unless the mechanism gates pass.
+
 ## What Is Already Known
 
 LocoProp-M tick conditions for this line:

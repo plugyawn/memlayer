@@ -319,11 +319,11 @@ def test_layer_subset_manifest_checker(tmp: Path) -> None:
 
 
 def test_layer_subset_decision(tmp: Path) -> None:
-    _log(tmp / "track3_layersubset_noloco_seed3710.log", vals={1600: 3.48, 1800: 3.4020}, enabled=False)
-    _log(tmp / "track3_layersubset_active_all_seed3710.log", vals={1600: 3.48, 1800: 3.3987}, enabled=True)
-    _log(tmp / "track3_layersubset_core_7_10_seed3710.log", vals={1600: 3.48, 1800: 3.3988}, enabled=True, layers="7,8,9,10")
-    _log(tmp / "track3_layersubset_expanded_6_10_seed3710.log", vals={1600: 3.48, 1800: 3.3994}, enabled=True, layers="6,7,8,9,10")
-    out = _run(["tools/analyze_track3_locom_layer_subset_probe.py", str(tmp), "--steps", "1600,1800"])
+    _log(tmp / "track3_layersubset_noloco_seed3710.log", vals={1600: 3.48, 1800: 3.4020, 1900: 3.3880, 2000: 3.3760}, enabled=False)
+    _log(tmp / "track3_layersubset_active_all_seed3710.log", vals={1600: 3.48, 1800: 3.3987, 1900: 3.38474, 2000: 3.37334}, enabled=True)
+    _log(tmp / "track3_layersubset_core_7_10_seed3710.log", vals={1600: 3.48, 1800: 3.3988, 1900: 3.38480, 2000: 3.37340}, enabled=True, layers="7,8,9,10")
+    _log(tmp / "track3_layersubset_expanded_6_10_seed3710.log", vals={1600: 3.48, 1800: 3.3994, 1900: 3.3854, 2000: 3.3742}, enabled=True, layers="6,7,8,9,10")
+    out = _run(["tools/analyze_track3_locom_layer_subset_probe.py", str(tmp)])
     _assert_contains(out, "Known all-layer reproduction check")
     _assert_contains(out, "`core_7_10` match all-layer active")
 

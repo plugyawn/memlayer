@@ -1,17 +1,20 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-# Run the 1600->1800 layer-subset probe for Track 3 LocoProp-M on an already
+# Run the layer-subset probe for Track 3 LocoProp-M on an already
 # prepared GPU machine. This script does not provision hardware.
 #
-# It assumes the all-layer K5 prefix can reproduce ~3.3987 @1800. The probe asks
-# whether the robust c_fc subset from kdiag is sufficient:
+# It assumes the all-layer K5 prefix can reproduce ~3.3987 @1800 and the
+# healthy 1900->2000 carry window. The correction is active only through 1800,
+# then every lane continues without LocoProp to 2000. The probe asks whether the
+# robust c_fc subset from kdiag is sufficient:
 #   core_7_10      = layers 7,8,9,10
 #   expanded_6_10  = layers 6,7,8,9,10
 
 checkpoint="${TRACK3_RESUME_CHECKPOINT:-/root/.cache/track3_checkpoints/track3_cd500red_softmerge_pr2872000_p110_ckpt1600_seed3710_step1600.pt}"
 seed_offset="${TRACK3_SEED_OFFSET:-3710}"
-steps="${TRACK3_TRAIN_STEPS:-1800}"
+steps="${TRACK3_TRAIN_STEPS:-2000}"
+active_end="${TRACK3_LAYER_SUBSET_ACTIVE_END:-1800}"
 log_dir="${TRACK3_LAYER_SUBSET_LOG_DIR:-/root/prime_track3_layer_subset_logs}"
 source_script="${TRACK3_SOURCE:-records/track_3_optimization/train_gpt_simple.py}"
 
@@ -67,9 +70,9 @@ run_lane() {
     TRACK3_LOCOM_LOCAL_OPT=sgd \
     TRACK3_LOCOM_RANDOM_CORRECTION=0 \
     TRACK3_LOCOM_CORRECTION_MODE=normal \
-    TRACK3_LOCOM_ACTIVE_WINDOWS="0:${steps}" \
-    TRACK3_LOCOM_END_STEP="${steps}" \
-    TRACK3_LOCOM_LOG_STEPS="1600,1625,1650,1675,1700,1725,1750,1775,1800" \
+    TRACK3_LOCOM_ACTIVE_WINDOWS="0:${active_end}" \
+    TRACK3_LOCOM_END_STEP="${active_end}" \
+    TRACK3_LOCOM_LOG_STEPS="1600,1625,1650,1675,1700,1725,1750,1775,1800,1900,2000" \
     TRACK3_LOCOM_DIAG_STEPS="1,2,4,5" \
     TRACK3_LOCOM_DIAG_MAX_LAYERS=12 \
     SCREEN_VAL_EVERY=25 \
@@ -92,7 +95,7 @@ elif [[ -e "${subset_logs[0]}" ]]; then
   python3 tools/check_track3_locom_layer_subset_manifest.py \
     "${subset_logs[@]}" | tee "${log_dir}/track3_layer_subset_manifest_check.md"
   python3 tools/analyze_track3_locom_layer_subset_probe.py \
-    --steps "1600,1625,1650,1675,1700,1725,1750,1775,1800" \
+    --steps "1600,1625,1650,1675,1700,1725,1750,1775,1800,1900,2000" \
     "${subset_logs[@]}" | tee "${log_dir}/track3_layer_subset_decision.md" || true
 fi
 

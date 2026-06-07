@@ -1,5 +1,11 @@
 #!/usr/bin/env python3
-"""Score the Track 3 LocoProp-M layer-subset prefix probe."""
+"""Score the Track 3 LocoProp-M layer-subset prefix probe.
+
+The correction is active through 1800, then each lane continues without
+LocoProp to 2000. The subset decision is made at 2000 so it tests whether a
+static layer set can create the useful prefix state, not merely match the
+instantaneous 1800 validation point.
+"""
 
 from __future__ import annotations
 
@@ -193,9 +199,9 @@ def print_report(
 def main() -> int:
     parser = argparse.ArgumentParser()
     parser.add_argument("logs", nargs="+", type=Path)
-    parser.add_argument("--steps", default="1600,1625,1650,1675,1700,1725,1750,1775,1800")
-    parser.add_argument("--decision-step", type=int, default=1800)
-    parser.add_argument("--expected-all-loss", type=float, default=3.3987)
+    parser.add_argument("--steps", default="1600,1625,1650,1675,1700,1725,1750,1775,1800,1900,2000")
+    parser.add_argument("--decision-step", type=int, default=2000)
+    parser.add_argument("--expected-all-loss", type=float, default=3.37334)
     parser.add_argument("--expected-all-tol", type=float, default=0.003)
     parser.add_argument("--tie-eps", type=float, default=0.0005)
     parser.add_argument("--material-gain", type=float, default=0.0015)

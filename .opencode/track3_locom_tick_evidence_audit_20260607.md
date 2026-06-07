@@ -261,6 +261,24 @@ Prepared command:
 tools/run_track3_locom_prefix_specificity.sh
 ```
 
+Guarded ladder command:
+
+```text
+tools/run_track3_locom_tick_ladder.sh
+```
+
+Default behavior:
+
+```text
+prefix specificity -> layer subset
+```
+
+Optional suffix gate:
+
+```text
+TRACK3_TICK_STOP_AFTER=suffix tools/run_track3_locom_tick_ladder.sh
+```
+
 Decisive read:
 
 ```text
@@ -279,7 +297,9 @@ no-Loco matches active at 2000:
 Still missing:
 
 ```text
-all moving-gated c_fc vs 7,8,9,10 vs 6,7,8,9,10 vs no-Loco
+all moving-gated c_fc vs 7,8,9,10 vs 6,7,8,9,10 vs no-Loco,
+with the intervention active through 1800 and all lanes continued without
+LocoProp through 2000
 ```
 
 Prepared command:
@@ -287,6 +307,9 @@ Prepared command:
 ```text
 tools/run_track3_locom_layer_subset_probe.sh
 ```
+
+The guarded ladder only reaches this stage if prefix specificity passes at
+`2000`.
 
 Decisive read:
 
@@ -312,6 +335,9 @@ Prepared command:
 MODE=save2000 tools/run_track3_locom_2000_suffix_probe.sh
 MODE=suffixes tools/run_track3_locom_2000_suffix_probe.sh
 ```
+
+The guarded ladder only reaches this stage when explicitly requested with
+`TRACK3_TICK_STOP_AFTER=suffix`, and only after the static-layer stage passes.
 
 The analyzer now scores this directly:
 
