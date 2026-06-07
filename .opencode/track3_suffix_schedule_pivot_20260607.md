@@ -87,3 +87,38 @@ drop stayed around `0.007` loss, roughly half of the target slope needed to
 land at `3.28 @3000`. Do not spend more on this exact `2125` bridge family.
 The remaining schedule work should start from an actually later state
 (`2400+`) or change the optimizer substrate, not replay the prefix.
+
+## 2026-06-07 Late Linear Probe
+
+Prime pod `432c024310cb4fa79c1ea28036f50d1b` tested a no-LocoProp suffix from
+the saved step-2400 state
+`track3_short2000_wr3105p120_mult035_hold2400_seed3710_step2400.pt`.
+
+Configuration:
+
+```text
+resume_step: 2400
+resume_val: 3.34500
+train_stop: 2600
+lr_schedule: linear
+lr_schedule_steps: 3000
+locoprop: off
+gate: 2500 <= 3.33450
+```
+
+Observed:
+
+| step | val_loss |
+| ---: | ---: |
+| 2400 | 3.34500 |
+| 2425 | 3.36474 |
+| 2450 | 3.36852 |
+| 2475 | 3.36917 |
+| 2500 | 3.36791 |
+| 2525 | 3.36620 |
+
+Read: the missing suffix is not simply "LR too low after 2400." A true
+3000-horizon linear tail shocks this optimizer/model state immediately. The
+productive state appears to require a compatible late optimizer substrate or a
+careful cold-to-hot transition that does not disturb the stored optimizer
+dynamics. Do not repeat plain hotter-linear suffixes from this 2400 checkpoint.

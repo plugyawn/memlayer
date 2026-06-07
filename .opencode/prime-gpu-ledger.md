@@ -436,5 +436,23 @@
   price_per_hour: selected by availability id 365368
   created_at: 2026-06-07T08:05:59Z
   expected_stop: after 2400 gate artifacts are pulled, setup failure, or spot interruption
-  status: launched_by_launch_prime_track3_suffix_bridge_probe.sh_head_2a38c33
+  status: terminated_after_gate_failed_logs_pulled_prime_active_pods_0
   termination_policy: terminate after gated suffix screen unless a lane clears the gate and user approves continuation
+  notes:
+    - `bump150_2250_2650` reached `3.34638 @2400`; `blend_p15_2250_2650` reached `3.34595 @2400`; both failed gate `<=3.33650`.
+    - Logs pulled to `.opencode/current_track3_ledger_20260607_logs/suffixbridge_29eb17/`.
+
+- pod_id: 432c024310cb4fa79c1ea28036f50d1b
+  name: oc-main-track3-late-linear-h100-20260607-0906
+  owner: current-agent
+  purpose: Track 3 late linear 3000-horizon suffix screen from step2400 checkpoint; lanes=linear3000_noloco
+  gpu: H100 80GB (Spot) SXM5 datacrunch $1.14
+  price_per_hour: selected by availability id 365368
+  created_at: 2026-06-07T09:06:53Z
+  expected_stop: after 2500/2600 gate artifacts are pulled, setup failure, or spot interruption
+  status: terminated_after_linear3000_noloco_shocked_state_logs_pulled_prime_active_pods_0
+  termination_policy: terminate after gated suffix screen unless the lane clears the gate and user approves continuation
+  notes:
+    - Resumed exact step2400 checkpoint at `3.34500`; no LocoProp active.
+    - True 3000-horizon linear tail worsened immediately: `3.36474 @2425`, `3.36852 @2450`, `3.36917 @2475`, `3.36791 @2500`, missing gate `<=3.33450`.
+    - Logs pulled to `.opencode/current_track3_ledger_20260607_logs/late_linear_432c02/`.
