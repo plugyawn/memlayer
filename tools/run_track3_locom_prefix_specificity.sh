@@ -1,16 +1,18 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-# Run the decisive 1600->1800 prefix controls for "what makes LocoProp-M tick?"
+# Run the decisive prefix controls for "what makes LocoProp-M tick?"
 # on an already-prepared GPU machine. This script does not provision hardware.
 #
 # The current evidence says K5/K8/K10 true-post c_fc LocoProp-M tie externally
-# through 1800, and post-1800 active/random/no-correction suffixes also tie.
-# The missing control is whether the 1600->1800 prefix is direction-specific.
+# through 1800. The no-correction replay then keeps a healthy 1900->2000 slope.
+# The missing control is whether the 1600->1800 prefix direction specifically
+# creates the state that carries that 1900->2000 slope.
 
 checkpoint="${TRACK3_RESUME_CHECKPOINT:-/root/.cache/track3_checkpoints/track3_cd500red_softmerge_pr2872000_p110_ckpt1600_seed3710_step1600.pt}"
 seed_offset="${TRACK3_SEED_OFFSET:-3710}"
-steps="${TRACK3_TRAIN_STEPS:-1800}"
+steps="${TRACK3_TRAIN_STEPS:-2000}"
+active_end="${TRACK3_PREFIX_ACTIVE_END:-1800}"
 log_dir="${TRACK3_PREFIX_SPEC_LOG_DIR:-/root/prime_track3_prefix_specificity_logs}"
 source_script="${TRACK3_SOURCE:-records/track_3_optimization/train_gpt_simple.py}"
 
@@ -69,9 +71,9 @@ run_lane() {
     TRACK3_LOCOM_LOCAL_OPT="${local_opt}" \
     TRACK3_LOCOM_RANDOM_CORRECTION="$([[ "${local_opt}" == "random" ]] && echo 1 || echo 0)" \
     TRACK3_LOCOM_CORRECTION_MODE="${correction_mode}" \
-    TRACK3_LOCOM_ACTIVE_WINDOWS="0:${steps}" \
-    TRACK3_LOCOM_END_STEP="${steps}" \
-    TRACK3_LOCOM_LOG_STEPS="1600,1625,1650,1675,1700,1725,1750,1775,1800" \
+    TRACK3_LOCOM_ACTIVE_WINDOWS="0:${active_end}" \
+    TRACK3_LOCOM_END_STEP="${active_end}" \
+    TRACK3_LOCOM_LOG_STEPS="1600,1625,1650,1675,1700,1725,1750,1775,1800,1900,2000" \
     TRACK3_LOCOM_DIAG_STEPS="1,2,4,5,8,10" \
     TRACK3_LOCOM_DIAG_MAX_LAYERS=12 \
     SCREEN_VAL_EVERY=25 \
@@ -93,7 +95,7 @@ elif [[ -e "${prefix_logs[0]}" ]]; then
   python3 tools/check_track3_locom_prefix_manifest.py \
     "${prefix_logs[@]}" | tee "${log_dir}/track3_prefix_manifest_check.md"
   python3 tools/analyze_track3_locom_prefix_probe.py \
-    --steps "1600,1625,1650,1675,1700,1725,1750,1775,1800" \
+    --steps "1600,1625,1650,1675,1700,1725,1750,1775,1800,1900,2000" \
     "${prefix_logs[@]}" | tee "${log_dir}/track3_prefix_specificity_decision.md" || true
 fi
 

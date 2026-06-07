@@ -128,28 +128,29 @@ def _assert_contains(text: str, needle: str) -> None:
 
 
 def test_prefix_direction_specific(tmp: Path) -> None:
-    _log(tmp / "track3_prefix_noloco_seed3710.log", vals={1600: 3.48, 1700: 3.42, 1800: 3.4010}, enabled=False)
-    _log(tmp / "track3_prefix_active_k5_seed3710.log", vals={1600: 3.48, 1700: 3.418, 1800: 3.3987}, enabled=True, with_apply=True)
-    _log(tmp / "track3_prefix_random_norm002_seed3710.log", vals={1600: 3.48, 1700: 3.419, 1800: 3.4005}, enabled=True, local_opt="random", random=True, norm_target=0.02, with_apply=True)
-    _log(tmp / "track3_prefix_orthogonal_k5_norm002_seed3710.log", vals={1600: 3.48, 1700: 3.419, 1800: 3.4004}, enabled=True, mode="orthogonal", norm_target=0.02, with_apply=True)
-    out = _run(["tools/analyze_track3_locom_prefix_probe.py", str(tmp), "--steps", "1600,1700,1800"])
+    _log(tmp / "track3_prefix_noloco_seed3710.log", vals={1600: 3.48, 1700: 3.42, 1800: 3.4010, 1900: 3.3880, 2000: 3.3760}, enabled=False)
+    _log(tmp / "track3_prefix_active_k5_seed3710.log", vals={1600: 3.48, 1700: 3.418, 1800: 3.3987, 1900: 3.38474, 2000: 3.37334}, enabled=True, with_apply=True)
+    _log(tmp / "track3_prefix_random_norm002_seed3710.log", vals={1600: 3.48, 1700: 3.419, 1800: 3.4005, 1900: 3.3870, 2000: 3.3750}, enabled=True, local_opt="random", random=True, norm_target=0.02, with_apply=True)
+    _log(tmp / "track3_prefix_orthogonal_k5_norm002_seed3710.log", vals={1600: 3.48, 1700: 3.419, 1800: 3.4004, 1900: 3.3871, 2000: 3.3751}, enabled=True, mode="orthogonal", norm_target=0.02, with_apply=True)
+    out = _run(["tools/analyze_track3_locom_prefix_probe.py", str(tmp)])
     _assert_contains(out, "Known active-prefix reproduction check")
+    _assert_contains(out, "1900->2000 drop/100")
     _assert_contains(out, "c_fc true-post direction matters in the prefix")
 
 
 def test_prefix_perturbation_tie(tmp: Path) -> None:
-    _log(tmp / "track3_prefix_noloco_seed3710.log", vals={1600: 3.48, 1800: 3.4010}, enabled=False)
-    _log(tmp / "track3_prefix_active_k5_seed3710.log", vals={1600: 3.48, 1800: 3.3987}, enabled=True, with_apply=True)
-    _log(tmp / "track3_prefix_random_norm002_seed3710.log", vals={1600: 3.48, 1800: 3.3986}, enabled=True, local_opt="random", random=True, norm_target=0.02, with_apply=True)
-    out = _run(["tools/analyze_track3_locom_prefix_probe.py", str(tmp), "--steps", "1600,1800"])
+    _log(tmp / "track3_prefix_noloco_seed3710.log", vals={1600: 3.48, 1800: 3.4010, 2000: 3.3760}, enabled=False)
+    _log(tmp / "track3_prefix_active_k5_seed3710.log", vals={1600: 3.48, 1800: 3.3987, 2000: 3.37334}, enabled=True, with_apply=True)
+    _log(tmp / "track3_prefix_random_norm002_seed3710.log", vals={1600: 3.48, 1800: 3.3986, 2000: 3.37320}, enabled=True, local_opt="random", random=True, norm_target=0.02, with_apply=True)
+    out = _run(["tools/analyze_track3_locom_prefix_probe.py", str(tmp)])
     _assert_contains(out, "not clearly local-direction-specific")
 
 
 def test_prefix_requires_active_reproduction(tmp: Path) -> None:
-    _log(tmp / "track3_prefix_noloco_seed3710.log", vals={1600: 3.48, 1800: 3.4000}, enabled=False)
-    _log(tmp / "track3_prefix_active_k5_seed3710.log", vals={1600: 3.48, 1800: 3.4100}, enabled=True, with_apply=True)
-    _log(tmp / "track3_prefix_random_norm002_seed3710.log", vals={1600: 3.48, 1800: 3.3990}, enabled=True, local_opt="random", random=True, norm_target=0.02, with_apply=True)
-    out = _run(["tools/analyze_track3_locom_prefix_probe.py", str(tmp), "--steps", "1600,1800"])
+    _log(tmp / "track3_prefix_noloco_seed3710.log", vals={1600: 3.48, 1800: 3.4000, 2000: 3.3760}, enabled=False)
+    _log(tmp / "track3_prefix_active_k5_seed3710.log", vals={1600: 3.48, 1800: 3.4100, 2000: 3.3800}, enabled=True, with_apply=True)
+    _log(tmp / "track3_prefix_random_norm002_seed3710.log", vals={1600: 3.48, 1800: 3.3990, 2000: 3.3730}, enabled=True, local_opt="random", random=True, norm_target=0.02, with_apply=True)
+    out = _run(["tools/analyze_track3_locom_prefix_probe.py", str(tmp)])
     _assert_contains(out, "active K5 did not reproduce the known prefix")
 
 

@@ -2,7 +2,8 @@
 """Validate the decisive Track 3 LocoProp-M prefix-control lane manifest.
 
 The 1600->1800 prefix-specificity experiment is only useful if the lanes differ
-in the intended axis:
+in the intended axis and then all continue without LocoProp through the known
+healthy 1900->2000 slope window:
 
 * active K5 natural LocoProp correction,
 * no LocoProp,

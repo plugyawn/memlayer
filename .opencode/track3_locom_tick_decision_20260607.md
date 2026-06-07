@@ -112,7 +112,9 @@ tools/run_track3_locom_prefix_specificity.sh
 ```
 
 Purpose: decide whether the 1600->1800 LocoProp prefix is direction-specific,
-generic perturbation, or just schedule/checkpoint state.
+generic perturbation, or just schedule/checkpoint state, then continue every
+lane without LocoProp through 2000 to test whether that state preserves the
+healthy 1900->2000 descent window.
 
 The manifest now verifies that the orthogonal lane is not accidentally
 cosine-gated away:

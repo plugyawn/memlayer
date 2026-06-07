@@ -1,5 +1,11 @@
 #!/usr/bin/env python3
-"""Score the Track 3 LocoProp-M 1600->1800 prefix-specificity probe."""
+"""Score the Track 3 LocoProp-M prefix-specificity probe.
+
+The correction is meant to act in the 1600->1800 prefix, then continue without
+LocoProp to 2000. The decision point is 2000 because the known good trajectory
+still has a healthy 1900->2000 slope; stopping at 1800 misses whether the prefix
+state actually carries into that window.
+"""
 
 from __future__ import annotations
 
@@ -48,10 +54,22 @@ def _slope(values: dict[int, float], start: int, end: int) -> float | None:
     return (values[start] - values[end]) / (end - start)
 
 
+def _parse_windows(spec: str) -> list[tuple[int, int]]:
+    windows: list[tuple[int, int]] = []
+    for chunk in spec.split(","):
+        chunk = chunk.strip()
+        if not chunk:
+            continue
+        start_s, end_s = chunk.split(":", 1)
+        windows.append((int(start_s), int(end_s)))
+    return windows
+
+
 def print_report(
     lanes: list[Lane],
     *,
     steps: list[int],
+    slope_windows: list[tuple[int, int]],
     decision_step: int,
     material_gain: float,
     tie_eps: float,
@@ -90,16 +108,19 @@ def print_report(
                 continue
             gains = " | ".join(_fmt_gain(_gain_at(lane, control, step)) for step in steps)
             print(f"| {lane.name} | {lane.category} | {gains} |")
-        print()
+    print()
 
     print("## Slope Table")
     print()
-    print("| lane | category | 1600->1700 drop/step | 1700->1800 drop/step |")
-    print("| --- | --- | ---: | ---: |")
+    print("| lane | category | " + " | ".join(f"{start}->{end} drop/100" for start, end in slope_windows) + " |")
+    print("| --- | --- | " + " | ".join("---:" for _ in slope_windows) + " |")
     for lane in sorted(lanes, key=lambda item: (item.category, item.name)):
-        s1 = _slope(lane.vals, 1600, 1700)
-        s2 = _slope(lane.vals, 1700, 1800)
-        print(f"| {lane.name} | {lane.category} | {_fmt(s1, 7)} | {_fmt(s2, 7)} |")
+        slopes = []
+        for start, end in slope_windows:
+            slope = _slope(lane.vals, start, end)
+            drop_per_100 = None if slope is None else slope * 100.0
+            slopes.append(_fmt(drop_per_100, 5))
+        print(f"| {lane.name} | {lane.category} | " + " | ".join(slopes) + " |")
     print()
 
     print("## Apply-Scale Summary")
@@ -170,19 +191,22 @@ def print_report(
 def main() -> int:
     parser = argparse.ArgumentParser()
     parser.add_argument("logs", nargs="+", type=Path)
-    parser.add_argument("--steps", default="1600,1625,1650,1675,1700,1725,1750,1775,1800")
-    parser.add_argument("--decision-step", type=int, default=1800)
+    parser.add_argument("--steps", default="1600,1625,1650,1675,1700,1725,1750,1775,1800,1900,2000")
+    parser.add_argument("--slope-windows", default="1600:1700,1700:1800,1800:1900,1900:2000")
+    parser.add_argument("--decision-step", type=int, default=2000)
     parser.add_argument("--material-gain", type=float, default=0.0015)
     parser.add_argument("--tie-eps", type=float, default=0.0005)
-    parser.add_argument("--expected-active-loss", type=float, default=3.3987)
+    parser.add_argument("--expected-active-loss", type=float, default=3.37334)
     parser.add_argument("--expected-active-tol", type=float, default=0.003)
     args = parser.parse_args()
 
     steps = [int(step) for step in args.steps.split(",") if step.strip()]
+    slope_windows = _parse_windows(args.slope_windows)
     lanes = [parse_log(path) for path in _collect_paths(args.logs)]
     print_report(
         lanes,
         steps=steps,
+        slope_windows=slope_windows,
         decision_step=args.decision_step,
         material_gain=args.material_gain,
         tie_eps=args.tie_eps,

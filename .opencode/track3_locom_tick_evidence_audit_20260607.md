@@ -227,7 +227,8 @@ Still missing:
 
 ```text
 active K5 vs no-Loco vs random 2% vs orthogonal 2%
-from the same 1600 checkpoint through 1800
+from the same 1600 checkpoint, with the intervention active through 1800 and
+all lanes continued without LocoProp through 2000
 ```
 
 Required lane semantics:
@@ -240,6 +241,20 @@ orthogonal_k5_norm002:  true-post correction minus descent-parallel component,
                         norm_target=0.02, min_cos_desc=-1.0
 ```
 
+Decision point:
+
+```text
+2000, not 1800
+```
+
+Reason:
+
+```text
+1900->2000 is still a healthy slope window. The experiment must show whether
+the 1600->1800 LocoProp direction creates the state that survives into that
+window.
+```
+
 Prepared command:
 
 ```text
@@ -249,13 +264,13 @@ tools/run_track3_locom_prefix_specificity.sh
 Decisive read:
 
 ```text
-active K5 beats no-Loco and random:
+active K5 beats no-Loco and random at 2000:
     true-post c_fc direction matters.
 
-random or orthogonal matches active:
+random or orthogonal matches active at 2000:
     effect is not clearly local-solve-direction-specific.
 
-no-Loco matches active:
+no-Loco matches active at 2000:
     the cold schedule/checkpoint, not LocoProp, caused the prefix.
 ```
 
