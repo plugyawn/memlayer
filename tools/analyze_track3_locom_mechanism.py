@@ -141,6 +141,20 @@ def _collect_paths(entries: list[Path]) -> list[Path]:
     return [path for path in paths if path.exists()]
 
 
+def _disambiguate_names(logs: list[LogData]) -> None:
+    counts: dict[str, int] = defaultdict(int)
+    for log in logs:
+        counts[log.name] += 1
+    label_counts: dict[str, int] = defaultdict(int)
+    for log in logs:
+        if counts[log.name] <= 1:
+            continue
+        parent = log.path.parent.name
+        label = f"{parent}/{log.name}" if parent else log.name
+        label_counts[label] += 1
+        log.name = label if label_counts[label] == 1 else f"{label}#{label_counts[label]}"
+
+
 def parse_log(path: Path) -> LogData:
     data = LogData(path=path, name=_name(path))
     apply_entries: dict[int, list[tuple[float, float, float]]] = defaultdict(list)
@@ -358,6 +372,7 @@ def main() -> int:
     args = parser.parse_args()
 
     logs = [parse_log(path) for path in _collect_paths(args.logs)]
+    _disambiguate_names(logs)
     steps = _steps_from(args.steps, logs)
     ks = [int(item) for item in args.ks.split(",") if item.strip()]
     print_report(logs, steps=steps, ks=ks, target_step=args.target_step, target_loss=args.target_loss)
