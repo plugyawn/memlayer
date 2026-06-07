@@ -58,6 +58,16 @@ natural scale in prefix
 separate parameter displacement
 ```
 
+Prefix-control exception:
+
+```text
+orthogonal_k5_norm002 uses min_cos_desc=-1.0
+```
+
+Reason: the orthogonal control removes the descent-parallel component. Keeping
+the normal nonnegative-cosine gate would make tiny roundoff around zero capable
+of rejecting the control correction.
+
 Read:
 
 ```text
@@ -220,6 +230,16 @@ active K5 vs no-Loco vs random 2% vs orthogonal 2%
 from the same 1600 checkpoint through 1800
 ```
 
+Required lane semantics:
+
+```text
+active_k5:              natural true-post K5, min_cos_desc=0.0
+noloco:                 no correction
+random_norm002:         same-shape random correction, norm_target=0.02
+orthogonal_k5_norm002:  true-post correction minus descent-parallel component,
+                        norm_target=0.02, min_cos_desc=-1.0
+```
+
 Prepared command:
 
 ```text
@@ -310,4 +330,3 @@ The current evidence is strong enough to state the K-depth, target-space,
 timing, and suffix-failure rules. It is not strong enough to say "exactly" what
 makes LocoProp-M tick because the prefix-direction and static-layer-subset
 controls have not landed.
-

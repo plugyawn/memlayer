@@ -13,7 +13,16 @@ ROOT = Path(__file__).resolve().parents[1]
 TOOLS = ROOT / "tools"
 
 
-def _header(*, enabled: bool, local_opt: str = "sgd", random: bool = False, mode: str = "normal", norm_target: float = 0.0, lr_bump: str = "") -> str:
+def _header(
+    *,
+    enabled: bool,
+    local_opt: str = "sgd",
+    random: bool = False,
+    mode: str = "normal",
+    norm_target: float = 0.0,
+    lr_bump: str = "",
+    min_cos_desc: float = 0.0,
+) -> str:
     return _header_with_lr(
         enabled=enabled,
         local_opt=local_opt,
@@ -21,6 +30,7 @@ def _header(*, enabled: bool, local_opt: str = "sgd", random: bool = False, mode
         mode=mode,
         norm_target=norm_target,
         lr_bump=lr_bump,
+        min_cos_desc=min_cos_desc,
     )
 
 
@@ -34,6 +44,7 @@ def _header_with_lr(
     norm_target: float = 0.0,
     lr_bump: str = "",
     lr_min_eta: float = 0.0,
+    min_cos_desc: float = 0.0,
     active_windows: str = "0:1800",
     end_step: int = 1800,
 ) -> str:
@@ -44,7 +55,7 @@ def _header_with_lr(
         f"true_post_grad=True random_correction={random} correction_mode={mode} "
         f"diag_steps=1,2,4,5 lr_decay=False rms_beta1=0.999 rms_beta2=0.9 "
         f"rms_eps=1e-5 rms_reset_each_step=False require_loss_decrease=True "
-        f"min_cos_desc=0.0 inner_lr=0.0002 target_gamma=1.0 prox=0.1 "
+        f"min_cos_desc={min_cos_desc} inner_lr=0.0002 target_gamma=1.0 prox=0.1 "
         f"alpha=1.0 norm_to_base=False norm_target={norm_target} norm_cap=0.20 "
         f"norm_cap_windows= active_windows={active_windows} start_step=0 end_step={end_step} "
         f"interval=1 target_loss=3.28 seed_base=0 seed_offset=3710 "
@@ -88,8 +99,9 @@ def _log(
     norm_target: float = 0.0,
     lr_bump: str = "",
     with_apply: bool = False,
+    min_cos_desc: float = 0.0,
 ) -> None:
-    lines = [_header_with_lr(enabled=enabled, layers=layers, local_opt=local_opt, random=random, mode=mode, norm_target=norm_target, lr_bump=lr_bump)]
+    lines = [_header_with_lr(enabled=enabled, layers=layers, local_opt=local_opt, random=random, mode=mode, norm_target=norm_target, lr_bump=lr_bump, min_cos_desc=min_cos_desc)]
     total = max(vals) if vals else 0
     for step, loss in sorted(vals.items()):
         lines.append(f"step:{step}/{total} val_loss:{loss:.5f} train_time:0.000s step_avg:nanms\n")
@@ -269,12 +281,12 @@ def test_acceptance_sequence(tmp: Path) -> None:
 
 def test_prefix_manifest_checker(tmp: Path) -> None:
     lanes = [
-        ("active_k5", True, "sgd", False, "normal", 0.0),
-        ("noloco", False, "sgd", False, "normal", 0.0),
-        ("random_norm002", True, "random", True, "normal", 0.02),
-        ("orthogonal_k5_norm002", True, "sgd", False, "orthogonal", 0.02),
+        ("active_k5", True, "sgd", False, "normal", 0.0, 0.0),
+        ("noloco", False, "sgd", False, "normal", 0.0, 0.0),
+        ("random_norm002", True, "random", True, "normal", 0.02, 0.0),
+        ("orthogonal_k5_norm002", True, "sgd", False, "orthogonal", 0.02, -1.0),
     ]
-    for lane, enabled, local_opt, random, mode, norm_target in lanes:
+    for lane, enabled, local_opt, random, mode, norm_target, min_cos_desc in lanes:
         (tmp / f"track3_prefix_{lane}_seed3710.log").write_text(
             _header(
                 enabled=enabled,
@@ -282,10 +294,12 @@ def test_prefix_manifest_checker(tmp: Path) -> None:
                 random=random,
                 mode=mode,
                 norm_target=norm_target,
+                min_cos_desc=min_cos_desc,
             )
         )
     out = _run(["tools/check_track3_locom_prefix_manifest.py", str(tmp)])
     _assert_contains(out, "PASS: all prefix lane headers match the manifest")
+    _assert_contains(out, "| orthogonal_k5_norm002 | 1 | sgd | 0 | orthogonal | 0.02 | -1.0 |")
 
 
 def test_layer_subset_manifest_checker(tmp: Path) -> None:

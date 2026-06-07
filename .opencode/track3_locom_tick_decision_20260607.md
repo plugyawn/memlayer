@@ -81,6 +81,16 @@ surface=c_fc only
 placement=separate parameter displacement, not Muon momentum mutation
 ```
 
+Prefix-control exception:
+
+```text
+orthogonal_k5_norm002 uses min_cos_desc=-1.0
+```
+
+That lane intentionally removes the descent-parallel component, so a
+nonnegative cosine gate would risk rejecting the control due to numerical
+roundoff around zero.
+
 Known negatives:
 
 ```text
@@ -103,6 +113,14 @@ tools/run_track3_locom_prefix_specificity.sh
 
 Purpose: decide whether the 1600->1800 LocoProp prefix is direction-specific,
 generic perturbation, or just schedule/checkpoint state.
+
+The manifest now verifies that the orthogonal lane is not accidentally
+cosine-gated away:
+
+```text
+tools/check_track3_locom_prefix_manifest.py --manifest-only
+orthogonal_k5_norm002: mode=orthogonal, norm_target=0.02, min_cos_desc=-1.0
+```
 
 2. Layer subset:
 
