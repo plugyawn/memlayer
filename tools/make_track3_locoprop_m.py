@@ -80,6 +80,8 @@ TRACK3_LR_POWER = float(os.environ.get("TRACK3_LR_POWER", "1.0"))
 TRACK3_LR_SCHEDULE_STEPS = int(os.environ.get("TRACK3_LR_SCHEDULE_STEPS", "0"))
 TRACK3_LR_MIN_ETA = float(os.environ.get("TRACK3_LR_MIN_ETA", "0.0"))
 TRACK3_LR_MIN_ETA_WINDOWS_SPEC = os.environ.get("TRACK3_LR_MIN_ETA_WINDOWS", "")
+TRACK3_LR_ADAM_MIN_ETA_WINDOWS_SPEC = os.environ.get("TRACK3_LR_ADAM_MIN_ETA_WINDOWS", "")
+TRACK3_LR_MUON_MIN_ETA_WINDOWS_SPEC = os.environ.get("TRACK3_LR_MUON_MIN_ETA_WINDOWS", "")
 TRACK3_LR_SWITCH_STEP = int(os.environ.get("TRACK3_LR_SWITCH_STEP", "-1"))
 TRACK3_LR_AFTER_SWITCH = os.environ.get("TRACK3_LR_AFTER_SWITCH", "").lower()
 TRACK3_LR_AFTER_SWITCH_POWER = float(os.environ.get("TRACK3_LR_AFTER_SWITCH_POWER", str(TRACK3_LR_POWER)))
@@ -231,6 +233,8 @@ def _parse_lr_floor_windows(spec: str) -> list[tuple[int, int, int, int, float]]
     return windows
 
 TRACK3_LR_MIN_ETA_WINDOWS = _parse_lr_floor_windows(TRACK3_LR_MIN_ETA_WINDOWS_SPEC)
+TRACK3_LR_ADAM_MIN_ETA_WINDOWS = _parse_lr_floor_windows(TRACK3_LR_ADAM_MIN_ETA_WINDOWS_SPEC)
+TRACK3_LR_MUON_MIN_ETA_WINDOWS = _parse_lr_floor_windows(TRACK3_LR_MUON_MIN_ETA_WINDOWS_SPEC)
 
 def _track3_window_multiplier(step: int, windows: list[tuple[int, int, int, int, float]]) -> float:
     multiplier = 1.0
@@ -260,9 +264,12 @@ def _track3_lr_multiplier_for_optimizer(step: int, opt_idx: int) -> float:
         multiplier *= _track3_window_multiplier(step, TRACK3_LR_MUON_BUMP_WINDOWS)
     return multiplier
 
-def _track3_lr_eta_floor(step: int) -> float:
-    eta_floor = TRACK3_LR_MIN_ETA
-    for start, ramp_end, hold_end, fade_end, eta in TRACK3_LR_MIN_ETA_WINDOWS:
+def _track3_lr_eta_floor_from_windows(
+    step: int,
+    eta_floor: float,
+    windows: list[tuple[int, int, int, int, float]],
+) -> float:
+    for start, ramp_end, hold_end, fade_end, eta in windows:
         if step < start or step > fade_end:
             continue
         if ramp_end <= start or step >= ramp_end:
@@ -275,6 +282,17 @@ def _track3_lr_eta_floor(step: int) -> float:
         else:
             t = (step - start) / (ramp_end - start)
         eta_floor = max(eta_floor, eta * t)
+    return eta_floor
+
+def _track3_lr_eta_floor(step: int) -> float:
+    return _track3_lr_eta_floor_from_windows(step, TRACK3_LR_MIN_ETA, TRACK3_LR_MIN_ETA_WINDOWS)
+
+def _track3_lr_eta_floor_for_optimizer(step: int, opt_idx: int) -> float:
+    eta_floor = _track3_lr_eta_floor(step)
+    if opt_idx == 0:
+        eta_floor = _track3_lr_eta_floor_from_windows(step, eta_floor, TRACK3_LR_ADAM_MIN_ETA_WINDOWS)
+    elif opt_idx == 1:
+        eta_floor = _track3_lr_eta_floor_from_windows(step, eta_floor, TRACK3_LR_MUON_MIN_ETA_WINDOWS)
     return eta_floor
 
 def _track3_soft_muon_blend_for_step(step: int) -> float:
@@ -1456,7 +1474,7 @@ def muon_update(grad, momentum, mu=0.95, nesterov=True):
         text,
         'print0(f"Running PyTorch {torch.version.__version__} compiled for CUDA {torch.version.cuda}"',
         f'print0("Track3 LocoProp-M generated run: source={source_label} train_steps={train_steps}")\n'
-        'print0(f"LocoM enabled={LOCO_M_ENABLED} layers={LOCO_M_LAYERS_SPEC} steps={LOCO_M_LOCAL_STEPS} sample_tokens={LOCO_M_SAMPLE_TOKENS} gather={LOCO_M_GATHER_SAMPLES} accum={LOCO_M_ACCUM_SAMPLES} micro_sample_tokens={LOCO_M_MICRO_SAMPLE_TOKENS} aux_capture={LOCO_M_AUX_CAPTURE} aux_seqs={LOCO_M_AUX_SEQS} batched_prep={LOCO_M_BATCHED_PREP} local_opt={LOCO_M_LOCAL_OPT} target_space={LOCO_M_TARGET_SPACE} true_post_grad={LOCO_M_TRUE_POST_GRAD} random_correction={LOCO_M_RANDOM_CORRECTION} correction_mode={LOCO_M_CORRECTION_MODE} diag_steps={LOCO_M_DIAG_STEPS} lr_decay={LOCO_M_LOCAL_LR_DECAY} rms_beta1={LOCO_M_RMS_BETA1} rms_beta2={LOCO_M_RMS_BETA2} rms_eps={LOCO_M_RMS_EPS} rms_reset_each_step={LOCO_M_RMS_RESET_EACH_STEP} require_loss_decrease={LOCO_M_REQUIRE_LOSS_DECREASE} min_cos_desc={LOCO_M_MIN_COS_DESC} inner_lr={LOCO_M_INNER_LR} target_gamma={LOCO_M_TARGET_GAMMA} prox={LOCO_M_PROX} alpha={LOCO_M_ALPHA} norm_to_base={LOCO_M_NORM_TO_BASE} norm_target={LOCO_M_NORM_TARGET} norm_cap={LOCO_M_NORM_CAP} norm_cap_windows={LOCO_M_NORM_CAP_WINDOWS_SPEC} active_windows={LOCO_M_ACTIVE_WINDOWS_SPEC} start_step={LOCO_M_START_STEP} end_step={LOCO_M_END_STEP} interval={LOCO_M_INTERVAL} target_loss={TRACK3_TARGET_LOSS} seed_base={TRACK3_SEED_BASE} seed_offset={TRACK3_SEED_OFFSET} cooldown_frac={TRACK3_COOLDOWN_FRAC} lr_schedule={TRACK3_LR_SCHEDULE} lr_power={TRACK3_LR_POWER} lr_schedule_steps={TRACK3_LR_SCHEDULE_STEPS} lr_min_eta={TRACK3_LR_MIN_ETA} lr_min_eta_windows={TRACK3_LR_MIN_ETA_WINDOWS_SPEC} lr_bump_windows={TRACK3_LR_BUMP_WINDOWS_SPEC} lr_adam_bump_windows={TRACK3_LR_ADAM_BUMP_WINDOWS_SPEC} lr_muon_bump_windows={TRACK3_LR_MUON_BUMP_WINDOWS_SPEC} lr_switch_step={TRACK3_LR_SWITCH_STEP} lr_after_switch={TRACK3_LR_AFTER_SWITCH} lr_after_switch_power={TRACK3_LR_AFTER_SWITCH_POWER} lr_after_switch_steps={TRACK3_LR_AFTER_SWITCH_STEPS} lr_blend_start={TRACK3_LR_BLEND_START} lr_blend_end={TRACK3_LR_BLEND_END} lr_blend_target={TRACK3_LR_BLEND_TARGET} lr_blend_target_power={TRACK3_LR_BLEND_TARGET_POWER} lr_blend_target_steps={TRACK3_LR_BLEND_TARGET_STEPS} soft_muon={TRACK3_SOFT_MUON} soft_blend={TRACK3_SOFT_MUON_BLEND} soft_start={TRACK3_SOFT_MUON_START_STEP} soft_end={TRACK3_SOFT_MUON_END_STEP} soft_ceil={TRACK3_SOFT_MUON_CEIL} soft_norm_restore={TRACK3_SOFT_MUON_NORM_RESTORE} resume_checkpoint={TRACK3_RESUME_CHECKPOINT} resume_load_optimizers={TRACK3_RESUME_LOAD_OPTIMIZERS}")\n'
+        'print0(f"LocoM enabled={LOCO_M_ENABLED} layers={LOCO_M_LAYERS_SPEC} steps={LOCO_M_LOCAL_STEPS} sample_tokens={LOCO_M_SAMPLE_TOKENS} gather={LOCO_M_GATHER_SAMPLES} accum={LOCO_M_ACCUM_SAMPLES} micro_sample_tokens={LOCO_M_MICRO_SAMPLE_TOKENS} aux_capture={LOCO_M_AUX_CAPTURE} aux_seqs={LOCO_M_AUX_SEQS} batched_prep={LOCO_M_BATCHED_PREP} local_opt={LOCO_M_LOCAL_OPT} target_space={LOCO_M_TARGET_SPACE} true_post_grad={LOCO_M_TRUE_POST_GRAD} random_correction={LOCO_M_RANDOM_CORRECTION} correction_mode={LOCO_M_CORRECTION_MODE} diag_steps={LOCO_M_DIAG_STEPS} lr_decay={LOCO_M_LOCAL_LR_DECAY} rms_beta1={LOCO_M_RMS_BETA1} rms_beta2={LOCO_M_RMS_BETA2} rms_eps={LOCO_M_RMS_EPS} rms_reset_each_step={LOCO_M_RMS_RESET_EACH_STEP} require_loss_decrease={LOCO_M_REQUIRE_LOSS_DECREASE} min_cos_desc={LOCO_M_MIN_COS_DESC} inner_lr={LOCO_M_INNER_LR} target_gamma={LOCO_M_TARGET_GAMMA} prox={LOCO_M_PROX} alpha={LOCO_M_ALPHA} norm_to_base={LOCO_M_NORM_TO_BASE} norm_target={LOCO_M_NORM_TARGET} norm_cap={LOCO_M_NORM_CAP} norm_cap_windows={LOCO_M_NORM_CAP_WINDOWS_SPEC} active_windows={LOCO_M_ACTIVE_WINDOWS_SPEC} start_step={LOCO_M_START_STEP} end_step={LOCO_M_END_STEP} interval={LOCO_M_INTERVAL} target_loss={TRACK3_TARGET_LOSS} seed_base={TRACK3_SEED_BASE} seed_offset={TRACK3_SEED_OFFSET} cooldown_frac={TRACK3_COOLDOWN_FRAC} lr_schedule={TRACK3_LR_SCHEDULE} lr_power={TRACK3_LR_POWER} lr_schedule_steps={TRACK3_LR_SCHEDULE_STEPS} lr_min_eta={TRACK3_LR_MIN_ETA} lr_min_eta_windows={TRACK3_LR_MIN_ETA_WINDOWS_SPEC} lr_adam_min_eta_windows={TRACK3_LR_ADAM_MIN_ETA_WINDOWS_SPEC} lr_muon_min_eta_windows={TRACK3_LR_MUON_MIN_ETA_WINDOWS_SPEC} lr_bump_windows={TRACK3_LR_BUMP_WINDOWS_SPEC} lr_adam_bump_windows={TRACK3_LR_ADAM_BUMP_WINDOWS_SPEC} lr_muon_bump_windows={TRACK3_LR_MUON_BUMP_WINDOWS_SPEC} lr_switch_step={TRACK3_LR_SWITCH_STEP} lr_after_switch={TRACK3_LR_AFTER_SWITCH} lr_after_switch_power={TRACK3_LR_AFTER_SWITCH_POWER} lr_after_switch_steps={TRACK3_LR_AFTER_SWITCH_STEPS} lr_blend_start={TRACK3_LR_BLEND_START} lr_blend_end={TRACK3_LR_BLEND_END} lr_blend_target={TRACK3_LR_BLEND_TARGET} lr_blend_target_power={TRACK3_LR_BLEND_TARGET_POWER} lr_blend_target_steps={TRACK3_LR_BLEND_TARGET_STEPS} soft_muon={TRACK3_SOFT_MUON} soft_blend={TRACK3_SOFT_MUON_BLEND} soft_start={TRACK3_SOFT_MUON_START_STEP} soft_end={TRACK3_SOFT_MUON_END_STEP} soft_ceil={TRACK3_SOFT_MUON_CEIL} soft_norm_restore={TRACK3_SOFT_MUON_NORM_RESTORE} resume_checkpoint={TRACK3_RESUME_CHECKPOINT} resume_load_optimizers={TRACK3_RESUME_LOAD_OPTIMIZERS}")\n'
         'print0(f"Running PyTorch {torch.version.__version__} compiled for CUDA {torch.version.cuda}"',
     )
     if "for _ in range(num_trials):\n" in text:
@@ -1542,10 +1560,12 @@ def muon_update(grad, momentum, mu=0.95, nesterov=True):
         f"{body_indent}schedule_steps = schedule_steps if schedule_steps > 0 else train_steps\n"
         f"{body_indent}downward_lr = power_c * max(0.0, schedule_steps - step) ** lr_power\n"
         f"{body_indent}return min(initial_lr, downward_lr)\n\n"
-        f"{fn_indent}def _track3_schedule_lr(step, group, lr_schedule, schedule_steps, lr_power):\n"
+        f"{fn_indent}def _track3_schedule_lr(step, opt_idx, group, lr_schedule, schedule_steps, lr_power):\n"
         f"{body_indent}schedule_steps = schedule_steps if schedule_steps > 0 else train_steps\n"
         f"{body_indent}if lr_schedule == \"pr287\":\n"
-        f"{body_indent}    return _track3_pr287_lr(step, group[\"initial_lr\"], group[\"power_c\"], schedule_steps, lr_power)\n"
+        f"{body_indent}    raw_lr = _track3_pr287_lr(step, group[\"initial_lr\"], group[\"power_c\"], schedule_steps, lr_power)\n"
+        f"{body_indent}    eta_floor = _track3_lr_eta_floor_for_optimizer(step, opt_idx)\n"
+        f"{body_indent}    return max(raw_lr, group[\"initial_lr\"] * eta_floor)\n"
         f"{body_indent}progress = step / schedule_steps\n"
         f"{body_indent}if progress < 1 - TRACK3_COOLDOWN_FRAC:\n"
         f"{body_indent}    eta = 1.0\n"
@@ -1553,14 +1573,14 @@ def muon_update(grad, momentum, mu=0.95, nesterov=True):
         f"{body_indent}    eta = (1 - progress) / TRACK3_COOLDOWN_FRAC\n"
         f"{body_indent}    if lr_schedule == \"power\":\n"
         f"{body_indent}        eta = eta ** lr_power\n"
-        f"{body_indent}    eta = max(eta, _track3_lr_eta_floor(step))\n"
+        f"{body_indent}    eta = max(eta, _track3_lr_eta_floor_for_optimizer(step, opt_idx))\n"
         f"{body_indent}return group[\"initial_lr\"] * eta\n\n"
-        f"{fn_indent}def _track3_blend_lr(step, group, base_lr, lr_mult):\n"
+        f"{fn_indent}def _track3_blend_lr(step, opt_idx, group, base_lr, lr_mult):\n"
         f"{body_indent}if not TRACK3_LR_BLEND_TARGET or TRACK3_LR_BLEND_START < 0:\n"
         f"{body_indent}    return base_lr\n"
         f"{body_indent}if step < TRACK3_LR_BLEND_START:\n"
         f"{body_indent}    return base_lr\n"
-        f"{body_indent}target_lr = _track3_schedule_lr(step, group, TRACK3_LR_BLEND_TARGET, TRACK3_LR_BLEND_TARGET_STEPS, TRACK3_LR_BLEND_TARGET_POWER) * lr_mult\n"
+        f"{body_indent}target_lr = _track3_schedule_lr(step, opt_idx, group, TRACK3_LR_BLEND_TARGET, TRACK3_LR_BLEND_TARGET_STEPS, TRACK3_LR_BLEND_TARGET_POWER) * lr_mult\n"
         f"{body_indent}if TRACK3_LR_BLEND_END <= TRACK3_LR_BLEND_START or step >= TRACK3_LR_BLEND_END:\n"
         f"{body_indent}    t = 1.0\n"
         f"{body_indent}else:\n"
@@ -1581,8 +1601,8 @@ def muon_update(grad, momentum, mu=0.95, nesterov=True):
             + f"{body_indent}for opt_idx, opt in enumerate(optimizers):\n"
             + f"{body_indent}    lr_mult = _track3_lr_multiplier_for_optimizer(step, opt_idx)\n"
             + f"{body_indent}    for group in opt.param_groups:\n"
-            + f"{body_indent}        base_lr = _track3_schedule_lr(step, group, lr_schedule, lr_schedule_steps, lr_power) * lr_mult\n"
-            + f"{body_indent}        group[\"lr\"] = _track3_blend_lr(step, group, base_lr, lr_mult)\n",
+            + f"{body_indent}        base_lr = _track3_schedule_lr(step, opt_idx, group, lr_schedule, lr_schedule_steps, lr_power) * lr_mult\n"
+            + f"{body_indent}        group[\"lr\"] = _track3_blend_lr(step, opt_idx, group, base_lr, lr_mult)\n",
         )
     else:
         text = replace_exact(
@@ -1599,7 +1619,8 @@ def muon_update(grad, momentum, mu=0.95, nesterov=True):
             f"{body_indent}    for opt_idx, opt in enumerate(optimizers):\n"
             f"{body_indent}        lr_mult = _track3_lr_multiplier_for_optimizer(step, opt_idx)\n"
             f"{body_indent}        for group in opt.param_groups:\n"
-            f"{body_indent}            group[\"lr\"] = _track3_pr287_lr(step, group[\"initial_lr\"], group[\"power_c\"], lr_schedule_steps, lr_power) * lr_mult\n"
+            f"{body_indent}            base_lr = _track3_schedule_lr(step, opt_idx, group, \"pr287\", lr_schedule_steps, lr_power) * lr_mult\n"
+            f"{body_indent}            group[\"lr\"] = _track3_blend_lr(step, opt_idx, group, base_lr, lr_mult)\n"
             f"{body_indent}    return\n"
             f"{body_indent}schedule_steps = lr_schedule_steps if lr_schedule_steps > 0 else train_steps\n"
             f"{body_indent}progress = step / schedule_steps\n",
@@ -1620,9 +1641,10 @@ def muon_update(grad, momentum, mu=0.95, nesterov=True):
             f"{body_indent}        group[\"lr\"] = group[\"initial_lr\"] * eta\n",
             f"{body_indent}for opt_idx, opt in enumerate(optimizers):\n"
             f"{body_indent}    lr_mult = _track3_lr_multiplier_for_optimizer(step, opt_idx)\n"
+            f"{body_indent}    eta_opt = max(eta, _track3_lr_eta_floor_for_optimizer(step, opt_idx))\n"
             f"{body_indent}    for group in opt.param_groups:\n"
-            f"{body_indent}        base_lr = group[\"initial_lr\"] * eta * lr_mult\n"
-            f"{body_indent}        group[\"lr\"] = _track3_blend_lr(step, group, base_lr, lr_mult)\n",
+            f"{body_indent}        base_lr = group[\"initial_lr\"] * eta_opt * lr_mult\n"
+            f"{body_indent}        group[\"lr\"] = _track3_blend_lr(step, opt_idx, group, base_lr, lr_mult)\n",
         )
     if "        val_step_freq = 125 if step / train_steps < 0.9 else 25\n" in text:
         text = replace_exact(
