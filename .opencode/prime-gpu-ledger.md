@@ -389,9 +389,16 @@
   price_per_hour: selected by availability id ec854a
   created_at: 2026-06-07T03:17:02Z
   expected_stop: after full 3000 suffix ladder completes, setup failure, or artifact pull
-  status: active_save2000_running_full3000_suffix_queued
+  status: active_running_real_nolocom_3300_schedule
   termination_policy: keep warm until the queued full 3000 suffix ladder completes, then pull artifacts and terminate unless another concrete follow-up is queued
   notes:
     - Launcher synced commit `0ba916e`, copied local step1600 checkpoint to `/home/ubuntu/.cache/track3_checkpoints/`, and started `/home/ubuntu/prime_track3_2000_suffix_gate_logs/run_2000_suffix_gate.sh`.
     - User requested letting the run go through rather than stopping at the short gate. Queued `/home/ubuntu/prime_track3_2000_suffix_gate_logs/run_full_after_gate.sh`, which waits for gate `DONE` and then runs the same suffix ladder to step 3000 in `/home/ubuntu/prime_track3_2000_suffix_full_logs/`.
     - Current first lane is recreating/saving the step2000 checkpoint from the seed3710 step1600 checkpoint; early startup validated checkpoint load and training resumed at `3.48241 @1600`.
+    - Step2000 checkpoint was created at `/home/ubuntu/.cache/track3_checkpoints/track3_locom_good2000_seed3710_step2000.pt`; recreated prefix was `3.37335 @2000`.
+    - Short post-2000 gate completed training but failed only in manifest validation because the checker expected LocoM headers in all lane logs, so `DONE` was not written and the queued watcher waited forever.
+    - Gate result at 2125: plain no-LocoProp control was best (`3.36216`); `floor111` was `3.36425`; `floor111_norm002`, `floor111_random002`, `floor111_norm005`, and `floor111_random005` were all around `3.36429-3.36430`; `ramp111` was `3.36502`.
+    - Stopped stale watcher/3000 continuation and launched no-LocoProp control from the same step2000 checkpoint to 3300 in `/home/ubuntu/prime_track3_2000_nolocom3300_logs/`, but the wrapper still hardcoded `TRACK3_LR_SCHEDULE_STEPS=3000`.
+    - The first 3300 extension therefore plateaued under a zero-LR tail and then crashed at step 3000 on the generated schedule assertion. It saved checkpoints at 2125/2400/2600/2800/3000 and reached `3.33456 @3000`.
+    - Patched `tools/run_track3_locom_2000_suffix_probe.sh` so `TRACK3_LR_SCHEDULE_STEPS` is configurable, copied it remote, and launched the real 3300-schedule no-LocoProp control in `/home/ubuntu/prime_track3_2000_nolocom3300_real_logs/`.
+    - Real 3300-schedule run is active and initially hotter/worse than the 3000-schedule continuation: `3.37335 @2000`, `3.37430 @2025`, `3.37307 @2050`, `3.37137 @2075`, `3.36882 @2100`, `3.36667 @2125`, `3.35982 @2200`, `3.35808 @2225`, `3.35198 @2300`; step time after warmup is about `1265ms`.

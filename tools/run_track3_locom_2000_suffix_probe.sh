@@ -29,6 +29,7 @@ state2000="${TRACK3_2000_CHECKPOINT:-${checkpoint_dir}/${save_prefix}_seed${seed
 suffix_steps="${TRACK3_SUFFIX_STEPS:-2400}"
 suffix_active_end="${TRACK3_SUFFIX_ACTIVE_END:-2250}"
 suffix_lanes="${TRACK3_SUFFIX_LANES:-control,floor111,floor111_norm002,floor111_random002,floor111_norm005,floor111_random005,ramp111}"
+lr_schedule_steps="${TRACK3_LR_SCHEDULE_STEPS:-3000}"
 
 mkdir -p "${log_dir}" "${checkpoint_dir}"
 python3 tools/check_track3_locom_suffix_manifest.py --manifest-only \
@@ -54,7 +55,7 @@ run_direct() {
     TRACK3_COOLDOWN_FRAC=1.0 \
     TRACK3_LR_SCHEDULE=power \
     TRACK3_LR_POWER=2.0 \
-    TRACK3_LR_SCHEDULE_STEPS=3000 \
+    TRACK3_LR_SCHEDULE_STEPS="${lr_schedule_steps}" \
     TRACK3_LR_MIN_ETA=0.0 \
     TRACK3_LR_SWITCH_STEP=-1 \
     TRACK3_LR_AFTER_SWITCH= \
