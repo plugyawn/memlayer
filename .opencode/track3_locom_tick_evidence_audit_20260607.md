@@ -278,6 +278,15 @@ Guarded ladder command:
 tools/run_track3_locom_tick_ladder.sh
 ```
 
+Ladder output:
+
+```text
+${TRACK3_TICK_LOG_ROOT:-/root/prime_track3_locom_tick_ladder}/tick_completion_audit.md
+```
+
+The ladder writes this audit from the exact decision files produced during that
+run, so copied GPU artifacts contain a self-contained completion read.
+
 Default behavior:
 
 ```text

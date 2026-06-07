@@ -78,6 +78,12 @@ Completion audit:
 python3 tools/audit_track3_locom_tick.py
 ```
 
+The guarded ladder also writes:
+
+```text
+${TRACK3_TICK_LOG_ROOT:-/root/prime_track3_locom_tick_ladder}/tick_completion_audit.md
+```
+
 ## What Is Already Known
 
 LocoProp-M tick conditions for this line:

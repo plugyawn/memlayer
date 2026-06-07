@@ -13,6 +13,10 @@ stop_after="${TRACK3_TICK_STOP_AFTER:-layer_subset}"  # prefix | layer_subset | 
 
 mkdir -p "${log_root}"
 status_file="${log_root}/tick_ladder.status"
+audit_file="${log_root}/tick_completion_audit.md"
+prefix_decision=""
+subset_decision=""
+suffix_decision=""
 
 log_status() {
   echo "$*" | tee -a "${status_file}"
@@ -45,6 +49,25 @@ stage_enabled() {
   esac
 }
 
+write_completion_audit() {
+  local require_suffix="${1:-0}"
+  local args=(--root .opencode)
+  if [[ -n "${prefix_decision}" ]]; then
+    args+=(--prefix "${prefix_decision}")
+  fi
+  if [[ -n "${subset_decision}" ]]; then
+    args+=(--layer-subset "${subset_decision}")
+  fi
+  if [[ -n "${suffix_decision}" ]]; then
+    args+=(--suffix "${suffix_decision}")
+  fi
+  if [[ "${require_suffix}" == "1" ]]; then
+    args+=(--require-suffix)
+  fi
+  python3 tools/audit_track3_locom_tick.py "${args[@]}" > "${audit_file}" || true
+  log_status "completion_audit ${audit_file}"
+}
+
 log_status "tick_ladder_start $(date -u +%Y-%m-%dT%H:%M:%SZ) stop_after=${stop_after}"
 
 if stage_enabled prefix; then
@@ -62,12 +85,14 @@ if stage_enabled prefix; then
     log_status "stage_pass prefix_specificity"
   else
     log_status "stage_stop prefix_specificity_not_direction_specific decision=${prefix_decision}"
+    write_completion_audit 0
     exit 0
   fi
 fi
 
 if [[ "${stop_after}" == "prefix" ]]; then
   log_status "tick_ladder_done_after_prefix $(date -u +%Y-%m-%dT%H:%M:%SZ)"
+  write_completion_audit 0
   exit 0
 fi
 
@@ -82,12 +107,14 @@ if stage_enabled layer_subset; then
     log_status "stage_pass layer_subset"
   else
     log_status "stage_stop no_static_subset_match decision=${subset_decision}"
+    write_completion_audit 0
     exit 0
   fi
 fi
 
 if [[ "${stop_after}" == "layer_subset" ]]; then
   log_status "tick_ladder_done_after_layer_subset $(date -u +%Y-%m-%dT%H:%M:%SZ)"
+  write_completion_audit 0
   exit 0
 fi
 
@@ -105,8 +132,10 @@ if stage_enabled suffix; then
     log_status "stage_pass suffix_preserves_slope"
   else
     log_status "stage_stop suffix_does_not_preserve_slope decision=${suffix_decision}"
+    write_completion_audit 1
     exit 0
   fi
 fi
 
 log_status "tick_ladder_complete $(date -u +%Y-%m-%dT%H:%M:%SZ)"
+write_completion_audit "$([[ "${stop_after}" == "suffix" ]] && echo 1 || echo 0)"
