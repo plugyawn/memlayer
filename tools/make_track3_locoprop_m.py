@@ -999,10 +999,17 @@ def prepare_locoprop_m(model: nn.Module, step: int):
             mlp._loco_corr = corr
             mlp.fc.weight._loco_corr = corr
             mlp.fc.weight._loco_step = step
+            if LOCO_M_RESIDUAL_AFTER_MUON:
+                mlp.fc.weight._loco_residual_payload = (
+                    x,
+                    target,
+                    mlp.fc.bias.detach().float(),
+                )
         else:
             mlp._loco_corr = None
             mlp.fc.weight._loco_corr = None
             mlp.fc.weight._loco_step = step
+            mlp.fc.weight._loco_residual_payload = None
 
         if step in LOCO_M_LOG_STEPS and len(stats) < 4:
             stats.append(
