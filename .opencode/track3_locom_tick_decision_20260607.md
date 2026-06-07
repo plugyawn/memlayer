@@ -43,8 +43,23 @@ From `3.37334 @2000`, landing at `3.28 @3000` needs:
 required: (3.37334 - 3.28) / 10 = 0.00933 loss per 100 steps
 ```
 
-So the `1900->2000` rate is enough. The first actionable slope break is after
-`2000`, not before it.
+So the `1900->2000` rate is not merely okay; it is more than enough. Preserving
+about `82%` of that rate from `2000->3000` would reach the target. If the
+`1900->2000` rate itself continued, the run would land around `3.259` by
+`3000`.
+
+Straight-line target from the `2000` state:
+
+```text
+2400: 3.33600
+2500: 3.32667
+2600: 3.31734
+2800: 3.29867
+3000: 3.28000
+```
+
+The first actionable slope break is therefore after `2000`, with the sharper
+cooling visible by `2100->2125`, not before `1900`.
 
 ## Practical Consequence
 
@@ -62,6 +77,10 @@ acceptable: smooth continuity guard from 1950->2050
 avoid:     hard switch at 1900
 too late:  2400+ rescue-only suffixes
 ```
+
+If a probe branches before `2000`, it should be a continuity-preserving ramp,
+not an abrupt replacement. The thing to protect is the `1900->2000` descent
+rate.
 
 Guarded mechanism ladder:
 
@@ -82,6 +101,18 @@ The guarded ladder also writes:
 
 ```text
 ${TRACK3_TICK_LOG_ROOT:-/root/prime_track3_locom_tick_ladder}/tick_completion_audit.md
+```
+
+It also packages the copied-back run evidence by default:
+
+```text
+${TRACK3_TICK_LOG_ROOT:-/root/prime_track3_locom_tick_ladder}_<timestamp>.tar.gz
+```
+
+Disable packaging only for local smoke tests:
+
+```text
+TRACK3_TICK_PACK_ARTIFACTS=0 tools/run_track3_locom_tick_ladder.sh
 ```
 
 ## What Is Already Known

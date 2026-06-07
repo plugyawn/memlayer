@@ -123,7 +123,7 @@ Window read:
 
 ```text
 1800->1900: healthy
-1900->2000: healthy
+1900->2000: very healthy
 2000->2100: marginal
 2100->2125: cold
 ```
@@ -131,9 +131,12 @@ Window read:
 Read:
 
 ```text
-The 1900->2000 window is not the problem. The first actionable break is after
-2000. Intervene at 2000 or with a smooth 1950->2050 continuity guard, not a
-hard 1900 switch.
+The 1900->2000 window is not the problem. Its drop is about 0.01140 per 100
+steps, while the straight-line target from 3.37334 @2000 to 3.28 @3000 needs
+only about 0.00933 per 100. Preserving roughly 82% of the 1900->2000 rate would
+be enough. The first actionable break is after 2000, with the sharp cooling
+visible by 2100->2125. Intervene at 2000 or with a smooth 1950->2050 continuity
+guard, not a hard 1900 switch.
 ```
 
 ### Existing Post-2000 Lanes Are Slope-Starved
@@ -286,6 +289,16 @@ ${TRACK3_TICK_LOG_ROOT:-/root/prime_track3_locom_tick_ladder}/tick_completion_au
 
 The ladder writes this audit from the exact decision files produced during that
 run, so copied GPU artifacts contain a self-contained completion read.
+
+It also packages the log root by default:
+
+```text
+${TRACK3_TICK_LOG_ROOT:-/root/prime_track3_locom_tick_ladder}_<timestamp>.tar.gz
+```
+
+The archive includes `tick_artifact_manifest.txt`, the completion audit,
+status log, per-stage decisions, and copied logs. Use
+`TRACK3_TICK_PACK_ARTIFACTS=0` only for local smoke tests.
 
 Default behavior:
 

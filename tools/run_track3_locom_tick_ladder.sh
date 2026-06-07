@@ -10,6 +10,7 @@ set -euo pipefail
 
 log_root="${TRACK3_TICK_LOG_ROOT:-/root/prime_track3_locom_tick_ladder}"
 stop_after="${TRACK3_TICK_STOP_AFTER:-layer_subset}"  # prefix | layer_subset | suffix
+pack_artifacts="${TRACK3_TICK_PACK_ARTIFACTS:-1}"
 
 mkdir -p "${log_root}"
 status_file="${log_root}/tick_ladder.status"
@@ -68,6 +69,15 @@ write_completion_audit() {
   log_status "completion_audit ${audit_file}"
 }
 
+pack_tick_artifacts() {
+  if [[ "${pack_artifacts}" != "1" ]]; then
+    return
+  fi
+  local archive
+  archive="$(bash tools/pack_track3_locom_tick_artifacts.sh "${log_root}")"
+  log_status "artifact_archive ${archive}"
+}
+
 log_status "tick_ladder_start $(date -u +%Y-%m-%dT%H:%M:%SZ) stop_after=${stop_after}"
 
 if stage_enabled prefix; then
@@ -86,6 +96,7 @@ if stage_enabled prefix; then
   else
     log_status "stage_stop prefix_specificity_not_direction_specific decision=${prefix_decision}"
     write_completion_audit 0
+    pack_tick_artifacts
     exit 0
   fi
 fi
@@ -93,6 +104,7 @@ fi
 if [[ "${stop_after}" == "prefix" ]]; then
   log_status "tick_ladder_done_after_prefix $(date -u +%Y-%m-%dT%H:%M:%SZ)"
   write_completion_audit 0
+  pack_tick_artifacts
   exit 0
 fi
 
@@ -108,6 +120,7 @@ if stage_enabled layer_subset; then
   else
     log_status "stage_stop no_static_subset_match decision=${subset_decision}"
     write_completion_audit 0
+    pack_tick_artifacts
     exit 0
   fi
 fi
@@ -115,6 +128,7 @@ fi
 if [[ "${stop_after}" == "layer_subset" ]]; then
   log_status "tick_ladder_done_after_layer_subset $(date -u +%Y-%m-%dT%H:%M:%SZ)"
   write_completion_audit 0
+  pack_tick_artifacts
   exit 0
 fi
 
@@ -133,9 +147,11 @@ if stage_enabled suffix; then
   else
     log_status "stage_stop suffix_does_not_preserve_slope decision=${suffix_decision}"
     write_completion_audit 1
+    pack_tick_artifacts
     exit 0
   fi
 fi
 
 log_status "tick_ladder_complete $(date -u +%Y-%m-%dT%H:%M:%SZ)"
 write_completion_audit "$([[ "${stop_after}" == "suffix" ]] && echo 1 || echo 0)"
+pack_tick_artifacts
