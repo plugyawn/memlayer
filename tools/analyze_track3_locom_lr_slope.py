@@ -165,6 +165,17 @@ def lr_fraction(header: dict[str, str], step: int) -> float | None:
     return base + (target - base) * t
 
 
+def lr_fraction_for_optimizer(header: dict[str, str], step: int, opt_name: str) -> float | None:
+    fraction = lr_fraction(header, step)
+    if fraction is None:
+        return None
+    if opt_name == "adam":
+        return fraction * _bump_multiplier(step, header.get("lr_adam_bump_windows", ""))
+    if opt_name == "muon":
+        return fraction * _bump_multiplier(step, header.get("lr_muon_bump_windows", ""))
+    return fraction
+
+
 def _required_slope(start_loss: float, start_step: int, target_step: int, target_loss: float) -> float | None:
     if target_step <= start_step:
         return None
@@ -224,15 +235,20 @@ def print_report(
 
     print("## Step Values")
     print()
-    print("| lane | category | step | val_loss | lr_frac |")
-    print("| --- | --- | ---: | ---: | ---: |")
+    print("| lane | category | step | val_loss | lr_frac | adam_frac | muon_frac |")
+    print("| --- | --- | ---: | ---: | ---: | ---: | ---: |")
     headers = {lane.name: _merged_header(lane.path, schedule_defaults) for lane in lanes}
     for lane in sorted(lanes, key=lambda item: item.name):
         header = headers[lane.name]
         for step in steps:
             if step not in lane.vals:
                 continue
-            print(f"| {lane.name} | {lane.category} | {step} | {_fmt(lane.vals[step])} | {_fmt(lr_fraction(header, step), 6)} |")
+            print(
+                f"| {lane.name} | {lane.category} | {step} | {_fmt(lane.vals[step])} | "
+                f"{_fmt(lr_fraction(header, step), 6)} | "
+                f"{_fmt(lr_fraction_for_optimizer(header, step, 'adam'), 6)} | "
+                f"{_fmt(lr_fraction_for_optimizer(header, step, 'muon'), 6)} |"
+            )
     print()
 
     print("## Window Slopes")
@@ -292,6 +308,8 @@ def main() -> int:
     parser.add_argument("--default-cooldown-frac", default="")
     parser.add_argument("--default-lr-min-eta", default="")
     parser.add_argument("--default-lr-bump-windows", default="")
+    parser.add_argument("--default-lr-adam-bump-windows", default="")
+    parser.add_argument("--default-lr-muon-bump-windows", default="")
     args = parser.parse_args()
 
     schedule_defaults = {
@@ -303,6 +321,8 @@ def main() -> int:
             "cooldown_frac": args.default_cooldown_frac,
             "lr_min_eta": args.default_lr_min_eta,
             "lr_bump_windows": args.default_lr_bump_windows,
+            "lr_adam_bump_windows": args.default_lr_adam_bump_windows,
+            "lr_muon_bump_windows": args.default_lr_muon_bump_windows,
         }.items()
         if value != ""
     }

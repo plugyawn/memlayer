@@ -122,3 +122,46 @@ Read: the missing suffix is not simply "LR too low after 2400." A true
 productive state appears to require a compatible late optimizer substrate or a
 careful cold-to-hot transition that does not disturb the stored optimizer
 dynamics. Do not repeat plain hotter-linear suffixes from this 2400 checkpoint.
+
+## 2026-06-07 Hard Pivot: Landing Schedules Only
+
+Decision: do not launch more runs whose main question is the `1600-2000`
+bracket. The bracket has enough evidence: active `c_fc` LocoProp, same-harness
+alpha-zero, and random/suffix controls converge to the same visible trajectory
+there. The remaining hypothesis is exactly:
+
+```text
+Can a schedule/late-optimizer state carry an already-good 3.36/3.32 state to 3.28?
+```
+
+The next runnable probe is:
+
+```bash
+tools/run_track3_suffix_landing_probe.sh
+```
+
+It starts from a saved late checkpoint, keeps LocoProp disabled by default, and
+tests group-specific suffix LR shaping:
+
+```text
+control_p2
+muon125_2400_2800
+adam125_2400_2800
+split_muon150_adam085_2400_2800
+```
+
+Reason for group-specific schedule: global heat already failed. The
+`linear3000` suffix from step 2400 immediately spiked validation from `3.34500`
+to `3.36791 @2500`. If a schedule is hiding here, it is probably not "all
+groups hotter"; it is more likely a Muon/Adam balance issue in the late state.
+
+Gate from a `2400` checkpoint:
+
+```text
+2600 <= 3.3260
+```
+
+If the family cannot get close to that, stop. Reaching `3.28 @3000` from
+`3.345 @2400` requires a drop of about `0.0109` per 100 steps, while the known
+plain cold suffix is far below that. A useful lane must visibly change the
+slope class by `2600`, not merely look smooth.
