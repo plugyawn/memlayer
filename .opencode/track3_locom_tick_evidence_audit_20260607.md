@@ -139,6 +139,54 @@ visible by 2100->2125. Intervene at 2000 or with a smooth 1950->2050 continuity
 guard, not a hard 1900 switch.
 ```
 
+### Prefix Specificity Failed For Natural K5 c_fc LocoProp
+
+Evidence:
+
+```text
+.opencode/track3_locom_prefix_effect_size_20260607.md
+.opencode/current_track3_ledger_20260607_logs/prime_track3_locom_tick_ladder_20260607T022549Z.tar.gz
+```
+
+Observed validation:
+
+```text
+active K5:
+  1600: 3.48242
+  1800: 3.39872
+  1900: 3.38478
+  2000: 3.37337
+
+same-harness alpha-zero:
+  1600: 3.48242
+  1800: 3.39873
+  1900: 3.38478
+  2000: 3.37338
+```
+
+Effect-size read:
+
+```text
+max absolute active/control delta over shared screens: 0.00004
+final control-active delta @2000: 0.00001
+```
+
+Correction geometry on the active lane:
+
+```text
+median eff_corr/base_step: about 0.005-0.010
+median cos: mostly near zero
+eff*cos: about -1e-5 to 1.2e-4 of the Muon step
+```
+
+Read:
+
+```text
+The good 1900->2000 slope is real, but the applied natural K5 c_fc LocoProp
+correction did not measurably move validation. The observed prefix trajectory is
+schedule/checkpoint-state driven under this harness.
+```
+
 ### Existing Post-2000 Lanes Are Slope-Starved
 
 Evidence:
@@ -216,136 +264,62 @@ base-step corrections and improves local loss, but validation is parity/worse
 than no-Loco. That contradicts "apply the same c_fc correction later and it
 will rescue the run."
 
-### Existing Random/No-Loco Survival Controls Do Not Prove Prefix Specificity
+### Natural K5 c_fc LocoProp Is Not The Prefix Cause
 
-The current random/no-Loco controls start after the K5 prefix, at 1800. They
-show the prefix-created state survives into 2000; they do not prove that the
-1600->1800 prefix was direction-specific.
+The alpha-zero control matched active K5 to logged precision from 1600 through
+2000. That contradicts "the active natural K5 c_fc correction caused the prefix
+gain" for this harness.
 
 ## Missing Evidence
 
-### Prefix Direction Specificity
+### A Positive Nonzero LocoProp Mechanism
 
 Still missing:
 
 ```text
-active K5 vs no-Loco vs random 2% vs orthogonal 2%
-from the same 1600 checkpoint, with the intervention active through 1800 and
-all lanes continued without LocoProp through 2000
+a LocoProp-family correction whose active lane beats same-harness alpha-zero
+by more than validation/logging noise before any suffix promotion
 ```
 
-Required lane semantics:
+Candidates that would count as materially different:
 
 ```text
-train_steps:            2000
-active window:          0:1800
-active_k5:              natural true-post K5, min_cos_desc=0.0
-noloco:                 no correction
-random_norm002:         same-shape random correction, norm_target=0.02
-orthogonal_k5_norm002:  true-post correction minus descent-parallel component,
-                        norm_target=0.02, min_cos_desc=-1.0
+stronger normalized correction that still beats alpha-zero
+different surface/target than c_fc true-post
+different local target construction
+post-2000 correction that beats exact same-state alpha-zero
 ```
 
-Decision point:
+Not enough:
 
 ```text
-2000, not 1800
+more K on the same natural c_fc path
+2048 sample tokens on the same natural c_fc path
+continuing the same correction after 1800
+suffix tuning that improves both active and alpha-zero equally
 ```
 
-Reason:
+Prepared analyzer:
 
 ```text
-1900->2000 is still a healthy slope window. The experiment must show whether
-the 1600->1800 LocoProp direction creates the state that survives into that
-window.
-```
-
-Prepared command:
-
-```text
-tools/run_track3_locom_prefix_specificity.sh
-```
-
-Manifest guard:
-
-```text
-tools/check_track3_locom_prefix_manifest.py
-```
-
-This checker validates both `track3_locom_runner steps=2000` and
-`active_windows=0:1800`.
-
-Guarded ladder command:
-
-```text
-tools/run_track3_locom_tick_ladder.sh
-```
-
-Ladder output:
-
-```text
-${TRACK3_TICK_LOG_ROOT:-/root/prime_track3_locom_tick_ladder}/tick_completion_audit.md
-```
-
-The ladder writes this audit from the exact decision files produced during that
-run, so copied GPU artifacts contain a self-contained completion read.
-
-It also packages the log root by default:
-
-```text
-${TRACK3_TICK_LOG_ROOT:-/root/prime_track3_locom_tick_ladder}_<timestamp>.tar.gz
-```
-
-The archive includes `tick_artifact_manifest.txt`, the completion audit,
-status log, per-stage decisions, and copied logs. Use
-`TRACK3_TICK_PACK_ARTIFACTS=0` only for local smoke tests.
-
-Default behavior:
-
-```text
-prefix specificity -> layer subset
-```
-
-Optional suffix gate:
-
-```text
-TRACK3_TICK_STOP_AFTER=suffix tools/run_track3_locom_tick_ladder.sh
-```
-
-Completion audit command:
-
-```text
-python3 tools/audit_track3_locom_tick.py
-```
-
-Current expected result before the GPU gates land:
-
-```text
-NOT COMPLETE
-blocking: prefix specificity, static layer subset
-```
-
-Decisive read:
-
-```text
-active K5 beats no-Loco and random at 2000:
-    true-post c_fc direction matters.
-
-random or orthogonal matches active at 2000:
-    effect is not clearly local-solve-direction-specific.
-
-no-Loco matches active at 2000:
-    the cold schedule/checkpoint, not LocoProp, caused the prefix.
+tools/analyze_track3_locom_prefix_effect_size.py
 ```
 
 ### Static Layer Subset
 
-Still missing:
+Now deprioritized:
 
 ```text
 all moving-gated c_fc vs 7,8,9,10 vs 6,7,8,9,10 vs no-Loco,
 with the intervention active through 1800 and all lanes continued without
 LocoProp through 2000
+```
+
+Reason:
+
+```text
+Layer subset only matters after a nonzero correction beats alpha-zero. The
+natural all-layer K5 correction did not.
 ```
 
 Manifest guard:
@@ -405,24 +379,26 @@ tools/analyze_track3_locom_suffix_probe.py
 ## Current Best Mechanism Model
 
 ```text
-LocoProp-M, as currently implemented, is a small local c_fc displacement that
-can alter the training trajectory before 1800. The benefit then persists for a
-while under plain Muon, which means the useful object may be the prefix state,
-not a continually applied late correction.
+LocoProp-M, as currently implemented here, is a small local c_fc displacement
+that is locally sane but externally neutral in the decisive prefix-specificity
+probe. The good 1800->2000 trajectory is better explained by the cold
+schedule/checkpoint state than by the applied LocoProp displacement.
 
 The local solve itself is real: it decreases local target loss. But the
-direction has small global/Muon cosine, and late application does not preserve
-validation slope. Therefore the thing that "ticks" is not "more local solving"
-or "bigger late additive correction"; it is the interaction between early
-c_fc local displacement, the local gate's moving layer set, and a schedule that
-lets Muon exploit that prefix state without starving after step 2000.
+direction has small global/Muon cosine, active and alpha-zero curves match, and
+late application does not preserve validation slope. Therefore the current
+natural c_fc local-solve correction is not the thing that ticks.
+
+The remaining positive object to study is the schedule/optimizer state that
+produces the healthy 1900->2000 slope, plus any materially different LocoProp
+expression that can beat an alpha-zero same-harness control.
 ```
 
 ## Completion Status
 
-Not complete.
+Not complete for a positive LocoProp mechanism.
 
-The current evidence is strong enough to state the K-depth, target-space,
-timing, and suffix-failure rules. It is not strong enough to say "exactly" what
-makes LocoProp-M tick because the prefix-direction and static-layer-subset
-controls have not landed.
+The current evidence is strong enough to rule out "more K", "more sample
+tokens", and the natural true-post K5 c_fc correction as the source of the good
+prefix trajectory. It is not yet a constructive answer for what makes
+LocoProp-M tick, because the observed gain survives alpha-zero.

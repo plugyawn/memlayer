@@ -13,6 +13,52 @@ Strict evidence audit:
 .opencode/track3_locom_tick_evidence_audit_20260607.md
 ```
 
+## Prefix Specificity Update
+
+The active K5 prefix reproduced the visually good 1900->2000 segment, but a
+same-harness alpha-zero control reproduced it too.
+
+Evidence:
+
+```text
+.opencode/track3_locom_prefix_effect_size_20260607.md
+.opencode/current_track3_ledger_20260607_logs/prime_track3_locom_tick_ladder_20260607T022549Z.tar.gz
+```
+
+Shared-screen loss match:
+
+```text
+active K5:
+  1900: 3.38478
+  2000: 3.37337
+  1900->2000 drop/100: 0.01141
+
+same-harness alpha-zero:
+  1900: 3.38478
+  2000: 3.37338
+  1900->2000 drop/100: 0.01140
+
+max absolute active/control delta over 1600..2000: 0.00004
+final control-active delta @2000: 0.00001
+```
+
+Correction geometry on the active lane:
+
+```text
+median eff_corr/base_step: about 0.005-0.010
+median cos: mostly near zero
+eff*cos: about -1e-5 to 1.2e-4 of the Muon step
+```
+
+Read:
+
+```text
+1900->2000 was good and real.
+The applied natural K5 c_fc LocoProp correction did not cause it.
+The causal object is now schedule/checkpoint/optimizer state, not this applied
+c_fc local-solve displacement.
+```
+
 ## Current Read
 
 `1900->2000` was still a good window. Do not treat `1900` as the failure
@@ -153,9 +199,11 @@ normalized 2% post-2000 true-post LocoProp applied real corrections but stayed p
 late floor/ramp probes after the slope is already cold have not rescued the run
 ```
 
-## Open Gates
+## Gate Read
 
-The remaining useful questions are narrow.
+The prefix-specificity gate has now failed for the natural K5 c_fc correction.
+Do not promote layer-subset or suffix probes as LocoProp-M mechanism probes
+until a new positive correction mechanism exists.
 
 1. Prefix specificity:
 
@@ -163,10 +211,8 @@ The remaining useful questions are narrow.
 tools/run_track3_locom_prefix_specificity.sh
 ```
 
-Purpose: decide whether the 1600->1800 LocoProp prefix is direction-specific,
-generic perturbation, or just schedule/checkpoint state, then continue every
-lane without LocoProp through 2000 to test whether that state preserves the
-healthy 1900->2000 descent window.
+Result: alpha-zero matched active to logged precision through 2000. The good
+prefix is schedule/checkpoint state, not the active natural K5 c_fc correction.
 
 The manifest now verifies that the orthogonal lane is not accidentally
 cosine-gated away:
@@ -182,8 +228,8 @@ orthogonal_k5_norm002: mode=orthogonal, norm_target=0.02, min_cos_desc=-1.0
 tools/run_track3_locom_layer_subset_probe.sh
 ```
 
-Purpose: decide whether the robust local-gain core `7,8,9,10` or
-`6,7,8,9,10` is enough, versus needing the full moving gated c_fc set.
+Status: deprioritized. A layer-subset probe only makes sense if a future
+nonzero correction variant first beats alpha-zero.
 
 3. Suffix preservation:
 
@@ -192,9 +238,9 @@ MODE=save2000 tools/run_track3_locom_2000_suffix_probe.sh
 MODE=suffixes tools/run_track3_locom_2000_suffix_probe.sh
 ```
 
-Purpose: only after prefix specificity is established, test whether a
-post-2000 schedule can preserve the `1900->2000` rate without adding a bad
-late LocoProp correction.
+Purpose: still useful as a schedule/optimizer-state probe, but not as evidence
+that the current LocoProp-M correction is working. The suffix problem remains
+to preserve the `1900->2000` rate after 2000.
 
 The suffix analyzer now reports slope preservation directly against the
 observed healthy `1900->2000` reference:
@@ -287,7 +333,11 @@ no suffix lane beats control:
 The current best hypothesis is:
 
 ```text
-LocoProp-M helps by producing a better prefix trajectory before 1800.
-That trajectory remains good through 1900->2000.
-The failure is preserving slope after 2000, not creating a new LocoProp effect at 1900.
+The cold prefix schedule/checkpoint state produces the good 1800->2000
+trajectory. Natural K5 c_fc LocoProp-M is locally sane but externally neutral:
+active and alpha-zero match.
+
+The remaining speedrun problem is preserving the healthy 1900->2000 slope after
+2000, or finding a materially different LocoProp expression whose nonzero
+correction beats alpha-zero before we spend on suffix tuning.
 ```

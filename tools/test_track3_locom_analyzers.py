@@ -168,6 +168,39 @@ def test_prefix_requires_active_reproduction(tmp: Path) -> None:
     _assert_contains(out, "active K5 did not reproduce the known prefix")
 
 
+def test_prefix_effect_size_alpha_zero_match(tmp: Path) -> None:
+    active = tmp / "track3_prefix_active_k5_seed3710.log"
+    control = tmp / "track3_prefix_noloco_seed3710.log"
+    active.write_text(
+        _runner()
+        + _header(enabled=True)
+        + "step:1600/2000 val_loss:3.48242 train_time:0.000s step_avg:nanms\n"
+        + _kdiag(1600, 0, k=5, ratio=0.905, cos=0.015)
+        + _apply(1600, eff_frac=0.007)
+        + "step:2000/2000 val_loss:3.37337 train_time:0.000s step_avg:nanms\n"
+        + _kdiag(2000, 0, k=5, ratio=0.910, cos=-0.002)
+        + _apply(2000, eff_frac=0.006)
+    )
+    control.write_text(
+        _runner()
+        + _header(enabled=True, alpha=0.0)
+        + "step:1600/2000 val_loss:3.48242 train_time:0.000s step_avg:nanms\n"
+        + "step:2000/2000 val_loss:3.37338 train_time:0.000s step_avg:nanms\n"
+    )
+    out = _run(
+        [
+            "tools/analyze_track3_locom_prefix_effect_size.py",
+            "--active",
+            str(active),
+            "--control",
+            str(control),
+        ]
+    )
+    _assert_contains(out, "Max absolute loss delta")
+    _assert_contains(out, "indistinguishable")
+    _assert_contains(out, "eff*cos")
+
+
 def test_suffix_scheduler_only(tmp: Path) -> None:
     _log(tmp / "track3_locom_2000_control_seed3710.log", vals={2000: 3.3733, 2125: 3.3621}, enabled=False)
     _log(tmp / "track3_locom_2000_norm002_k5_seed3710.log", vals={2000: 3.3733, 2125: 3.3620}, enabled=True, norm_target=0.02, with_apply=True)
@@ -475,6 +508,7 @@ def main() -> int:
         test_prefix_direction_specific,
         test_prefix_perturbation_tie,
         test_prefix_requires_active_reproduction,
+        test_prefix_effect_size_alpha_zero_match,
         test_suffix_scheduler_only,
         test_suffix_slope_preservation,
         test_suffix_target_line_defaults_to_2000_anchor,
