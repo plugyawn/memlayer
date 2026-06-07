@@ -25,6 +25,8 @@ from pathlib import Path
 
 
 HEADER_PREFIX = "LocoM enabled="
+RUNNER_RE = re.compile(r"track3_locom_runner .*?\bsteps=(?P<steps>\d+)\b")
+EXPECTED_TRAIN_STEPS = 2000
 FLOAT_KEYS = {
     "inner_lr",
     "target_gamma",
@@ -165,6 +167,13 @@ def _parse_header(path: Path) -> dict[str, object] | None:
     return None
 
 
+def _parse_runner_steps(path: Path) -> int | None:
+    for line in path.read_text(errors="replace").splitlines():
+        if match := RUNNER_RE.search(line):
+            return int(match["steps"])
+    return None
+
+
 def _equal(expected: object, actual: object) -> bool:
     if isinstance(expected, float):
         try:
@@ -218,6 +227,7 @@ def print_manifest() -> None:
     print()
     print("Common invariants:")
     print()
+    print(f"- `train_steps={EXPECTED_TRAIN_STEPS}`")
     for key, value in COMMON_EXPECTED.items():
         if value is not None:
             print(f"- `{key}={value}`")
@@ -247,6 +257,9 @@ def main() -> int:
             errors.append(f"{path.name}: unknown lane")
             continue
         seen.add(lane)
+        runner_steps = _parse_runner_steps(path)
+        if runner_steps != EXPECTED_TRAIN_STEPS:
+            errors.append(f"{path.name}: expected runner steps={EXPECTED_TRAIN_STEPS}, got {runner_steps!r}")
         header = _parse_header(path)
         if header is None:
             errors.append(f"{path.name}: missing LocoM header")

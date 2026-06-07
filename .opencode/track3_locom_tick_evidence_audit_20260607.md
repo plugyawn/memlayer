@@ -234,6 +234,8 @@ all lanes continued without LocoProp through 2000
 Required lane semantics:
 
 ```text
+train_steps:            2000
+active window:          0:1800
 active_k5:              natural true-post K5, min_cos_desc=0.0
 noloco:                 no correction
 random_norm002:         same-shape random correction, norm_target=0.02
@@ -260,6 +262,15 @@ Prepared command:
 ```text
 tools/run_track3_locom_prefix_specificity.sh
 ```
+
+Manifest guard:
+
+```text
+tools/check_track3_locom_prefix_manifest.py
+```
+
+This checker validates both `track3_locom_runner steps=2000` and
+`active_windows=0:1800`.
 
 Guarded ladder command:
 
@@ -314,6 +325,15 @@ all moving-gated c_fc vs 7,8,9,10 vs 6,7,8,9,10 vs no-Loco,
 with the intervention active through 1800 and all lanes continued without
 LocoProp through 2000
 ```
+
+Manifest guard:
+
+```text
+tools/check_track3_locom_layer_subset_manifest.py
+```
+
+This checker validates both `track3_locom_runner steps=2000` and
+`active_windows=0:1800`.
 
 Prepared command:
 

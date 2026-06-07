@@ -70,6 +70,14 @@ def _header_with_lr(
     )
 
 
+def _runner(steps: int = 2000) -> str:
+    return (
+        "track3_locom_runner source=records/track_3_optimization/train_gpt_simple.py "
+        f"generated=/tmp/generated.py steps={steps} trials=1 nproc=1 mbs=16 "
+        "trial_arg_mode=positional-count\n"
+    )
+
+
 def _apply(step: int, eff_frac: float = 0.02) -> str:
     base = 1.0
     corr = 0.1
@@ -101,7 +109,10 @@ def _log(
     with_apply: bool = False,
     min_cos_desc: float = 0.0,
 ) -> None:
-    lines = [_header_with_lr(enabled=enabled, layers=layers, local_opt=local_opt, random=random, mode=mode, norm_target=norm_target, lr_bump=lr_bump, min_cos_desc=min_cos_desc)]
+    lines = [
+        _runner(),
+        _header_with_lr(enabled=enabled, layers=layers, local_opt=local_opt, random=random, mode=mode, norm_target=norm_target, lr_bump=lr_bump, min_cos_desc=min_cos_desc),
+    ]
     total = max(vals) if vals else 0
     for step, loss in sorted(vals.items()):
         lines.append(f"step:{step}/{total} val_loss:{loss:.5f} train_time:0.000s step_avg:nanms\n")
@@ -289,7 +300,8 @@ def test_prefix_manifest_checker(tmp: Path) -> None:
     ]
     for lane, enabled, local_opt, random, mode, norm_target, min_cos_desc in lanes:
         (tmp / f"track3_prefix_{lane}_seed3710.log").write_text(
-            _header(
+            _runner()
+            + _header(
                 enabled=enabled,
                 local_opt=local_opt,
                 random=random,
@@ -312,10 +324,34 @@ def test_layer_subset_manifest_checker(tmp: Path) -> None:
     ]
     for lane, enabled, layers in lanes:
         (tmp / f"track3_layersubset_{lane}_seed3710.log").write_text(
-            _header_with_lr(enabled=enabled, layers=layers)
+            _runner() + _header_with_lr(enabled=enabled, layers=layers)
         )
     out = _run(["tools/check_track3_locom_layer_subset_manifest.py", str(tmp)])
     _assert_contains(out, "PASS: all layer-subset lane headers match the manifest")
+
+
+def test_manifest_checkers_reject_stale_1800_endpoint(tmp: Path) -> None:
+    (tmp / "track3_prefix_active_k5_seed3710.log").write_text(
+        _runner(steps=1800) + _header(enabled=True)
+    )
+    (tmp / "track3_prefix_noloco_seed3710.log").write_text(
+        _runner() + _header(enabled=False)
+    )
+    (tmp / "track3_prefix_random_norm002_seed3710.log").write_text(
+        _runner() + _header(enabled=True, local_opt="random", random=True, norm_target=0.02)
+    )
+    (tmp / "track3_prefix_orthogonal_k5_norm002_seed3710.log").write_text(
+        _runner() + _header(enabled=True, mode="orthogonal", norm_target=0.02, min_cos_desc=-1.0)
+    )
+    proc = subprocess.run(
+        [sys.executable, str(TOOLS / "check_track3_locom_prefix_manifest.py"), str(tmp)],
+        cwd=ROOT,
+        text=True,
+        stdout=subprocess.PIPE,
+        stderr=subprocess.STDOUT,
+    )
+    assert proc.returncode == 1, proc.stdout
+    _assert_contains(proc.stdout, "expected runner steps=2000, got 1800")
 
 
 def test_layer_subset_decision(tmp: Path) -> None:
@@ -420,6 +456,7 @@ def main() -> int:
         test_acceptance_sequence,
         test_prefix_manifest_checker,
         test_layer_subset_manifest_checker,
+        test_manifest_checkers_reject_stale_1800_endpoint,
         test_layer_subset_decision,
         test_suffix_manifest_checker_and_lr_preview,
         test_tick_completion_audit_blocks_missing_prefix,
