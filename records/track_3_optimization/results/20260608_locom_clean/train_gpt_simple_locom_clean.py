@@ -52,6 +52,12 @@ LOCOM_PROX = env_float("TRACK3_LOCOM_PROX", 0.10)
 LOCOM_ALPHA = env_float("TRACK3_LOCOM_ALPHA", 1.0)
 LOCOM_NORM_CAP = env_float("TRACK3_LOCOM_NORM_CAP", 0.20)
 LOCOM_BIAS = env_bool("TRACK3_LOCOM_BIAS", True)
+LOCOM_SURFACES_SPEC = os.environ.get("TRACK3_LOCOM_SURFACES", "fc")
+LOCOM_INNER_OPT = os.environ.get("TRACK3_LOCOM_INNER_OPT", "sgd").lower()
+LOCOM_INNER_BETA1 = env_float("TRACK3_LOCOM_INNER_BETA1", 0.9)
+LOCOM_INNER_BETA2 = env_float("TRACK3_LOCOM_INNER_BETA2", 0.99)
+LOCOM_INNER_EPS = env_float("TRACK3_LOCOM_INNER_EPS", 1e-8)
+LOCOM_CORR_MOMENTUM = env_float("TRACK3_LOCOM_CORR_MOMENTUM", 0.0)
 LOCOM_START_STEP = env_int("TRACK3_LOCOM_START_STEP", 0)
 LOCOM_END_STEP = env_int("TRACK3_LOCOM_END_STEP", -1)
 LOCOM_INTERVAL = max(1, env_int("TRACK3_LOCOM_INTERVAL", 1))
@@ -281,6 +287,30 @@ def parse_layer_set(spec: str, num_layers: int) -> frozenset[int]:
             layers.add(int(part))
     return frozenset(i for i in layers if 0 <= i < num_layers)
 
+def parse_surface_set(spec: str) -> frozenset[str]:
+    aliases = {
+        "c_fc": "fc",
+        "mlp_fc": "fc",
+        "fc": "fc",
+        "c_proj": "proj",
+        "mlp_proj": "proj",
+        "proj": "proj",
+    }
+    surfaces = set()
+    for part in spec.lower().replace(";", ",").split(","):
+        part = part.strip()
+        if not part:
+            continue
+        if part in ("all", "*"):
+            surfaces.update(("fc", "proj"))
+            continue
+        if part not in aliases:
+            raise ValueError(f"unknown TRACK3_LOCOM_SURFACES entry {part!r}")
+        surfaces.add(aliases[part])
+    return frozenset(surfaces or {"fc"})
+
+LOCOM_SURFACES = parse_surface_set(LOCOM_SURFACES_SPEC)
+
 def locom_active(step: int) -> bool:
     if not LOCOM_ENABLED:
         return False
@@ -299,29 +329,40 @@ def locom_sample_indices(num_tokens: int, sample_tokens: int, device: torch.devi
 
 def clear_locom_corrections(model: GPT):
     for block in model.blocks:
-        p = block.mlp.fc.weight
-        p._loco_corr = None
-        p._loco_bias_corr = None
-        p._loco_bias_param = None
-        p._loco_step = -1
-        p._loco_layer = -1
+        for module in (block.mlp.fc, block.mlp.proj):
+            p = module.weight
+            p._loco_corr = None
+            p._loco_bias_corr = None
+            p._loco_bias_param = None
+            p._loco_step = -1
+            p._loco_layer = -1
+            p._loco_surface = ""
 
-def sync_locom_biases(model: GPT, layer_owners: dict[int, int], step: int):
+def locom_module(model: GPT, surface: str, layer_idx: int) -> Linear:
+    if surface == "fc":
+        return model.blocks[layer_idx].mlp.fc
+    if surface == "proj":
+        return model.blocks[layer_idx].mlp.proj
+    raise ValueError(f"unknown LocoProp surface {surface!r}")
+
+def sync_locom_biases(model: GPT, target_owners: dict[tuple[str, int], int], step: int):
     if not locom_active(step) or not LOCOM_BIAS:
         return
-    for layer_idx, owner in layer_owners.items():
-        dist.broadcast(model.blocks[layer_idx].mlp.fc.bias.detach(), owner)
+    for (surface, layer_idx), owner in target_owners.items():
+        dist.broadcast(locom_module(model, surface, layer_idx).bias.detach(), owner)
 
 def locom_manual_forward_capture(
     model: GPT,
     inputs: Tensor,
     targets: Tensor,
     layers: tuple[int, ...],
-) -> list[tuple[int, Tensor, Tensor, Tensor, Tensor]]:
+) -> list[dict[str, Tensor | int]]:
     if not layers:
         return []
     wanted = set(layers)
-    saved: list[tuple[int, Tensor, Tensor, Tensor]] = []
+    want_fc = "fc" in LOCOM_SURFACES
+    want_proj = "proj" in LOCOM_SURFACES
+    saved: list[tuple[int, Tensor, Tensor, Tensor, Tensor]] = []
 
     aux_inputs = inputs[:LOCOM_AUX_SEQS]
     aux_targets = targets[:LOCOM_AUX_SEQS]
@@ -331,133 +372,209 @@ def locom_manual_forward_capture(
         mlp_in = block.norm2(x)
         pre = block.mlp.fc(mlp_in)
         post = pre.relu().square()
+        proj_out = block.mlp.proj(post)
         if layer_idx in wanted:
-            saved.append((layer_idx, mlp_in, pre, post))
-        x = x + block.mlp.proj(post)
+            saved.append((layer_idx, mlp_in, pre, post, proj_out))
+        x = x + proj_out
 
     logits = model.proj(model.norm2(x)).float()
     logits = 15 * logits * (logits.square() + 15**2).rsqrt()
     loss = F.cross_entropy(logits.view(aux_targets.numel(), -1), aux_targets.view(-1), reduction="sum")
-    pres = [pre for _, _, pre, _ in saved]
-    dpres = torch.autograd.grad(loss, pres, retain_graph=False)
+    grad_tensors = []
+    grad_keys = []
+    for layer_idx, _, pre, _, proj_out in saved:
+        if want_fc:
+            grad_tensors.append(pre)
+            grad_keys.append((layer_idx, "fc_dout"))
+        if want_proj:
+            grad_tensors.append(proj_out)
+            grad_keys.append((layer_idx, "proj_dout"))
+    grads = torch.autograd.grad(loss, grad_tensors, retain_graph=False) if grad_tensors else ()
+    grad_by_layer = {
+        key: grad for key, grad in zip(grad_keys, grads)
+    }
 
-    samples: list[tuple[int, Tensor, Tensor, Tensor, Tensor]] = []
-    for (layer_idx, mlp_in, pre, post), dpre in zip(saved, dpres):
+    samples: list[dict[str, Tensor | int]] = []
+    for layer_idx, mlp_in, pre, post, proj_out in saved:
         flat_x = mlp_in.reshape(-1, mlp_in.size(-1))
         flat_pre = pre.reshape(-1, pre.size(-1))
         flat_post = post.reshape(-1, post.size(-1))
-        flat_dpre = dpre.reshape(-1, dpre.size(-1))
+        flat_proj_out = proj_out.reshape(-1, proj_out.size(-1))
         idx = locom_sample_indices(flat_x.size(0), LOCOM_SAMPLE_TOKENS, flat_x.device)
-        samples.append((
-            layer_idx,
-            flat_x.index_select(0, idx).detach(),
-            flat_pre.index_select(0, idx).detach(),
-            flat_post.index_select(0, idx).detach(),
-            flat_dpre.index_select(0, idx).detach(),
-        ))
+        sample: dict[str, Tensor | int] = {
+            "layer_idx": layer_idx,
+            "fc_x": flat_x.index_select(0, idx).detach(),
+            "fc_pre": flat_pre.index_select(0, idx).detach(),
+            "fc_post": flat_post.index_select(0, idx).detach(),
+            "proj_x": flat_post.index_select(0, idx).detach(),
+            "proj_y": flat_proj_out.index_select(0, idx).detach(),
+        }
+        if want_fc:
+            dpre = grad_by_layer[(layer_idx, "fc_dout")]
+            sample["fc_dout"] = dpre.reshape(-1, dpre.size(-1)).index_select(0, idx).detach()
+        if want_proj:
+            dproj = grad_by_layer[(layer_idx, "proj_dout")]
+            sample["proj_dout"] = dproj.reshape(-1, dproj.size(-1)).index_select(0, idx).detach()
+        samples.append(sample)
     return samples
 
+def locom_inner_step(
+    W: Tensor,
+    b: Tensor,
+    W0: Tensor,
+    b0: Tensor,
+    grad_w: Tensor,
+    grad_b: Tensor,
+    state: dict[str, Tensor],
+    local_step: int,
+):
+    if LOCOM_PROX != 0:
+        grad_w = grad_w.add(W - W0, alpha=LOCOM_PROX)
+        grad_b = grad_b.add(b - b0, alpha=LOCOM_PROX)
+
+    if LOCOM_INNER_OPT == "sgd":
+        upd_w, upd_b = grad_w, grad_b
+    elif LOCOM_INNER_OPT == "rmsprop":
+        state["vw"].mul_(LOCOM_INNER_BETA2).addcmul_(grad_w, grad_w, value=1 - LOCOM_INNER_BETA2)
+        state["vb"].mul_(LOCOM_INNER_BETA2).addcmul_(grad_b, grad_b, value=1 - LOCOM_INNER_BETA2)
+        upd_w = grad_w / state["vw"].sqrt().add_(LOCOM_INNER_EPS)
+        upd_b = grad_b / state["vb"].sqrt().add_(LOCOM_INNER_EPS)
+    elif LOCOM_INNER_OPT == "adam":
+        state["mw"].mul_(LOCOM_INNER_BETA1).add_(grad_w, alpha=1 - LOCOM_INNER_BETA1)
+        state["mb"].mul_(LOCOM_INNER_BETA1).add_(grad_b, alpha=1 - LOCOM_INNER_BETA1)
+        state["vw"].mul_(LOCOM_INNER_BETA2).addcmul_(grad_w, grad_w, value=1 - LOCOM_INNER_BETA2)
+        state["vb"].mul_(LOCOM_INNER_BETA2).addcmul_(grad_b, grad_b, value=1 - LOCOM_INNER_BETA2)
+        bc1 = 1 - LOCOM_INNER_BETA1 ** local_step
+        bc2 = 1 - LOCOM_INNER_BETA2 ** local_step
+        upd_w = (state["mw"] / bc1) / (state["vw"] / bc2).sqrt().add_(LOCOM_INNER_EPS)
+        upd_b = (state["mb"] / bc1) / (state["vb"] / bc2).sqrt().add_(LOCOM_INNER_EPS)
+    elif LOCOM_INNER_OPT == "muon":
+        upd_w = zeropower_via_newtonschulz5(grad_w)
+        upd_b = grad_b / grad_b.square().mean(dim=1, keepdim=True).sqrt().add_(LOCOM_INNER_EPS)
+    else:
+        raise ValueError(f"unknown TRACK3_LOCOM_INNER_OPT={LOCOM_INNER_OPT!r}")
+
+    W.add_(upd_w, alpha=-LOCOM_INNER_LR)
+    if LOCOM_BIAS:
+        b.add_(upd_b, alpha=-LOCOM_INNER_LR)
+
 @torch.no_grad()
-def prepare_locom_mlp_fc_corrections(
+def prepare_locom_mlp_corrections(
     model: GPT,
     inputs: Tensor,
     targets: Tensor,
-    owned_layers: tuple[int, ...],
+    owned_targets: tuple[tuple[str, int], ...],
     step: int,
 ):
     clear_locom_corrections(model)
-    if not locom_active(step) or not owned_layers:
+    if not locom_active(step) or not owned_targets:
         return
 
+    layers = tuple(sorted({layer_idx for _, layer_idx in owned_targets}))
     with torch.enable_grad():
-        samples = locom_manual_forward_capture(model, inputs, targets, owned_layers)
+        samples = locom_manual_forward_capture(model, inputs, targets, layers)
     if not samples:
         return
+    sample_by_layer = {int(sample["layer_idx"]): sample for sample in samples}
 
-    layers = [layer_idx for layer_idx, *_ in samples]
-    x = torch.stack([item[1].float() for item in samples])
-    pre0 = torch.stack([item[2].float() for item in samples])
-    post0 = torch.stack([item[3].float() for item in samples])
-    dpre = torch.stack([item[4].float() for item in samples])
-    W0 = torch.stack([model.blocks[layer_idx].mlp.fc.weight.detach().float() for layer_idx in layers])
-    b0 = torch.stack([model.blocks[layer_idx].mlp.fc.bias.detach().float() for layer_idx in layers])
-
-    if LOCOM_MODE == "squared":
-        target = pre0 - LOCOM_TARGET_GAMMA * dpre
-    elif LOCOM_MODE == "matching":
-        target = post0 - LOCOM_TARGET_GAMMA * dpre
-    else:
-        raise ValueError(f"unknown TRACK3_LOCOM_MODE={LOCOM_MODE!r}")
-
-    W = W0.clone()
-    b = b0.clone()
-    inv_n = 1.0 / max(x.size(1), 1)
-    loss0 = None
-    loss_k = None
-    for _local_step in range(LOCOM_LOCAL_STEPS):
-        pred_pre = torch.bmm(x, W.transpose(1, 2)).add_(b[:, None, :])
-        if LOCOM_MODE == "squared":
-            err = pred_pre - target
-        else:
-            err = pred_pre.relu().square().sub_(target)
-        loss_k = 0.5 * err.square().mean(dim=(1, 2))
-        if loss0 is None:
-            loss0 = loss_k
-        grad_w = torch.bmm(err.transpose(1, 2), x).mul_(inv_n)
-        if LOCOM_PROX != 0:
-            grad_w.add_(W - W0, alpha=LOCOM_PROX)
-        if LOCOM_BIAS:
-            grad_b = err.mean(dim=1)
-            if LOCOM_PROX != 0:
-                grad_b.add_(b - b0, alpha=LOCOM_PROX)
-            b.add_(grad_b, alpha=-LOCOM_INNER_LR)
-        W.add_(grad_w, alpha=-LOCOM_INNER_LR)
-
-    pred_pre = torch.bmm(x, W.transpose(1, 2)).add_(b[:, None, :])
-    if LOCOM_MODE == "squared":
-        err = pred_pre - target
-    else:
-        err = pred_pre.relu().square().sub_(target)
-    loss_k = 0.5 * err.square().mean(dim=(1, 2))
-
-    corr_stack = W - W0
-    bias_corr_stack = b - b0
     stats = []
-    for pos, layer_idx in enumerate(layers):
-        p = model.blocks[layer_idx].mlp.fc.weight
-        b_param = model.blocks[layer_idx].mlp.fc.bias
-        corr = corr_stack[pos]
-        bias_corr = bias_corr_stack[pos] if LOCOM_BIAS else torch.zeros_like(b0[pos])
-        corr_norm = corr.norm()
-        bias_corr_norm = bias_corr.norm()
-        joint_corr_norm = (corr_norm.square() + bias_corr_norm.square()).sqrt().clamp_min(1e-12)
-        grad = p.grad.float() if p.grad is not None else torch.zeros_like(corr)
-        bias_grad = b_param.grad.float() if b_param.grad is not None else torch.zeros_like(bias_corr)
-        desc = -grad
-        bias_desc = -bias_grad
-        desc_norm = (desc.norm().square() + bias_desc.norm().square()).sqrt().clamp_min(1e-12)
-        cos_num = corr.flatten().dot(desc.flatten()) + bias_corr.flatten().dot(bias_desc.flatten())
-        cos_desc = cos_num / (joint_corr_norm * desc_norm)
-        accepted = bool(torch.isfinite(corr).all()) and bool(torch.isfinite(bias_corr).all())
-        if LOCOM_REQUIRE_LOSS_DECREASE:
-            accepted = accepted and bool(loss_k[pos] <= loss0[pos])
-        accepted = accepted and bool(cos_desc >= LOCOM_MIN_COS_DESC)
-        if accepted:
-            p._loco_corr = corr.to(p.dtype)
-            if LOCOM_BIAS:
-                p._loco_bias_corr = bias_corr.to(b_param.dtype)
-                p._loco_bias_param = b_param
-            p._loco_step = step
-            p._loco_layer = layer_idx
-        if step in LOCOM_LOG_STEPS:
-            stats.append(
-                f"l{layer_idx}:loss0={float(loss0[pos]):.3e}"
-                f",lossK={float(loss_k[pos]):.3e}"
-                f",corr_norm={float(joint_corr_norm):.3e}"
-                f",bias_corr_norm={float(bias_corr_norm):.3e}"
-                f",cos_desc={float(cos_desc):.3e}"
-                f",accepted={int(accepted)}"
-            )
+    for surface in ("fc", "proj"):
+        target_layers = [
+            layer_idx for target_surface, layer_idx in owned_targets
+            if target_surface == surface and layer_idx in sample_by_layer
+        ]
+        if not target_layers:
+            continue
+
+        if surface == "fc":
+            x = torch.stack([sample_by_layer[layer_idx]["fc_x"].float() for layer_idx in target_layers])
+            y0 = torch.stack([sample_by_layer[layer_idx]["fc_pre"].float() for layer_idx in target_layers])
+            post0 = torch.stack([sample_by_layer[layer_idx]["fc_post"].float() for layer_idx in target_layers])
+            dout = torch.stack([sample_by_layer[layer_idx]["fc_dout"].float() for layer_idx in target_layers])
+            if LOCOM_MODE == "squared":
+                target = y0 - LOCOM_TARGET_GAMMA * dout
+            elif LOCOM_MODE == "matching":
+                target = post0 - LOCOM_TARGET_GAMMA * dout
+            else:
+                raise ValueError(f"unknown TRACK3_LOCOM_MODE={LOCOM_MODE!r}")
+        else:
+            x = torch.stack([sample_by_layer[layer_idx]["proj_x"].float() for layer_idx in target_layers])
+            y0 = torch.stack([sample_by_layer[layer_idx]["proj_y"].float() for layer_idx in target_layers])
+            dout = torch.stack([sample_by_layer[layer_idx]["proj_dout"].float() for layer_idx in target_layers])
+            target = y0 - LOCOM_TARGET_GAMMA * dout
+
+        W0 = torch.stack([locom_module(model, surface, layer_idx).weight.detach().float() for layer_idx in target_layers])
+        b0 = torch.stack([locom_module(model, surface, layer_idx).bias.detach().float() for layer_idx in target_layers])
+        W = W0.clone()
+        b = b0.clone()
+        state = {
+            "mw": torch.zeros_like(W),
+            "vw": torch.zeros_like(W),
+            "mb": torch.zeros_like(b),
+            "vb": torch.zeros_like(b),
+        }
+        inv_n = 1.0 / max(x.size(1), 1)
+        loss0 = None
+        loss_k = None
+        for local_step in range(1, LOCOM_LOCAL_STEPS + 1):
+            pred = torch.bmm(x, W.transpose(1, 2)).add_(b[:, None, :])
+            if surface == "fc" and LOCOM_MODE == "matching":
+                err = pred.relu().square().sub_(target)
+            else:
+                err = pred - target
+            loss_k = 0.5 * err.square().mean(dim=(1, 2))
+            if loss0 is None:
+                loss0 = loss_k
+            grad_w = torch.bmm(err.transpose(1, 2), x).mul_(inv_n)
+            grad_b = err.mean(dim=1)
+            locom_inner_step(W, b, W0, b0, grad_w, grad_b, state, local_step)
+
+        pred = torch.bmm(x, W.transpose(1, 2)).add_(b[:, None, :])
+        if surface == "fc" and LOCOM_MODE == "matching":
+            err = pred.relu().square().sub_(target)
+        else:
+            err = pred - target
+        loss_k = 0.5 * err.square().mean(dim=(1, 2))
+
+        corr_stack = W - W0
+        bias_corr_stack = b - b0
+        for pos, layer_idx in enumerate(target_layers):
+            module = locom_module(model, surface, layer_idx)
+            p = module.weight
+            b_param = module.bias
+            corr = corr_stack[pos]
+            bias_corr = bias_corr_stack[pos] if LOCOM_BIAS else torch.zeros_like(b0[pos])
+            corr_norm = corr.norm()
+            bias_corr_norm = bias_corr.norm()
+            joint_corr_norm = (corr_norm.square() + bias_corr_norm.square()).sqrt().clamp_min(1e-12)
+            grad = p.grad.float() if p.grad is not None else torch.zeros_like(corr)
+            bias_grad = b_param.grad.float() if b_param.grad is not None else torch.zeros_like(bias_corr)
+            desc = -grad
+            bias_desc = -bias_grad
+            desc_norm = (desc.norm().square() + bias_desc.norm().square()).sqrt().clamp_min(1e-12)
+            cos_num = corr.flatten().dot(desc.flatten()) + bias_corr.flatten().dot(bias_desc.flatten())
+            cos_desc = cos_num / (joint_corr_norm * desc_norm)
+            accepted = bool(torch.isfinite(corr).all()) and bool(torch.isfinite(bias_corr).all())
+            if LOCOM_REQUIRE_LOSS_DECREASE:
+                accepted = accepted and bool(loss_k[pos] <= loss0[pos])
+            accepted = accepted and bool(cos_desc >= LOCOM_MIN_COS_DESC)
+            if accepted:
+                p._loco_corr = corr.to(p.dtype)
+                if LOCOM_BIAS:
+                    p._loco_bias_corr = bias_corr.to(b_param.dtype)
+                    p._loco_bias_param = b_param
+                p._loco_step = step
+                p._loco_layer = layer_idx
+                p._loco_surface = surface
+            if step in LOCOM_LOG_STEPS:
+                stats.append(
+                    f"{surface}l{layer_idx}:loss0={float(loss0[pos]):.3e}"
+                    f",lossK={float(loss_k[pos]):.3e}"
+                    f",corr_norm={float(joint_corr_norm):.3e}"
+                    f",bias_corr_norm={float(bias_corr_norm):.3e}"
+                    f",cos_desc={float(cos_desc):.3e}"
+                    f",accepted={int(accepted)}"
+                )
     if step in LOCOM_LOG_STEPS and stats:
         print0("locoprop_m_prepare step=" + str(step) + " " + " | ".join(stats), console=True)
 
@@ -469,10 +586,25 @@ def apply_locom_correction_(p: nn.Parameter, update: Tensor, lr: float):
 
     step = getattr(p, "_loco_step", -1)
     layer = getattr(p, "_loco_layer", -1)
+    surface = getattr(p, "_loco_surface", "")
     bias_corr = getattr(p, "_loco_bias_corr", None)
     bias_param = getattr(p, "_loco_bias_param", None)
     corr_f = corr.float()
     bias_corr_f = None if bias_corr is None else bias_corr.float()
+    if LOCOM_CORR_MOMENTUM > 0:
+        mom = getattr(p, "_loco_corr_momentum", None)
+        if mom is None or mom.shape != corr_f.shape:
+            mom = torch.zeros_like(corr_f)
+        mom.mul_(LOCOM_CORR_MOMENTUM).add_(corr_f, alpha=1 - LOCOM_CORR_MOMENTUM)
+        p._loco_corr_momentum = mom
+        corr_f = mom
+        if bias_corr_f is not None:
+            bias_mom = getattr(p, "_loco_bias_corr_momentum", None)
+            if bias_mom is None or bias_mom.shape != bias_corr_f.shape:
+                bias_mom = torch.zeros_like(bias_corr_f)
+            bias_mom.mul_(LOCOM_CORR_MOMENTUM).add_(bias_corr_f, alpha=1 - LOCOM_CORR_MOMENTUM)
+            p._loco_bias_corr_momentum = bias_mom
+            bias_corr_f = bias_mom
     corr_norm = corr_f.norm()
     bias_corr_norm = torch.zeros((), device=corr.device, dtype=torch.float32)
     if bias_corr_f is not None:
@@ -496,10 +628,11 @@ def apply_locom_correction_(p: nn.Parameter, update: Tensor, lr: float):
 
     if step in LOCOM_LOG_STEPS and len(LOCOM_APPLY_STATS) < 12:
         LOCOM_APPLY_STATS.append(
-            f"l{layer}:base_step={float(base_step_norm):.3e}"
+            f"{surface}l{layer}:base_step={float(base_step_norm):.3e}"
             f",corr_norm={float(joint_corr_norm):.3e}"
             f",bias_corr_norm={float(bias_corr_norm):.3e}"
             f",cap={LOCOM_NORM_CAP:.3f}"
+            f",mom={LOCOM_CORR_MOMENTUM:.2f}"
             f",scale={float(scale):.3e}"
             f",skipped={skipped}"
         )
@@ -509,6 +642,7 @@ def apply_locom_correction_(p: nn.Parameter, update: Tensor, lr: float):
     p._loco_bias_param = None
     p._loco_step = -1
     p._loco_layer = -1
+    p._loco_surface = ""
 
 
 ########################################
@@ -597,22 +731,30 @@ for _ in range(num_trials):
 
     locom_layer_set = parse_layer_set(LOCOM_LAYERS_SPEC, len(model.blocks))
     muon_params = optimizer2.param_groups[0]["params"]
-    fc_weight_to_layer = {id(block.mlp.fc.weight): idx for idx, block in enumerate(model.blocks)}
-    locom_layer_owners = {
-        fc_weight_to_layer[id(p)]: idx % dist.get_world_size()
+    locom_weight_to_target = {}
+    for layer_idx, block in enumerate(model.blocks):
+        if "fc" in LOCOM_SURFACES:
+            locom_weight_to_target[id(block.mlp.fc.weight)] = ("fc", layer_idx)
+        if "proj" in LOCOM_SURFACES:
+            locom_weight_to_target[id(block.mlp.proj.weight)] = ("proj", layer_idx)
+    locom_target_owners = {
+        locom_weight_to_target[id(p)]: idx % dist.get_world_size()
         for idx, p in enumerate(muon_params)
-        if id(p) in fc_weight_to_layer and fc_weight_to_layer[id(p)] in locom_layer_set
+        if id(p) in locom_weight_to_target and locom_weight_to_target[id(p)][1] in locom_layer_set
     }
-    owned_locom_layers = tuple(
-        layer_idx for layer_idx, owner in sorted(locom_layer_owners.items())
+    owned_locom_targets = tuple(
+        target for target, owner in sorted(locom_target_owners.items())
         if owner == dist.get_rank()
     )
     print0(
         f"LocoProp-M enabled={LOCOM_ENABLED} mode={LOCOM_MODE} layers={LOCOM_LAYERS_SPEC}"
-        f" owned_layers={owned_locom_layers} sample_tokens={LOCOM_SAMPLE_TOKENS}"
+        f" surfaces={','.join(sorted(LOCOM_SURFACES))}"
+        f" owned_targets={owned_locom_targets} sample_tokens={LOCOM_SAMPLE_TOKENS}"
         f" aux_seqs={LOCOM_AUX_SEQS} steps={LOCOM_LOCAL_STEPS}"
-        f" inner_lr={LOCOM_INNER_LR} prox={LOCOM_PROX} gamma={LOCOM_TARGET_GAMMA}"
+        f" inner_opt={LOCOM_INNER_OPT} inner_lr={LOCOM_INNER_LR}"
+        f" prox={LOCOM_PROX} gamma={LOCOM_TARGET_GAMMA}"
         f" alpha={LOCOM_ALPHA} norm_cap={LOCOM_NORM_CAP} bias={LOCOM_BIAS}"
+        f" corr_momentum={LOCOM_CORR_MOMENTUM}"
         f" active=[{LOCOM_START_STEP},{LOCOM_END_STEP}) interval={LOCOM_INTERVAL}"
         f" require_loss_decrease={LOCOM_REQUIRE_LOSS_DECREASE}"
         f" min_cos_desc={LOCOM_MIN_COS_DESC}",
@@ -682,13 +824,13 @@ for _ in range(num_trials):
         for name, p in model.named_parameters():
             assert p.grad is not None, name
             dist.all_reduce(p.grad, op=dist.ReduceOp.SUM)
-        prepare_locom_mlp_fc_corrections(model, inputs, targets, owned_locom_layers, step)
+        prepare_locom_mlp_corrections(model, inputs, targets, owned_locom_targets, step)
         # set optimization hyperparameters and take a step
         set_hparams(step)
         LOCOM_APPLY_STATS.clear()
         for opt in optimizers:
             opt.step()
-        sync_locom_biases(model, locom_layer_owners, step)
+        sync_locom_biases(model, locom_target_owners, step)
         if step in LOCOM_LOG_STEPS and LOCOM_APPLY_STATS:
             print0("locoprop_m_apply step=" + str(step) + " " + " | ".join(LOCOM_APPLY_STATS), console=True)
         model.zero_grad(set_to_none=True)
