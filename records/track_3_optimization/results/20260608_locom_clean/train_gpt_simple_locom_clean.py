@@ -62,6 +62,8 @@ LOCOM_LOG_STEPS = parse_step_set(os.environ.get(
     "TRACK3_LOCOM_LOG_STEPS",
     "0,1,2,10,50,125,250,500,1000,1500,2000,2400,2800",
 ))
+TRACK3_TRAIN_STEPS = env_int("TRACK3_TRAIN_STEPS", 3350)
+TRACK3_COOLDOWN_FRAC = env_float("TRACK3_COOLDOWN_FRAC", 0.7)
 LOCOM_APPLY_STATS: list[str] = []
 
 
@@ -560,7 +562,7 @@ for _ in range(num_trials):
     ########################################
 
     # we want to minimize this while still reaching 3.28 val loss
-    train_steps = 3350
+    train_steps = TRACK3_TRAIN_STEPS
 
     # initialize model parameters
     for name, p in model.named_parameters():
@@ -618,7 +620,7 @@ for _ in range(num_trials):
     )
 
     # learning rate schedule: stable then decay
-    def set_hparams(step, cooldown_frac=0.7):
+    def set_hparams(step, cooldown_frac=TRACK3_COOLDOWN_FRAC):
         progress = step / train_steps
         assert 0 <= progress < 1
         if progress < 1 - cooldown_frac:
