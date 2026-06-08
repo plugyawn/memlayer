@@ -568,7 +568,7 @@
   price_per_hour: 1.138 USD
   created_at: 2026-06-07T15:15Z
   expected_stop: after checkpoint-backed tail probe finishes/fails and artifacts are pulled
-  status: active_idle_after_tail2500_locom_and_softpolar_tied_control
+  status: terminated_by_timer_after_activation_scale_probe_api_recheck_blocked_by_unauthorized_key
   termination_policy: keep only while actively copying checkpoint/running queued probe; terminate on setup failure or after artifacts are pulled
   notes:
     - local checkpoint source: `/Users/progyan/speedrun/tmp/modal_ckpt_transfer/track3_cd500red_softmerge_pr2872000_p110_ckpt1600_seed3710_step1600.pt`
@@ -615,3 +615,4 @@
     - Corrected residual-after-Muon probe finished: `3.34115 @2500`, `3.34036 @2525`, `3.33962 @2550`, `3.33890 @2575`, `3.33829 @2600`. This tied normal/cold tail. Apply logs verified residual path with `resid_loss0/resid_lossK`; local residual losses decreased but validation did not move.
     - Pulled residual logs to `.opencode/current_track3_ledger_20260607_logs/tailcopy_43ad37/residual_tail2500/`.
     - 2026-06-07 18:56 UTC direct SSH status check after residual probe: pod still running, `NVIDIA H100 80GB HBM3`, `0 %` GPU util, `0 MiB` GPU memory, no active training process.
+    - 2026-06-08 03:15 UTC ledger correction: subsequent activation-scale probe was launched from this pod and the local auto-termination timer fired. Prior session summary recorded Prime `pods: []` after the timer; current live recheck is blocked because the `env.local` Prime key is unauthorized.
