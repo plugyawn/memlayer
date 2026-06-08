@@ -77,7 +77,9 @@ run_lane() {
     TRACK3_LOCOM_NORM_TO_BASE=0 \
     TRACK3_LOCOM_LOG_STEPS=0,1,2,10,50,125,250,500,750,1000,1125,1200,1225,1250,1375,1500,1600,1625,1650,1700,1750,1800,1900,2000 \
     TRACK3_LOCOM_DIAG_STEPS=1,3,5 \
-    TRACK3_LOCOM_DIAG_MAX_LAYERS=4 \
+    TRACK3_LOCOM_DIAG_MAX_LAYERS="${TRACK3_LOCOM_DIAG_MAX_LAYERS:-12}" \
+    TRACK3_LOCOM_PREP_MAX_STATS="${TRACK3_LOCOM_PREP_MAX_STATS:-12}" \
+    TRACK3_LOCOM_APPLY_MAX_STATS="${TRACK3_LOCOM_APPLY_MAX_STATS:-12}" \
     TRACK3_CHECKPOINT_DIR="${ckpt_dir}" \
     TRACK3_CHECKPOINT_PREFIX="${label}" \
     TRACK3_CHECKPOINT_STEPS=1200,1600,1800,2000 \
@@ -100,10 +102,36 @@ run_lane "track3_locom_actbase050_on1200_seed${seed_offset}_to${train_steps}" \
 run_lane "track3_locom_actbase050_on1600_seed${seed_offset}_to${train_steps}" \
   1 "1600:${train_steps}" act_base "${TRACK3_LOCOM_ACT_TARGET_1600:-0.50}" "${TRACK3_LOCOM_NORM_CAP_1600:-1.0}"
 
+control_log="${log_dir}/track3_simplemuon_control_seed${seed_offset}_to${train_steps}.log"
+on1200_log="${log_dir}/track3_locom_actbase050_on1200_seed${seed_offset}_to${train_steps}.log"
+on1600_log="${log_dir}/track3_locom_actbase050_on1600_seed${seed_offset}_to${train_steps}.log"
+
 python3 tools/analyze_track3_locom_lr_slope.py \
   --steps 1000,1200,1250,1375,1500,1600,1700,1800,1900,2000 \
   --target-step 3000 \
   --target-loss 3.28 \
   "${log_dir}" | tee "${log_dir}/delayed_onset_slope.md" || true
+
+python3 tools/analyze_locom_apply_scale.py \
+  "${on1200_log}" "${on1600_log}" | tee "${log_dir}/delayed_onset_apply_scale.md" || true
+
+python3 tools/analyze_locom_kdiag.py \
+  "${on1200_log}" "${on1600_log}" | tee "${log_dir}/delayed_onset_kdiag.md" || true
+
+python3 tools/analyze_track3_locom_prefix_effect_size.py \
+  --active "${on1200_log}" \
+  --control "${control_log}" \
+  --k 5 \
+  --decision-step 2000 \
+  --material-gain 0.001 \
+  | tee "${log_dir}/delayed_onset_1200_effect.md" || true
+
+python3 tools/analyze_track3_locom_prefix_effect_size.py \
+  --active "${on1600_log}" \
+  --control "${control_log}" \
+  --k 5 \
+  --decision-step 2000 \
+  --material-gain 0.001 \
+  | tee "${log_dir}/delayed_onset_1600_effect.md" || true
 
 echo "done delayed_locom_onset $(date -u +%Y-%m-%dT%H:%M:%SZ)" | tee -a "${status}"

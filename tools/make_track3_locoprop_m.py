@@ -161,6 +161,8 @@ LOCO_M_DIAG_STEPS = sorted({
     if x.strip()
 })
 LOCO_M_DIAG_MAX_LAYERS = int(os.environ.get("TRACK3_LOCOM_DIAG_MAX_LAYERS", "4"))
+LOCO_M_PREP_MAX_STATS = int(os.environ.get("TRACK3_LOCOM_PREP_MAX_STATS", "4"))
+LOCO_M_APPLY_MAX_STATS = int(os.environ.get("TRACK3_LOCOM_APPLY_MAX_STATS", "8"))
 LOCO_M_OWNED_LAYER_SET: set[int] = set()
 LOCO_M_APPLY_STATS: list[str] = []
 LOCO_M_CURRENT_STEP = -1
@@ -719,7 +721,7 @@ def _prepare_locoprop_m_batched(model: nn.Module, step: int, stats: list[str]) -
             mlp.fc.weight._loco_residual_payload = None
             mlp.fc.weight._loco_scale_x = None
             mlp.fc.weight._loco_scale_ref = None
-        if step in LOCO_M_LOG_STEPS and len(stats) < 4:
+        if step in LOCO_M_LOG_STEPS and len(stats) < LOCO_M_PREP_MAX_STATS:
             stats.append(
                 f"l{layer_idx}:loss0={float(loss0[pos]):.3e}"
                 f",lossK={float(loss_k[pos]):.3e}"
@@ -842,7 +844,7 @@ def _prepare_locoprop_m_proj(model: nn.Module, step: int, stats: list[str]):
             mlp.proj.weight._loco_scale_x = None
             mlp.proj.weight._loco_scale_ref = None
 
-        if step in LOCO_M_LOG_STEPS and len(stats) < 4:
+        if step in LOCO_M_LOG_STEPS and len(stats) < LOCO_M_PREP_MAX_STATS:
             stats.append(
                 f"l{layer_idx}:surface=proj"
                 f",loss0={float(loss0):.3e}"
@@ -896,7 +898,7 @@ def prepare_locoprop_m(model: nn.Module, step: int):
             target_param._loco_step = step
             target_param._loco_scale_x = None
             target_param._loco_scale_ref = None
-            if step in LOCO_M_LOG_STEPS and len(stats) < 4:
+            if step in LOCO_M_LOG_STEPS and len(stats) < LOCO_M_PREP_MAX_STATS:
                 stats.append(
                     f"l{layer_idx}:random=1"
                     f",surface={LOCO_M_SURFACE}"
@@ -1051,7 +1053,7 @@ def prepare_locoprop_m(model: nn.Module, step: int):
             mlp.fc.weight._loco_scale_x = None
             mlp.fc.weight._loco_scale_ref = None
 
-        if step in LOCO_M_LOG_STEPS and len(stats) < 4:
+        if step in LOCO_M_LOG_STEPS and len(stats) < LOCO_M_PREP_MAX_STATS:
             stats.append(
                 f"l{layer_idx}:loss0={float(loss0):.3e}"
                 f",lossK={float(loss_k):.3e}"
@@ -1128,7 +1130,7 @@ def _locom_apply_owned_param_(p: nn.Parameter, update: Tensor, lr: float):
         scale_x = getattr(p, "_loco_scale_x", None)
         scale_ref = getattr(p, "_loco_scale_ref", None)
         if scale_x is None:
-            if step in LOCO_M_LOG_STEPS and len(LOCO_M_APPLY_STATS) < 8:
+            if step in LOCO_M_LOG_STEPS and len(LOCO_M_APPLY_STATS) < LOCO_M_APPLY_MAX_STATS:
                 LOCO_M_APPLY_STATS.append(
                     f"shape={tuple(p.shape)}:base_step={float(base_step_norm):.3e}"
                     f",corr_norm={float(corr_norm):.3e},scale_mode={LOCO_M_SCALE_MODE},missing_act_scale=1,skipped=1"
@@ -1145,7 +1147,7 @@ def _locom_apply_owned_param_(p: nn.Parameter, update: Tensor, lr: float):
             scale = (LOCO_M_ACT_TARGET * act_base_norm) / act_corr_norm
         else:
             if scale_ref is None:
-                if step in LOCO_M_LOG_STEPS and len(LOCO_M_APPLY_STATS) < 8:
+                if step in LOCO_M_LOG_STEPS and len(LOCO_M_APPLY_STATS) < LOCO_M_APPLY_MAX_STATS:
                     LOCO_M_APPLY_STATS.append(
                         f"shape={tuple(p.shape)}:base_step={float(base_step_norm):.3e}"
                         f",corr_norm={float(corr_norm):.3e},scale_mode={LOCO_M_SCALE_MODE},missing_act_ref=1,skipped=1"
@@ -1167,7 +1169,7 @@ def _locom_apply_owned_param_(p: nn.Parameter, update: Tensor, lr: float):
         scale = torch.minimum(scale, max_norm / corr_norm)
     scale = scale * LOCO_M_ALPHA
     if float(scale) == 0.0:
-        if step in LOCO_M_LOG_STEPS and len(LOCO_M_APPLY_STATS) < 8:
+        if step in LOCO_M_LOG_STEPS and len(LOCO_M_APPLY_STATS) < LOCO_M_APPLY_MAX_STATS:
             LOCO_M_APPLY_STATS.append(
                 f"shape={tuple(p.shape)}:base_step={float(base_step_norm):.3e}"
                 f",corr_norm={float(corr_norm):.3e},cap={norm_cap:.3f},scale=0.000e+00,skipped=1"
@@ -1178,7 +1180,7 @@ def _locom_apply_owned_param_(p: nn.Parameter, update: Tensor, lr: float):
         p._loco_scale_ref = None
         return
     if not torch.isfinite(corr_f).all():
-        if step in LOCO_M_LOG_STEPS and len(LOCO_M_APPLY_STATS) < 8:
+        if step in LOCO_M_LOG_STEPS and len(LOCO_M_APPLY_STATS) < LOCO_M_APPLY_MAX_STATS:
             LOCO_M_APPLY_STATS.append(
                 f"shape={tuple(p.shape)}:base_step={float(base_step_norm):.3e}"
                 f",corr_norm={float(corr_norm):.3e},cap={norm_cap:.3f},scale={float(scale):.3e},nonfinite=1,skipped=1"
@@ -1189,7 +1191,7 @@ def _locom_apply_owned_param_(p: nn.Parameter, update: Tensor, lr: float):
         p._loco_scale_ref = None
         return
     p.add_(corr_f.to(p.dtype), alpha=float(scale))
-    if step in LOCO_M_LOG_STEPS and len(LOCO_M_APPLY_STATS) < 8:
+    if step in LOCO_M_LOG_STEPS and len(LOCO_M_APPLY_STATS) < LOCO_M_APPLY_MAX_STATS:
         residual_suffix = ""
         if residual_loss0 is not None and residual_loss_k is not None:
             residual_suffix = (
