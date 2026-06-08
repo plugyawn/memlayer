@@ -69,9 +69,11 @@ PY
 
 pods_json="$(prime --plain pods list --output json)"
 active_count="$(python3 -c 'import json,sys; print(json.load(sys.stdin)["total_count"])' <<<"$pods_json")"
-if [[ "$active_count" != "0" ]]; then
+if [[ "$active_count" != "0" && "${PRIME_ALLOW_EXISTING_PODS:-0}" != "1" ]]; then
   echo "Prime already has ${active_count} active pod(s); inspect before launching a new one." >&2
   exit 3
+elif [[ "$active_count" != "0" ]]; then
+  echo "Prime already has ${active_count} active pod(s); proceeding because PRIME_ALLOW_EXISTING_PODS=1" >&2
 fi
 
 availability_json="$(prime --plain availability list --gpu-type H100_80GB --gpu-count 1 --output json)"
