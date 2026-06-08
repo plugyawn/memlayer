@@ -227,6 +227,19 @@ Default runner:
 .opencode/prime_scripts/run_prime_track3_delayed_locom_onset.sh
 ```
 
+Low-budget resume runner:
+
+```text
+.opencode/prime_scripts/run_prime_track3_delayed_locom_resume_onset.sh
+```
+
+The resume runner is the preferred Prime path while wallet is tight: it trains
+the simple-Muon prefix once, saves `1200` and `1600` checkpoints, then resumes
+the active LocoProp lanes from those exact prefix states. This preserves
+optimizer/RNG/data-stream provenance while avoiding duplicate prefix compute.
+Default `TRACK3_TRAIN_STEPS=1800` is the cheap gate; set it to `2000` after a
+refill if `1800` separates.
+
 Default LocoProp settings:
 
 ```text
