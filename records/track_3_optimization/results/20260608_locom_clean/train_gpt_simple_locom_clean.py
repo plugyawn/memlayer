@@ -58,6 +58,8 @@ LOCOM_INNER_BETA1 = env_float("TRACK3_LOCOM_INNER_BETA1", 0.9)
 LOCOM_INNER_BETA2 = env_float("TRACK3_LOCOM_INNER_BETA2", 0.99)
 LOCOM_INNER_EPS = env_float("TRACK3_LOCOM_INNER_EPS", 1e-8)
 LOCOM_CORR_MOMENTUM = env_float("TRACK3_LOCOM_CORR_MOMENTUM", 0.0)
+LOCOM_MOMENTUM_MODE = os.environ.get("TRACK3_LOCOM_MOMENTUM_MODE", "none").lower()
+LOCOM_MOMENTUM_BETA = env_float("TRACK3_LOCOM_MOMENTUM_BETA", LOCOM_CORR_MOMENTUM)
 LOCOM_START_STEP = env_int("TRACK3_LOCOM_START_STEP", 0)
 LOCOM_END_STEP = env_int("TRACK3_LOCOM_END_STEP", -1)
 LOCOM_INTERVAL = max(1, env_int("TRACK3_LOCOM_INTERVAL", 1))
@@ -345,6 +347,24 @@ def locom_module(model: GPT, surface: str, layer_idx: int) -> Linear:
         return model.blocks[layer_idx].mlp.proj
     raise ValueError(f"unknown LocoProp surface {surface!r}")
 
+def locom_momentum_mode() -> str:
+    mode = LOCOM_MOMENTUM_MODE
+    if mode in ("", "none", "off", "0"):
+        return "corr_ema" if LOCOM_CORR_MOMENTUM > 0 else "none"
+    aliases = {
+        "corr": "corr_ema",
+        "correction": "corr_ema",
+        "residual": "corr_ema",
+        "corr_ema": "corr_ema",
+        "prox": "prox_center",
+        "center": "prox_center",
+        "prox_center": "prox_center",
+        "inertial_prox": "prox_center",
+    }
+    if mode not in aliases:
+        raise ValueError(f"unknown TRACK3_LOCOM_MOMENTUM_MODE={LOCOM_MOMENTUM_MODE!r}")
+    return aliases[mode]
+
 def sync_locom_biases(model: GPT, target_owners: dict[tuple[str, int], int], step: int):
     if not locom_active(step) or not LOCOM_BIAS:
         return
@@ -503,8 +523,26 @@ def prepare_locom_mlp_corrections(
             dout = torch.stack([sample_by_layer[layer_idx]["proj_dout"].float() for layer_idx in target_layers])
             target = y0 - LOCOM_TARGET_GAMMA * dout
 
-        W0 = torch.stack([locom_module(model, surface, layer_idx).weight.detach().float() for layer_idx in target_layers])
-        b0 = torch.stack([locom_module(model, surface, layer_idx).bias.detach().float() for layer_idx in target_layers])
+        modules = [locom_module(model, surface, layer_idx) for layer_idx in target_layers]
+        W0 = torch.stack([module.weight.detach().float() for module in modules])
+        b0 = torch.stack([module.bias.detach().float() for module in modules])
+        center_w = W0
+        center_b = b0
+        momentum_mode = locom_momentum_mode()
+        if momentum_mode == "prox_center" and LOCOM_MOMENTUM_BETA > 0:
+            center_ws = []
+            center_bs = []
+            for pos, module in enumerate(modules):
+                w_vel = getattr(module.weight, "_loco_prox_velocity", None)
+                if w_vel is None or w_vel.shape != W0[pos].shape:
+                    w_vel = torch.zeros_like(W0[pos])
+                center_ws.append(W0[pos] + LOCOM_MOMENTUM_BETA * w_vel)
+                b_vel = getattr(module.weight, "_loco_bias_prox_velocity", None)
+                if b_vel is None or b_vel.shape != b0[pos].shape:
+                    b_vel = torch.zeros_like(b0[pos])
+                center_bs.append(b0[pos] + LOCOM_MOMENTUM_BETA * b_vel)
+            center_w = torch.stack(center_ws)
+            center_b = torch.stack(center_bs)
         W = W0.clone()
         b = b0.clone()
         state = {
@@ -527,7 +565,7 @@ def prepare_locom_mlp_corrections(
                 loss0 = loss_k
             grad_w = torch.bmm(err.transpose(1, 2), x).mul_(inv_n)
             grad_b = err.mean(dim=1)
-            locom_inner_step(W, b, W0, b0, grad_w, grad_b, state, local_step)
+            locom_inner_step(W, b, center_w, center_b, grad_w, grad_b, state, local_step)
 
         pred = torch.bmm(x, W.transpose(1, 2)).add_(b[:, None, :])
         if surface == "fc" and LOCOM_MODE == "matching":
@@ -539,7 +577,7 @@ def prepare_locom_mlp_corrections(
         corr_stack = W - W0
         bias_corr_stack = b - b0
         for pos, layer_idx in enumerate(target_layers):
-            module = locom_module(model, surface, layer_idx)
+            module = modules[pos]
             p = module.weight
             b_param = module.bias
             corr = corr_stack[pos]
@@ -591,18 +629,19 @@ def apply_locom_correction_(p: nn.Parameter, update: Tensor, lr: float):
     bias_param = getattr(p, "_loco_bias_param", None)
     corr_f = corr.float()
     bias_corr_f = None if bias_corr is None else bias_corr.float()
-    if LOCOM_CORR_MOMENTUM > 0:
+    momentum_mode = locom_momentum_mode()
+    if momentum_mode == "corr_ema" and LOCOM_MOMENTUM_BETA > 0:
         mom = getattr(p, "_loco_corr_momentum", None)
         if mom is None or mom.shape != corr_f.shape:
             mom = torch.zeros_like(corr_f)
-        mom.mul_(LOCOM_CORR_MOMENTUM).add_(corr_f, alpha=1 - LOCOM_CORR_MOMENTUM)
+        mom.mul_(LOCOM_MOMENTUM_BETA).add_(corr_f, alpha=1 - LOCOM_MOMENTUM_BETA)
         p._loco_corr_momentum = mom
         corr_f = mom
         if bias_corr_f is not None:
             bias_mom = getattr(p, "_loco_bias_corr_momentum", None)
             if bias_mom is None or bias_mom.shape != bias_corr_f.shape:
                 bias_mom = torch.zeros_like(bias_corr_f)
-            bias_mom.mul_(LOCOM_CORR_MOMENTUM).add_(bias_corr_f, alpha=1 - LOCOM_CORR_MOMENTUM)
+            bias_mom.mul_(LOCOM_MOMENTUM_BETA).add_(bias_corr_f, alpha=1 - LOCOM_MOMENTUM_BETA)
             p._loco_bias_corr_momentum = bias_mom
             bias_corr_f = bias_mom
     corr_norm = corr_f.norm()
@@ -622,9 +661,13 @@ def apply_locom_correction_(p: nn.Parameter, update: Tensor, lr: float):
     if not finite or float(scale) == 0.0:
         skipped = 1
     else:
-        p.add_(corr_f.to(p.dtype), alpha=float(scale))
+        applied_corr = corr_f.mul(float(scale))
+        p.add_(applied_corr.to(p.dtype))
+        p._loco_prox_velocity = applied_corr.detach().clone()
         if bias_param is not None and bias_corr_f is not None:
-            bias_param.add_(bias_corr_f.to(bias_param.dtype), alpha=float(scale))
+            applied_bias_corr = bias_corr_f.mul(float(scale))
+            bias_param.add_(applied_bias_corr.to(bias_param.dtype))
+            p._loco_bias_prox_velocity = applied_bias_corr.detach().clone()
 
     if step in LOCOM_LOG_STEPS and len(LOCOM_APPLY_STATS) < 12:
         LOCOM_APPLY_STATS.append(
@@ -632,7 +675,7 @@ def apply_locom_correction_(p: nn.Parameter, update: Tensor, lr: float):
             f",corr_norm={float(joint_corr_norm):.3e}"
             f",bias_corr_norm={float(bias_corr_norm):.3e}"
             f",cap={LOCOM_NORM_CAP:.3f}"
-            f",mom={LOCOM_CORR_MOMENTUM:.2f}"
+            f",mom={momentum_mode}:{LOCOM_MOMENTUM_BETA:.2f}"
             f",scale={float(scale):.3e}"
             f",skipped={skipped}"
         )
@@ -754,7 +797,9 @@ for _ in range(num_trials):
         f" inner_opt={LOCOM_INNER_OPT} inner_lr={LOCOM_INNER_LR}"
         f" prox={LOCOM_PROX} gamma={LOCOM_TARGET_GAMMA}"
         f" alpha={LOCOM_ALPHA} norm_cap={LOCOM_NORM_CAP} bias={LOCOM_BIAS}"
-        f" corr_momentum={LOCOM_CORR_MOMENTUM}"
+        f" momentum_mode={locom_momentum_mode()}"
+        f" momentum_beta={LOCOM_MOMENTUM_BETA}"
+        f" legacy_corr_momentum={LOCOM_CORR_MOMENTUM}"
         f" active=[{LOCOM_START_STEP},{LOCOM_END_STEP}) interval={LOCOM_INTERVAL}"
         f" require_loss_decrease={LOCOM_REQUIRE_LOSS_DECREASE}"
         f" min_cos_desc={LOCOM_MIN_COS_DESC}",
