@@ -5,8 +5,9 @@ adds one isolated LocoProp-M correction path.
 
 The base optimizer is unchanged: AdamW handles embeddings, output projection,
 and scalar parameters; Muon handles block matrices. LocoProp-M is implemented as
-an additive local correction on MLP `fc` weights only. It does not feed the local
-solve into Muon momentum or any persistent optimizer state.
+an additive local correction on the MLP `fc` affine transform (`weight` and
+`bias`). It does not feed the local solve into Muon momentum, Adam moments, or
+any persistent optimizer state.
 
 Default run:
 
@@ -29,6 +30,7 @@ TRACK3_LOCOM_PROX=0.10
 TRACK3_LOCOM_TARGET_GAMMA=1.0
 TRACK3_LOCOM_ALPHA=1.0
 TRACK3_LOCOM_NORM_CAP=0.20
+TRACK3_LOCOM_BIAS=1
 ```
 
 Implementation notes:
@@ -41,9 +43,12 @@ Implementation notes:
   deterministic stride sampling, avoiding per-step RNG changes.
 - `matching` mode uses the LocoProp-M matching-loss gradient shape for the
   `relu^2` MLP activation: the local error is `relu(Wx+b)^2 - target`, but the
-  local weight gradient is `error.T @ x` rather than ordinary backprop through
-  `relu^2`.
-- The correction `W_local - W0` is applied after the Muon update and is capped
-  relative to that parameter's Muon step norm.
+  local affine gradient is `[error.T @ x, error.mean(0)]` rather than ordinary
+  backprop through `relu^2`.
+- The correction `[W_local - W0, b_local - b0]` is applied after the Muon weight
+  update and Adam bias update. It is capped jointly relative to that parameter's
+  Muon step norm. In multi-GPU runs, the owner rank for each `fc.weight` also
+  owns the corresponding local bias correction and broadcasts the resulting bias
+  to the other ranks.
 - Set `TRACK3_LOCOM_REQUIRE_LOSS_DECREASE=1` or
   `TRACK3_LOCOM_MIN_COS_DESC=<value>` for stricter screening.
