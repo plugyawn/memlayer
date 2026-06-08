@@ -38,6 +38,20 @@ WR_SAVE_CHECKPOINT_STEPS = {
     if x.strip()
 }
 WR_TARGET_LOSS = float(os.environ.get("WR_TARGET_LOSS", "0.0"))
+WR_OPT2_LR_MULT_START = int(os.environ.get("WR_OPT2_LR_MULT_START", "-1"))
+WR_OPT2_LR_MULT_END = int(os.environ.get("WR_OPT2_LR_MULT_END", "-1"))
+WR_OPT2_LR_MULT_MIN = float(os.environ.get("WR_OPT2_LR_MULT_MIN", "1.0"))
+WR_OPT2_LR_MULT_MAX = float(os.environ.get("WR_OPT2_LR_MULT_MAX", "1.0"))
+
+def wr_opt2_lr_mult_for_step(step: int) -> float:
+    if WR_OPT2_LR_MULT_START < 0 or WR_OPT2_LR_MULT_END <= WR_OPT2_LR_MULT_START:
+        return WR_OPT2_LR_MULT_MAX
+    if step <= WR_OPT2_LR_MULT_START:
+        return WR_OPT2_LR_MULT_MIN
+    if step >= WR_OPT2_LR_MULT_END:
+        return WR_OPT2_LR_MULT_MAX
+    frac = (step - WR_OPT2_LR_MULT_START) / (WR_OPT2_LR_MULT_END - WR_OPT2_LR_MULT_START)
+    return WR_OPT2_LR_MULT_MIN + frac * (WR_OPT2_LR_MULT_MAX - WR_OPT2_LR_MULT_MIN)
 
 def _wr_load_checkpoint(path: str) -> dict:
     return torch.load(path, map_location=device)
@@ -258,7 +272,9 @@ def generate(source: Path, output: Path, train_steps: int, schedule_steps: int |
         "    f\"advance_data={WR_RESUME_ADVANCE_DATA} restore_rng={WR_RESUME_RESTORE_RNG} \"\n"
         "    f\"load_adam={WR_RESUME_LOAD_ADAM} load_optimizers={WR_RESUME_LOAD_OPTIMIZERS} \"\n"
         "    f\"save_checkpoint={WR_SAVE_CHECKPOINT or '<none>'}@{WR_SAVE_CHECKPOINT_STEP} \"\n"
-        "    f\"target_loss={WR_TARGET_LOSS}\",\n"
+        "    f\"target_loss={WR_TARGET_LOSS} \"\n"
+        "    f\"opt2_lr_mult=({WR_OPT2_LR_MULT_MIN}->{WR_OPT2_LR_MULT_MAX} \"\n"
+        "    f\"over {WR_OPT2_LR_MULT_START}:{WR_OPT2_LR_MULT_END})\",\n"
         "    console=True,\n"
         ")\n"
         "print0(\"=\"*100)\n\nval_tokens = 20 * 524288\n",
@@ -283,6 +299,25 @@ def generate(source: Path, output: Path, train_steps: int, schedule_steps: int |
         text,
         "for step in range(train_steps + 1):\n",
         "for step in range(start_step, train_steps + 1):\n",
+    )
+    text = replace_exact(
+        text,
+        'def set_hparams(step):\n'
+        '    progress = step / FINAL_SCHEDULE_STEPS\n'
+        '    assert 0 <= progress < 1\n'
+        '    for opt in optimizers:\n'
+        '        for group in opt.param_groups:\n'
+        '            group["lr"] = _lr(step, group["initial_lr"], group["power_c"], FINAL_LR_POWER)\n',
+        'def set_hparams(step):\n'
+        '    progress = step / FINAL_SCHEDULE_STEPS\n'
+        '    assert 0 <= progress < 1\n'
+        '    for opt in optimizers:\n'
+        '        for group in opt.param_groups:\n'
+        '            group["lr"] = _lr(step, group["initial_lr"], group["power_c"], FINAL_LR_POWER)\n'
+        '    opt2_lr_mult = wr_opt2_lr_mult_for_step(step)\n'
+        '    if opt2_lr_mult != 1.0:\n'
+        '        for group in optimizer2.param_groups:\n'
+        '            group["lr"] *= opt2_lr_mult\n',
     )
     text = replace_exact(
         text,
