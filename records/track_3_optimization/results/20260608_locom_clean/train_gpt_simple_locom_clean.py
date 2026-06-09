@@ -66,6 +66,7 @@ LOCOM_INTERVAL = max(1, env_int("TRACK3_LOCOM_INTERVAL", 1))
 LOCOM_LAYERS_SPEC = os.environ.get("TRACK3_LOCOM_LAYERS", "all")
 LOCOM_REQUIRE_LOSS_DECREASE = env_bool("TRACK3_LOCOM_REQUIRE_LOSS_DECREASE", False)
 LOCOM_MIN_COS_DESC = env_float("TRACK3_LOCOM_MIN_COS_DESC", -2.0)
+LOCOM_TRUE_RELU2_GRAD = env_bool("TRACK3_LOCOM_TRUE_RELU2_GRAD", False)
 LOCOM_LOG_STEPS = parse_step_set(os.environ.get(
     "TRACK3_LOCOM_LOG_STEPS",
     "0,1,2,10,50,125,250,500,1000,1500,2000,2400,2800",
@@ -402,9 +403,12 @@ def locom_manual_forward_capture(
     loss = F.cross_entropy(logits.view(aux_targets.numel(), -1), aux_targets.view(-1), reduction="sum")
     grad_tensors = []
     grad_keys = []
-    for layer_idx, _, pre, _, proj_out in saved:
+    for layer_idx, _, pre, post, proj_out in saved:
         if want_fc:
-            grad_tensors.append(pre)
+            if LOCOM_MODE == "matching" and LOCOM_TRUE_RELU2_GRAD:
+                grad_tensors.append(post)
+            else:
+                grad_tensors.append(pre)
             grad_keys.append((layer_idx, "fc_dout"))
         if want_proj:
             grad_tensors.append(proj_out)
@@ -557,14 +561,17 @@ def prepare_locom_mlp_corrections(
         for local_step in range(1, LOCOM_LOCAL_STEPS + 1):
             pred = torch.bmm(x, W.transpose(1, 2)).add_(b[:, None, :])
             if surface == "fc" and LOCOM_MODE == "matching":
-                err = pred.relu().square().sub_(target)
+                relu_pred = pred.relu()
+                err = relu_pred.square().sub_(target)
+                grad_signal = err * (2.0 * relu_pred) if LOCOM_TRUE_RELU2_GRAD else err
             else:
                 err = pred - target
+                grad_signal = err
             loss_k = 0.5 * err.square().mean(dim=(1, 2))
             if loss0 is None:
                 loss0 = loss_k
-            grad_w = torch.bmm(err.transpose(1, 2), x).mul_(inv_n)
-            grad_b = err.mean(dim=1)
+            grad_w = torch.bmm(grad_signal.transpose(1, 2), x).mul_(inv_n)
+            grad_b = grad_signal.mean(dim=1)
             locom_inner_step(W, b, center_w, center_b, grad_w, grad_b, state, local_step)
 
         pred = torch.bmm(x, W.transpose(1, 2)).add_(b[:, None, :])
@@ -802,7 +809,8 @@ for _ in range(num_trials):
         f" legacy_corr_momentum={LOCOM_CORR_MOMENTUM}"
         f" active=[{LOCOM_START_STEP},{LOCOM_END_STEP}) interval={LOCOM_INTERVAL}"
         f" require_loss_decrease={LOCOM_REQUIRE_LOSS_DECREASE}"
-        f" min_cos_desc={LOCOM_MIN_COS_DESC}",
+        f" min_cos_desc={LOCOM_MIN_COS_DESC}"
+        f" true_relu2_grad={LOCOM_TRUE_RELU2_GRAD}",
         console=True,
     )
 
