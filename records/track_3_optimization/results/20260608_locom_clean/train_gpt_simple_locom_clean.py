@@ -292,6 +292,12 @@ def parse_layer_set(spec: str, num_layers: int) -> frozenset[int]:
 
 def parse_surface_set(spec: str) -> frozenset[str]:
     aliases = {
+        "attn_v": "v",
+        "value": "v",
+        "v": "v",
+        "attn_o": "o",
+        "attn_proj": "o",
+        "o": "o",
         "c_fc": "fc",
         "mlp_fc": "fc",
         "fc": "fc",
@@ -305,6 +311,12 @@ def parse_surface_set(spec: str) -> frozenset[str]:
         if not part:
             continue
         if part in ("all", "*"):
+            surfaces.update(("v", "o", "fc", "proj"))
+            continue
+        if part in ("attn", "all_attn"):
+            surfaces.update(("v", "o"))
+            continue
+        if part in ("mlp", "all_mlp"):
             surfaces.update(("fc", "proj"))
             continue
         if part not in aliases:
@@ -332,7 +344,7 @@ def locom_sample_indices(num_tokens: int, sample_tokens: int, device: torch.devi
 
 def clear_locom_corrections(model: GPT):
     for block in model.blocks:
-        for module in (block.mlp.fc, block.mlp.proj):
+        for module in (block.attn.v, block.attn.proj, block.mlp.fc, block.mlp.proj):
             p = module.weight
             p._loco_corr = None
             p._loco_bias_corr = None
@@ -342,6 +354,10 @@ def clear_locom_corrections(model: GPT):
             p._loco_surface = ""
 
 def locom_module(model: GPT, surface: str, layer_idx: int) -> Linear:
+    if surface == "v":
+        return model.blocks[layer_idx].attn.v
+    if surface == "o":
+        return model.blocks[layer_idx].attn.proj
     if surface == "fc":
         return model.blocks[layer_idx].mlp.fc
     if surface == "proj":
@@ -381,21 +397,53 @@ def locom_manual_forward_capture(
     if not layers:
         return []
     wanted = set(layers)
+    want_v = "v" in LOCOM_SURFACES
+    want_o = "o" in LOCOM_SURFACES
     want_fc = "fc" in LOCOM_SURFACES
     want_proj = "proj" in LOCOM_SURFACES
-    saved: list[tuple[int, Tensor, Tensor, Tensor, Tensor]] = []
+    saved: list[dict[str, Tensor | int]] = []
 
     aux_inputs = inputs[:LOCOM_AUX_SEQS]
     aux_targets = targets[:LOCOM_AUX_SEQS]
     x = model.norm1(model.embed(aux_inputs))
     for layer_idx, block in enumerate(model.blocks):
-        x = x + block.attn(block.norm1(x))
+        attn_in = block.norm1(x)
+        B, T = attn_in.size(0), attn_in.size(1)
+        q = block.attn.q(attn_in).view(B, T, block.attn.num_heads, block.attn.head_dim)
+        k = block.attn.k(attn_in).view(B, T, block.attn.num_heads, block.attn.head_dim)
+        v = block.attn.v(attn_in)
+        v_heads = v.view(B, T, block.attn.num_heads, block.attn.head_dim)
+        q, k = F.rms_norm(q, (q.size(-1),)), F.rms_norm(k, (k.size(-1),))
+        q, k = block.attn.rotary(q), block.attn.rotary(k)
+        attn_y = F.scaled_dot_product_attention(
+            q.transpose(1, 2),
+            k.transpose(1, 2),
+            v_heads.transpose(1, 2),
+            scale=0.12,
+            is_causal=True,
+        ).transpose(1, 2)
+        attn_y = attn_y.contiguous().view(B, T, block.attn.num_heads * block.attn.head_dim)
+        attn_out = block.attn.proj(attn_y)
+        if layer_idx in wanted:
+            saved.append({
+                "layer_idx": layer_idx,
+                "attn_in": attn_in,
+                "v": v,
+                "attn_y": attn_y,
+                "attn_out": attn_out,
+            })
+        x = x + attn_out
         mlp_in = block.norm2(x)
         pre = block.mlp.fc(mlp_in)
         post = pre.relu().square()
         proj_out = block.mlp.proj(post)
         if layer_idx in wanted:
-            saved.append((layer_idx, mlp_in, pre, post, proj_out))
+            saved[-1].update({
+                "mlp_in": mlp_in,
+                "pre": pre,
+                "post": post,
+                "proj_out": proj_out,
+            })
         x = x + proj_out
 
     logits = model.proj(model.norm2(x)).float()
@@ -403,15 +451,22 @@ def locom_manual_forward_capture(
     loss = F.cross_entropy(logits.view(aux_targets.numel(), -1), aux_targets.view(-1), reduction="sum")
     grad_tensors = []
     grad_keys = []
-    for layer_idx, _, pre, post, proj_out in saved:
+    for item in saved:
+        layer_idx = int(item["layer_idx"])
+        if want_v:
+            grad_tensors.append(item["v"])
+            grad_keys.append((layer_idx, "v_dout"))
+        if want_o:
+            grad_tensors.append(item["attn_out"])
+            grad_keys.append((layer_idx, "o_dout"))
         if want_fc:
             if LOCOM_MODE == "matching" and LOCOM_TRUE_RELU2_GRAD:
-                grad_tensors.append(post)
+                grad_tensors.append(item["post"])
             else:
-                grad_tensors.append(pre)
+                grad_tensors.append(item["pre"])
             grad_keys.append((layer_idx, "fc_dout"))
         if want_proj:
-            grad_tensors.append(proj_out)
+            grad_tensors.append(item["proj_out"])
             grad_keys.append((layer_idx, "proj_dout"))
     grads = torch.autograd.grad(loss, grad_tensors, retain_graph=False) if grad_tensors else ()
     grad_by_layer = {
@@ -419,7 +474,20 @@ def locom_manual_forward_capture(
     }
 
     samples: list[dict[str, Tensor | int]] = []
-    for layer_idx, mlp_in, pre, post, proj_out in saved:
+    for item in saved:
+        layer_idx = int(item["layer_idx"])
+        attn_in = item["attn_in"]
+        v = item["v"]
+        attn_y = item["attn_y"]
+        attn_out = item["attn_out"]
+        mlp_in = item["mlp_in"]
+        pre = item["pre"]
+        post = item["post"]
+        proj_out = item["proj_out"]
+        flat_attn_in = attn_in.reshape(-1, attn_in.size(-1))
+        flat_v = v.reshape(-1, v.size(-1))
+        flat_attn_y = attn_y.reshape(-1, attn_y.size(-1))
+        flat_attn_out = attn_out.reshape(-1, attn_out.size(-1))
         flat_x = mlp_in.reshape(-1, mlp_in.size(-1))
         flat_pre = pre.reshape(-1, pre.size(-1))
         flat_post = post.reshape(-1, post.size(-1))
@@ -432,7 +500,17 @@ def locom_manual_forward_capture(
             "fc_post": flat_post.index_select(0, idx).detach(),
             "proj_x": flat_post.index_select(0, idx).detach(),
             "proj_y": flat_proj_out.index_select(0, idx).detach(),
+            "v_x": flat_attn_in.index_select(0, idx).detach(),
+            "v_y": flat_v.index_select(0, idx).detach(),
+            "o_x": flat_attn_y.index_select(0, idx).detach(),
+            "o_y": flat_attn_out.index_select(0, idx).detach(),
         }
+        if want_v:
+            dv = grad_by_layer[(layer_idx, "v_dout")]
+            sample["v_dout"] = dv.reshape(-1, dv.size(-1)).index_select(0, idx).detach()
+        if want_o:
+            do = grad_by_layer[(layer_idx, "o_dout")]
+            sample["o_dout"] = do.reshape(-1, do.size(-1)).index_select(0, idx).detach()
         if want_fc:
             dpre = grad_by_layer[(layer_idx, "fc_dout")]
             sample["fc_dout"] = dpre.reshape(-1, dpre.size(-1)).index_select(0, idx).detach()
@@ -502,7 +580,7 @@ def prepare_locom_mlp_corrections(
     sample_by_layer = {int(sample["layer_idx"]): sample for sample in samples}
 
     stats = []
-    for surface in ("fc", "proj"):
+    for surface in ("v", "o", "fc", "proj"):
         target_layers = [
             layer_idx for target_surface, layer_idx in owned_targets
             if target_surface == surface and layer_idx in sample_by_layer
@@ -521,11 +599,23 @@ def prepare_locom_mlp_corrections(
                 target = post0 - LOCOM_TARGET_GAMMA * dout
             else:
                 raise ValueError(f"unknown TRACK3_LOCOM_MODE={LOCOM_MODE!r}")
-        else:
+        elif surface == "proj":
             x = torch.stack([sample_by_layer[layer_idx]["proj_x"].float() for layer_idx in target_layers])
             y0 = torch.stack([sample_by_layer[layer_idx]["proj_y"].float() for layer_idx in target_layers])
             dout = torch.stack([sample_by_layer[layer_idx]["proj_dout"].float() for layer_idx in target_layers])
             target = y0 - LOCOM_TARGET_GAMMA * dout
+        elif surface == "v":
+            x = torch.stack([sample_by_layer[layer_idx]["v_x"].float() for layer_idx in target_layers])
+            y0 = torch.stack([sample_by_layer[layer_idx]["v_y"].float() for layer_idx in target_layers])
+            dout = torch.stack([sample_by_layer[layer_idx]["v_dout"].float() for layer_idx in target_layers])
+            target = y0 - LOCOM_TARGET_GAMMA * dout
+        elif surface == "o":
+            x = torch.stack([sample_by_layer[layer_idx]["o_x"].float() for layer_idx in target_layers])
+            y0 = torch.stack([sample_by_layer[layer_idx]["o_y"].float() for layer_idx in target_layers])
+            dout = torch.stack([sample_by_layer[layer_idx]["o_dout"].float() for layer_idx in target_layers])
+            target = y0 - LOCOM_TARGET_GAMMA * dout
+        else:
+            raise ValueError(f"unknown LocoProp surface {surface!r}")
 
         modules = [locom_module(model, surface, layer_idx) for layer_idx in target_layers]
         W0 = torch.stack([module.weight.detach().float() for module in modules])
@@ -783,6 +873,10 @@ for _ in range(num_trials):
     muon_params = optimizer2.param_groups[0]["params"]
     locom_weight_to_target = {}
     for layer_idx, block in enumerate(model.blocks):
+        if "v" in LOCOM_SURFACES:
+            locom_weight_to_target[id(block.attn.v.weight)] = ("v", layer_idx)
+        if "o" in LOCOM_SURFACES:
+            locom_weight_to_target[id(block.attn.proj.weight)] = ("o", layer_idx)
         if "fc" in LOCOM_SURFACES:
             locom_weight_to_target[id(block.mlp.fc.weight)] = ("fc", layer_idx)
         if "proj" in LOCOM_SURFACES:
