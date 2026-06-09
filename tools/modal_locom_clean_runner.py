@@ -12,6 +12,7 @@ APP_NAME = "track3-locom-clean-cmatrix-20260609"
 REMOTE_ROOT = Path("/root/modded-nanogpt-locom-clean")
 CACHE_MOUNT = Path("/root/.cache")
 DATA_MOUNT = REMOTE_ROOT / "data" / "fineweb10B"
+RESULTS_MOUNT = Path("/root/track3_locom_clean_results")
 TRAIN_SCRIPT = (
     "records/track_3_optimization/results/20260608_locom_clean/"
     "train_gpt_simple_locom_clean.py"
@@ -37,6 +38,7 @@ def _ignore_source(path: Path) -> bool:
 
 cache_volume = modal.Volume.from_name("nanogpt-speedrun-cache", create_if_missing=True)
 data_volume = modal.Volume.from_name("nanogpt-speedrun-fineweb10b", create_if_missing=True)
+results_volume = modal.Volume.from_name("track3-locom-clean-results", create_if_missing=True)
 
 image = (
     modal.Image.from_registry("nvidia/cuda:12.8.0-devel-ubuntu22.04", add_python="3.10")
@@ -204,9 +206,17 @@ def _ensure_data(data_chunks: int = 2) -> dict[str, object]:
     timeout=RUN_TIMEOUT,
     startup_timeout=1800,
     scaledown_window=60,
-    volumes={str(CACHE_MOUNT): cache_volume, str(DATA_MOUNT): data_volume},
+    volumes={
+        str(CACHE_MOUNT): cache_volume,
+        str(DATA_MOUNT): data_volume,
+        str(RESULTS_MOUNT): results_volume,
+    },
 )
-def run_queue(rows: list[dict[str, object]], data_chunks: int = 2) -> dict[str, object]:
+def run_queue(rows: list[dict[str, object]], data_chunks: int = 2, run_label: str = "") -> dict[str, object]:
+    RESULTS_MOUNT.mkdir(parents=True, exist_ok=True)
+    label = run_label or f"queue-{int(time.time())}"
+    result_jsonl = RESULTS_MOUNT / f"{label}.jsonl"
+    result_json = RESULTS_MOUNT / f"{label}.json"
     prep = _ensure_data(data_chunks)
     if prep["returncode"] != 0:
         return {"gpu": DEFAULT_GPU, "prepare": prep, "runs": []}
@@ -240,17 +250,26 @@ def run_queue(rows: list[dict[str, object]], data_chunks: int = 2) -> dict[str, 
                 "tail": output[-4000:],
             }
         )
+        with result_jsonl.open("a") as f:
+            print(json.dumps(results[-1], sort_keys=True), file=f)
+        results_volume.commit()
         cache_volume.commit()
         if rc != 0:
             break
-    return {
+    result = {
         "gpu": DEFAULT_GPU,
         "gpu_probe": {"returncode": gpu_rc, "output": gpu_output.strip()},
         "prepare": prep,
         "runs": results,
         "cache_volume": "nanogpt-speedrun-cache",
         "data_volume": "nanogpt-speedrun-fineweb10b",
+        "results_volume": "track3-locom-clean-results",
+        "result_jsonl": str(result_jsonl),
+        "result_json": str(result_json),
     }
+    result_json.write_text(json.dumps(result, indent=2, sort_keys=True))
+    results_volume.commit()
+    return result
 
 
 def _loads_rows(rows_json: str, preset: str) -> list[dict[str, object]]:
@@ -265,22 +284,24 @@ def _loads_rows(rows_json: str, preset: str) -> list[dict[str, object]]:
 
 
 @app.local_entrypoint()
-def queue(rows_json: str = "", preset: str = "c", data_chunks: int = 2) -> None:
+def queue(rows_json: str = "", preset: str = "c", data_chunks: int = 2, run_label: str = "") -> None:
     rows = _loads_rows(rows_json, preset)
-    result = run_queue.remote(rows, data_chunks)
+    result = run_queue.remote(rows, data_chunks, run_label)
     print(json.dumps(result, indent=2, sort_keys=True))
 
 
 @app.local_entrypoint()
-def queue_spawn(rows_json: str = "", preset: str = "c", data_chunks: int = 2) -> None:
+def queue_spawn(rows_json: str = "", preset: str = "c", data_chunks: int = 2, run_label: str = "") -> None:
     rows = _loads_rows(rows_json, preset)
-    call = run_queue.spawn(rows, data_chunks)
+    call = run_queue.spawn(rows, data_chunks, run_label)
     print(
         json.dumps(
             {
                 "app": APP_NAME,
                 "gpu": DEFAULT_GPU,
                 "rows": [row["id"] for row in rows],
+                "run_label": run_label,
+                "results_volume": "track3-locom-clean-results",
                 "function_call_id": call.object_id,
                 "dashboard_url": call.get_dashboard_url(),
             },
