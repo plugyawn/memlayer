@@ -54,7 +54,7 @@ app = modal.App(
 )
 
 
-DEFAULT_ROWS = [
+C_ROWS = [
     {
         "id": "L500-C0",
         "env": {
@@ -79,6 +79,39 @@ DEFAULT_ROWS = [
         },
     },
 ]
+
+D_ROWS = [
+    {
+        "id": "L500-D0",
+        "env": {
+            "TRACK3_LOCOM_SURFACES": "v",
+            "TRACK3_LOCOM_TARGET_GAMMA": "0.5",
+            "TRACK3_LOCOM_NORM_CAP": "0.20",
+        },
+    },
+    {
+        "id": "L500-D1",
+        "env": {
+            "TRACK3_LOCOM_SURFACES": "o",
+            "TRACK3_LOCOM_TARGET_GAMMA": "0.5",
+            "TRACK3_LOCOM_NORM_CAP": "0.20",
+        },
+    },
+    {
+        "id": "L500-D2",
+        "env": {
+            "TRACK3_LOCOM_SURFACES": "v,o",
+            "TRACK3_LOCOM_TARGET_GAMMA": "0.5",
+            "TRACK3_LOCOM_NORM_CAP": "0.10",
+        },
+    },
+]
+
+ROW_PRESETS = {
+    "c": C_ROWS,
+    "d": D_ROWS,
+    "cd": C_ROWS + D_ROWS,
+}
 
 
 def _run_streamed(cmd: list[str], env: dict[str, str] | None = None) -> tuple[int, str, float]:
@@ -220,9 +253,11 @@ def run_queue(rows: list[dict[str, object]], data_chunks: int = 2) -> dict[str, 
     }
 
 
-def _loads_rows(rows_json: str) -> list[dict[str, object]]:
+def _loads_rows(rows_json: str, preset: str) -> list[dict[str, object]]:
     if not rows_json.strip():
-        return DEFAULT_ROWS
+        if preset not in ROW_PRESETS:
+            raise ValueError(f"unknown preset {preset!r}; expected one of {sorted(ROW_PRESETS)}")
+        return ROW_PRESETS[preset]
     rows = json.loads(rows_json)
     if not isinstance(rows, list):
         raise ValueError("rows_json must decode to a list")
@@ -230,15 +265,15 @@ def _loads_rows(rows_json: str) -> list[dict[str, object]]:
 
 
 @app.local_entrypoint()
-def queue(rows_json: str = "", data_chunks: int = 2) -> None:
-    rows = _loads_rows(rows_json)
+def queue(rows_json: str = "", preset: str = "c", data_chunks: int = 2) -> None:
+    rows = _loads_rows(rows_json, preset)
     result = run_queue.remote(rows, data_chunks)
     print(json.dumps(result, indent=2, sort_keys=True))
 
 
 @app.local_entrypoint()
-def queue_spawn(rows_json: str = "", data_chunks: int = 2) -> None:
-    rows = _loads_rows(rows_json)
+def queue_spawn(rows_json: str = "", preset: str = "c", data_chunks: int = 2) -> None:
+    rows = _loads_rows(rows_json, preset)
     call = run_queue.spawn(rows, data_chunks)
     print(
         json.dumps(
