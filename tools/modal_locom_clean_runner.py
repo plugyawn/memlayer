@@ -197,6 +197,103 @@ def _parse_training_rows(output: str) -> list[dict[str, object]]:
     return rows
 
 
+def _to_float(value: str) -> float | None:
+    try:
+        return float(value)
+    except ValueError:
+        return None
+
+
+def _parse_locom_layer_chunk(chunk: str) -> dict[str, object] | None:
+    name, sep, rest = chunk.strip().partition(":")
+    if not sep:
+        return None
+    match = re.fullmatch(r"([A-Za-z_]+)l(\d+)", name)
+    if not match:
+        return None
+    layer = {
+        "surface": match.group(1),
+        "layer": int(match.group(2)),
+    }
+    for key, value in re.findall(r"([A-Za-z_][A-Za-z0-9_]*)=([^,|]+)", rest):
+        value = value.strip()
+        if key in {"accepted", "skipped"}:
+            layer[key] = int(value)
+        elif key == "mom":
+            mode, _, beta = value.partition(":")
+            layer["momentum_mode"] = mode
+            parsed_beta = _to_float(beta)
+            if parsed_beta is not None:
+                layer["momentum_beta"] = parsed_beta
+        else:
+            parsed = _to_float(value)
+            layer[key] = parsed if parsed is not None else value
+    return layer
+
+
+def _summarize_prepare_layers(layers: list[dict[str, object]]) -> dict[str, object]:
+    cosines = [x["cos_desc"] for x in layers if isinstance(x.get("cos_desc"), float)]
+    loss_pairs = [
+        (x["loss0"], x["lossK"])
+        for x in layers
+        if isinstance(x.get("loss0"), float) and isinstance(x.get("lossK"), float)
+    ]
+    corr_norms = [x["corr_norm"] for x in layers if isinstance(x.get("corr_norm"), float)]
+    return {
+        "layers": len(layers),
+        "accepted": sum(int(x.get("accepted", 0)) for x in layers),
+        "negative_cos": sum(1 for x in cosines if x < 0),
+        "mean_cos_desc": round(sum(cosines) / len(cosines), 6) if cosines else None,
+        "min_cos_desc": min(cosines) if cosines else None,
+        "max_corr_norm": max(corr_norms) if corr_norms else None,
+        "loss_decreased": sum(1 for loss0, loss_k in loss_pairs if loss_k <= loss0),
+        "max_loss_ratio": max((loss_k / max(loss0, 1e-30) for loss0, loss_k in loss_pairs), default=None),
+    }
+
+
+def _summarize_apply_layers(layers: list[dict[str, object]]) -> dict[str, object]:
+    scales = [x["scale"] for x in layers if isinstance(x.get("scale"), float)]
+    ratios = [
+        x["corr_norm"] / max(x["base_step"], 1e-30)
+        for x in layers
+        if isinstance(x.get("corr_norm"), float) and isinstance(x.get("base_step"), float)
+    ]
+    return {
+        "layers": len(layers),
+        "skipped": sum(int(x.get("skipped", 0)) for x in layers),
+        "mean_scale": round(sum(scales) / len(scales), 12) if scales else None,
+        "min_scale": min(scales) if scales else None,
+        "max_scale": max(scales) if scales else None,
+        "max_corr_to_base": max(ratios) if ratios else None,
+    }
+
+
+def _parse_locom_diagnostics(output: str) -> dict[str, object]:
+    diagnostics: dict[str, list[dict[str, object]]] = {"prepare": [], "apply": []}
+    for line in output.splitlines():
+        for kind in ("prepare", "apply"):
+            prefix = f"locoprop_m_{kind} step="
+            if not line.startswith(prefix):
+                continue
+            step_text, _, rest = line[len(prefix) :].partition(" ")
+            try:
+                step = int(step_text)
+            except ValueError:
+                continue
+            layers = [
+                parsed
+                for chunk in rest.split(" | ")
+                if (parsed := _parse_locom_layer_chunk(chunk)) is not None
+            ]
+            summary = (
+                _summarize_prepare_layers(layers)
+                if kind == "prepare"
+                else _summarize_apply_layers(layers)
+            )
+            diagnostics[kind].append({"step": step, "summary": summary, "layers": layers})
+    return diagnostics
+
+
 def _base_env() -> dict[str, str]:
     return {
         "CUDA_HOME": "/usr/local/cuda",
@@ -268,6 +365,7 @@ def run_queue(rows: list[dict[str, object]], data_chunks: int = 2, run_label: st
             env=run_env,
         )
         parsed_rows = _parse_training_rows(output)
+        locom_diagnostics = _parse_locom_diagnostics(output)
         results.append(
             {
                 "id": row_id,
@@ -276,6 +374,7 @@ def run_queue(rows: list[dict[str, object]], data_chunks: int = 2, run_label: st
                 "wall_time_s": round(elapsed, 3),
                 "gates": parsed_rows,
                 "final": parsed_rows[-1] if parsed_rows else {},
+                "locoprop_diagnostics": locom_diagnostics,
                 "tail": output[-4000:],
             }
         )
