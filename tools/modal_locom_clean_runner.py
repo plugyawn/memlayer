@@ -109,10 +109,39 @@ D_ROWS = [
     },
 ]
 
+E_ROWS = [
+    {
+        "id": "L500-E0",
+        "env": {
+            "TRACK3_LOCOM_SURFACES": "q",
+            "TRACK3_LOCOM_TARGET_GAMMA": "0.25",
+            "TRACK3_LOCOM_NORM_CAP": "0.10",
+        },
+    },
+    {
+        "id": "L500-E1",
+        "env": {
+            "TRACK3_LOCOM_SURFACES": "k",
+            "TRACK3_LOCOM_TARGET_GAMMA": "0.25",
+            "TRACK3_LOCOM_NORM_CAP": "0.10",
+        },
+    },
+    {
+        "id": "L500-E2",
+        "env": {
+            "TRACK3_LOCOM_SURFACES": "q,k",
+            "TRACK3_LOCOM_TARGET_GAMMA": "0.25",
+            "TRACK3_LOCOM_NORM_CAP": "0.05",
+        },
+    },
+]
+
 ROW_PRESETS = {
     "c": C_ROWS,
     "d": D_ROWS,
+    "e": E_ROWS,
     "cd": C_ROWS + D_ROWS,
+    "cde": C_ROWS + D_ROWS + E_ROWS,
 }
 
 
