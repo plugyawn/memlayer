@@ -301,6 +301,50 @@ def run_queue(rows: list[dict[str, object]], data_chunks: int = 2, run_label: st
     return result
 
 
+@app.function(
+    cpu=1,
+    memory=1024,
+    timeout=300,
+    volumes={str(RESULTS_MOUNT): results_volume},
+)
+def list_result_files(pattern: str = "*.json*") -> list[dict[str, object]]:
+    RESULTS_MOUNT.mkdir(parents=True, exist_ok=True)
+    files = []
+    for path in sorted(RESULTS_MOUNT.glob(pattern)):
+        if not path.is_file():
+            continue
+        stat = path.stat()
+        files.append({
+            "name": path.name,
+            "path": str(path),
+            "size_bytes": stat.st_size,
+            "mtime": stat.st_mtime,
+        })
+    return files
+
+
+@app.function(
+    cpu=1,
+    memory=1024,
+    timeout=300,
+    volumes={str(RESULTS_MOUNT): results_volume},
+)
+def read_result_file(name: str, max_chars: int = 20000) -> dict[str, object]:
+    safe_name = Path(name).name
+    path = RESULTS_MOUNT / safe_name
+    if not path.is_file():
+        return {"found": False, "name": safe_name, "path": str(path)}
+    text = path.read_text(errors="replace")
+    return {
+        "found": True,
+        "name": safe_name,
+        "path": str(path),
+        "size_chars": len(text),
+        "truncated": len(text) > max_chars,
+        "text": text[:max_chars],
+    }
+
+
 def _loads_rows(rows_json: str, preset: str) -> list[dict[str, object]]:
     if not rows_json.strip():
         if preset not in ROW_PRESETS:
@@ -338,3 +382,13 @@ def queue_spawn(rows_json: str = "", preset: str = "c", data_chunks: int = 2, ru
             sort_keys=True,
         )
     )
+
+
+@app.local_entrypoint()
+def list_results(pattern: str = "*.json*") -> None:
+    print(json.dumps(list_result_files.remote(pattern), indent=2, sort_keys=True))
+
+
+@app.local_entrypoint()
+def show_result(name: str, max_chars: int = 20000) -> None:
+    print(json.dumps(read_result_file.remote(name, max_chars), indent=2, sort_keys=True))
