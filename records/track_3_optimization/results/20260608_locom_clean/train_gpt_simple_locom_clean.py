@@ -41,6 +41,38 @@ def parse_step_set(spec: str) -> frozenset[int]:
         return frozenset()
     return frozenset(int(part) for part in spec.split(",") if part.strip())
 
+def parse_linear_windows(spec: str) -> tuple[tuple[int, int, float, float], ...]:
+    """Parse comma-separated start:end:value0:value1 windows."""
+    windows: list[tuple[int, int, float, float]] = []
+    if not spec:
+        return tuple()
+    for raw_part in spec.split(","):
+        part = raw_part.strip()
+        if not part:
+            continue
+        pieces = part.split(":")
+        if len(pieces) != 4:
+            raise ValueError(
+                f"expected start:end:value0:value1 window in {spec!r}, got {part!r}"
+            )
+        start, end = int(pieces[0]), int(pieces[1])
+        if end <= start:
+            raise ValueError(f"window end must exceed start in {part!r}")
+        windows.append((start, end, float(pieces[2]), float(pieces[3])))
+    return tuple(windows)
+
+def scheduled_value(
+    step: int,
+    default: float,
+    windows: tuple[tuple[int, int, float, float], ...],
+) -> float:
+    value = default
+    for start, end, value0, value1 in windows:
+        if start <= step <= end:
+            t = (step - start) / (end - start)
+            value = value0 + t * (value1 - value0)
+    return value
+
 LOCOM_ENABLED = env_bool("TRACK3_LOCOM_ENABLED", True)
 LOCOM_MODE = os.environ.get("TRACK3_LOCOM_MODE", "matching").lower()  # matching or squared
 LOCOM_SAMPLE_TOKENS = env_int("TRACK3_LOCOM_SAMPLE_TOKENS", 1024)
@@ -51,6 +83,8 @@ LOCOM_TARGET_GAMMA = env_float("TRACK3_LOCOM_TARGET_GAMMA", 1.0)
 LOCOM_PROX = env_float("TRACK3_LOCOM_PROX", 0.10)
 LOCOM_ALPHA = env_float("TRACK3_LOCOM_ALPHA", 1.0)
 LOCOM_NORM_CAP = env_float("TRACK3_LOCOM_NORM_CAP", 0.20)
+LOCOM_NORM_CAP_WINDOWS_SPEC = os.environ.get("TRACK3_LOCOM_NORM_CAP_WINDOWS", "")
+LOCOM_NORM_CAP_WINDOWS = parse_linear_windows(LOCOM_NORM_CAP_WINDOWS_SPEC)
 LOCOM_BIAS = env_bool("TRACK3_LOCOM_BIAS", True)
 LOCOM_DIRECT_APPLY = env_bool("TRACK3_LOCOM_DIRECT_APPLY", True)
 LOCOM_SOURCE = os.environ.get("TRACK3_LOCOM_SOURCE", "grad").lower()
@@ -91,6 +125,8 @@ TRACK3_TRAIN_STEPS = env_int("TRACK3_TRAIN_STEPS", 3350)
 TRACK3_SCHEDULE_STEPS = env_int("TRACK3_SCHEDULE_STEPS", TRACK3_TRAIN_STEPS)
 TRACK3_STOP_STEP = env_int("TRACK3_STOP_STEP", TRACK3_TRAIN_STEPS)
 TRACK3_COOLDOWN_FRAC = env_float("TRACK3_COOLDOWN_FRAC", 0.7)
+TRACK3_LR_MULT_WINDOWS_SPEC = os.environ.get("TRACK3_LR_MULT_WINDOWS", "")
+TRACK3_LR_MULT_WINDOWS = parse_linear_windows(TRACK3_LR_MULT_WINDOWS_SPEC)
 TRACK3_ABORT_ON_NONFINITE_VAL = env_bool("TRACK3_ABORT_ON_NONFINITE_VAL", True)
 TRACK3_SEED = env_int("TRACK3_SEED", 0)
 TRACK3_DEBUG_FINITE = env_bool("TRACK3_DEBUG_FINITE", False)
@@ -103,6 +139,12 @@ TRACK3_CHECKPOINT_DIR = os.environ.get("TRACK3_CHECKPOINT_DIR", "checkpoints/tra
 TRACK3_CHECKPOINT_PREFIX = os.environ.get("TRACK3_CHECKPOINT_PREFIX", "track3_locom")
 TRACK3_RESUME_CHECKPOINT = os.environ.get("TRACK3_RESUME_CHECKPOINT", "")
 LOCOM_APPLY_STATS: list[str] = []
+
+def locom_norm_cap_for_step(step: int) -> float:
+    return scheduled_value(step, LOCOM_NORM_CAP, LOCOM_NORM_CAP_WINDOWS)
+
+def track3_lr_multiplier_for_step(step: int) -> float:
+    return scheduled_value(step, 1.0, TRACK3_LR_MULT_WINDOWS)
 
 
 ########################################
@@ -961,6 +1003,7 @@ def prepare_locom_mlp_corrections(
 
         raw_corr_stack = corr_stack
         raw_bias_corr_stack = bias_corr_stack
+        norm_cap = locom_norm_cap_for_step(step)
         dual_state_candidates = [None] * len(target_layers)
         dual_decode_scales = [1.0] * len(target_layers)
         dual_pre_norms = [0.0] * len(target_layers)
@@ -1006,7 +1049,7 @@ def prepare_locom_mlp_corrections(
                     decoded_aug = locom_soft_polar_weight(decoded_aug)
                     decoded_joint_norm = decoded_aug.norm().clamp_min(1e-12)
                 dual_pre_norms[pos] = float(decoded_joint_norm)
-                dual_bound = base_step_norms[pos].mul(LOCOM_NORM_CAP)
+                dual_bound = base_step_norms[pos].mul(norm_cap)
                 dual_scale = min(1.0, float(dual_bound / decoded_joint_norm)) if float(dual_bound) > 0 else 0.0
                 dual_decode_scales[pos] = dual_scale
                 if dual_scale < 1.0:
@@ -1122,8 +1165,9 @@ def apply_locom_correction_(p: nn.Parameter, update: Tensor, lr: float):
         bias_corr_norm = bias_corr_f.norm()
     joint_corr_norm = (corr_norm.square() + bias_corr_norm.square()).sqrt().clamp_min(1e-12)
     scale = torch.tensor(LOCOM_ALPHA, device=corr.device, dtype=torch.float32)
-    if LOCOM_NORM_CAP > 0:
-        scale = torch.minimum(scale, LOCOM_NORM_CAP * base_step_norm / joint_corr_norm)
+    norm_cap = locom_norm_cap_for_step(step)
+    if norm_cap > 0:
+        scale = torch.minimum(scale, norm_cap * base_step_norm / joint_corr_norm)
 
     skipped = 0
     sidecar_scale = 0.0
@@ -1166,7 +1210,7 @@ def apply_locom_correction_(p: nn.Parameter, update: Tensor, lr: float):
             f"{surface}l{layer}:base_step={float(base_step_norm):.3e}"
             f",corr_norm={float(joint_corr_norm):.3e}"
             f",bias_corr_norm={float(bias_corr_norm):.3e}"
-            f",cap={LOCOM_NORM_CAP:.3f}"
+            f",cap={norm_cap:.3f}"
             f",mom={momentum_mode}:{LOCOM_MOMENTUM_BETA:.2f}"
             f",polar_p={LOCOM_SOFT_POLAR_POWER:.2f}"
             f",source={locom_source_mode()}"
@@ -1348,6 +1392,7 @@ for _ in range(num_trials):
         f" inner_opt={LOCOM_INNER_OPT} inner_lr={LOCOM_INNER_LR}"
         f" prox={LOCOM_PROX} gamma={LOCOM_TARGET_GAMMA}"
         f" alpha={LOCOM_ALPHA} norm_cap={LOCOM_NORM_CAP} bias={LOCOM_BIAS}"
+        f" norm_cap_windows={LOCOM_NORM_CAP_WINDOWS_SPEC or 'none'}"
         f" direct_apply={LOCOM_DIRECT_APPLY}"
         f" source={locom_source_mode()}"
         f" source_damping={LOCOM_SOURCE_DAMPING}"
@@ -1376,6 +1421,7 @@ for _ in range(num_trials):
     print0(
         f"Track3 run_control train_steps={train_steps} schedule_steps={schedule_steps}"
         f" stop_step={stop_step} cooldown_frac={TRACK3_COOLDOWN_FRAC}"
+        f" lr_mult_windows={TRACK3_LR_MULT_WINDOWS_SPEC or 'none'}"
         f" checkpoint_steps={sorted(TRACK3_CHECKPOINT_STEPS)}"
         f" checkpoint_dir={TRACK3_CHECKPOINT_DIR}"
         f" checkpoint_prefix={TRACK3_CHECKPOINT_PREFIX}",
@@ -1390,8 +1436,11 @@ for _ in range(num_trials):
             return 1.0
         return (1 - progress) / cooldown_frac
 
+    def lr_effective_scale_for_step(step, cooldown_frac=TRACK3_COOLDOWN_FRAC):
+        return lr_scale_for_step(step, cooldown_frac) * track3_lr_multiplier_for_step(step)
+
     def set_hparams(step, cooldown_frac=TRACK3_COOLDOWN_FRAC):
-        eta = lr_scale_for_step(step, cooldown_frac)
+        eta = lr_effective_scale_for_step(step, cooldown_frac)
         for opt in optimizers:
             for group in opt.param_groups:
                 group["lr"] = group["initial_lr"] * eta
@@ -1414,6 +1463,7 @@ for _ in range(num_trials):
             "train_steps": train_steps,
             "schedule_steps": schedule_steps,
             "cooldown_frac": TRACK3_COOLDOWN_FRAC,
+            "lr_mult_windows": TRACK3_LR_MULT_WINDOWS_SPEC,
             "locoprop": {
                 "enabled": LOCOM_ENABLED,
                 "mode": LOCOM_MODE,
@@ -1428,6 +1478,7 @@ for _ in range(num_trials):
                 "gamma": LOCOM_TARGET_GAMMA,
                 "alpha": LOCOM_ALPHA,
                 "norm_cap": LOCOM_NORM_CAP,
+                "norm_cap_windows": LOCOM_NORM_CAP_WINDOWS_SPEC,
                 "bias": LOCOM_BIAS,
                 "direct_apply": LOCOM_DIRECT_APPLY,
             },
@@ -1522,7 +1573,7 @@ for _ in range(num_trials):
             break
         base_update_by_param: dict[int, tuple[Tensor, ...]] = {}
         if locom_active(step) and owned_locom_targets:
-            eta = lr_scale_for_step(step)
+            eta = lr_effective_scale_for_step(step)
             params = optimizer2.param_groups[0]["params"]
             world_size = dist.get_world_size()
             rank = dist.get_rank()

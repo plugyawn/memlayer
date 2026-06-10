@@ -1,0 +1,39 @@
+[
+  {
+    "id": "SM2000-lr115-warmtail",
+    "env": {
+      "TRACK3_RESUME_CHECKPOINT": "/home/ubuntu/track3_locom1600_checkpoints/prime_a100sxm_locom_muonupdate_suffix_seed0_seed0_step2000.pt",
+      "TRACK3_LR_MULT_WINDOWS": "2000:2400:1.15:1.12,2400:3000:1.12:1.00",
+      "TRACK3_LOCOM_SURFACES": "fc",
+      "TRACK3_LOCOM_TARGET_GAMMA": "0.5",
+      "TRACK3_LOCOM_NORM_CAP": "0.20",
+      "TRACK3_LOCOM_BIAS": "0",
+      "TRACK3_LOCOM_SOURCE": "muon_update"
+    }
+  },
+  {
+    "id": "SM1600-lr112-slowmerge",
+    "env": {
+      "TRACK3_RESUME_CHECKPOINT": "/home/ubuntu/track3_locom1600_checkpoints/prime_a100sxm_locom_muonupdate1600_seed0_seed0_step1600.pt",
+      "TRACK3_LR_MULT_WINDOWS": "1600:2000:1.00:1.05,2000:2400:1.05:1.12,2400:3000:1.12:1.00",
+      "TRACK3_LOCOM_SURFACES": "fc",
+      "TRACK3_LOCOM_TARGET_GAMMA": "0.5",
+      "TRACK3_LOCOM_NORM_CAP": "0.20",
+      "TRACK3_LOCOM_BIAS": "0",
+      "TRACK3_LOCOM_SOURCE": "muon_update"
+    }
+  },
+  {
+    "id": "SM2000-lr125-capfade",
+    "env": {
+      "TRACK3_RESUME_CHECKPOINT": "/home/ubuntu/track3_locom1600_checkpoints/prime_a100sxm_locom_muonupdate_suffix_seed0_seed0_step2000.pt",
+      "TRACK3_LR_MULT_WINDOWS": "2000:2400:1.25:1.15,2400:3000:1.15:1.00",
+      "TRACK3_LOCOM_NORM_CAP_WINDOWS": "2000:2400:0.20:0.16,2400:3000:0.16:0.08",
+      "TRACK3_LOCOM_SURFACES": "fc",
+      "TRACK3_LOCOM_TARGET_GAMMA": "0.5",
+      "TRACK3_LOCOM_NORM_CAP": "0.20",
+      "TRACK3_LOCOM_BIAS": "0",
+      "TRACK3_LOCOM_SOURCE": "muon_update"
+    }
+  }
+]
