@@ -1534,7 +1534,8 @@ for _ in range(num_trials):
             # stop the clock
             dist.barrier()
             time_since_last_val = time.perf_counter() - t0
-            step_avg = time_since_last_val / (step - last_val_step) if step > 0 else float("nan")
+            elapsed_steps = step - last_val_step
+            step_avg = time_since_last_val / elapsed_steps if elapsed_steps > 0 else float("nan")
             last_val_step = step
             training_time += time_since_last_val
             model.eval()
