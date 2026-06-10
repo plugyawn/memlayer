@@ -10,6 +10,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import math
 import os
 import re
 import subprocess
@@ -104,12 +105,345 @@ E_ROWS = [
     },
 ]
 
+M_ROWS = [
+    {
+        "id": "LM500-00-base",
+        "env": {
+            "TRACK3_LOCOM_ENABLED": "0",
+        },
+    },
+    {
+        "id": "LM500-01-heuristic-cap",
+        "env": {
+            "TRACK3_LOCOM_SURFACES": "fc",
+            "TRACK3_LOCOM_TARGET_GAMMA": "0.5",
+            "TRACK3_LOCOM_NORM_CAP": "0.20",
+        },
+    },
+    {
+        "id": "LM500-01b-heuristic-cap-nobias",
+        "env": {
+            "TRACK3_LOCOM_SURFACES": "fc",
+            "TRACK3_LOCOM_TARGET_GAMMA": "0.5",
+            "TRACK3_LOCOM_NORM_CAP": "0.20",
+            "TRACK3_LOCOM_BIAS": "0",
+        },
+    },
+    {
+        "id": "LM500-02-heuristic-tight-trust",
+        "env": {
+            "TRACK3_LOCOM_SURFACES": "fc",
+            "TRACK3_LOCOM_TARGET_GAMMA": "0.5",
+            "TRACK3_LOCOM_NORM_CAP": "0.20",
+            "TRACK3_LOCOM_TRUST_REGION": "1",
+            "TRACK3_LOCOM_TRUST_CAP": "0.20",
+            "TRACK3_LOCOM_INNER_LR": "0.02",
+            "TRACK3_LOCOM_TRUST_MAX_TRIES": "8",
+            "TRACK3_LOCOM_TRUST_PROX_MULT": "8.0",
+            "TRACK3_LOCOM_TRUST_INNER_LR_DECAY": "0.25",
+        },
+    },
+    {
+        "id": "LM500-03-truepost-cap",
+        "env": {
+            "TRACK3_LOCOM_SURFACES": "fc",
+            "TRACK3_LOCOM_TRUE_RELU2_GRAD": "1",
+            "TRACK3_LOCOM_TARGET_GAMMA": "0.5",
+            "TRACK3_LOCOM_NORM_CAP": "0.20",
+        },
+    },
+    {
+        "id": "LM500-04-truepost-tight-trust",
+        "env": {
+            "TRACK3_LOCOM_SURFACES": "fc",
+            "TRACK3_LOCOM_TRUE_RELU2_GRAD": "1",
+            "TRACK3_LOCOM_TARGET_GAMMA": "0.5",
+            "TRACK3_LOCOM_NORM_CAP": "0.20",
+            "TRACK3_LOCOM_TRUST_REGION": "1",
+            "TRACK3_LOCOM_TRUST_CAP": "0.20",
+            "TRACK3_LOCOM_INNER_LR": "0.02",
+            "TRACK3_LOCOM_TRUST_MAX_TRIES": "8",
+            "TRACK3_LOCOM_TRUST_PROX_MULT": "8.0",
+            "TRACK3_LOCOM_TRUST_INNER_LR_DECAY": "0.25",
+        },
+    },
+    {
+        "id": "LM500-04b-truepost-tight-lossdec",
+        "env": {
+            "TRACK3_LOCOM_SURFACES": "fc",
+            "TRACK3_LOCOM_TRUE_RELU2_GRAD": "1",
+            "TRACK3_LOCOM_TARGET_GAMMA": "0.5",
+            "TRACK3_LOCOM_NORM_CAP": "0.20",
+            "TRACK3_LOCOM_TRUST_REGION": "1",
+            "TRACK3_LOCOM_TRUST_CAP": "0.20",
+            "TRACK3_LOCOM_INNER_LR": "0.02",
+            "TRACK3_LOCOM_TRUST_MAX_TRIES": "8",
+            "TRACK3_LOCOM_TRUST_PROX_MULT": "8.0",
+            "TRACK3_LOCOM_TRUST_INNER_LR_DECAY": "0.25",
+            "TRACK3_LOCOM_REQUIRE_LOSS_DECREASE": "1",
+        },
+    },
+    {
+        "id": "LM500-05-heuristic-dual-b090-cap020-p0",
+        "env": {
+            "TRACK3_LOCOM_SURFACES": "fc",
+            "TRACK3_LOCOM_TARGET_GAMMA": "0.5",
+            "TRACK3_LOCOM_NORM_CAP": "0.20",
+            "TRACK3_LOCOM_MOMENTUM_MODE": "dual_residual",
+            "TRACK3_LOCOM_MOMENTUM_BETA": "0.90",
+            "TRACK3_LOCOM_METRIC_BETA": "0.95",
+            "TRACK3_LOCOM_SOFT_POLAR_POWER": "0.0",
+        },
+    },
+    {
+        "id": "LM500-05b-heuristic-nobias-dual-b090-cap020-p0",
+        "env": {
+            "TRACK3_LOCOM_SURFACES": "fc",
+            "TRACK3_LOCOM_TARGET_GAMMA": "0.5",
+            "TRACK3_LOCOM_NORM_CAP": "0.20",
+            "TRACK3_LOCOM_BIAS": "0",
+            "TRACK3_LOCOM_MOMENTUM_MODE": "dual_residual",
+            "TRACK3_LOCOM_MOMENTUM_BETA": "0.90",
+            "TRACK3_LOCOM_METRIC_BETA": "0.95",
+            "TRACK3_LOCOM_SOFT_POLAR_POWER": "0.0",
+        },
+    },
+    {
+        "id": "LM500-06-heuristic-tight-dual-b090-cap020-p0",
+        "env": {
+            "TRACK3_LOCOM_SURFACES": "fc",
+            "TRACK3_LOCOM_TARGET_GAMMA": "0.5",
+            "TRACK3_LOCOM_NORM_CAP": "0.20",
+            "TRACK3_LOCOM_TRUST_REGION": "1",
+            "TRACK3_LOCOM_TRUST_CAP": "0.20",
+            "TRACK3_LOCOM_INNER_LR": "0.02",
+            "TRACK3_LOCOM_TRUST_MAX_TRIES": "8",
+            "TRACK3_LOCOM_TRUST_PROX_MULT": "8.0",
+            "TRACK3_LOCOM_TRUST_INNER_LR_DECAY": "0.25",
+            "TRACK3_LOCOM_MOMENTUM_MODE": "dual_residual",
+            "TRACK3_LOCOM_MOMENTUM_BETA": "0.90",
+            "TRACK3_LOCOM_METRIC_BETA": "0.95",
+            "TRACK3_LOCOM_SOFT_POLAR_POWER": "0.0",
+        },
+    },
+    {
+        "id": "LM500-07-truepost-dual-b090-cap020-p0",
+        "env": {
+            "TRACK3_LOCOM_SURFACES": "fc",
+            "TRACK3_LOCOM_TRUE_RELU2_GRAD": "1",
+            "TRACK3_LOCOM_TARGET_GAMMA": "0.5",
+            "TRACK3_LOCOM_NORM_CAP": "0.20",
+            "TRACK3_LOCOM_TRUST_REGION": "1",
+            "TRACK3_LOCOM_TRUST_CAP": "0.20",
+            "TRACK3_LOCOM_INNER_LR": "0.02",
+            "TRACK3_LOCOM_TRUST_MAX_TRIES": "8",
+            "TRACK3_LOCOM_TRUST_PROX_MULT": "8.0",
+            "TRACK3_LOCOM_TRUST_INNER_LR_DECAY": "0.25",
+            "TRACK3_LOCOM_MOMENTUM_MODE": "dual_residual",
+            "TRACK3_LOCOM_MOMENTUM_BETA": "0.90",
+            "TRACK3_LOCOM_METRIC_BETA": "0.95",
+            "TRACK3_LOCOM_SOFT_POLAR_POWER": "0.0",
+        },
+    },
+    {
+        "id": "LM500-08-truepost-dual-b095-cap020-p0",
+        "env": {
+            "TRACK3_LOCOM_SURFACES": "fc",
+            "TRACK3_LOCOM_TRUE_RELU2_GRAD": "1",
+            "TRACK3_LOCOM_TARGET_GAMMA": "0.5",
+            "TRACK3_LOCOM_NORM_CAP": "0.20",
+            "TRACK3_LOCOM_TRUST_REGION": "1",
+            "TRACK3_LOCOM_TRUST_CAP": "0.20",
+            "TRACK3_LOCOM_INNER_LR": "0.02",
+            "TRACK3_LOCOM_TRUST_MAX_TRIES": "8",
+            "TRACK3_LOCOM_TRUST_PROX_MULT": "8.0",
+            "TRACK3_LOCOM_TRUST_INNER_LR_DECAY": "0.25",
+            "TRACK3_LOCOM_MOMENTUM_MODE": "dual_residual",
+            "TRACK3_LOCOM_MOMENTUM_BETA": "0.95",
+            "TRACK3_LOCOM_METRIC_BETA": "0.95",
+            "TRACK3_LOCOM_SOFT_POLAR_POWER": "0.0",
+        },
+    },
+    {
+        "id": "LM500-09-truepost-dual-b095-cap020-p025",
+        "env": {
+            "TRACK3_LOCOM_SURFACES": "fc",
+            "TRACK3_LOCOM_TRUE_RELU2_GRAD": "1",
+            "TRACK3_LOCOM_TARGET_GAMMA": "0.5",
+            "TRACK3_LOCOM_NORM_CAP": "0.20",
+            "TRACK3_LOCOM_TRUST_REGION": "1",
+            "TRACK3_LOCOM_TRUST_CAP": "0.20",
+            "TRACK3_LOCOM_INNER_LR": "0.02",
+            "TRACK3_LOCOM_TRUST_MAX_TRIES": "8",
+            "TRACK3_LOCOM_TRUST_PROX_MULT": "8.0",
+            "TRACK3_LOCOM_TRUST_INNER_LR_DECAY": "0.25",
+            "TRACK3_LOCOM_MOMENTUM_MODE": "dual_residual",
+            "TRACK3_LOCOM_MOMENTUM_BETA": "0.95",
+            "TRACK3_LOCOM_METRIC_BETA": "0.95",
+            "TRACK3_LOCOM_SOFT_POLAR_POWER": "0.25",
+        },
+    },
+]
+
+MS_ROWS = [
+    {
+        "id": "LM500-00-base",
+        "env": {
+            "TRACK3_LOCOM_ENABLED": "0",
+        },
+    },
+    {
+        "id": "LM500-01b-heuristic-cap-nobias",
+        "env": {
+            "TRACK3_LOCOM_SURFACES": "fc",
+            "TRACK3_LOCOM_TARGET_GAMMA": "0.5",
+            "TRACK3_LOCOM_NORM_CAP": "0.20",
+            "TRACK3_LOCOM_BIAS": "0",
+        },
+    },
+    {
+        "id": "LM500-10-nobias-muonoperand",
+        "env": {
+            "TRACK3_LOCOM_SURFACES": "fc",
+            "TRACK3_LOCOM_TARGET_GAMMA": "0.5",
+            "TRACK3_LOCOM_NORM_CAP": "0.20",
+            "TRACK3_LOCOM_BIAS": "0",
+            "TRACK3_LOCOM_SOURCE": "muon_operand",
+        },
+    },
+    {
+        "id": "LM500-11-nobias-sidecaronly-eps005",
+        "env": {
+            "TRACK3_LOCOM_SURFACES": "fc",
+            "TRACK3_LOCOM_TARGET_GAMMA": "0.5",
+            "TRACK3_LOCOM_NORM_CAP": "0.20",
+            "TRACK3_LOCOM_BIAS": "0",
+            "TRACK3_LOCOM_DIRECT_APPLY": "0",
+            "TRACK3_LOCOM_MUON_SIDECAR_EPS": "0.05",
+            "TRACK3_LOCOM_MUON_SIDECAR_BETA": "0.90",
+            "TRACK3_LOCOM_MUON_SIDECAR_RESIDUALIZE": "1",
+        },
+    },
+    {
+        "id": "LM500-12-nobias-direct-sidecar-eps005",
+        "env": {
+            "TRACK3_LOCOM_SURFACES": "fc",
+            "TRACK3_LOCOM_TARGET_GAMMA": "0.5",
+            "TRACK3_LOCOM_NORM_CAP": "0.20",
+            "TRACK3_LOCOM_BIAS": "0",
+            "TRACK3_LOCOM_MUON_SIDECAR_EPS": "0.05",
+            "TRACK3_LOCOM_MUON_SIDECAR_BETA": "0.90",
+            "TRACK3_LOCOM_MUON_SIDECAR_RESIDUALIZE": "1",
+        },
+    },
+    {
+        "id": "LM500-13-nobias-muonoperand-sidecar-eps005",
+        "env": {
+            "TRACK3_LOCOM_SURFACES": "fc",
+            "TRACK3_LOCOM_TARGET_GAMMA": "0.5",
+            "TRACK3_LOCOM_NORM_CAP": "0.20",
+            "TRACK3_LOCOM_BIAS": "0",
+            "TRACK3_LOCOM_SOURCE": "muon_operand",
+            "TRACK3_LOCOM_MUON_SIDECAR_EPS": "0.05",
+            "TRACK3_LOCOM_MUON_SIDECAR_BETA": "0.90",
+            "TRACK3_LOCOM_MUON_SIDECAR_RESIDUALIZE": "1",
+        },
+    },
+    {
+        "id": "LM500-14-nobias-muonoperand-srcdamp1e-2",
+        "env": {
+            "TRACK3_LOCOM_SURFACES": "fc",
+            "TRACK3_LOCOM_TARGET_GAMMA": "0.5",
+            "TRACK3_LOCOM_NORM_CAP": "0.20",
+            "TRACK3_LOCOM_BIAS": "0",
+            "TRACK3_LOCOM_SOURCE": "muon_operand",
+            "TRACK3_LOCOM_SOURCE_DAMPING": "0.01",
+        },
+    },
+    {
+        "id": "LM500-15-nobias-muonupdate-source",
+        "env": {
+            "TRACK3_LOCOM_SURFACES": "fc",
+            "TRACK3_LOCOM_TARGET_GAMMA": "0.5",
+            "TRACK3_LOCOM_NORM_CAP": "0.20",
+            "TRACK3_LOCOM_BIAS": "0",
+            "TRACK3_LOCOM_SOURCE": "muon_update",
+        },
+    },
+    {
+        "id": "LM500-16-nobias-muonoperand-prepareonly",
+        "env": {
+            "TRACK3_LOCOM_SURFACES": "fc",
+            "TRACK3_LOCOM_TARGET_GAMMA": "0.5",
+            "TRACK3_LOCOM_NORM_CAP": "0.20",
+            "TRACK3_LOCOM_BIAS": "0",
+            "TRACK3_LOCOM_SOURCE": "muon_operand",
+            "TRACK3_LOCOM_DIRECT_APPLY": "0",
+            "TRACK3_LOCOM_MUON_SIDECAR_EPS": "0.0",
+        },
+    },
+    {
+        "id": "LM500-17-nobias-muonoperand-dual-b090-p0",
+        "env": {
+            "TRACK3_LOCOM_SURFACES": "fc",
+            "TRACK3_LOCOM_TARGET_GAMMA": "0.5",
+            "TRACK3_LOCOM_NORM_CAP": "0.20",
+            "TRACK3_LOCOM_BIAS": "0",
+            "TRACK3_LOCOM_SOURCE": "muon_operand",
+            "TRACK3_LOCOM_MOMENTUM_MODE": "dual_residual",
+            "TRACK3_LOCOM_MOMENTUM_BETA": "0.90",
+            "TRACK3_LOCOM_METRIC_BETA": "0.95",
+            "TRACK3_LOCOM_SOFT_POLAR_POWER": "0.0",
+        },
+    },
+    {
+        "id": "LM500-18-nobias-muonoperand-dual-b000-p0",
+        "env": {
+            "TRACK3_LOCOM_SURFACES": "fc",
+            "TRACK3_LOCOM_TARGET_GAMMA": "0.5",
+            "TRACK3_LOCOM_NORM_CAP": "0.20",
+            "TRACK3_LOCOM_BIAS": "0",
+            "TRACK3_LOCOM_SOURCE": "muon_operand",
+            "TRACK3_LOCOM_MOMENTUM_MODE": "dual_residual",
+            "TRACK3_LOCOM_MOMENTUM_BETA": "0.0",
+            "TRACK3_LOCOM_METRIC_BETA": "0.0",
+            "TRACK3_LOCOM_SOFT_POLAR_POWER": "0.0",
+        },
+    },
+    {
+        "id": "LM500-19-nobias-muonoperand-truepost-trust-dual-b090-p0",
+        "env": {
+            "TRACK3_LOCOM_SURFACES": "fc",
+            "TRACK3_LOCOM_TRUE_RELU2_GRAD": "1",
+            "TRACK3_LOCOM_TARGET_GAMMA": "0.5",
+            "TRACK3_LOCOM_NORM_CAP": "0.20",
+            "TRACK3_LOCOM_BIAS": "0",
+            "TRACK3_LOCOM_SOURCE": "muon_operand",
+            "TRACK3_LOCOM_TRUST_REGION": "1",
+            "TRACK3_LOCOM_TRUST_CAP": "0.20",
+            "TRACK3_LOCOM_INNER_LR": "0.02",
+            "TRACK3_LOCOM_TRUST_MAX_TRIES": "8",
+            "TRACK3_LOCOM_TRUST_PROX_MULT": "8.0",
+            "TRACK3_LOCOM_TRUST_INNER_LR_DECAY": "0.25",
+            "TRACK3_LOCOM_MOMENTUM_MODE": "dual_residual",
+            "TRACK3_LOCOM_MOMENTUM_BETA": "0.90",
+            "TRACK3_LOCOM_METRIC_BETA": "0.95",
+            "TRACK3_LOCOM_SOFT_POLAR_POWER": "0.0",
+        },
+    },
+]
+
 ROW_PRESETS = {
     "c": C_ROWS,
     "d": D_ROWS,
     "e": E_ROWS,
     "cd": C_ROWS + D_ROWS,
     "cde": C_ROWS + D_ROWS + E_ROWS,
+    "m": M_ROWS,
+    "mp": M_ROWS[:7],
+    "ma": M_ROWS[:7],
+    "mb": M_ROWS[7:],
+    "ms": MS_ROWS,
 }
 
 
@@ -118,6 +452,9 @@ def _to_float(value: str) -> float | None:
         return float(value)
     except ValueError:
         return None
+
+
+FLOAT_RE = r"[-+]?(?:nan|inf|(?:\d+(?:\.\d*)?|\.\d+)(?:[eE][-+]?\d+)?)"
 
 
 def _run_streamed(cmd: list[str], env: dict[str, str] | None = None) -> tuple[int, str, float]:
@@ -140,17 +477,26 @@ def _run_streamed(cmd: list[str], env: dict[str, str] | None = None) -> tuple[in
 
 def _parse_training_rows(output: str) -> list[dict[str, object]]:
     rows = []
+    pattern = re.compile(
+        rf"step:(\d+)/(\d+) val_loss:({FLOAT_RE}) "
+        rf"train_time:({FLOAT_RE})(ms|s) step_avg:({FLOAT_RE})ms",
+        re.IGNORECASE,
+    )
     for match in re.finditer(
-        r"step:(\d+)/(\d+) val_loss:([0-9.]+) train_time:([0-9]+)ms step_avg:([0-9.]+)ms",
+        pattern,
         output,
     ):
+        train_time_value = float(match.group(4))
+        train_time_ms = train_time_value if match.group(5) == "ms" else train_time_value * 1000.0
+        val_loss = float(match.group(3))
         rows.append(
             {
                 "step": int(match.group(1)),
                 "total_steps": int(match.group(2)),
-                "val_loss": float(match.group(3)),
-                "train_time_ms": int(match.group(4)),
-                "step_avg_ms": float(match.group(5)),
+                "val_loss": val_loss,
+                "val_loss_finite": math.isfinite(val_loss),
+                "train_time_ms": round(train_time_ms, 3),
+                "step_avg_ms": float(match.group(6)),
             }
         )
     return rows
@@ -191,6 +537,12 @@ def _summarize_prepare_layers(layers: list[dict[str, object]]) -> dict[str, obje
         if isinstance(x.get("loss0"), float) and isinstance(x.get("lossK"), float)
     ]
     corr_norms = [x["corr_norm"] for x in layers if isinstance(x.get("corr_norm"), float)]
+    trust_ratios = [x["trust_ratio"] for x in layers if isinstance(x.get("trust_ratio"), float)]
+    trust_tries = [
+        x["trust_try"]
+        for x in layers
+        if isinstance(x.get("trust_try"), (float, int))
+    ]
     return {
         "layers": len(layers),
         "accepted": sum(int(x.get("accepted", 0)) for x in layers),
@@ -198,6 +550,8 @@ def _summarize_prepare_layers(layers: list[dict[str, object]]) -> dict[str, obje
         "mean_cos_desc": round(sum(cosines) / len(cosines), 6) if cosines else None,
         "min_cos_desc": min(cosines) if cosines else None,
         "max_corr_norm": max(corr_norms) if corr_norms else None,
+        "max_trust_ratio": max(trust_ratios) if trust_ratios else None,
+        "max_trust_try": max(trust_tries) if trust_tries else None,
         "loss_decreased": sum(1 for loss0, loss_k in loss_pairs if loss_k <= loss0),
         "max_loss_ratio": max((loss_k / max(loss0, 1e-30) for loss0, loss_k in loss_pairs), default=None),
     }
@@ -247,20 +601,37 @@ def _parse_locom_diagnostics(output: str) -> dict[str, object]:
 
 
 def _base_env(args: argparse.Namespace) -> dict[str, str]:
-    return {
+    env = {
         "PYTHONUNBUFFERED": "1",
         "TRACK3_TRAIN_STEPS": str(args.train_steps),
+        "TRACK3_SCHEDULE_STEPS": str(args.schedule_steps or args.train_steps),
+        "TRACK3_STOP_STEP": str(args.stop_step if args.stop_step is not None else args.train_steps),
         "TRACK3_COOLDOWN_FRAC": str(args.cooldown_frac),
         "TRACK3_LOCOM_LOG_STEPS": args.log_steps,
+        "TRACK3_SEED": str(args.seed),
     }
+    if args.checkpoint_steps:
+        env["TRACK3_CHECKPOINT_STEPS"] = args.checkpoint_steps
+        env["TRACK3_CHECKPOINT_DIR"] = args.checkpoint_dir
+        env["TRACK3_CHECKPOINT_PREFIX"] = args.checkpoint_prefix or args.run_label or "track3_locom"
+    if args.resume_checkpoint:
+        env["TRACK3_RESUME_CHECKPOINT"] = args.resume_checkpoint
+    return env
 
 
 def _load_rows(args: argparse.Namespace) -> list[dict[str, object]]:
     rows = list(ROW_PRESETS[args.preset])
+    if args.rows_json and args.rows_json_file:
+        raise SystemExit("use only one of --rows-json or --rows-json-file")
     if args.rows_json:
         loaded = json.loads(args.rows_json)
         if not isinstance(loaded, list):
             raise SystemExit("--rows-json must be a JSON list")
+        rows = loaded
+    if args.rows_json_file:
+        loaded = json.loads(Path(args.rows_json_file).read_text())
+        if not isinstance(loaded, list):
+            raise SystemExit("--rows-json-file must contain a JSON list")
         rows = loaded
     if args.max_rows is not None:
         rows = rows[: args.max_rows]
@@ -290,6 +661,17 @@ def run_rows(args: argparse.Namespace) -> dict[str, object]:
             }
 
     gpu_rc, gpu_output, _ = _run_streamed(["bash", "-lc", "nvidia-smi -L || true"])
+    runtime_rc, runtime_output, _ = _run_streamed(
+        [
+            "python3",
+            "-c",
+            (
+                "import torch; "
+                "device = torch.cuda.get_device_name(0) if torch.cuda.is_available() else 'cpu'; "
+                "print(f'torch={torch.__version__} cuda={torch.version.cuda} device={device}')"
+            ),
+        ]
+    )
     results = []
     for row in rows:
         row_id = str(row["id"])
@@ -314,6 +696,7 @@ def run_rows(args: argparse.Namespace) -> dict[str, object]:
             "wall_time_s": round(elapsed, 3),
             "gates": parsed_rows,
             "final": parsed_rows[-1] if parsed_rows else {},
+            "aborted_nonfinite": "aborting_nonfinite_val" in output,
             "locoprop_diagnostics": _parse_locom_diagnostics(output),
             "tail": output[-4000:],
         }
@@ -327,6 +710,7 @@ def run_rows(args: argparse.Namespace) -> dict[str, object]:
         "run_label": label,
         "preset": args.preset,
         "gpu_probe": {"returncode": gpu_rc, "output": gpu_output.strip()},
+        "runtime_probe": {"returncode": runtime_rc, "output": runtime_output.strip()},
         "result_jsonl": str(jsonl_path),
         "result_json": str(json_path),
         "runs": results,
@@ -339,11 +723,19 @@ def main() -> int:
     parser = argparse.ArgumentParser()
     parser.add_argument("--preset", choices=sorted(ROW_PRESETS), default="c")
     parser.add_argument("--rows-json", default="", help="override preset with explicit row list")
+    parser.add_argument("--rows-json-file", default="", help="path to a JSON list overriding preset rows")
     parser.add_argument("--run-label", default="")
     parser.add_argument("--output-dir", default=".opencode/locom_clean_results")
     parser.add_argument("--train-steps", type=int, default=500)
+    parser.add_argument("--schedule-steps", type=int, default=0)
+    parser.add_argument("--stop-step", type=int)
     parser.add_argument("--cooldown-frac", type=float, default=0.7)
     parser.add_argument("--log-steps", default="0,1,2,10,50,125,250,375,500")
+    parser.add_argument("--seed", type=int, default=0)
+    parser.add_argument("--checkpoint-steps", default="")
+    parser.add_argument("--checkpoint-dir", default="checkpoints/track3_locom")
+    parser.add_argument("--checkpoint-prefix", default="")
+    parser.add_argument("--resume-checkpoint", default="")
     parser.add_argument("--prepare-data-chunks", type=int, default=0)
     parser.add_argument("--max-rows", type=int)
     parser.add_argument("--continue-on-error", action="store_true")

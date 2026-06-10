@@ -1,0 +1,65 @@
+[
+  {
+    "id": "LM500-00-base",
+    "env": {
+      "TRACK3_LOCOM_ENABLED": "0"
+    }
+  },
+  {
+    "id": "LM500-10-nobias-muonoperand",
+    "env": {
+      "TRACK3_LOCOM_SURFACES": "fc",
+      "TRACK3_LOCOM_TARGET_GAMMA": "0.5",
+      "TRACK3_LOCOM_NORM_CAP": "0.20",
+      "TRACK3_LOCOM_BIAS": "0",
+      "TRACK3_LOCOM_SOURCE": "muon_operand"
+    }
+  },
+  {
+    "id": "LM500-18-nobias-muonoperand-dual-b000-p0",
+    "env": {
+      "TRACK3_LOCOM_SURFACES": "fc",
+      "TRACK3_LOCOM_TARGET_GAMMA": "0.5",
+      "TRACK3_LOCOM_NORM_CAP": "0.20",
+      "TRACK3_LOCOM_BIAS": "0",
+      "TRACK3_LOCOM_SOURCE": "muon_operand",
+      "TRACK3_LOCOM_MOMENTUM_MODE": "dual_residual",
+      "TRACK3_LOCOM_MOMENTUM_BETA": "0.0",
+      "TRACK3_LOCOM_METRIC_BETA": "0.0",
+      "TRACK3_LOCOM_SOFT_POLAR_POWER": "0.0"
+    }
+  },
+  {
+    "id": "LM500-19-nobias-muonoperand-truepost-trust-dual-b090-p0",
+    "env": {
+      "TRACK3_LOCOM_SURFACES": "fc",
+      "TRACK3_LOCOM_TRUE_RELU2_GRAD": "1",
+      "TRACK3_LOCOM_TARGET_GAMMA": "0.5",
+      "TRACK3_LOCOM_NORM_CAP": "0.20",
+      "TRACK3_LOCOM_BIAS": "0",
+      "TRACK3_LOCOM_SOURCE": "muon_operand",
+      "TRACK3_LOCOM_TRUST_REGION": "1",
+      "TRACK3_LOCOM_TRUST_CAP": "0.20",
+      "TRACK3_LOCOM_INNER_LR": "0.02",
+      "TRACK3_LOCOM_TRUST_MAX_TRIES": "8",
+      "TRACK3_LOCOM_TRUST_PROX_MULT": "8.0",
+      "TRACK3_LOCOM_TRUST_INNER_LR_DECAY": "0.25",
+      "TRACK3_LOCOM_MOMENTUM_MODE": "dual_residual",
+      "TRACK3_LOCOM_MOMENTUM_BETA": "0.90",
+      "TRACK3_LOCOM_METRIC_BETA": "0.95",
+      "TRACK3_LOCOM_SOFT_POLAR_POWER": "0.0"
+    }
+  },
+  {
+    "id": "LM500-16-nobias-muonoperand-prepareonly",
+    "env": {
+      "TRACK3_LOCOM_SURFACES": "fc",
+      "TRACK3_LOCOM_TARGET_GAMMA": "0.5",
+      "TRACK3_LOCOM_NORM_CAP": "0.20",
+      "TRACK3_LOCOM_BIAS": "0",
+      "TRACK3_LOCOM_SOURCE": "muon_operand",
+      "TRACK3_LOCOM_DIRECT_APPLY": "0",
+      "TRACK3_LOCOM_MUON_SIDECAR_EPS": "0.0"
+    }
+  }
+]
