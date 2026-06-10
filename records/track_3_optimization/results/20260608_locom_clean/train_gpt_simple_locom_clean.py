@@ -121,6 +121,7 @@ LOCOM_LOG_STEPS = parse_step_set(os.environ.get(
     "TRACK3_LOCOM_LOG_STEPS",
     "0,1,2,10,50,125,250,500,1000,1500,2000,2400,2800",
 ))
+LOCOM_SOLVE_DIAG_STEPS = parse_step_set(os.environ.get("TRACK3_LOCOM_SOLVE_DIAG_STEPS", ""))
 TRACK3_TRAIN_STEPS = env_int("TRACK3_TRAIN_STEPS", 3350)
 TRACK3_SCHEDULE_STEPS = env_int("TRACK3_SCHEDULE_STEPS", TRACK3_TRAIN_STEPS)
 TRACK3_STOP_STEP = env_int("TRACK3_STOP_STEP", TRACK3_TRAIN_STEPS)
@@ -542,21 +543,67 @@ def _base_info_for_module(
 def locom_pseudo_dout_from_weight_source(
     x: Tensor,
     source_w: Tensor,
+    step: int = -1,
+    labels: tuple[tuple[str, int], ...] = (),
 ) -> Tensor:
     # Find the minimum-feature-metric output gradient D such that
     # D.T @ X / n is close to the supplied weight-space source.
     n = max(x.size(1), 1)
-    gram = torch.bmm(x.transpose(1, 2), x).mul_(1.0 / n)
-    eye = torch.eye(gram.size(-1), device=gram.device, dtype=gram.dtype).expand_as(gram)
-    gram = gram.add(eye, alpha=LOCOM_SOURCE_DAMPING)
-    coeff = torch.linalg.solve(gram, source_w.transpose(1, 2))
-    return torch.bmm(x, coeff)
+    raw_gram = torch.bmm(x.transpose(1, 2), x).mul_(1.0 / n)
+    eye = torch.eye(raw_gram.size(-1), device=raw_gram.device, dtype=raw_gram.dtype).expand_as(raw_gram)
+    gram = raw_gram.add(eye, alpha=LOCOM_SOURCE_DAMPING)
+    source_t = source_w.transpose(1, 2)
+    coeff = torch.linalg.solve(gram, source_t)
+    pseudo_dout = torch.bmm(x, coeff)
+    if step in LOCOM_SOLVE_DIAG_STEPS:
+        with torch.no_grad():
+            evals, evecs = torch.linalg.eigh(raw_gram.float())
+            source_norm = source_w.float().flatten(1).norm(dim=1).clamp_min(1e-30)
+            coeff_norm = coeff.float().flatten(1).norm(dim=1)
+            dout_norm = pseudo_dout.float().flatten(1).norm(dim=1)
+            residual = torch.bmm(gram.float(), coeff.float()) - source_t.float()
+            residual_rel = residual.flatten(1).norm(dim=1) / source_norm
+            eig_max = evals[:, -1].clamp_min(1e-30)
+            eig_min = evals[:, 0].clamp_min(0.0)
+            eig_med = evals[:, evals.size(1) // 2].clamp_min(0.0)
+            cond_damped = (evals[:, -1] + LOCOM_SOURCE_DAMPING) / (
+                eig_min + LOCOM_SOURCE_DAMPING
+            ).clamp_min(1e-30)
+            source_eig = torch.bmm(source_w.float(), evecs)
+            source_energy = source_eig.square().sum(dim=1)
+            total_energy = source_energy.sum(dim=1).clamp_min(1e-30)
+            bottom_k = max(1, evals.size(1) // 10)
+            bottom10_frac = source_energy[:, :bottom_k].sum(dim=1) / total_energy
+            below_damp_frac = (
+                source_energy.masked_fill(evals > LOCOM_SOURCE_DAMPING, 0.0).sum(dim=1)
+                / total_energy
+            )
+            chunks = []
+            for i in range(x.size(0)):
+                surface, layer_idx = labels[i] if i < len(labels) else ("?", i)
+                chunks.append(
+                    f"{surface}l{layer_idx}:"
+                    f"eig_min={float(eig_min[i]):.3e}"
+                    f",eig_med={float(eig_med[i]):.3e}"
+                    f",eig_max={float(eig_max[i]):.3e}"
+                    f",cond_damped={float(cond_damped[i]):.3e}"
+                    f",src_bottom10={float(bottom10_frac[i]):.3e}"
+                    f",src_below_damp={float(below_damp_frac[i]):.3e}"
+                    f",source_norm={float(source_norm[i]):.3e}"
+                    f",coeff_over_source={float(coeff_norm[i] / source_norm[i]):.3e}"
+                    f",dout_over_source={float(dout_norm[i] / source_norm[i]):.3e}"
+                    f",resid_rel={float(residual_rel[i]):.3e}"
+                )
+            print0("locoprop_solve_diag step=" + str(step) + " " + " | ".join(chunks), console=True)
+    return pseudo_dout
 
 def maybe_override_locom_dout(
     dout: Tensor,
     x: Tensor,
     modules: list[Linear],
     base_update_by_param: dict[int, tuple[Tensor, ...]],
+    step: int = -1,
+    labels: tuple[tuple[str, int], ...] = (),
 ) -> Tensor:
     source_mode = locom_source_mode()
     if source_mode == "grad":
@@ -574,7 +621,7 @@ def maybe_override_locom_dout(
             source = module.weight.grad
         source_ws.append(source.detach().float())
     source_w = torch.stack(source_ws).to(x.device)
-    return locom_pseudo_dout_from_weight_source(x, source_w)
+    return locom_pseudo_dout_from_weight_source(x, source_w, step=step, labels=labels)
 
 def sync_locom_biases(model: GPT, target_owners: dict[tuple[str, int], int], step: int):
     if not locom_active(step) or not LOCOM_BIAS:
@@ -822,12 +869,13 @@ def prepare_locom_mlp_corrections(
             continue
 
         modules = [locom_module(model, surface, layer_idx) for layer_idx in target_layers]
+        labels = tuple((surface, layer_idx) for layer_idx in target_layers)
         if surface == "fc":
             x = torch.stack([sample_by_layer[layer_idx]["fc_x"].float() for layer_idx in target_layers])
             y0 = torch.stack([sample_by_layer[layer_idx]["fc_pre"].float() for layer_idx in target_layers])
             post0 = torch.stack([sample_by_layer[layer_idx]["fc_post"].float() for layer_idx in target_layers])
             dout = torch.stack([sample_by_layer[layer_idx]["fc_dout"].float() for layer_idx in target_layers])
-            dout = maybe_override_locom_dout(dout, x, modules, base_update_by_param)
+            dout = maybe_override_locom_dout(dout, x, modules, base_update_by_param, step, labels)
             if LOCOM_MODE == "squared":
                 target = y0 - LOCOM_TARGET_GAMMA * dout
             elif LOCOM_MODE == "matching":
@@ -838,31 +886,31 @@ def prepare_locom_mlp_corrections(
             x = torch.stack([sample_by_layer[layer_idx]["proj_x"].float() for layer_idx in target_layers])
             y0 = torch.stack([sample_by_layer[layer_idx]["proj_y"].float() for layer_idx in target_layers])
             dout = torch.stack([sample_by_layer[layer_idx]["proj_dout"].float() for layer_idx in target_layers])
-            dout = maybe_override_locom_dout(dout, x, modules, base_update_by_param)
+            dout = maybe_override_locom_dout(dout, x, modules, base_update_by_param, step, labels)
             target = y0 - LOCOM_TARGET_GAMMA * dout
         elif surface == "q":
             x = torch.stack([sample_by_layer[layer_idx]["q_x"].float() for layer_idx in target_layers])
             y0 = torch.stack([sample_by_layer[layer_idx]["q_y"].float() for layer_idx in target_layers])
             dout = torch.stack([sample_by_layer[layer_idx]["q_dout"].float() for layer_idx in target_layers])
-            dout = maybe_override_locom_dout(dout, x, modules, base_update_by_param)
+            dout = maybe_override_locom_dout(dout, x, modules, base_update_by_param, step, labels)
             target = y0 - LOCOM_TARGET_GAMMA * dout
         elif surface == "k":
             x = torch.stack([sample_by_layer[layer_idx]["k_x"].float() for layer_idx in target_layers])
             y0 = torch.stack([sample_by_layer[layer_idx]["k_y"].float() for layer_idx in target_layers])
             dout = torch.stack([sample_by_layer[layer_idx]["k_dout"].float() for layer_idx in target_layers])
-            dout = maybe_override_locom_dout(dout, x, modules, base_update_by_param)
+            dout = maybe_override_locom_dout(dout, x, modules, base_update_by_param, step, labels)
             target = y0 - LOCOM_TARGET_GAMMA * dout
         elif surface == "v":
             x = torch.stack([sample_by_layer[layer_idx]["v_x"].float() for layer_idx in target_layers])
             y0 = torch.stack([sample_by_layer[layer_idx]["v_y"].float() for layer_idx in target_layers])
             dout = torch.stack([sample_by_layer[layer_idx]["v_dout"].float() for layer_idx in target_layers])
-            dout = maybe_override_locom_dout(dout, x, modules, base_update_by_param)
+            dout = maybe_override_locom_dout(dout, x, modules, base_update_by_param, step, labels)
             target = y0 - LOCOM_TARGET_GAMMA * dout
         elif surface == "o":
             x = torch.stack([sample_by_layer[layer_idx]["o_x"].float() for layer_idx in target_layers])
             y0 = torch.stack([sample_by_layer[layer_idx]["o_y"].float() for layer_idx in target_layers])
             dout = torch.stack([sample_by_layer[layer_idx]["o_dout"].float() for layer_idx in target_layers])
-            dout = maybe_override_locom_dout(dout, x, modules, base_update_by_param)
+            dout = maybe_override_locom_dout(dout, x, modules, base_update_by_param, step, labels)
             target = y0 - LOCOM_TARGET_GAMMA * dout
         else:
             raise ValueError(f"unknown LocoProp surface {surface!r}")
